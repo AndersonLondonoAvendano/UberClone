@@ -1,5 +1,85 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/check-constitution.mjs*)",
+      "Bash(node scripts/visual-audit.mjs*)",
+      "Bash(npx expo-doctor*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git ls-files*)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npm root -g)",
+      "Bash(claude plugin list*)",
+      "Bash(claude plugin marketplace list*)"
+    ],
+    "deny": [
+      "Bash(yarn *)",
+      "Bash(pnpm *)",
+      "Bash(bun *)",
+      "Bash(npm uninstall*)",
+      "Bash(npm remove*)",
+      "Bash(npm rm *)",
+      "Bash(npm publish*)",
+      "Bash(npx expo prebuild*)",
+      "Bash(npx expo run:*)",
+      "Bash(eas *)",
+      "Bash(npx eas*)",
+      "Bash(firebase deploy*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(rm -rf*)",
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*.local)",
+      "Read(./**/serviceAccount*.json)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.keystore)",
+      "Read(./**/*.jks)"
+    ],
+    "ask": [
+      "Bash(npm install*)",
+      "Bash(npm i *)",
+      "Bash(npx expo install*)",
+      "Bash(npm run *)",
+      "Bash(npx playwright install*)",
+      "Bash(npx skills add*)",
+      "Bash(npx create-expo-app*)",
+      "Bash(claude plugin install*)",
+      "Bash(claude plugin marketplace add*)",
+      "Bash(git add*)"
+    ]
+  },
   "enabledPlugins": {
-    "expo@claude-plugins-official": true
+    "expo@claude-plugins-official": true,
+    "impeccable@impeccable": true,
+    "taste-skill@taste-skill": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    },
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable"
+      }
+    },
+    "taste-skill": {
+      "source": {
+        "source": "github",
+        "repo": "Leonxlnx/taste-skill"
+      }
+    }
   }
 }

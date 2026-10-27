@@ -1,0 +1,31 @@
+{
+  "allowed": [
+    "expo",
+    "expo-status-bar",
+    "expo-dev-client",
+    "react",
+    "react-native"
+  ],
+  "proposed": [
+    "react-native-maps",
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
+    "@react-native-firebase/firestore",
+    "@react-native-community/geolocation",
+    "@react-native-async-storage/async-storage",
+    "react-native-webview",
+    "expo-image-picker",
+    "@react-native-community/datetimepicker",
+    "@react-native-picker/picker",
+    "@react-navigation/native",
+    "@react-navigation/native-stack",
+    "@react-navigation/bottom-tabs",
+    "@react-navigation/drawer",
+    "react-native-screens",
+    "react-native-safe-area-context",
+    "react-native-gesture-handler",
+    "react-native-reanimated",
+    "expo-router",
+    "expo-localization"
+  ]
+}

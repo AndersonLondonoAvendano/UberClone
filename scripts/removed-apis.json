@@ -1,0 +1,3 @@
+[
+  { "pattern": "StyleSheet\\.absoluteFillObject", "message": "StyleSheet.absoluteFillObject was removed; use StyleSheet.absoluteFill or explicit absolute styles" }
+]

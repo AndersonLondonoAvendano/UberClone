@@ -3,6 +3,7 @@
 # dependencies
 node_modules/
 
+.claude/
 # Expo
 .expo/
 dist/
@@ -17,6 +18,11 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+android/
+ios/
+*.apk
+*.aab
+*.ipa
 
 # Metro
 .metro-health-check*
@@ -25,17 +31,28 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
-# macOS
+# OS
 .DS_Store
+Thumbs.db
 *.pem
 
-# local env files
-.env*.local
+# secrets y entorno
+.env
+.env.*
+!.env.example
+serviceAccount*.json
+google-services.json
+GoogleService-Info.plist
+
+# Claude Code local
+.claude/settings.local.json
+
+# temporales
+scripts/_tmp/
+docs/diseno/auditorias/capturas/_tmp/
+coverage/
 
 # typescript
 *.tsbuildinfo
-
-# generated native folders
-/ios
-/android
