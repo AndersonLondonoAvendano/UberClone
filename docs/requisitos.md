@@ -82,7 +82,7 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 ## Matriz de trazabilidad (la columna Tareas la llena el planner en la Fase 2)
 | Spec propuesta | Requisitos | Tareas |
 |---|---|---|
-| 000-fundacion | RNF-01, RNF-02, RNF-11, RNF-12, RNF-13, RF-30 | — |
+| 000-fundacion | RNF-01, RNF-02, RNF-11, RNF-12, RNF-13, RF-30 | T-01 (RNF-01, 12, 13), T-02, T-05, T-06, T-08, T-09, T-10, T-12, T-13, T-14 (RF-30), T-03 (RNF-11), T-04 (RNF-02), T-07 (RF-30, RNF-02), T-11 (RNF-01, 13, RF-30) |
 | 001-registro-conductor | RF-01 a RF-07, RNF-04, RNF-07 | — |
 | 002-disponibilidad-ubicacion | RF-08, RF-09, RNF-03 (`useDriverLocation`), RNF-06 (geolocalización) | — |
 | 003-solicitudes-viaje | RF-10 a RF-13, RNF-03 (`useTripRequests`), RNF-06 (FCM y tiempo real), RNF-08 | — |

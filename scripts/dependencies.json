@@ -4,7 +4,17 @@
     "expo-status-bar",
     "expo-dev-client",
     "react",
-    "react-native"
+    "react-native",
+    "@react-navigation/native",
+    "@react-navigation/native-stack",
+    "@react-navigation/bottom-tabs",
+    "@react-navigation/drawer",
+    "react-native-screens",
+    "react-native-safe-area-context",
+    "react-native-gesture-handler",
+    "react-native-reanimated",
+    "react-native-worklets",
+    "expo-system-ui"
   ],
   "proposed": [
     "react-native-maps",
@@ -17,15 +27,10 @@
     "expo-image-picker",
     "@react-native-community/datetimepicker",
     "@react-native-picker/picker",
-    "@react-navigation/native",
-    "@react-navigation/native-stack",
-    "@react-navigation/bottom-tabs",
-    "@react-navigation/drawer",
-    "react-native-screens",
-    "react-native-safe-area-context",
-    "react-native-gesture-handler",
-    "react-native-reanimated",
     "expo-router",
     "expo-localization"
+  ],
+  "backend": [
+    "express"
   ]
 }

@@ -307,6 +307,19 @@ const rules = [
           } else out.push({ file: 'package.json', line, msg: `${name} is not in scripts/dependencies.json (allowed)` });
         }
       }
+      // backend/package.json is checked against the separate "backend" list (D-30).
+      const backendText = ctx.read('backend/package.json');
+      if (backendText != null) {
+        let backendPkg; try { backendPkg = JSON.parse(backendText); } catch { return [...out, { file: 'backend/package.json', line: 1, msg: 'invalid JSON' }]; }
+        const backendAllowed = reg.backend || [];
+        for (const sec of ['dependencies', 'devDependencies']) {
+          for (const name of Object.keys(backendPkg[sec] || {})) {
+            if (backendAllowed.includes(name)) continue;
+            const line = (backendText.split(String.fromCharCode(10)).findIndex((l) => l.includes(`"${name}"`)) + 1) || 1;
+            out.push({ file: 'backend/package.json', line, msg: `${name} is not in the "backend" list of scripts/dependencies.json` });
+          }
+        }
+      }
       return out;
     },
   },
@@ -564,6 +577,7 @@ function makeGood(root) {
   put(root, 'src/services/distance.js', "export const DISTANCE_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json';\n");
   put(root, 'src/screens/Register.js', 'export const Register = () => null;\n');
   put(root, 'src/store/prefs.js', "import AsyncStorage from '@react-native-async-storage/async-storage';\nexport const saveLanguage = (v) => AsyncStorage.setItem('language', v);\n");
+  put(root, 'backend/package.json', JSON.stringify({ name: 'fx-backend', dependencies: { express: '1' } }, null, 2));
   put(root, 'backend/server.js', "const { tripId } = req.body;\nconst preference = createPreference(tripId);\nconst token = process.env.MP_ACCESS_TOKEN;\n");
   put(root, 'docs/requisitos.md', '| RF-01 | Registro | F1 §2 |\n| RNF-01 | RN + Expo | F1 §1 |\n| RF-19 | (Opcional) Pago dividido | F1 §4 |\n');
   put(root, 'docs/backlog.md', '### T-01 Primera pantalla\n- Requisitos: RF-01, RNF-01\n');
@@ -622,6 +636,13 @@ function selftest() {
       if (!pass) failures++;
       console.log(`${pass ? 'OK  ' : 'FAIL'} ${r.id} -> ${codes.join(',') || '(nothing)'}`);
     }
+    // C15 on backend/package.json: a listed dependency passes (good project), an unlisted one is an ERROR
+    const be = path.join(tmp, 'C15-backend');
+    makeGood(be); put(be, 'backend/package.json', JSON.stringify({ name: 'fx-backend', dependencies: { express: '1', 'left-pad': '1' } }, null, 2));
+    const br = active(runChecks(be, 5));
+    const beOk = br.length === 1 && br[0].id === 'C15' && br[0].level === 'ERROR' && br[0].file === 'backend/package.json' && /left-pad/.test(br[0].msg);
+    if (!beOk) failures++;
+    console.log(`${beOk ? 'OK  ' : 'FAIL'} C15 backend/package.json: express passes, left-pad is an ERROR`);
     // phase gating: with phase 0 the injected C07 violation must be inactive
     const gate = path.join(tmp, 'gate');
     makeGood(gate); mutations.C07(gate);
