@@ -1,0 +1,92 @@
+// AI-assisted: see docs/AI_LOG.md #11
+// AI-assisted: see docs/AI_LOG.md #13
+// AI-assisted: see docs/AI_LOG.md #14
+// AI-assisted: see docs/AI_LOG.md #15
+// AI-assisted: see docs/AI_LOG.md #18
+// AI-assisted: see docs/AI_LOG.md #19
+// Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
+
+export const labels = {
+  appName: 'UberClone Conductor',
+  tabs: {
+    personalData: 'Datos personales',
+    vehicle: 'Vehículo',
+    documents: 'Documentos',
+  },
+  drawer: {
+    title: 'UberClone Conductor',
+    home: 'Inicio',
+    profile: 'Perfil',
+    history: 'Historial',
+    earnings: 'Ganancias',
+    settings: 'Configuración',
+  },
+  nav: {
+    openDrawer: 'Menú',
+    back: 'Atrás',
+  },
+  home: {
+    startTrip: 'Simular solicitud (provisional)', // provisional development entry, replaced when requests are simulated
+  },
+  trip: {
+    requestTitle: 'Solicitud entrante',
+    activeTitle: 'Viaje en curso',
+    summaryTitle: 'Cobro y resumen',
+    continue: 'Continuar',
+    backToHome: 'Volver al inicio',
+  },
+  states: {
+    loading: {
+      title: 'Cargando',
+      message: 'Estamos trayendo tu información.',
+    },
+    empty: {
+      title: 'Todavía no hay nada aquí',
+      message: 'Aún no hay información que mostrar. Vuelve a esta pantalla más tarde.',
+    },
+    error: {
+      title: 'No pudimos cargar',
+      message: 'Algo falló al traer tu información. Revisa tu conexión e inténtalo de nuevo.',
+    },
+  },
+  placeholder: {
+    body: 'Pantalla marcador. Su contenido llega con su spec.',
+  },
+  a11y: {
+    openDrawer: 'Abrir menú',
+    back: 'Volver a la pantalla anterior',
+    drawerItems: {
+      profile: 'Ir a Perfil',
+      history: 'Ir a Historial',
+      earnings: 'Ir a Ganancias',
+      settings: 'Ir a Configuración',
+    },
+    tabs: {
+      personalData: 'Pestaña Datos personales',
+      vehicle: 'Pestaña Vehículo',
+      documents: 'Pestaña Documentos',
+    },
+  },
+  actions: {
+    retry: 'Reintentar',
+  },
+  forceState: {
+    legend: 'Estado de la pantalla (prueba)',
+    content: 'Contenido',
+    loading: 'Cargando',
+    empty: 'Vacío',
+    error: 'Error',
+  },
+  devAccount: {
+    title: 'Simulador de cuenta (provisional)',
+    loading: 'Cargando',
+    pending: 'Pendiente de aprobación',
+    approved: 'Aprobado',
+    error: 'Error',
+  },
+  demo: {
+    sharedFieldLabel: 'Valor de prueba compartido',
+    sharedValueLabel: 'Valor escrito en Datos personales',
+    sharedValueEmpty: 'Todavía no escribiste nada',
+  },
+};
