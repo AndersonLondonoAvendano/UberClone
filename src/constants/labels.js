@@ -99,7 +99,7 @@ export const labels = {
     },
     language: {
       es: 'Español',
-      en: 'English',
+      en: 'Inglés',
     },
     vehicleCategory: {
       economico: 'Económico',
@@ -116,6 +116,47 @@ export const labels = {
       verde: 'Verde',
       amarillo: 'Amarillo',
       otro: 'Otro',
+    },
+    photo: {
+      instruction: 'Elige una foto con la cámara o la galería.',
+      camera: 'Cámara',
+      gallery: 'Galería',
+      uploading: 'Subiendo foto',
+      permissionDenied: 'Necesitamos tu permiso para continuar. Revisa los permisos de la app y vuelve a intentarlo.',
+    },
+    personalData: {
+      fields: {
+        profilePhotoUrl: { label: 'Foto de perfil', error: 'Elige una foto de perfil con la cámara o la galería.' },
+        fullName: { label: 'Nombre completo', error: 'Escribe tu nombre completo (máximo 50 letras, solo letras y espacios).' },
+        documentNumber: { label: 'Número de documento', error: 'Escribe un número de documento válido (6 a 10 dígitos).' },
+        phone: { label: 'Celular', error: 'Escribe un número de celular válido de 10 dígitos.' },
+        birthDate: { label: 'Fecha de nacimiento', error: 'Elige tu fecha de nacimiento; debes ser mayor de 18 años.' },
+        gender: { label: 'Género', error: 'Selecciona una opción.' },
+        email: { label: 'Correo electrónico', error: 'Escribe un correo válido, con @ y dominio.' },
+        language: { label: 'Idioma', error: 'Selecciona un idioma.' },
+      },
+    },
+    vehicle: {
+      fields: {
+        category: { label: 'Categoría', error: 'Selecciona una categoría.' },
+        plate: { label: 'Placa', error: 'Escribe una placa válida, con el formato ABC123.' },
+        brand: { label: 'Marca', error: 'Escribe la marca del vehículo (máximo 30 caracteres).' },
+        model: { label: 'Modelo', error: 'Escribe el modelo del vehículo (máximo 30 caracteres).' },
+        year: { label: 'Año', error: 'Escribe un año válido (4 dígitos, no mayor al año actual).' },
+        color: { label: 'Color', error: 'Selecciona un color.' },
+        capacity: { label: 'Capacidad', error: 'Escribe una capacidad válida (mínimo 6 para la categoría XL).' },
+        photoUrl: { label: 'Foto del vehículo (con la placa visible)', error: 'Elige una foto del vehículo con la placa visible, con la cámara o la galería.' },
+      },
+    },
+    documents: {
+      fields: {
+        mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
+        termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
+      },
+      termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent}% sobre cada viaje.',
+      submit: 'Enviar registro',
+      submitting: 'Enviando…',
+      submitError: 'No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo.',
     },
   },
 };

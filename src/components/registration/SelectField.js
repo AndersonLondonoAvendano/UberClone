@@ -87,9 +87,12 @@ const styles = StyleSheet.create({
     ...type.body,
     color: color.textMuted,
   },
+  // No overlay/scrim token exists in tokens.js today, and this task may not add a new one (plan §7:
+  // no new tokens). A transparent backdrop keeps the tap-outside-to-close behavior without inventing
+  // a color; dimming the background would need its own token decision first.
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
   },
   sheet: {
