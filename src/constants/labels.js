@@ -4,6 +4,7 @@
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
+// AI-assisted: see docs/AI_LOG.md #25
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -88,5 +89,33 @@ export const labels = {
     sharedFieldLabel: 'Valor de prueba compartido',
     sharedValueLabel: 'Valor escrito en Datos personales',
     sharedValueEmpty: 'Todavía no escribiste nada',
+  },
+  registration: {
+    gender: {
+      femenino: 'Femenino',
+      masculino: 'Masculino',
+      otro: 'Otro',
+      prefieroNoDecir: 'Prefiero no decir',
+    },
+    language: {
+      es: 'Español',
+      en: 'English',
+    },
+    vehicleCategory: {
+      economico: 'Económico',
+      xl: 'XL',
+      premium: 'Premium',
+    },
+    vehicleColor: {
+      blanco: 'Blanco',
+      negro: 'Negro',
+      gris: 'Gris',
+      plata: 'Plata',
+      rojo: 'Rojo',
+      azul: 'Azul',
+      verde: 'Verde',
+      amarillo: 'Amarillo',
+      otro: 'Otro',
+    },
   },
 };

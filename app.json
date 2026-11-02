@@ -21,7 +21,16 @@
       "userInterfaceStyle": "light"
     },
     "plugins": [
-      "expo-system-ui"
+      "expo-system-ui",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "UberClone Conductor necesita la cámara para tomar tu foto de perfil y la foto de tu vehículo.",
+          "photosPermission": "UberClone Conductor necesita tu galería para elegir tu foto de perfil o la de tu vehículo.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

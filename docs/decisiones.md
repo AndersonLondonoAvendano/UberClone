@@ -294,3 +294,94 @@ Situación: el simulador de cuenta es hoy la única forma de cambiar de rama en 
 Decisión: las pantallas de arranque de carga y de error de T-10 muestran, debajo de `ScreenState`, el `DevAccountSwitch` (provisional) para poder volver a otra rama; el error mantiene además `btn-retry`. Lo retiran las specs 001 y 008 junto con los demás `DevAccountSwitch` (cuando el estado de la cuenta sea el real), y lo comprueba la lista de cierre de la spec 009 (ningún `dev-account-*` en el código entregado).
 Alternativa: retirar el simulador y probar el cambio de rama de otra forma (no hay otra en el celular).
 
+### D-51 — Entrega parcial 2026-11-05: se aplazan T-12 y T-13, se prioriza el registro funcional (spec 001) · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24).
+Situación: la profesora confirmó una entrega parcial para el jueves 2026-11-05, con alcance concreto (Pestañas 1 y 2 del registro totalmente funcionales con Firestore y fotos reales; Pestaña 3 mínima; envío que deja la cuenta «Pendiente de aprobación»). T-12 y T-13 (auditoría de diseño de la spec 000) auditarían, entre otras cosas, el contenido de las tres pestañas de Registro (T-07) que la spec 001 va a reemplazar; auditar ahora ese contenido sería trabajo perdido.
+Decisión: T-12 y T-13 quedan en `docs/backlog.md` como Pendiente (Estado sin cambio), con todos los hallazgos de diseño ya anotados (`docs/backlog.md`, listas de T-12 y T-13) conservados para cuando se ejecuten. No se invoca al `design-auditor`. Se prioriza especificar y planificar el registro funcional (spec 001-registro-conductor) para cumplir la entrega del jueves. El campo `Diseño` de T-02, T-05 a T-10 sigue «Pendiente»; la spec 000 sigue «Planificada» (no se cierra) hasta que T-12, T-13 y T-14 (ya Validada) completen sus tareas.
+Alternativa: ejecutar T-12/T-13 ahora sobre el contenido actual de las pestañas y repetir la auditoría después del registro funcional (doble trabajo, descartado por el tiempo disponible).
+Ampliada (Anderson, 2026-11-01, prompt #25, punto 2f): T-29 (auditoría de diseño propia de la spec 001-registro-conductor, recomendada por el planner) queda aplazada por el mismo motivo y con la misma condición que T-12/T-13: el campo `Diseño` de T-21, T-22, T-24, T-25 y T-26 sigue «Pendiente» hasta que se ejecute.
+
+### D-52 — Firestore con el SDK de JavaScript (`firebase`), no `@react-native-firebase` · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4a).
+Situación: evita generar y versionar `google-services.json`/`GoogleService-Info.plist` (ya excluidos por D-24) y una configuración nativa de Firebase adicional; el SDK JS corre sobre fetch/WebSocket puro, sin módulo nativo propio. RIESGO señalado por el agente principal antes de especificar: las versiones recientes de `firebase` (v10+) usan "package.json exports", que a veces choca con la resolución de Metro bajo Expo. Mitigación: antes de fijar la versión en `scripts/dependencies.json`, la tarea de instalación debe verificar la guía oficial vigente de Expo para Firebase JS SDK (https://docs.expo.dev/guides/using-firebase/) para la versión de SDK de Expo del proyecto, y fijar una versión de `firebase` compatible o el ajuste de `metro.config.js` que haga falta.
+Decisión: Firestore vía SDK JS (paquete `firebase`). Reglas de seguridad de Firestore restringidas por `uid` (nada abierto a todos ni a `request.auth == null`).
+Alternativa: `@react-native-firebase` (requiere configuración nativa y una recompilación distinta; se descarta por el tiempo disponible hasta el jueves).
+
+### D-53 — Identidad: Firebase Auth anónimo, `uid` = `driverId` · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4b).
+Situación: F1 no exige correo/contraseña para el conductor en esta etapa; la autenticación anónima es la opción más simple y rápida de implementar para el jueves. RIESGO señalado por el agente principal: si se desinstala la app o se limpian los datos, Firebase genera un `uid` anónimo nuevo y se pierde el acceso al documento anterior sin forma de recuperarlo. Para un taller de un solo dispositivo es aceptable; queda anotado como limitación conocida, no como error, y como caso límite en la spec 001.
+Decisión: Firebase Auth anónimo; el `uid` resultante es el `driverId` y la clave del documento del conductor en Firestore. `AsyncStorage` solo guarda preferencias de sesión (RNF-04), nunca datos sensibles.
+Alternativa: correo/contraseña (más robusto frente a la pérdida del `uid`, pero más lento de implementar para el jueves; queda anotada como mejora futura, no descartada para siempre).
+
+### D-54 — Fotos con Cloudinary, upload preset sin firma, subida directa desde la app · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4c).
+Situación: RNF-05 exige que llaves/secretos vivan solo en el backend; un upload preset "unsigned" de Cloudinary está diseñado para ser público (no es un secreto equivalente a una API key privada), así que subir directo desde la app no viola RNF-05. RNF-07 ya recomendaba Cloudinary.
+Decisión: Cloudinary con upload preset sin firma; el nombre de la nube y del preset son variables de entorno PÚBLICAS de Expo (prefijo `EXPO_PUBLIC_`), con los NOMBRES (nunca los valores) en `.env.example`. Sin SDK nativo de Cloudinary: `fetch`/`FormData` contra su API REST de subida sin firma.
+Alternativa: subir las fotos a través del backend (añade un salto de red y complejidad sin necesidad real, porque el preset sin firma ya es seguro para uso en cliente).
+
+### D-55 — Pestaña 3 (Documentos) mínima para la entrega del 2026-11-05 · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4d).
+Situación: alcance confirmado por la profesora vía Anderson: para esta entrega bastan el correo de Mercado Pago y el checkbox de términos con el porcentaje de comisión visible; licencia, SOAT y revisión técnico-mecánica (resto de RF-07) quedan pendientes.
+Decisión: Documentos, en esta entrega, valida solo el correo de Mercado Pago (formato) y el checkbox de términos (bloqueante si no está marcado, con la comisión visible). Licencia, SOAT y revisión técnico-mecánica quedan como pendientes anotados en `docs/requisitos.md`/`docs/backlog.md`, ligados a P-04 (sigue aparcada) y a una tarea futura (de esta spec o de una spec propia, a decidir cuando se resuelva P-04).
+Alternativa: implementar también licencia/SOAT/RTM ahora (se descarta por el tiempo disponible).
+
+### D-56 — Listas desplegables con `Modal` + `FlatList`, sin dependencia nativa · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4e).
+Situación: evita instalar `@react-native-picker/picker` (código nativo, exige recompilar) justo antes de una entrega con poco margen; además permite estilos 100 % con los tokens de `DESIGN.md`.
+Decisión: los campos de selección (categoría del vehículo, color, género, idioma) usan un `Modal` con `FlatList` propio, sin dependencia nueva.
+Alternativa: `@react-native-picker/picker` (UI nativa del sistema; se descarta por el tiempo y por salirse de los tokens).
+
+### D-57 — Estado de cuenta real vía Firestore (`accountStatus` con `onSnapshot`) · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4f).
+Situación: hasta ahora `accountStatus` es simulado en memoria (`AppStateContext`, T-04) con `DevAccountSwitch` (D-38, D-47, D-50) como única forma de cambiarlo en el celular. F1 §2 dice que «Aprobado» se simula cambiando el campo en la base de datos.
+Decisión: el documento del conductor en Firestore tiene el campo `accountStatus`; se escucha con `onSnapshot` (limpieza en el retorno del `useEffect`, regla C11). El planner debe decidir y nombrar en el plan la tarea exacta que reemplaza el simulador por esta lectura real (propuesta del agente principal: la tarea que conecta el envío del registro con Firestore, porque ahí nace el documento real); hasta esa tarea, `DevAccountSwitch` sigue siendo necesario para probar las ramas sin un conductor real todavía registrado, y se retira junto con él (specs 001 y 008, ya anotado en D-38/D-47/D-50 y en `docs/backlog.md`). «Aprobado» se simula cambiando el campo `accountStatus` manualmente en la consola de Firestore (F1 §2).
+Alternativa: mantener el simulador en paralelo a la cuenta real (duplica la lógica de estado; se descarta).
+
+### D-58 — El backend Express no se toca en esta entrega · Vigente
+Aprobada por Anderson, registrada por el agente principal (2026-11-01, prompt #24, punto 4g).
+Situación: el registro funcional (Firestore directo + Cloudinary directo desde la app) no necesita backend: no crea preferencias de pago ni usa llaves secretas en esta etapa.
+Decisión: `backend/` queda sin cambios para esta entrega.
+Alternativa: ninguna necesaria (no aplica).
+
+### D-59 — Validación en el celular agrupada en tres puntos de control para el registro funcional · Vigente
+Propuesta por el agente principal (2026-11-01, prompt #24, punto 7); aprobada por Anderson (2026-11-01, prompt #25, punto 2e). Se aplica: AGENTS.md P1 ajustado (ver abajo).
+Situación: el ciclo P1 de `AGENTS.md` ("Prompts del ciclo") espera, por tarea, "Pega aquí el resultado de la prueba en el celular" antes de autorizar la siguiente, y cierra con "no hagas commit ni empieces la siguiente". Agrupar la prueba de Anderson en tres puntos (Pestaña 1; Pestañas 2 y 3; envío completo y estado Pendiente) en vez de una por tarea choca con esa frase exacta de P1 y, en el límite, con la regla rápida "Una tarea a la vez" de `AGENTS.md`/`CLAUDE.md` si se interpreta como "una tarea a la vez incluida su prueba en el celular". No choca con `docs/constitution.md` §8 (que no fija "una prueba por tarea", solo que lo que depende del celular queda "No verificado" hasta que Anderson confirme), ni con las reglas de `verifier.md` (que ya exige un verifier distinto por tarea, independiente del punto de control del celular).
+Decisión propuesta: dentro de la cadena de tareas de la spec 001 (y solo ahí, mientras dure la entrega del 2026-11-05), el agente principal puede implementar y verificar (estático, con script propio y `check-constitution`) varias tareas dependientes en secuencia sin pedir la prueba de Anderson entre cada una, agrupando la evidencia de dispositivo en tres puntos: (1) tras Pestaña 1 funcional; (2) tras Pestañas 2 y 3 funcionales; (3) tras el envío completo con Firestore y el estado Pendiente. Cada tarea sigue teniendo su propio verifier (distinto del implementer) y su propio Estado en `docs/backlog.md`, que puede llegar a "Implementada" sin "Validada" mientras espera el punto de control correspondiente; una tarea no pasa a "Validada" sin su evidencia de celular. Si una tarea de un grupo falla en el punto de control, se detiene ahí (no se sigue agrupando hacia adelante) y se diagnostica antes de continuar. Ajusta textualmente la frase de P1 en `AGENTS.md` ("Espera… no empieces la siguiente") para admitir esta excepción nombrada por spec y por fecha límite.
+Alternativa: mantener una prueba por tarea (más lento, pero sin ajustar ninguna regla); o un único punto de control al final (más rápido, pero si algo falla en Pestaña 1 se descubre después de construir todo lo demás encima).
+
+### D-60 — Sin documento `drivers/{uid}`: se trata como «no registrado», no como error · Vigente
+Propuesta por el spec-author (2026-11-01) al escribir la spec 001-registro-conductor; aprobada por Anderson (2026-11-01, prompt #25, punto 2a).
+Situación: un `uid` anónimo recién creado (primera vez que abre la app) no tiene todavía documento en `drivers/{uid}`; D-57 escucha ese documento con `onSnapshot`, y una lectura sin documento no es, por sí sola, un fallo de red ni de permisos.
+Decisión: la ausencia del documento se interpreta como «cuenta no registrada todavía» y muestra la rama de Registro (D-11), no el estado de error; el estado de error queda solo para fallos reales de lectura (red o permisos).
+Alternativa: tratar la ausencia de documento como un error hasta que exista (obligaría a un estado de error permanente para todo conductor nuevo).
+
+### D-61 — «Nombre: solo letras» incluye tildes y la ñ · Vigente
+Propuesta por el spec-author (2026-11-01) al escribir la spec 001-registro-conductor; aprobada por Anderson (2026-11-01, prompt #25, punto 2a).
+Situación: RF-05 exige que el nombre tenga como máximo 50 caracteres, "solo letras y espacios"; F1 §2 no aclara si "letras" incluye el alfabeto español completo (á, é, í, ó, ú, ñ, Ñ, ü) o solo a-z/A-Z sin diacríticos, y los conductores son hispanohablantes.
+Decisión (lectura más conservadora, la que no rechaza nombres reales): "letras" incluye las letras del alfabeto español con sus diacríticos (á, é, í, ó, ú, ü, ñ, Ñ) y espacios; excluye dígitos, signos de puntuación y otros símbolos.
+Alternativa: restringir a a-z/A-Z sin diacríticos (rechazaría nombres colombianos comunes).
+
+### D-62 — «Correo con `@` y dominio»: se exige al menos un punto en la parte del dominio · Vigente
+Propuesta por el spec-author (2026-11-01) al escribir la spec 001-registro-conductor; aprobada por Anderson (2026-11-01, prompt #25, punto 2a).
+Situación: RF-05 y RF-07 (correo de Mercado Pago) piden "correo con `@` y dominio"; F1 §2 no da el patrón exacto.
+Decisión (lectura conservadora): se exige la forma `algo@dominio.algo` (texto, arroba, texto, punto, texto); un valor como `a@b` (sin punto) se considera inválido. Se aplica igual al correo personal (RF-05) y al de Mercado Pago (RF-07).
+Alternativa: aceptar cualquier texto con una sola `@` sin exigir punto en el dominio (más permisivo, admitiría dominios incompletos).
+
+### D-63 — Opciones del desplegable de género · Vigente
+Propuesta por el spec-author (2026-11-01) al escribir la spec 001-registro-conductor; aprobada por Anderson (2026-11-01, prompt #25, punto 2a).
+Situación: RF-05 exige género por desplegable, pero F1 §2 no enumera las opciones.
+Decisión (conservadora, cerrada y mínima): Femenino, Masculino, Otro, Prefiero no decir.
+Alternativa: solo Femenino/Masculino (más restrictiva; podría excluir conductores).
+
+### D-64 — Opciones del desplegable de color del vehículo · Vigente
+Propuesta por el spec-author (2026-11-01) al escribir la spec 001-registro-conductor; aprobada por Anderson (2026-11-01, prompt #25, punto 2a).
+Situación: RF-06 exige color por desplegable, pero F1 §2 no enumera las opciones.
+Decisión (conservadora, incluye un catch-all para no excluir ningún color real): Blanco, Negro, Gris, Plata, Rojo, Azul, Verde, Amarillo, Otro.
+Alternativa: campo de texto libre en lugar de desplegable (RF-06 pide explícitamente desplegable, así que se descarta).
+
+### D-65 — Promover `firebase`, `@react-native-async-storage/async-storage`, `expo-image-picker` y `@react-native-community/datetimepicker` a `allowed` · Vigente
+Propuesta por el planner (2026-11-01) al escribir `specs/001-registro-conductor/plan.md`; aprobada por Anderson (2026-11-01, prompt #25, punto 2b).
+Situación: `scripts/dependencies.json` no tiene `firebase` en ninguna lista; `@react-native-async-storage/async-storage`, `expo-image-picker` y `@react-native-community/datetimepicker` están en `proposed`, que solo da WARN (C15), no autoriza instalar sin una decisión Vigente.
+Decisión propuesta: añadir `firebase` y mover esas tres dependencias de `proposed` a `allowed` en `scripts/dependencies.json`, para que T-15 (instalación conjunta) pueda ejecutarse. `@react-native-picker/picker` y `@react-native-firebase/*` quedan donde están (no se usan, D-52 y D-56 ya los descartan).
+Alternativa: dejarlas en `proposed` y que el implementer instale bajo la "excepción nombrada" de la tarea, sin tocar `scripts/dependencies.json` (menos trazable; se descarta, el patrón ya usado en T-01/T-02 fue promover con decisión Vigente).
+

@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #12
-// Shared app state (useContext): simulated account status and the demo value.
+// AI-assisted: see docs/AI_LOG.md #25
+// Shared app state (useContext): real account status (Firestore) with a local override, and the demo value.
 
 import {
   createContext,
@@ -12,69 +13,76 @@ import {
   useState,
 } from 'react';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
+import { ensureAnonymousUser } from '../services/firebase';
+import { listenToDriverAccount } from '../services/driverRepository';
 
-export const INITIAL_ACCOUNT_STATUS = ACCOUNT_STATUS.PENDING;
-export const ACCOUNT_RESOLVE_DELAY_MS = 800;
 const INITIAL_DEMO_VALUE = '';
-
 const VALID_STATUSES = Object.values(ACCOUNT_STATUS);
-
-// Pure helper (testable without React): owns at most one pending timer.
-export function createAccountStatusResolver({
-  onResolve,
-  delayMs = ACCOUNT_RESOLVE_DELAY_MS,
-  resolvedStatus = INITIAL_ACCOUNT_STATUS,
-  setTimeoutFn = setTimeout,
-  clearTimeoutFn = clearTimeout,
-}) {
-  let timerId = null;
-  const cancel = () => {
-    if (timerId !== null) {
-      clearTimeoutFn(timerId);
-      timerId = null;
-    }
-  };
-  const start = () => {
-    cancel();
-    timerId = setTimeoutFn(() => {
-      timerId = null;
-      onResolve(resolvedStatus);
-    }, delayMs);
-  };
-  return { start, cancel, isPending: () => timerId !== null };
-}
 
 const AppStateContext = createContext(null);
 
 export function AppStateProvider({ children }) {
-  const [accountStatus, setAccountStatus] = useState(ACCOUNT_STATUS.LOADING);
+  const [driverId, setDriverId] = useState(null);
+  const [realAccountStatus, setRealAccountStatus] = useState(null); // null = no drivers/{uid} doc yet
+  const [accountError, setAccountError] = useState(null);
+  const [isResolving, setIsResolving] = useState(true);
+  const [simulatedStatus, setSimulatedStatus] = useState(null); // local override, set by simulateAccountStatus
+  const [resolveToken, setResolveToken] = useState(0);
   const [demoValue, setDemoValue] = useState(INITIAL_DEMO_VALUE);
-  const resolverRef = useRef(null);
-  if (resolverRef.current === null) {
-    resolverRef.current = createAccountStatusResolver({ onResolve: setAccountStatus });
-  }
 
   useEffect(() => {
-    const resolver = resolverRef.current;
-    resolver.start();
-    return () => resolver.cancel();
-  }, []);
+    let cancelled = false;
+    let unsubscribeSnapshot = null;
+
+    setIsResolving(true);
+    setAccountError(null);
+
+    ensureAnonymousUser()
+      .then((uid) => {
+        if (cancelled) return;
+        setDriverId(uid);
+        unsubscribeSnapshot = listenToDriverAccount(uid, {
+          onChange: (status) => {
+            if (cancelled) return;
+            setIsResolving(false);
+            setRealAccountStatus(status);
+          },
+          onError: (error) => {
+            if (cancelled) return;
+            setIsResolving(false);
+            setAccountError(error);
+          },
+        });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setIsResolving(false);
+        setAccountError(error);
+      });
+
+    return () => {
+      cancelled = true;
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
+  }, [resolveToken]);
 
   const retryAccountStatus = useCallback(() => {
-    setAccountStatus(ACCOUNT_STATUS.LOADING);
-    resolverRef.current.start();
+    setSimulatedStatus(null);
+    setResolveToken((token) => token + 1);
   }, []);
 
-  // An invalid value is ignored: state is unchanged and any pending resolution is kept.
+  // An invalid value is ignored: state is unchanged.
   const simulateAccountStatus = useCallback((value) => {
     if (!VALID_STATUSES.includes(value)) return;
-    resolverRef.current.cancel();
-    setAccountStatus(value);
+    setSimulatedStatus(value);
   }, []);
 
+  const accountStatus = simulatedStatus
+    ?? (accountError ? ACCOUNT_STATUS.ERROR : (isResolving ? ACCOUNT_STATUS.LOADING : realAccountStatus));
+
   const value = useMemo(
-    () => ({ accountStatus, retryAccountStatus, simulateAccountStatus, demoValue, setDemoValue }),
-    [accountStatus, retryAccountStatus, simulateAccountStatus, demoValue],
+    () => ({ driverId, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue, setDemoValue }),
+    [driverId, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue],
   );
 
   return createElement(AppStateContext.Provider, { value }, children);

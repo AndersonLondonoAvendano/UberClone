@@ -14,7 +14,11 @@
     "react-native-gesture-handler",
     "react-native-reanimated",
     "react-native-worklets",
-    "expo-system-ui"
+    "expo-system-ui",
+    "firebase",
+    "@react-native-async-storage/async-storage",
+    "expo-image-picker",
+    "@react-native-community/datetimepicker"
   ],
   "proposed": [
     "react-native-maps",
@@ -22,10 +26,7 @@
     "@react-native-firebase/messaging",
     "@react-native-firebase/firestore",
     "@react-native-community/geolocation",
-    "@react-native-async-storage/async-storage",
     "react-native-webview",
-    "expo-image-picker",
-    "@react-native-community/datetimepicker",
     "@react-native-picker/picker",
     "expo-router",
     "expo-localization"

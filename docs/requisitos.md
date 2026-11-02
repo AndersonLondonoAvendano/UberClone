@@ -83,7 +83,7 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | Spec propuesta | Requisitos | Tareas |
 |---|---|---|
 | 000-fundacion | RNF-01, RNF-02, RNF-11, RNF-12, RNF-13, RF-30 | T-01 (RNF-01, 12, 13), T-02, T-05, T-06, T-08, T-09, T-10, T-12, T-13, T-14 (RF-30), T-03 (RNF-11), T-04 (RNF-02), T-07 (RF-30, RNF-02), T-11 (RNF-01, 13, RF-30) |
-| 001-registro-conductor | RF-01 a RF-07, RNF-04, RNF-07 | — |
+| 001-registro-conductor | RF-01 a RF-07, RNF-04, RNF-07 | T-15 (dependencias y build, RF-05/06), T-16 (Firebase/auth anónima, D-52/53), T-17 (repositorio del conductor, D-52/57/60), T-18 (estado real de cuenta, D-57/60, RNF-02), T-19 (Cloudinary, RNF-07), T-20 (validadores y opciones, RF-05/06/07), T-21 (campos texto/error/desplegable/casilla, RF-05/06/07), T-22 (fecha y foto, RF-05/06, RNF-07), T-23 (contexto del formulario y envío, RF-02/03/04), T-24 (Pestaña 1, RF-05), T-25 (Pestaña 2, RF-06), T-26 (Pestaña 3 y envío, RF-02/03/04/07), T-27 (reglas de seguridad de Firestore, D-52), T-28 (prueba integral en el celular), T-29 (auditoría de diseño) |
 | 002-disponibilidad-ubicacion | RF-08, RF-09, RNF-03 (`useDriverLocation`), RNF-06 (geolocalización) | — |
 | 003-solicitudes-viaje | RF-10 a RF-13, RNF-03 (`useTripRequests`), RNF-06 (FCM y tiempo real), RNF-08 | — |
 | 004-tarifa-comision | RF-20 a RF-23, RNF-09 | — |
