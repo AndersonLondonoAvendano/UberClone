@@ -1,3 +1,163 @@
 # DESIGN
 
-Borrador — se llena en Fase 0/1. Dirección de arte (Taste), tokens (UI UX Pro Max) y referencias pendientes. Nivel de diseño: "cuidado" (supuesto, P-12).
+Estado: Aprobado por Anderson (2026-10-27), registrado por el agente principal; incluye el contrato de testID. Dirección A «Tablero» (D-25, Vigente). Nivel de diseño "cuidado" (supuesto P-12). Las skills de diseño (Taste, Impeccable, UI UX Pro Max) se consultaron leyendo su `SKILL.md`, no se cargaron con la herramienta Skill al escribir este documento (D-28, Reemplazada por D-37: desde T-05 se cargan con Skill); `draw.mjs` y los scripts de las skills no se ejecutaron. Detalle en `docs/diseno/referencias.md`. No introduce dependencias nuevas: todo se resuelve con lo que trae React Native y con las fuentes del sistema. La constitución §11 limita el código a los tokens de este archivo. Nota: la adición del token `opacity.pressed` es la decisión D-39 (aprobada por Anderson, 2026-10-27, registrada por el agente principal). Nota: la adición del token `borderWidth.thin` es la decisión D-42 (aprobada por Anderson, 2026-10-27, registrada por el agente principal).
+
+## Dirección
+«El panel de un taxímetro»: neutros fríos y calmados; el único color va en el dato vivo (tarifa, temporizador, estado Disponible). Qué hace y qué prohíbe: `docs/diseno/direccion.md`.
+
+- Fondo gris frío, superficies blancas planas, escalón de tono para separar.
+- Los importes, tiempos y distancias son tipografía grande con cifras tabulares, no tarjetas con ícono.
+- Una sola acción principal por pantalla.
+- El mapa es protagonista en la pantalla de inicio; la navegación se retira cuando no hace falta.
+- Tema claro único (D-26); coincide con `userInterfaceStyle: "light"` del scaffold (D-22 lo revisa el planner). Modo oscuro: no encontrado en F1; no se propone.
+
+## Tokens
+
+### Color
+Contrastes WCAG 2.x calculados con un script temporal fuera del proyecto (`contrast.mjs` en el directorio temporal de la sesión; no se copia al repo). Mínimos: 4.5:1 texto normal, 3:1 texto grande y límites de componente.
+
+| Token | Valor | Uso |
+|---|---|---|
+| `color.bg` | #F3F5F4 | Fondo de pantalla |
+| `color.surface` | #FFFFFF | Tarjetas, campos, hojas, barras |
+| `color.border` | #77847F | Límite de campos, controles y botones secundarios |
+| `color.text` | #14201C | Texto principal |
+| `color.textMuted` | #4A5A54 | Texto secundario |
+| `color.primary` | #006D77 | Acción principal, foco, dato vivo (tarifa, temporizador) |
+| `color.onPrimary` | #FFFFFF | Texto e íconos sobre primario |
+| `color.success` | #2E7D32 | Disponible, aprobado, pago aprobado |
+| `color.warning` | #8A5300 | Pendiente de aprobación o de pago |
+| `color.danger` | #B3261E | Error, rechazo, pago rechazado |
+
+Tabla de contraste (pares permitidos):
+
+| Par (frente / fondo) | Razón | Uso permitido |
+|---|---|---|
+| text / bg | 15.30 | Texto |
+| text / surface | 16.76 | Texto |
+| textMuted / bg | 6.66 | Texto |
+| textMuted / surface | 7.29 | Texto |
+| onPrimary / primary | 6.08 | Texto sobre botón primario |
+| onPrimary / primary a `opacity.pressed` (0.9), mezclados con el fondo | 4.98 sobre `bg`; 4.95 sobre `surface` (4.95 y 4.93 con canales de 8 bits) | Texto sobre botón primario pulsado |
+| primary / bg | 5.55 | Texto, ícono, foco |
+| primary / surface | 6.08 | Texto, ícono, foco |
+| border / bg | 3.56 | Solo límite de componente (mín. 3) |
+| success / bg | 4.68 | Texto e ícono (el par más justo) |
+| success / surface | 5.13 | Texto e ícono |
+| warning / bg | 5.78 | Texto e ícono |
+| warning / surface | 6.33 | Texto e ícono |
+| danger / bg | 5.97 | Texto e ícono |
+| danger / surface | 6.54 | Texto e ícono |
+
+Reglas de uso:
+- Solo se usan los pares de la tabla. Cualquier otro par (p. ej. texto blanco sobre `success`, `warning` o `danger`, o `textMuted` sobre `primary`) no está permitido hasta calcular su contraste y añadirlo aquí.
+- `success`, `warning` y `danger` van únicamente como texto o ícono sobre `bg` o `surface`; no como relleno de botón ni fondo.
+- `color.border` (#77847F) es un límite de componente (≥ 3:1), no un separador decorativo. Para separar superficies se usa el escalón de tono `bg` → `surface`, sin líneas.
+- El estado nunca se comunica solo con color: va con texto o ícono (p. ej. «Disponible» escrito, «Rechazado» escrito).
+- El color de acento va en el dato vivo y en la acción principal, no repartido por el resto del chrome (barras, títulos, íconos de navegación inactivos usan `text`/`textMuted`).
+- Sin hex sueltos en el código: todo color sale de estos tokens.
+
+### Tipografía
+Familia: la del sistema (San Francisco en iOS, Roboto en Android); sin fuentes personalizadas, para no añadir dependencias.
+
+| Token | Tamaño / interlineado | Peso | Uso |
+|---|---|---|---|
+| `type.display` | 28 / 34 | 700 | Cifras destacadas (tarifa, ganancia, temporizador) |
+| `type.title` | 20 / 26 | 600 | Títulos de pantalla |
+| `type.body` | 16 / 22 | 400 | Texto y campos |
+| `type.label` | 14 / 18 | 500 | Etiquetas, botones secundarios |
+| `type.caption` | 12 / 16 | 400 | Ayudas y errores de campo |
+| `type.numeric` | — (se compone con otro `type.*`) | — | Cifras tabulares para tarifas, ganancias, tiempos y distancias (RF-11, RF-21, RF-24); se usa junto a otro token, p. ej. `style={[type.display, type.numeric]}` |
+
+- Cifras tabulares (token `type.numeric`, `fontVariant: ['tabular-nums']`) en todo importe, tiempo y distancia, para que las cifras no salten al cambiar.
+- Ningún texto por debajo de 12. El cuerpo no baja de 16 en campos de entrada.
+- Tolerancia a la escala de texto: los textos usan los `type.*` con interlineado proporcional y los contenedores no tienen altura fija que corte el contenido; los controles crecen en alto (mínimo 48) y el texto puede pasar a dos líneas. Si hace falta limitar el crecimiento, se hace por pantalla y se anota, nunca desactivando el escalado en silencio.
+
+### Espaciado
+Escala de 4: `space.1`=4, `space.2`=8, `space.3`=12, `space.4`=16, `space.5`=24, `space.6`=32. Margen lateral de pantalla: 16 (`space.4`).
+
+### Radios
+`radius.sm`=8 (campos, chips), `radius.md`=12 (tarjetas, botones), `radius.lg`=20 (hojas inferiores), `radius.full`=999 (interruptores, avatar).
+
+### Ancho de borde
+| Token | Valor | Uso |
+|---|---|---|
+| `borderWidth.thin` | 1 | Ancho del borde de componente: campos de formulario y controles con límite `color.border` |
+
+- Siempre con `color.border` (par border/bg 3.56:1 y border/surface 3.90:1 como límite de componente, ≥ 3:1).
+- No se usa como separador decorativo ni como línea entre superficies: la regla del escalón de tono `bg` → `surface` sigue vigente (ver «Elevación»).
+- `borderWidth: 0` (ausencia de borde) no necesita token.
+- El token se implementa en `src/theme/tokens.js` (lo hace el implementer dentro de T-07); ningún componente usa números sueltos para el ancho de borde. El campo `personal-data-field-shared` lo usa.
+
+### Tamaños táctiles
+- Mínimo 44 × 44 px para todo elemento interactivo (con `hitSlop` si el dibujo es menor).
+- Altura de botón principal y de campos: 48.
+- Separación mínima entre objetivos táctiles contiguos: 8.
+
+### Elevación
+- Superficies planas, sin sombra en reposo; la jerarquía se da con el escalón de tono `bg` → `surface`.
+- Sombra solo en hojas sobre el mapa (propiedades de sombra/elevación que ya trae React Native).
+- Sin degradados, brillos (glow) ni bordes decorativos.
+
+### Opacidad
+| Token | Valor | Uso |
+|---|---|---|
+| `opacity.pressed` | 0.9 | Estado pulsado de un control con relleno (botón primario) |
+
+- Regla: el estado pulsado se indica bajando la opacidad de TODO el control (relleno y texto) a `opacity.pressed` dentro de 80–150 ms, sin cambiar el layout (sin escalas ni movimientos) y sin otra variación de color.
+- Contraste del botón primario pulsado (`onPrimary` sobre `primary`, mezclados con el fondo detrás): 4.98:1 sobre `bg` y 4.95:1 sobre `surface` (con canales de 8 bits redondeados, como los pinta el celular: 4.95:1 y 4.93:1; en los tres casos por encima de 4.5). Cálculo con un script temporal fuera del proyecto (0.85 → 4.50 sobre `bg` y 4.47 sobre `surface`; 0.88 → 4.78; 0.90 → 4.95; 0.92 → 5.18; 0.94 → 5.39).
+- Por qué 0.9: deja un margen de 0.45 sobre el mínimo de 4.5 y mantiene un pulsado perceptible (0.85 ya no cumple sobre `surface`).
+- El token se implementa en `src/theme/tokens.js` (lo hará T-06); ningún componente usa números sueltos para la opacidad.
+
+### Movimiento
+- Duración ≤ 250 ms y solo con función (transición de estado, temporizador, aparición de hoja).
+- Solo `transform` y opacidad.
+- Respeto de «reducir movimiento»: se consulta `AccessibilityInfo.isReduceMotionEnabled` de React Native y, si está activo, el cambio es instantáneo. Sin dependencia nueva (no se usa `react-native-reanimated`, que está en `proposed`).
+
+## Patrones de pantalla
+- Campos de formulario: etiqueta arriba (`type.label`), borde `color.border` con ancho `borderWidth.thin`, error de campo bajo el campo en `color.danger` con `type.caption` y texto explícito (RF-03).
+- Estado de pantalla remota: tres variantes distintas y reconocibles (constitución §5).
+  - Cargando: indicador y, cuando se sabe la forma, el marco de lo que llegará.
+  - Vacío: conserva su marco y su mensaje dice qué falta Y qué hacer, sin referirse a controles que no existan (D-40; el texto se corrige en `labels.js` dentro de T-06); un cero es un «0» o «$ 0», no un hueco.
+  - Error: explica qué falló y ofrece reintentar (`btn-retry`).
+- Temporizador de solicitud: cifra `type.display` en `color.primary` con cifras tabulares y barra de progreso; el tiempo restante es legible como texto (RF-11).
+- Interruptor Disponible/No disponible: el estado se lee por texto («Disponible» en `color.success`; «No disponible» en `color.textMuted`) además del interruptor (RF-08).
+- Importes: COP enteros con separador de miles, en cifras tabulares; etiquetas del oficio (tarifa, comisión, ganancia neta) sin ambigüedad (RF-21, RF-22).
+- Indicadores clave (KPI): tipografía grande con su etiqueta, sin tarjeta con ícono en círculo y sin minigráficas.
+- Navegación: pestañas y Drawer en `surface`, texto `text`/`textMuted`, el destino activo se marca con peso/subrayado y texto, no con relleno de color de acento.
+- Elemento propio del producto: la franja de «tarifa en vivo» (cifra grande en `color.primary`) como pieza reconocible de la dirección.
+- Íconos: sin emoji. Sin librería de íconos propuesta (ver conflictos pendientes): se usan texto y formas básicas de `View` hasta que haya decisión.
+
+## Contrato de testID
+Todo elemento interactivo y todo contenedor de estado lleva un `testID` estable. Sirve a las pruebas manuales y automáticas y al arnés visual (`scripts/visual-audit.mjs`, que localiza elementos por `testID`). Cambiar un `testID` es cambiar un contrato: se anota en la spec correspondiente.
+
+Convención: kebab-case, minúsculas, ASCII, sin espacios ni acentos.
+
+| Elemento | Forma | Ejemplo |
+|---|---|---|
+| Pantalla (contenedor raíz) | `screen-<pantalla>` | `screen-home` |
+| Elemento de una pantalla | `<pantalla>-<elemento>` | `login-submit`, `home-availability-switch` |
+| Pestaña | `tab-<destino>` | `tab-personal-data`, `tab-vehicle`, `tab-documents` |
+| Entrada del Drawer | `drawer-<destino>` | `drawer-profile`, `drawer-history`, `drawer-earnings`, `drawer-settings` |
+| Abrir Drawer / atrás | `nav-open-drawer`, `nav-back` | |
+| Estado de pantalla | `state-loading`, `state-empty`, `state-error` | |
+| Reintentar | `btn-retry` | |
+| Campo de formulario | `<pantalla>-field-<campo>` | `register-field-email` |
+| Error de campo | `<pantalla>-error-<campo>` | `register-error-email` |
+| Fila de lista | `<lista>-item-<id>` | `history-item-42` |
+
+Reglas:
+- Deben llevarlo: botones, campos, interruptores, pestañas, entradas del Drawer, botón de atrás, filas tocables de listas, los tres estados de pantalla y `btn-retry`.
+- Los `<pantalla>`, `<destino>`, `<elemento>` y `<campo>` van en inglés, igual que los identificadores del código.
+- En `state-*` se usa el prefijo literal, no `<pantalla>-state-*`; si hay varios estados en una pantalla, el contenedor de cada estado se distingue por el `screen-<pantalla>` que lo contiene.
+- El `testID` no sustituye a la etiqueta de accesibilidad: los controles llevan además su texto/`accessibilityLabel`.
+- Los `testID` de pestañas y Drawer los fija la spec 000 (RF-30); los de las demás pantallas, la spec de cada una.
+
+## Qué debe refinarse
+- Capturas en celular real (capa E de `docs/diseno/rubrica.md`): lo que solo se ve en el celular está "No verificado en dispositivo".
+- Crítica de Taste, `audit` y `critique` de Impeccable y checklist de UI UX Pro Max sobre pantallas reales, con las skills cargadas con Skill (D-37, P4).
+- Sistema de íconos sin dependencia nueva: pendiente.
+- Para la auditoría T-12 (D-40): marco tenue del estado vacío (solo escalón de tono `surface` sobre `bg`, 1.09:1) y `accessibilityLabel` de carga (en el contenedor, sin `accessible`).
+
+## Pendiente de decisión
+Nada: D-25, D-26, D-37, D-39 y D-40 están Vigentes en `docs/decisiones.md`. Íconos: `@expo/vector-icons` solo si ya está en `package.json` (hoy no está); si no, texto y formas de `View` (D-29).

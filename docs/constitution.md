@@ -52,4 +52,4 @@ README con instalación y "Uso de IA" enlazada (ENT-02; C19, C20); `docs/AI_LOG.
 - Los builds nativos los hace el humano.
 
 ## §11 Diseño
-Solo tokens de diseño definidos en `DESIGN.md` (se llena en Fase 0/1). Rúbrica y capas en `docs/diseno/rubrica.md`.
+Solo tokens de diseño definidos en `DESIGN.md` (dirección A «Tablero», D-25 Vigente). Rúbrica y capas en `docs/diseno/rubrica.md`.
