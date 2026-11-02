@@ -87,31 +87,31 @@ Cómo se verifica: `node scripts/check-constitution.mjs` (regla C11). Si la spec
 
 CA-000-09 [RNF-02]
 Dado un valor guardado en el estado compartido desde una pantalla, Cuando el usuario navega a otra pantalla de la app, Entonces esa pantalla lee el mismo valor sin volver a pedirlo.
-Cómo se verifica: prueba manual en el celular. **No verificado en dispositivo** (T-01); revisión de código por el verifier como apoyo.
+Cómo se verifica: prueba manual en el celular. **No verificado en dispositivo** (T-01); revisión de código por el verifier como apoyo. Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01; detalle en `docs/progress.md`.
 
 CA-000-10 [RF-30]
 Dado la navegación de registro, Cuando se abre, Entonces aparecen tres pestañas con los nombres Datos personales, Vehículo y Documentos, en ese orden, y se puede cambiar entre ellas.
-Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01).
+Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01). Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01; detalle en `docs/progress.md`.
 
 CA-000-11 [RF-30]
 Dado la navegación principal, Cuando se abre el Drawer, Entonces muestra Perfil, Historial, Ganancias y Configuración, y cada uno lleva a su pantalla y permite volver al inicio.
-Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01).
+Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01). Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01; detalle en `docs/progress.md`. El posible choque entre el gesto de abrir el Drawer y el gesto/botón de atrás de Android quedó «sin descripción» (ni confirmado ni descartado).
 
 CA-000-12 [RF-30]
 Dado la pantalla de inicio, Cuando se entra al flujo del viaje, Entonces se abre una pila que permite avanzar y volver con el gesto o botón de atrás.
-Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01).
+Cómo se verifica: paso manual. **No verificado en dispositivo** (T-01). Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01; detalle en `docs/progress.md`.
 
 CA-000-13 [RF-30, D-11]
 Dado una cuenta no Aprobada (simulada con el valor del campo de estado de la cuenta), Cuando se abre la app, Entonces solo se ve la rama de registro; con una cuenta Aprobada se ve la rama principal con el Drawer. Este criterio vale solo si se aprueba D-11.
-Cómo se verifica: paso manual cambiando el estado simulado. **No verificado en dispositivo** (T-01). Depende de la aprobación de D-11.
+Cómo se verifica: paso manual cambiando el estado simulado. **No verificado en dispositivo** (T-01). Depende de la aprobación de D-11. Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01, para las cuatro ramas del simulador; detalle en `docs/progress.md`. iOS sigue sin verificar (P-05).
 
 CA-000-14 [RF-30]
 Dado el arranque de la app, Cuando todavía se resuelve el estado de la cuenta, Entonces se ve un indicador de carga y no se ve ninguna pantalla de la rama equivocada.
-Cómo se verifica: paso manual, posible con red lenta. **No verificado en dispositivo** (T-01).
+Cómo se verifica: paso manual, posible con red lenta. **No verificado en dispositivo** (T-01). Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01; detalle en `docs/progress.md`. iOS sigue sin verificar (P-05).
 
 CA-000-15 [RF-30]
 Dado cada pantalla marcador de posición, Cuando se fuerza el estado cargando, vacío o error, Entonces se ve una variante distinta y reconocible de cada uno.
-Cómo se verifica: paso manual o captura. **No verificado en dispositivo** (T-01); capa B a D del arnés puede revisar capturas, nunca presentadas como del celular.
+Cómo se verifica: paso manual o captura. **No verificado en dispositivo** (T-01); capa B a D del arnés puede revisar capturas, nunca presentadas como del celular. Cerrado por declaración de Anderson (Android, sin captura) en T-11, 2026-11-01, en Datos personales, Vehículo, Documentos y una pantalla del Drawer; detalle en `docs/progress.md`.
 
 ### Criterios de diseño
 CA-000-D1
