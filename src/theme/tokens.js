@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #11
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #16
+// AI-assisted: see docs/AI_LOG.md #23
 // Design tokens. Single source for colors, type, spacing, radii and touch sizes.
 
 export const color = {
@@ -22,6 +23,8 @@ export const type = {
   body: { fontSize: 16, lineHeight: 22, fontWeight: '400' },
   label: { fontSize: 14, lineHeight: 18, fontWeight: '500' },
   caption: { fontSize: 12, lineHeight: 16, fontWeight: '400' },
+  // Compose with another type.* for figures (fares, earnings, times, distances): style={[type.display, type.numeric]}
+  numeric: { fontVariant: ['tabular-nums'] },
 };
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32 };

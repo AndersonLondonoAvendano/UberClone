@@ -67,8 +67,9 @@ Familia: la del sistema (San Francisco en iOS, Roboto en Android); sin fuentes p
 | `type.body` | 16 / 22 | 400 | Texto y campos |
 | `type.label` | 14 / 18 | 500 | Etiquetas, botones secundarios |
 | `type.caption` | 12 / 16 | 400 | Ayudas y errores de campo |
+| `type.numeric` | — (se compone con otro `type.*`) | — | Cifras tabulares para tarifas, ganancias, tiempos y distancias (RF-11, RF-21, RF-24); se usa junto a otro token, p. ej. `style={[type.display, type.numeric]}` |
 
-- Cifras tabulares (`fontVariant: ['tabular-nums']`) en todo importe, tiempo y distancia, para que las cifras no salten al cambiar.
+- Cifras tabulares (token `type.numeric`, `fontVariant: ['tabular-nums']`) en todo importe, tiempo y distancia, para que las cifras no salten al cambiar.
 - Ningún texto por debajo de 12. El cuerpo no baja de 16 en campos de entrada.
 - Tolerancia a la escala de texto: los textos usan los `type.*` con interlineado proporcional y los contenedores no tienen altura fija que corte el contenido; los controles crecen en alto (mínimo 48) y el texto puede pasar a dos líneas. Si hace falta limitar el crecimiento, se hace por pantalla y se anota, nunca desactivando el escalado en silencio.
 
