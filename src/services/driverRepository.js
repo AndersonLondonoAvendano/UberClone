@@ -20,8 +20,24 @@ export function listenToDriverAccount(uid, { onChange, onError }) {
   return unsubscribe;
 }
 
+// TEMPORARY diagnostic for the permission-denied bug on submission. Logs only keys + typeof +
+// string length per field, never actual values. Remove once the fix is confirmed on-device.
+function shapeOf(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? `string(len=${value.length})` : typeof value,
+    ]),
+  );
+}
+
 export async function submitDriverRegistration(uid, { personalData, vehicle, documents }) {
   const ref = doc(db, 'drivers', uid);
+  console.warn('[TEMP][D-69] submitDriverRegistration payload shape', {
+    personalData: shapeOf(personalData),
+    vehicle: shapeOf(vehicle),
+    documents: shapeOf(documents),
+  });
   await setDoc(
     ref,
     {

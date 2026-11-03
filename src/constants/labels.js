@@ -5,6 +5,7 @@
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #33
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -157,6 +158,16 @@ export const labels = {
       submit: 'Enviar registro',
       submitting: 'Enviando…',
       submitError: 'No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo.',
+      submitErrors: {
+        'permission-denied': 'No pudimos enviar tu registro por un problema de permisos de tu cuenta. Cierra sesión y vuelve a intentarlo.',
+        unavailable: 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.',
+        'deadline-exceeded': 'La conexión tardó demasiado. Revisa tu internet e inténtalo de nuevo.',
+        unauthenticated: 'Tu sesión expiró. Vuelve a iniciar sesión.',
+      },
     },
   },
 };
+
+export function getSubmitErrorMessage(code) {
+  return labels.registration.documents.submitErrors[code] ?? labels.registration.documents.submitError;
+}

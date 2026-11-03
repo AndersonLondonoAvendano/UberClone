@@ -896,3 +896,128 @@ Autorizo la opción C, no la A ni la B. Cámbialo así, sin dependencias nuevas 
 - Archivos y commit: `src/services/cloudinary.js`, `src/components/registration/PhotoField.js`, `specs/001-registro-conductor/plan.md`, `docs/decisiones.md`, `docs/AI_LOG.md`; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` antes del cambio (con la instrumentación todavía puesta): 42 hallazgos (35 C21 + 1 C01 esperado + 2 C26 por los comentarios `D-67`/plan en `cloudinary.js` + 5 INFO, sin contar el C18 de la marca `#28` ya resuelto). Después del cambio: 38 errores / 0 advertencias / 5 inactivas (35 C21 + 1 C01 esperado + 2 C18 de la marca `#29`, resueltos al guardar esta entrada) — tuve que reescribir dos comentarios para no citar `D-68` literalmente (regla C26, ya conocida de una ronda anterior con C08). Pendiente: verifier independiente sobre el cambio (formato del data URI, ausencia de `Content-Type` manual, límite de 8 MB, no filtración del base64) y confirmación de Anderson en el celular.
 - Aprendizaje:
+
+### Entrada #30
+- Fecha: 2026-11-02
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Cerrar el checkpoint 1 y entregar el checkpoint 2.
+- Prompt textual:
+````
+Cierre del checkpoint 1 y entrega del checkpoint 2.
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-02, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Cerrar el checkpoint 1 y entregar el checkpoint 2", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar.
+
+1. Resultado en el celular Android (Anderson, 2026-11-02): tras el cambio a base64 (D-68), la subida de foto por cámara y por galería funciona y no hay fallos. Sin capturas ni detalle por paso: regístralo así, sin inventar nada. Con eso el checkpoint 1 queda completo: T-22, T-23 y T-24 pasan a «Validada» (con Diseño Pendiente), y T-19 se cierra si el verifier independiente ya confirmó el cambio; si su informe no ha llegado, dímelo y no cierres T-19 sin él. Actualiza backlog, progress y spec.
+
+2. Dame ya, sin más preámbulo: (a) una tabla con el estado real de T-25 a T-29 (Pendiente, Implementada, Validada en lo estático, y qué verifier distinto la revisó) y qué queda sin hacer para la entrega del jueves 2026-11-05; (b) el checklist del checkpoint 2 (Pestañas 2 y 3): qué debo ver paso a paso, qué CA cierra cada paso y qué evidencia anotar. Cubre los 7 campos de Vehículo con casos válidos e inválidos de F1 §2 (categoría, placa en mayúsculas ABC123, marca y modelo máximo 30, año de 4 dígitos no mayor al actual, color, capacidad con mínimo 6 para XL, foto del vehículo), la Pestaña 3 mínima (correo de Mercado Pago y términos con la comisión visible), errores bajo cada campo, escala de texto máxima y el botón «Enviar registro» deshabilitado hasta que las tres pestañas estén completas y válidas; (c) si el checkpoint 3 (envío completo y estado Pendiente) ya está listo, entrégalo también, con cómo compruebo el documento en la consola de Firestore, qué campos debe tener, cómo cambio accountStatus a «approved» y qué debo ver entonces en el celular. Si algo de T-25 en adelante aún no está construido, dilo y continúa construyéndolo, una tarea a la vez, cada una con su verifier distinto.
+
+3. No reinicies ni detengas mi Metro. No leas ni toques mi .env. Sin dependencias nuevas. No marques como Validada nada que dependa de mi prueba en el celular. No hagas commit. Resumen corto y lista final de lo que debo aprobar o probar.
+````
+- Resumen de la respuesta (2–3 líneas): Registré el reporte de Anderson (celular Android, cámara y galería sin fallos tras D-68) y moví T-22, T-23 y T-24 a "Validada" (Diseño Pendiente) en `backlog.md`/`progress.md`/`spec.md`. El verifier independiente anterior (`aeca03da9c6d9dbe4`) no está disponible (no aparece en `ListAgents`, interrumpido por rate limit en el turno previo) y su informe no llegó: por instrucción explícita, T-19 NO se cerró y despaché un verifier nuevo y distinto para el cambio de D-68. Entregué la tabla de estado T-25–T-29, el checklist de checkpoint 2 y la evaluación de checkpoint 3, sin tocar código de producción ni commitear.
+- Usado / modificado / descartado: Usado: `ListAgents` (confirma que el verifier anterior no está disponible). Modificado: `docs/backlog.md` (T-19, T-22, T-23, T-24), `docs/progress.md` (filas CA y bitácora narrativa), `specs/001-registro-conductor/spec.md` (estado de checkpoint 1). Descartado: cerrar T-19 sin el informe del verifier independiente (prohibido explícitamente por el prompt).
+- Archivos y commit: `docs/backlog.md`, `docs/progress.md`, `specs/001-registro-conductor/spec.md`, `docs/AI_LOG.md`; commit: ninguno.
+- Verificación: `node scripts/check-constitution.mjs` antes y después de las ediciones de este prompt (ver detalle en el resumen entregado a Anderson).
+- Aprendizaje:
+
+### Entrada #31
+- Fecha: 2026-11-02
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Continuar con T-25 en adelante y entregar tabla de estado y checklists.
+- Prompt textual:
+````
+Sí: continúa construyendo T-25 en adelante, una tarea a la vez, cada una con su verifier distinto, solo con verificación estática hasta los checkpoints 2 y 3 (D-59).
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE mensaje (siguiente número libre), fecha 2026-11-02, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Continuar con T-25 en adelante y entregar tabla de estado y checklists", con el mensaje completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar.
+
+1. Antes de seguir, dame la tabla que pedí y no entregaste: estado real de T-25 a T-29 (Pendiente, Implementada, Validada en lo estático), qué verifier distinto la revisó y qué queda sin hacer para la entrega del jueves 2026-11-05, con el orden en que recortarías si no alcanza el tiempo.
+
+2. Dame el checklist del checkpoint 2 (Pestañas 2 y 3) tal como lo tienes, reescrito completo en tu respuesta (no me remitas a un mensaje anterior), con qué debo ver, qué CA cierra cada paso y qué evidencia anotar. Si la Pestaña 2 o la 3 no están construidas del todo, dilo y constrúyelas antes de dármelo.
+
+3. Si el checkpoint 3 (envío completo y estado Pendiente) está listo, entrégalo también, con cómo compruebo el documento en la consola de Firestore, qué campos debe tener, cómo cambio accountStatus a «approved» y qué debo ver entonces en el celular, y qué pasa con las fotos en Cloudinary.
+
+4. No reinicies ni detengas mi Metro. No leas ni toques mi .env. Sin dependencias nuevas. No marques como Validada nada que dependa de mi prueba en el celular. No hagas commit. Resumen corto y lista final de lo que debo aprobar o probar.
+````
+- Resumen de la respuesta (2–3 líneas): No se escribió código nuevo: T-25, T-26 y T-27 ya estaban "Validada en lo estático" desde el prompt anterior, cada una con verifier distinto, así que la respuesta fue solo investigación (backlog.md, progress.md, driverRepository.js, RegistrationFormContext.js, cloudinary.js) y entrega de la tabla T-25→T-29, el checklist completo del checkpoint 2 y la guía del checkpoint 3. Se corrigió la afirmación del resumen anterior de que "nada se había construido" — era falsa frente al estado real de los archivos.
+- Usado / modificado / descartado: Usado (sin cambios de código): src/screens/registration/VehicleScreen.js, DocumentsScreen.js, src/services/driverRepository.js, src/services/cloudinary.js, src/context/RegistrationFormContext.js, firestore.rules, docs/backlog.md, docs/progress.md.
+- Archivos y commit: Solo se editó docs/AI_LOG.md (esta entrada). Sin commit (instrucción explícita del punto 4).
+- Verificación: `node scripts/check-constitution.mjs` limpio (36 errores C21 preexistentes sin tarea MAESTRO, 1 regla C25 inactiva — sin cambios respecto a la ronda anterior); `git status --short` sin cambios nativos inesperados.
+- Aprendizaje:
+
+### Entrada #32
+- Fecha: 2026-11-02
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Registrar el checkpoint 2 y diagnosticar el error de permisos de Firestore al enviar el registro.
+- Prompt textual:
+````
+Resultado del checkpoint 2 en el celular y fallo al enviar el registro.
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-02, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Registrar el checkpoint 2 y diagnosticar el error de permisos de Firestore al enviar el registro", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar.
+
+1. Resultado de la prueba de Anderson en el celular Android (2026-11-02, con captura):
+   - Paso 0: las reglas de Firestore publicadas en la consola son IDÉNTICAS al firestore.rules de la raíz (Anderson las comparó). Confirmado: no es un problema de reglas sin publicar.
+   - Paso 1 OK: Datos personales completados sin errores.
+   - Paso 2 OK: Vehículo completado; las validaciones a mano funcionaron como indica el checklist.
+   - Paso 3 OK: correo de Mercado Pago inválido da error y el válido se acepta; el botón «Enviar registro» sigue gris y sin efecto hasta marcar los términos, y se activa después.
+   - Paso 4 FALLA: con todo válido y los términos marcados, al pulsar «Enviar registro» aparece en rojo, bajo el botón, «Missing or insufficient permissions.» (permission-denied). La colección drivers de Firestore sigue vacía: ninguna escritura ha entrado nunca.
+   Registra: los pasos 1 a 3 del checkpoint 2 pasan por declaración; el envío (T-26 y T-27) queda abierto; T-26 y T-27 NO pasan a Validada.
+
+2. Diagnóstico de causa raíz ANTES de cambiar nada, con evidencia. Compara firestore.rules (validSubmission, validPersonalData, validVehicle, validDocuments; create, update, isOwner) con la carga REAL que arma driverRepository al enviar, campo por campo y con el tipo real:
+   a. Nombres de las claves en cada objeto frente a los que leen las reglas (fullName, documentNumber, phone, birthDate, gender, email, language, profilePhotoUrl; category, plate, brand, model, year, color, capacity, photoUrl; mercadoPagoEmail, termsAccepted, commissionRate; accountStatus).
+   b. Tipos: year y capacity deben ser número en las reglas; confirma si el código los convierte a número antes de enviar o llegan como texto de los campos de entrada. documentNumber, phone y birthDate deben ser texto; commissionRate número.
+   c. Formato y longitud: birthDate debe tener exactamente 10 caracteres (¿qué formato se guarda?); plate exactamente 6 (¿se envía ya normalizada en mayúsculas?); phone 10; documentNumber de 6 a 10; profilePhotoUrl y photoUrl deben empezar por https://.
+   d. Los valores de gender, language, category y color que se envían (los códigos internos de registrationOptions.js) y si las reglas los limitan.
+   e. Si la escritura es una creación o una actualización; si el documento existía antes del envío; que el id del documento sea exactamente el uid de la sesión anónima y que auth esté lista al enviar.
+   f. Si la carga incluye algún campo o valor que las reglas prohíban o rompan (por ejemplo, valores undefined, null o campos con serverTimestamp mal ubicados).
+   Muestra la regla y el campo exactos que causan el rechazo, o la hipótesis más probable con su evidencia.
+
+3. Instrumentación TEMPORAL: justo antes de la escritura en driverRepository, console.warn con SOLO la FORMA de la carga: la lista de claves de cada objeto con el tipo de cada valor (typeof, y la longitud para textos), SIN valores, sin correos, sin URLs, sin uid completo. Márcalo TEMPORARY, regístralo en docs/decisiones.md con la tarea que lo retira y retíralo al cerrar. Dime qué líneas debo copiar de la terminal de Metro tras repetir el envío.
+
+4. El Rules Playground ya no está disponible en la consola de Anderson (el botón «Desarrollar y realizar pruebas» solo abre información del Emulator Suite): NO prepares una prueba de Playground ni propongas instalar el Emulator Suite. Como evidencia usa la forma real de la carga (punto 3) comparada con las reglas, y construye tú un caso mental o un script de casos puros que evalúe cada condición de las reglas contra la carga real, indicando qué cláusula falla y por qué.
+
+5. No cambies las reglas ni el código de envío hasta que yo te dé la respuesta o apruebe tu propuesta. Si la causa es que la app envía algo distinto, propón la corrección MÁS PEQUEÑA y dime si va en el código (conversión de tipos) o en las reglas (y por qué lo uno o lo otro). No toques la regla que impide que el cliente se apruebe a sí mismo.
+
+6. Aparte (defecto de UX): el error del envío se muestra en inglés, tal como lo devuelve Firebase. Propón la corrección: mapear los códigos de error de Firestore (permission-denied, unavailable, etc.) a mensajes en español en labels.js, sin mostrar nunca el texto crudo del servidor. Aplícala solo tras mi aprobación.
+
+7. No reinicies ni detengas mi Metro. No leas ni toques mi .env. Sin dependencias nuevas. No marques nada como Validada. No hagas commit. Resumen corto.
+````
+- Resumen de la respuesta (2–3 líneas): Confirmé por lectura de código (sin tocar `firestore.rules` ni el código de envío) que `vehicle.year` y `vehicle.capacity` llegan a Firestore como `string` (nunca convertidos), mientras `validVehicle()` exige `is number`, lo que hace fallar `validSubmission()` y deniega el `create` con "Missing or insufficient permissions" en el 100% de los intentos. Añadí una instrumentación TEMPORAL (shape-only) en `driverRepository.js`, registrada como D-69, y entregué el diagnóstico completo, la evaluación de casos puros contra las reglas y dos propuestas sin aplicar (conversión a número en el código; mapeo de errores al español), pendientes de aprobación.
+- Usado / modificado / descartado: Usado (sin cambios): `firestore.rules`, `src/context/RegistrationFormContext.js`, `src/utils/validators.js`, `src/screens/registration/VehicleScreen.js`, `src/context/AppStateContext.js`, `src/constants/registrationOptions.js`. Descartado: preparar una prueba en Rules Playground o proponer el Emulator Suite (prohibido explícitamente por el punto 4); cambiar `firestore.rules` o el código de envío (prohibido por el punto 5 hasta la aprobación de Anderson).
+- Archivos y commit: `src/services/driverRepository.js` (instrumentación TEMPORAL), `docs/decisiones.md` (D-69), `docs/AI_LOG.md` (esta entrada). Sin commit (instrucción explícita del punto 7).
+- Verificación: `node scripts/check-constitution.mjs` antes de editar: 36 errores C21 preexistentes, 0 advertencias. Primera pasada tras añadir la instrumentación: nueva advertencia C26 (el comentario citaba "D-69, docs/decisiones.md" dentro del código fuente, un documento no entregado desde `src/`). Corregido el comentario para no citar el número de decisión; segunda pasada: 36 errores C21 preexistentes (sin cambio), 0 advertencias — línea base restaurada.
+- Aprendizaje:
+
+### Entrada #33
+- Fecha: 2026-11-02
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Aplicar la conversión de tipos de year y capacity al enviar y los mensajes de error en español.
+- Prompt textual:
+````
+Aprobación de las dos correcciones propuestas.
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-02, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Aplicar la conversión de tipos de year y capacity al enviar y los mensajes de error en español", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar.
+
+1. Decisión (aprobada por Anderson, registrada por el agente principal): apruebo tu diagnóstico (year y capacity llegan como texto y las reglas exigen número) y la corrección en el CÓDIGO, no en las reglas. Registra la decisión como Vigente en docs/decisiones.md. firestore.rules no se toca; tampoco la regla que impide la autoaprobación.
+
+2. Aplica la conversión a número justo antes del envío en submitRegistration (RegistrationFormContext.js). Debe garantizar enteros válidos: usa los mismos criterios que ya validan year y capacity y asegúrate de que nunca se envíe NaN, Infinity, un decimal ni un número vacío; si el valor no es un entero válido, no debe llegar a Firestore. Revisa si year o capacity se usan en otra parte con la suposición de que son texto (por ejemplo al leer el documento de vuelta en el formulario) y dime si hay algún otro lugar que deba tratarlos como número o como texto.
+
+3. Revisa de nuevo, campo por campo, que la carga final cumple CADA condición de firestore.rules (no solo year y capacity): por si hay otra discrepancia latente además de esta, para no gastar otro ciclo.
+
+4. Aplica también el mapeo de errores de Firestore a español en labels.js (permission-denied, unavailable, deadline-exceeded, unauthenticated y un mensaje genérico para el resto), usado en el catch de submitRegistration en lugar de error.message. Nunca muestres el texto crudo del servidor.
+
+5. Casos puros: añade o actualiza casos de prueba que cubran la conversión (año y capacidad como texto numérico válido, con espacios, con decimales, vacío, NaN) y el mapeo de errores. Pide a un verifier DISTINTO del implementer que revise el cambio y la comparación con las reglas.
+
+6. La instrumentación temporal D-69 (forma de la carga) se queda hasta que yo confirme que el envío funciona. Dime que la retirarás en cuanto yo te lo diga, no antes.
+
+7. Dime qué debo ver en el celular al repetir el envío con Metro encendido (recarga con r): mensaje de éxito, y en Firestore el documento con los tipos correctos (year y capacity como número) y qué línea debo copiar de Metro si vuelve a fallar. Incluye ya el paso siguiente: cambiar accountStatus a «approved» en la consola y qué debe hacer el celular.
+
+8. No reinicies ni detengas mi Metro. No leas ni toques mi .env. Sin dependencias nuevas. No marques nada como Validada hasta que yo pruebe. No hagas commit. Resumen corto.
+````
+- Resumen de la respuesta (2–3 líneas): Decisión D-70 registrada (fix en código, no en firestore.rules). Implementer convirtió year/capacity a número justo antes de enviar en `submitRegistration` (con revalidación, sin mutar el estado string) y agregó mapeo de errores Firestore→español en `labels.js` (`getSubmitErrorMessage`). Revisión campo por campo contra firestore.rules: sin otra discrepancia de tipo bloqueante (dos huecos preexistentes y fuera de alcance: `isHttpsUrl`/`isNonEmptyUrl` y límite de longitud de `mercadoPagoEmail`, no introducidos por esta tarea). D-69 permanece intacto. Verifier (distinto) confirmó todo con script propio (26/26 OK) y dio luz verde para la prueba en el celular.
+- Usado / modificado / descartado: Usado el diagnóstico y la corrección en código tal como se propuso. Descartado un intento del implementer de instalar ESLint vía `npx expo lint` (se autoinstaló sin pedir permiso); lo revirtió él mismo (`git checkout -- package.json package-lock.json`, borró `eslint.config.js`) y usó `node --check` en su lugar. También corregido por el agente principal (no el implementer): el comentario del implementer en `RegistrationFormContext.js:152` citaba "D-70" y disparó una advertencia C26 nueva en check-constitution; se reformuló el comentario sin citar el número de decisión.
+- Archivos y commit: `src/context/RegistrationFormContext.js`, `src/constants/labels.js` modificados; `docs/decisiones.md` (D-70), `docs/AI_LOG.md` (esta entrada). Sin commit (pendiente de prueba en el celular, por instrucción explícita).
+- Verificación: `node scripts/check-constitution.mjs` antes de los cambios: 36 errores (1 C01 + 35 C21, preexistentes, fuera de alcance), 0 advertencias. Tras los cambios del implementer: mismos 36 errores, pero apareció 1 advertencia nueva C26 (comentario citando "D-70"). Corregido el comentario; segunda pasada: 36 errores (sin cambio), 0 advertencias — línea base restaurada. Script temporal propio (fuera del proyecto, copiando literalmente las funciones reales de validators.js/labels.js): 22/22 casos OK (año y capacidad: texto válido, con espacios, decimal, vacío, NaN, año futuro; mapeo de los 4 códigos de error + fallback genérico). Verifier DISTINTO invocado aparte: confirmó código vs. especificación, confirmó D-69 intacto, repitió check-constitution (mismo resultado: 36/0/5) y corrió su propio script (26/26 OK), con veredicto "listo para prueba en el celular". No verificado en dispositivo todavía.
+- Aprendizaje: El patrón seguro para comentarios en código fuente es únicamente `// AI-assisted: see docs/AI_LOG.md #N`; cualquier cita de un número de decisión (p. ej. "D-70") o de una ruta de documento fuera de AI_LOG dispara la regla C26 de check-constitution. Conviene recordárselo al implementer en el prompt la próxima vez para evitar un ciclo extra de corrección.

@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #26
+// AI-assisted: see docs/AI_LOG.md #33
 // Registration form state (useContext): the 17 fields across the three tabs, per-field "touched"
 // flags and per-tab "visited" flags (DP-08), aggregate validity per tab and overall (RF-02), and
 // the submit flow (RF-04). The plate is normalized to uppercase on every change, so the field
@@ -25,6 +26,7 @@ import {
 } from '../utils/validators';
 import { useAppState } from './AppStateContext';
 import { submitDriverRegistration } from '../services/driverRepository';
+import { labels, getSubmitErrorMessage } from '../constants/labels';
 
 // RF-07/RF-21: 20% is the only fare/commission figure this spec needs (shown on the terms
 // checkbox, T-26, and stored with the registration). It stays local on purpose: the shared
@@ -146,16 +148,29 @@ export function RegistrationFormProvider({ children }) {
     if (!isRegistrationValid || !driverId) return;
     setSubmitState('submitting');
     setSubmitErrorMessage(null);
+
+    // Firestore rules require vehicle.year/vehicle.capacity as number, but the form state keeps
+    // them as strings (so VehicleScreen's controlled TextFields keep working). Convert and
+    // revalidate right before sending, without mutating the string-based form state.
+    const vehicleYear = Number(vehicle.year);
+    const vehicleCapacity = Number(vehicle.capacity);
+    if (!isValidVehicleYear(vehicleYear) || !isValidCapacity(vehicleCapacity, vehicle.category)) {
+      setSubmitState('error');
+      setSubmitErrorMessage(labels.registration.documents.submitError);
+      return;
+    }
+    const vehiclePayload = { ...vehicle, year: vehicleYear, capacity: vehicleCapacity };
+
     try {
       await submitDriverRegistration(driverId, {
         personalData: { ...personalData, birthDate: toIsoDateString(personalData.birthDate) },
-        vehicle,
+        vehicle: vehiclePayload,
         documents: { ...documents, commissionRate: COMMISSION_RATE_PERCENT },
       });
       setSubmitState('success');
     } catch (error) {
       setSubmitState('error');
-      setSubmitErrorMessage(error.message);
+      setSubmitErrorMessage(getSubmitErrorMessage(error.code));
     }
   }, [isRegistrationValid, driverId, personalData, vehicle, documents]);
 

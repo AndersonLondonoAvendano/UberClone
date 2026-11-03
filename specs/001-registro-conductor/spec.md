@@ -87,7 +87,7 @@ Dependencias nuevas que esta spec necesita y que no están hoy en `scripts/depen
 ### Datos personales
 CA-001-01 [RF-05, D-54]
 Dado el campo de foto de perfil vacío, Cuando el conductor elige una foto por cámara o por galería, Entonces la foto se sube a Cloudinary y el campo queda válido solo cuando la subida termina con éxito; si el campo sigue vacío, no es válido.
-Cómo se verifica: paso manual en el celular (elegir foto, comprobar que la URL subida es accesible) y revisión de código de la regla de validación. **No verificado en dispositivo** (tarea por asignar en el plan de esta spec).
+Cómo se verifica: paso manual en el celular (elegir foto, comprobar que la URL subida es accesible) y revisión de código de la regla de validación. **Verificado en dispositivo por declaración (Anderson, Android, 2026-11-02; checkpoint 1 cerrado):** tras D-68 (subida en base64), la foto por cámara y por galería funciona sin fallos, declarado sin capturas ni detalle por paso. Pendiente aparte la revisión de código independiente de la regla de validación / `cloudinary.js` (T-19, verifier distinto, aún sin cerrar).
 
 CA-001-02 [RF-05, D-61]
 Dado el campo de nombre, Cuando se escribe un valor vacío, con más de 50 caracteres, con dígitos o con símbolos, Entonces el campo es inválido y el error aparece bajo el campo; con un nombre de hasta 50 caracteres usando solo letras (incluidas tildes y ñ) y espacios, el campo es válido.
