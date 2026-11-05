@@ -1,4 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #27
+// AI-assisted: see docs/AI_LOG.md #34
+// AI-assisted: see docs/AI_LOG.md #36
 // Documents tab (minimal scope for this delivery): Mercado Pago email, terms checkbox with
 // the commission percentage, and the "Enviar registro" button that submits the whole form.
 // License/SOAT/technical review are out of scope for this delivery.
@@ -9,7 +11,9 @@ import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { CheckboxField } from '../../components/registration/CheckboxField';
 import { FieldError } from '../../components/registration/FieldError';
 import { TextField } from '../../components/registration/TextField';
+import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useAppState } from '../../context/AppStateContext';
 import { COMMISSION_RATE_PERCENT, useRegistrationForm } from '../../context/RegistrationFormContext';
 import { color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { isValidEmail, isTermsAccepted } from '../../utils/validators';
@@ -27,10 +31,13 @@ export function DocumentsScreen() {
     submitState,
     submitErrorMessage,
     submitRegistration,
+    isLocked,
   } = useRegistrationForm();
+  const { accountStatus } = useAppState();
 
   const [termsTouched, setTermsTouched] = useState(false);
   const showErrors = visitedTabs.documents;
+  const isAccountPending = accountStatus === ACCOUNT_STATUS.PENDING;
 
   const emailError =
     !isValidEmail(documents.mercadoPagoEmail) && (documents.touched.mercadoPagoEmail || showErrors)
@@ -41,11 +48,19 @@ export function DocumentsScreen() {
 
   const termsLabel = labels.registration.documents.termsLabel.replace('{percent}', String(COMMISSION_RATE_PERCENT));
   const isSubmitting = submitState === 'submitting';
-  const canSubmit = isRegistrationValid && !isSubmitting;
+  // The account stays pending until an admin approves it elsewhere, so the submit action must
+  // not be reachable again (no edit, no re-send) while it is pending.
+  const canSubmit = isRegistrationValid && !isSubmitting && !isAccountPending;
 
   return (
     <PlaceholderScreen name="documents" title={labels.tabs.documents} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
+        {isAccountPending ? (
+          <Text testID="documents-pending-notice" style={styles.pendingNotice}>
+            {labels.registration.pendingNotice}
+          </Text>
+        ) : null}
+
         <TextField
           testID="documents-field-mp-email"
           errorTestID="documents-error-mp-email"
@@ -55,6 +70,7 @@ export function DocumentsScreen() {
           onBlur={() => touchDocumentsField('mercadoPagoEmail')}
           keyboardType="email-address"
           errorMessage={emailError}
+          disabled={isLocked}
         />
 
         <CheckboxField
@@ -67,6 +83,7 @@ export function DocumentsScreen() {
             setTermsTouched(true);
           }}
           errorMessage={termsError}
+          disabled={isLocked}
         />
 
         <Pressable
@@ -88,6 +105,11 @@ export function DocumentsScreen() {
         </Pressable>
         {submitState === 'error' ? (
           <FieldError testID="documents-error-submit" message={submitErrorMessage || labels.registration.documents.submitError} />
+        ) : null}
+        {submitState === 'success' ? (
+          <Text testID="documents-submit-success" style={styles.submitSuccess}>
+            {labels.registration.documents.submitSuccess}
+          </Text>
         ) : null}
       </View>
     </PlaceholderScreen>
@@ -114,5 +136,13 @@ const styles = StyleSheet.create({
     ...type.label,
     color: color.onPrimary,
     textAlign: 'center',
+  },
+  submitSuccess: {
+    ...type.label,
+    color: color.success,
+  },
+  pendingNotice: {
+    ...type.label,
+    color: color.warning,
   },
 });

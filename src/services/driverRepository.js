@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #25
-import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
+// AI-assisted: see docs/AI_LOG.md #34
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 
 // Listens to drivers/{uid}; onChange receives the document's accountStatus, or null
@@ -20,24 +21,18 @@ export function listenToDriverAccount(uid, { onChange, onError }) {
   return unsubscribe;
 }
 
-// TEMPORARY diagnostic for the permission-denied bug on submission. Logs only keys + typeof +
-// string length per field, never actual values. Remove once the fix is confirmed on-device.
-function shapeOf(obj) {
-  return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [
-      key,
-      typeof value === 'string' ? `string(len=${value.length})` : typeof value,
-    ]),
-  );
+// Reads drivers/{uid} once; returns { personalData, vehicle, documents } when the document
+// already exists, or null when it does not (treated as "not registered yet", not an error).
+export async function getDriverRegistration(uid) {
+  const ref = doc(db, 'drivers', uid);
+  const snapshot = await getDoc(ref);
+  if (!snapshot.exists()) return null;
+  const { personalData, vehicle, documents } = snapshot.data();
+  return { personalData, vehicle, documents };
 }
 
 export async function submitDriverRegistration(uid, { personalData, vehicle, documents }) {
   const ref = doc(db, 'drivers', uid);
-  console.warn('[TEMP][D-69] submitDriverRegistration payload shape', {
-    personalData: shapeOf(personalData),
-    vehicle: shapeOf(vehicle),
-    documents: shapeOf(documents),
-  });
   await setDoc(
     ref,
     {

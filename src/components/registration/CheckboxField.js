@@ -1,9 +1,10 @@
 // AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #36
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
-export function CheckboxField({ testID, checked, onChange, label, errorTestID, errorMessage }) {
+export function CheckboxField({ testID, checked, onChange, label, errorTestID, errorMessage, disabled = false }) {
   return (
     <View style={styles.field}>
       <Pressable
@@ -12,7 +13,8 @@ export function CheckboxField({ testID, checked, onChange, label, errorTestID, e
         accessibilityState={{ checked }}
         accessibilityLabel={label}
         onPress={() => onChange(!checked)}
-        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        disabled={disabled}
+        style={({ pressed }) => [styles.row, pressed && styles.rowPressed, disabled && styles.rowDisabled]}
       >
         <View style={[styles.box, checked && styles.boxChecked]}>
           {checked ? <Text style={styles.mark}>✓</Text> : null}
@@ -36,6 +38,9 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     opacity: opacity.pressed,
+  },
+  rowDisabled: {
+    opacity: opacity.disabled,
   },
   box: {
     width: touch.min,

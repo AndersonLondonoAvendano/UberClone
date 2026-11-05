@@ -6,6 +6,7 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #33
+// AI-assisted: see docs/AI_LOG.md #36
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -29,6 +30,7 @@ export const labels = {
   },
   home: {
     startTrip: 'Simular solicitud (provisional)', // provisional development entry, replaced when requests are simulated
+    availabilityHint: 'Aquí aparecerá tu disponibilidad y las solicitudes.',
   },
   trip: {
     requestTitle: 'Solicitud entrante',
@@ -92,6 +94,7 @@ export const labels = {
     sharedValueEmpty: 'Todavía no escribiste nada',
   },
   registration: {
+    pendingNotice: 'Pendiente de aprobación. Mientras tu cuenta se revisa, no puedes editar ni reenviar tu registro.',
     gender: {
       femenino: 'Femenino',
       masculino: 'Masculino',
@@ -157,6 +160,7 @@ export const labels = {
       termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent}% sobre cada viaje.',
       submit: 'Enviar registro',
       submitting: 'Enviando…',
+      submitSuccess: 'Registro enviado. Tu cuenta está pendiente de aprobación.',
       submitError: 'No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo.',
       submitErrors: {
         'permission-denied': 'No pudimos enviar tu registro por un problema de permisos de tu cuenta. Cierra sesión y vuelve a intentarlo.',

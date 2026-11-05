@@ -12,7 +12,7 @@ function isNonEmptyTrimmed(value) {
 }
 
 export function isValidFullName(value) {
-  return typeof value === 'string' && isNonEmptyTrimmed(value) && FULL_NAME_PATTERN.test(value);
+  return typeof value === 'string' && isNonEmptyTrimmed(value) && FULL_NAME_PATTERN.test(value.trim());
 }
 
 export function isValidDocumentNumber(value) {
@@ -58,7 +58,7 @@ export function isValidPlate(normalizedValue) {
 }
 
 export function isValidBrandOrModel(value) {
-  return typeof value === 'string' && value.trim().length >= 1 && value.length <= 30;
+  return typeof value === 'string' && value.trim().length >= 1 && value.trim().length <= 30;
 }
 
 export function isValidVehicleYear(value, currentYear = new Date().getFullYear()) {

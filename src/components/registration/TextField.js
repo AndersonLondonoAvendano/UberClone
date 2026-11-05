@@ -1,21 +1,24 @@
 // AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #36
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { borderWidth, color, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
-export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength }) {
+export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false }) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
         testID={testID}
         accessibilityLabel={label}
+        accessibilityState={{ disabled: !!disabled }}
         value={value}
         onChangeText={onChangeText}
         onBlur={onBlur}
         keyboardType={keyboardType}
         maxLength={maxLength}
-        style={styles.input}
+        editable={!disabled}
+        style={[styles.input, disabled && styles.inputDisabled]}
       />
       <FieldError testID={errorTestID} message={errorMessage} />
     </View>
@@ -39,5 +42,8 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.thin,
     borderColor: color.border,
     padding: space[3],
+  },
+  inputDisabled: {
+    opacity: opacity.disabled,
   },
 });

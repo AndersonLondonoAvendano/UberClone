@@ -1,7 +1,7 @@
 # Plan 001 — Registro del conductor
 
 Spec: `specs/001-registro-conductor/spec.md` (Aprobada por Anderson, 2026-11-01, prompt #24).
-Requisitos: RF-01 a RF-07, RNF-04, RNF-07. Criterios: CA-001-01 a CA-001-27, CA-001-D1 a D4.
+Requisitos: RF-01 a RF-07, RNF-04, RNF-07. Criterios: CA-001-01 a CA-001-30, CA-001-D1 a D4.
 Precedencia: ENCARGO > constitución > decisiones > spec/diseño > este plan > tareas.
 Estado del plan: recién escrito, pendiente de revisión de Anderson. Ninguna tarea autorizada todavía (todas Pendiente).
 
@@ -308,6 +308,9 @@ Dirección A «Tablero» (D-25), solo tokens de `DESIGN.md` (ya ampliado el 2026
 | CA-001-25 (sin `AsyncStorage` de datos del formulario) | T-16, T-23, T-24, T-25, T-26 | `grep AsyncStorage` + `check-constitution` C04 |
 | CA-001-26 (backend sin cambios) | todas (verificación transversal) | `git diff --stat backend/` vacío |
 | CA-001-27 (sin licencia/SOAT/RTM) | T-26 | revisión de código + Anderson, celular. No verificado en dispositivo |
+| CA-001-28 (mensaje de éxito tras envío, D-72) | T-31 | revisión de `testID`/`labels.js` + Anderson, celular. No verificado en dispositivo |
+| CA-001-29 (aviso «Pendiente de aprobación» y envío deshabilitado, D-72) | T-31 | revisión de código (`accountStatus`, `disabled`) + Anderson, celular. No verificado en dispositivo |
+| CA-001-30 (precarga desde Firestore al abrir las pestañas, D-73) | T-32 | script fuera del proyecto (conversiones inversas) + Anderson, celular. No verificado en dispositivo |
 | CA-001-D1 (táctil ≥44, testID) | T-21, T-22, T-24, T-25, T-26, T-29 | revisión de `testID` + medidas en capturas (T-29) |
 | CA-001-D2 (solo tokens, Modal/FlatList, sin emoji) | T-21, T-22, T-24, T-25, T-26, T-29 | revisión de código + T-29 |
 | CA-001-D3 (error en `type.caption`/`color.danger`, nunca solo color) | T-21, T-24, T-25, T-26, T-29 | revisión de código + T-29 |

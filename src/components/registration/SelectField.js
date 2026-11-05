@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #36
 // Dropdown built with Modal + FlatList: no native picker dependency. The selected option is
 // marked the same way the navigation marks the active destination: weight and underline, no accent fill.
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
-export function SelectField({ testID, label, options, value, onChange, errorTestID, errorMessage }) {
+export function SelectField({ testID, label, options, value, onChange, errorTestID, errorMessage, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
 
@@ -18,7 +19,8 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => setIsOpen(true)}
-        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
+        disabled={disabled}
+        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed, disabled && styles.triggerDisabled]}
       >
         <Text style={selected ? styles.triggerValue : styles.triggerPlaceholder}>
           {selected ? selected.label : label}
@@ -78,6 +80,9 @@ const styles = StyleSheet.create({
   },
   triggerPressed: {
     opacity: opacity.pressed,
+  },
+  triggerDisabled: {
+    opacity: opacity.disabled,
   },
   triggerValue: {
     ...type.body,

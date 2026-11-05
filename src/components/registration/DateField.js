@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #26
+// AI-assisted: see docs/AI_LOG.md #36
 // Opens the native Android date dialog (DateTimePickerAndroid.open), verified against
 // node_modules/@react-native-community/datetimepicker/src/index.d.ts (v9.1.0): the imperative
 // open() API is Android-specific; onValueChange only fires on an actual selection (not deprecated,
@@ -14,7 +15,7 @@ function formatDate(date) {
   return `${day}/${month}/${date.getFullYear()}`;
 }
 
-export function DateField({ testID, label, value, onChange, errorTestID, errorMessage, maximumDate }) {
+export function DateField({ testID, label, value, onChange, errorTestID, errorMessage, maximumDate, disabled = false }) {
   const openPicker = () => {
     DateTimePickerAndroid.open({
       value: value ?? maximumDate ?? new Date(),
@@ -34,7 +35,8 @@ export function DateField({ testID, label, value, onChange, errorTestID, errorMe
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={openPicker}
-        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed]}
+        disabled={disabled}
+        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed, disabled && styles.triggerDisabled]}
       >
         <Text style={value ? styles.triggerValue : styles.triggerPlaceholder}>
           {value ? formatDate(value) : label}
@@ -64,6 +66,9 @@ const styles = StyleSheet.create({
   },
   triggerPressed: {
     opacity: opacity.pressed,
+  },
+  triggerDisabled: {
+    opacity: opacity.disabled,
   },
   triggerValue: {
     ...type.body,

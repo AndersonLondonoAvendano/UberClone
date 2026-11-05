@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #29
+// AI-assisted: see docs/AI_LOG.md #36
 // Verified against node_modules/expo-image-picker/build/{ImagePicker,ImagePicker.types}.d.ts (v57.0.20):
 // launchCameraAsync/launchImageLibraryAsync resolve { canceled, assets } (assets[0].uri/base64/mimeType
 // on success, base64 only when the base64 option is true); requestCameraPermissionsAsync/
@@ -18,7 +19,7 @@ import { labels } from '../../constants/labels';
 import { uploadPhotoAsync } from '../../services/cloudinary';
 import { FieldError } from './FieldError';
 
-export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage }) {
+export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage, disabled = false }) {
   const [uploadState, setUploadState] = useState('idle'); // 'idle' | 'uploading'
   const [permissionError, setPermissionError] = useState(null);
   const [uploadErrorMessage, setUploadErrorMessage] = useState(null);
@@ -72,7 +73,8 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           accessibilityRole="button"
           accessibilityLabel={labels.registration.photo.camera}
           onPress={handleCamera}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
+          disabled={disabled}
+          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed, disabled && styles.actionButtonDisabled]}
         >
           <Text style={styles.actionLabel}>{labels.registration.photo.camera}</Text>
         </Pressable>
@@ -81,7 +83,8 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           accessibilityRole="button"
           accessibilityLabel={labels.registration.photo.gallery}
           onPress={handleGallery}
-          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
+          disabled={disabled}
+          style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed, disabled && styles.actionButtonDisabled]}
         >
           <Text style={styles.actionLabel}>{labels.registration.photo.gallery}</Text>
         </Pressable>
@@ -135,6 +138,9 @@ const styles = StyleSheet.create({
   },
   actionButtonPressed: {
     opacity: opacity.pressed,
+  },
+  actionButtonDisabled: {
+    opacity: opacity.disabled,
   },
   actionLabel: {
     ...type.label,

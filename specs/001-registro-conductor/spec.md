@@ -89,8 +89,8 @@ CA-001-01 [RF-05, D-54]
 Dado el campo de foto de perfil vacío, Cuando el conductor elige una foto por cámara o por galería, Entonces la foto se sube a Cloudinary y el campo queda válido solo cuando la subida termina con éxito; si el campo sigue vacío, no es válido.
 Cómo se verifica: paso manual en el celular (elegir foto, comprobar que la URL subida es accesible) y revisión de código de la regla de validación. **Verificado en dispositivo por declaración (Anderson, Android, 2026-11-02; checkpoint 1 cerrado):** tras D-68 (subida en base64), la foto por cámara y por galería funciona sin fallos, declarado sin capturas ni detalle por paso. Pendiente aparte la revisión de código independiente de la regla de validación / `cloudinary.js` (T-19, verifier distinto, aún sin cerrar).
 
-CA-001-02 [RF-05, D-61]
-Dado el campo de nombre, Cuando se escribe un valor vacío, con más de 50 caracteres, con dígitos o con símbolos, Entonces el campo es inválido y el error aparece bajo el campo; con un nombre de hasta 50 caracteres usando solo letras (incluidas tildes y ñ) y espacios, el campo es válido.
+CA-001-02 [RF-05, D-61, D-71]
+Dado el campo de nombre, Cuando se escribe un valor vacío, con más de 50 caracteres, con dígitos o con símbolos, Entonces el campo es inválido y el error aparece bajo el campo; con un nombre de hasta 50 caracteres usando solo letras (incluidas tildes y ñ) y espacios, el campo es válido. Enmienda (D-71, 2026-11-02, prompt #34, punto 3a): un valor con espacios al inicio o al final se guarda SIN esos espacios (recortado en la frontera de envío, no en cada tecla); el nombre guardado nunca termina ni empieza en espacio.
 Cómo se verifica: script de prueba fuera del proyecto contra la función de validación, o prueba unitaria.
 
 CA-001-03 [RF-05]
@@ -109,8 +109,8 @@ CA-001-06 [RF-05, D-63]
 Dado el desplegable de género, Cuando no se elige ninguna opción, Entonces el campo es inválido; al elegir una de Femenino, Masculino, Otro o Prefiero no decir, el campo es válido.
 Cómo se verifica: paso manual en el celular y revisión de código. **No verificado en dispositivo** (apertura y selección en el `Modal`; tarea por asignar).
 
-CA-001-07 [RF-05, D-62]
-Dado el campo de correo, Cuando se escribe un valor sin `@`, sin punto después del `@`, o vacío, Entonces el campo es inválido; con un valor de forma `algo@dominio.algo`, es válido.
+CA-001-07 [RF-05, D-62, D-71]
+Dado el campo de correo, Cuando se escribe un valor sin `@`, sin punto después del `@`, o vacío, Entonces el campo es inválido; con un valor de forma `algo@dominio.algo`, es válido. Enmienda (D-71, 2026-11-02, prompt #34, punto 3a): un valor con espacios al inicio o al final se guarda SIN esos espacios (recortado en la frontera de envío, no en cada tecla).
 Cómo se verifica: script de prueba fuera del proyecto o prueba unitaria.
 
 CA-001-08 [RF-05]
@@ -126,8 +126,8 @@ CA-001-10 [RF-06, D-14]
 Dado el campo de placa, Cuando se escribe `abc123`, `Abc123` o `ABC123`, Entonces las tres se normalizan a `ABC123` y el campo es válido; con un valor que no sea tres letras seguidas de tres dígitos (p. ej. `AB1234` o formato de moto `ABC12D`), el campo es inválido.
 Cómo se verifica: script de prueba fuera del proyecto o prueba unitaria.
 
-CA-001-11 [RF-06]
-Dado los campos de marca y modelo, Cuando cualquiera queda vacío o supera 30 caracteres, Entonces ese campo es inválido; con un valor no vacío de hasta 30 caracteres en cada uno, ambos son válidos.
+CA-001-11 [RF-06, D-71]
+Dado los campos de marca y modelo, Cuando cualquiera queda vacío o supera 30 caracteres, Entonces ese campo es inválido; con un valor no vacío de hasta 30 caracteres en cada uno, ambos son válidos. Enmienda (D-71, 2026-11-02, prompt #34, punto 3a): el límite de 30 caracteres y el de no-vacío se evalúan sobre el valor recortado (sin espacios al inicio/fin); el valor guardado también se recorta en la frontera de envío, no en cada tecla.
 Cómo se verifica: script de prueba fuera del proyecto o prueba unitaria.
 
 CA-001-12 [RF-06]
@@ -147,8 +147,8 @@ Dado el campo de foto del vehículo, Cuando el conductor elige una foto por cám
 Cómo se verifica: paso manual en el celular. **No verificado en dispositivo** (tarea por asignar).
 
 ### Documentos (alcance mínimo)
-CA-001-16 [RF-07, D-55, D-62]
-Dado el campo de correo de Mercado Pago, Cuando se escribe un valor sin `@`, sin punto después del `@`, o vacío, Entonces el campo es inválido; con un valor de forma `algo@dominio.algo`, es válido.
+CA-001-16 [RF-07, D-55, D-62, D-71]
+Dado el campo de correo de Mercado Pago, Cuando se escribe un valor sin `@`, sin punto después del `@`, o vacío, Entonces el campo es inválido; con un valor de forma `algo@dominio.algo`, es válido. Enmienda (D-71, 2026-11-02, prompt #34, punto 3a): un valor con espacios al inicio o al final se guarda SIN esos espacios (recortado en la frontera de envío, no en cada tecla).
 Cómo se verifica: script de prueba fuera del proyecto o prueba unitaria (misma función que CA-001-07).
 
 CA-001-17 [RF-07, D-55]
@@ -170,7 +170,7 @@ Cómo se verifica: paso manual en el celular por campo. **No verificado en dispo
 
 CA-001-21 [RF-04, D-52, D-53]
 Dado el formulario válido, Cuando el conductor envía el registro, Entonces se crea o actualiza el documento `drivers/{uid}` en Firestore con `accountStatus: "pending"`, los 17 campos y las URLs de las dos fotos ya subidas.
-Cómo se verifica: script fuera del proyecto que lee el documento con el SDK de Firestore tras un envío de prueba (con datos de prueba, nunca reales, ENT-05), o emulador de Firestore. **No verificado en dispositivo** para el flujo completo en el celular (tarea por asignar); la lectura del documento es automatizable fuera del dispositivo.
+Cómo se verifica: script fuera del proyecto que lee el documento con el SDK de Firestore tras un envío de prueba (con datos de prueba, nunca reales, ENT-05), o emulador de Firestore. **No verificado en dispositivo** para el flujo completo en el celular (tarea por asignar); la lectura del documento es automatizable fuera del dispositivo. **Checkpoint 3 cerrado (Anderson, Android, 2026-11-02, prompt #34):** declaró envío real sin errores y documento creado en `drivers/{uid}` con la forma esperada (confirmado con captura solo de Firestore). CA-001-21 pasa a ✅ por declaración.
 
 CA-001-22 [D-52]
 Dado un segundo `uid` distinto del dueño del documento, Cuando intenta leer o escribir `drivers/{uid-del-dueño}`, Entonces las reglas de seguridad de Firestore rechazan la operación; el propio `uid` sí puede leer y escribir su documento.
@@ -182,7 +182,7 @@ Cómo se verifica: revisión de código y paso manual (revisar el `uid` en la co
 
 CA-001-24 [D-57, D-60]
 Dado un `uid` sin documento `drivers/{uid}`, Cuando la app escucha su estado de cuenta, Entonces se muestra la rama de Registro, no un estado de error; dado un documento existente, Cuando cambia su `accountStatus` en Firestore, Entonces la app lo refleja sin recargar, y la suscripción `onSnapshot` se libera al desmontarse la pantalla que la abrió.
-Cómo se verifica: paso manual (cambiar el campo en la consola de Firebase y observar la app) y revisión de código de la limpieza del `useEffect` (`node scripts/check-constitution.mjs`, regla C11). **No verificado en dispositivo** (tarea por asignar).
+Cómo se verifica: paso manual (cambiar el campo en la consola de Firebase y observar la app) y revisión de código de la limpieza del `useEffect` (`node scripts/check-constitution.mjs`, regla C11). **No verificado en dispositivo** (tarea por asignar). **Checkpoint 3 cerrado (Anderson, Android, 2026-11-02, prompt #34):** declaró que al cambiar `accountStatus` a `approved` en la consola la app pasó sola de las pestañas a la pantalla principal sin reiniciar, que se mantiene al cerrar y reabrir, y que al volver a `pending` regresó sola a las pestañas (aunque sin precargar los datos ya guardados — ese vacío de precarga lo cubre el nuevo T-32 propuesto, no es un defecto de esta CA). CA-001-24 pasa a ✅ por declaración.
 
 CA-001-25 [RNF-04]
 Dado el código de esta spec, Cuando se revisa cada uso de `AsyncStorage`, Entonces ninguno guarda un campo del formulario de registro ni un dato bancario.
@@ -195,6 +195,18 @@ Cómo se verifica: `git diff --stat backend/` vacío al cerrar la spec.
 CA-001-27 [RF-07, P-04]
 Dado la pestaña Documentos, Cuando se revisa su contenido, Entonces no pide licencia, SOAT ni revisión técnico-mecánica en esta entrega.
 Cómo se verifica: revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-001-28 [RF-04, D-72]
+Dado un envío de registro exitoso, Cuando `submitRegistration` termina sin error, Entonces la pestaña Documentos muestra el texto «Registro enviado. Tu cuenta está pendiente de aprobación.» con el `testID` `documents-submit-success`.
+Cómo se verifica: revisión de código contra el contrato de `testID`/`labels.js` y paso manual. **No verificado en dispositivo** (tarea por asignar: T-31).
+
+CA-001-29 [RF-03, RF-04, D-72]
+Dado un documento `drivers/{uid}` con `accountStatus: "pending"`, Cuando el conductor abre cualquiera de las tres pestañas de registro, Entonces se muestra un aviso «Pendiente de aprobación» y el botón «Enviar registro» está deshabilitado, sin que ningún campo individual cambie su comportamiento de solo-lectura (D-72 deja esa ampliación fuera de alcance).
+Cómo se verifica: revisión de código (`canSubmit`/`accountStatus` vía `useAppState()`) y paso manual. **No verificado en dispositivo** (tarea por asignar: T-31).
+
+CA-001-30 [RF-03, RF-04, D-73]
+Dado un documento `drivers/{uid}` ya existente cuando la app lo resuelve (cualquier `accountStatus`), Cuando el conductor abre las pestañas de registro, Entonces los campos de `personalData`, `vehicle` y `documents` ya guardados se muestran precargados (con `year`/`capacity` convertidos de `number` a texto y `birthDate` de cadena ISO a `Date`), sin sobrescribir una edición en curso si el documento cambia por otra vía mientras la pantalla sigue abierta.
+Cómo se verifica: lectura de código (`getDriverRegistration` en `driverRepository.js`, el `useEffect` de precarga en `RegistrationFormContext.js` con `[driverId]`) y paso manual. **No verificado en dispositivo** (tarea por asignar: T-32).
 
 ### Criterios de diseño
 CA-001-D1
@@ -226,6 +238,7 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 - Intentar tocar «Enviar registro» mientras está deshabilitado no debe producir ningún efecto (ni `Alert`, ni envío parcial).
 - Correo con `@` pero sin punto en el dominio (p. ej. `a@b`) es inválido (D-62); con punto (p. ej. `a@b.com`) es válido.
 - Cambiar el idioma elegido en el formulario no traduce el resto de la interfaz en esta entrega (D-15 sigue en Propuesta y fuera de alcance aquí); solo se guarda como dato del conductor.
+- Nombre, correo, correo de Mercado Pago, marca o modelo escritos con espacios al inicio o al final (p. ej. «Anderson Londoño ») se guardan recortados, sin esos espacios; el conductor puede seguir escribiendo con espacios intermedios mientras completa un nombre de varias palabras, porque el recorte solo ocurre al enviar, no en cada tecla (D-71).
 
 ## 6. No encontrado
 - Lista exacta de opciones del desplegable de género y del de color del vehículo en F1 (D-63, D-64 proponen una lista mínima y cerrada).
@@ -239,8 +252,8 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 |---|---|
 | RF-01 | Ya cubierto por CA-000-10 (spec 000); sin criterio propio aquí |
 | RF-02 | CA-001-18 |
-| RF-03 | CA-001-02 a CA-001-17 (por campo), CA-001-19, CA-001-20, CA-001-D3 |
-| RF-04 | CA-001-21, CA-001-23 |
+| RF-03 | CA-001-02 a CA-001-17 (por campo), CA-001-19, CA-001-20, CA-001-29, CA-001-30, CA-001-D3 |
+| RF-04 | CA-001-21, CA-001-23, CA-001-28, CA-001-29, CA-001-30 |
 | RF-05 | CA-001-01 a CA-001-08 |
 | RF-06 | CA-001-09 a CA-001-15 |
 | RF-07 | CA-001-16, CA-001-17, CA-001-27 |
@@ -250,3 +263,5 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 | D-53 | CA-001-23 |
 | D-57, D-60 | CA-001-24 |
 | D-58 | CA-001-26 |
+| D-72 | CA-001-28, CA-001-29 |
+| D-73 | CA-001-30 |

@@ -33,6 +33,6 @@ export const radius = { sm: 8, md: 12, lg: 20, full: 999 };
 
 export const touch = { min: 44, controlHeight: 48, gap: 8 };
 
-export const opacity = { pressed: 0.9 };
+export const opacity = { pressed: 0.9, disabled: 0.5 };
 
 export const borderWidth = { thin: 1 };
