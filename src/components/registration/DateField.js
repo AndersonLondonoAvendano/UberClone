@@ -36,7 +36,12 @@ export function DateField({ testID, label, value, onChange, errorTestID, errorMe
         accessibilityLabel={label}
         onPress={openPicker}
         disabled={disabled}
-        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed, disabled && styles.triggerDisabled]}
+        style={({ pressed }) => [
+          styles.trigger,
+          pressed && styles.triggerPressed,
+          disabled && styles.triggerDisabled,
+          errorMessage && styles.triggerError,
+        ]}
       >
         <Text style={value ? styles.triggerValue : styles.triggerPlaceholder}>
           {value ? formatDate(value) : label}
@@ -69,6 +74,9 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: {
     opacity: opacity.disabled,
+  },
+  triggerError: {
+    borderColor: color.danger,
   },
   triggerValue: {
     ...type.body,

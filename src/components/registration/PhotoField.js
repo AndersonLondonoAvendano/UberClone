@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #29
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #38
 // Verified against node_modules/expo-image-picker/build/{ImagePicker,ImagePicker.types}.d.ts (v57.0.20):
 // launchCameraAsync/launchImageLibraryAsync resolve { canceled, assets } (assets[0].uri/base64/mimeType
 // on success, base64 only when the base64 option is true); requestCameraPermissionsAsync/
@@ -54,11 +55,13 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
   const handleCamera = () => pickAndUpload(requestCameraPermissionsAsync, launchCameraAsync);
   const handleGallery = () => pickAndUpload(requestMediaLibraryPermissionsAsync, launchImageLibraryAsync);
   const combinedError = errorMessage || permissionError || uploadErrorMessage;
+  // AI-assisted: see docs/AI_LOG.md #38
+  const canRemove = Boolean(value) && uploadState !== 'uploading' && !disabled;
 
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.preview}>
+      <View style={[styles.preview, !value && styles.previewEmpty, combinedError && styles.previewError]}>
         {value ? (
           <Image source={{ uri: value }} style={styles.previewImage} />
         ) : uploadState === 'uploading' ? (
@@ -66,6 +69,18 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
         ) : (
           <Text style={styles.previewPlaceholder}>{labels.registration.photo.instruction}</Text>
         )}
+        {canRemove ? (
+          <Pressable
+            testID={`${testID}-remove`}
+            accessibilityRole="button"
+            accessibilityLabel={labels.registration.photo.removePhoto}
+            onPress={() => onChange('')}
+            hitSlop={{ top: space[2], bottom: space[2], left: space[2], right: space[2] }}
+            style={({ pressed }) => [styles.removeButton, pressed && styles.removeButtonPressed]}
+          >
+            <Text style={styles.removeButtonIcon}>✕</Text>
+          </Pressable>
+        ) : null}
       </View>
       <View style={styles.actions}>
         <Pressable
@@ -112,6 +127,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: space[3],
   },
+  previewEmpty: {
+    borderStyle: 'dashed',
+  },
+  previewError: {
+    borderColor: color.danger,
+  },
   previewImage: {
     width: '100%',
     height: touch.controlHeight * 2,
@@ -121,6 +142,27 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: color.textMuted,
     textAlign: 'center',
+  },
+  // No semi-transparent overlay token exists in tokens.js (same gap already noted in
+  // SelectField.js's backdrop), so this reuses an existing solid token instead of inventing a new
+  // color: color.text is dark and gives white text full AA contrast without any new design value.
+  removeButton: {
+    position: 'absolute',
+    top: space[2],
+    right: space[2],
+    width: space[6],
+    height: space[6],
+    borderRadius: radius.full,
+    backgroundColor: color.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButtonPressed: {
+    opacity: opacity.pressed,
+  },
+  removeButtonIcon: {
+    ...type.label,
+    color: color.onPrimary,
   },
   actions: {
     flexDirection: 'row',

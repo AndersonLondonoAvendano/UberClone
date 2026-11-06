@@ -15,7 +15,7 @@ import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
 import { COMMISSION_RATE_PERCENT, useRegistrationForm } from '../../context/RegistrationFormContext';
-import { color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { isValidEmail, isTermsAccepted } from '../../utils/validators';
 
 const SAFE_EDGES = ['top'];
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   submitButtonDisabled: {
-    opacity: opacity.pressed,
+    opacity: opacity.disabled,
   },
   submitButtonPressed: {
     opacity: opacity.pressed,
@@ -144,5 +144,10 @@ const styles = StyleSheet.create({
   pendingNotice: {
     ...type.label,
     color: color.warning,
+    backgroundColor: color.bg,
+    borderWidth: borderWidth.thin,
+    borderColor: color.warning,
+    borderRadius: radius.sm,
+    padding: space[3],
   },
 });

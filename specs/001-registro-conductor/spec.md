@@ -208,6 +208,11 @@ CA-001-30 [RF-03, RF-04, D-73]
 Dado un documento `drivers/{uid}` ya existente cuando la app lo resuelve (cualquier `accountStatus`), Cuando el conductor abre las pestañas de registro, Entonces los campos de `personalData`, `vehicle` y `documents` ya guardados se muestran precargados (con `year`/`capacity` convertidos de `number` a texto y `birthDate` de cadena ISO a `Date`), sin sobrescribir una edición en curso si el documento cambia por otra vía mientras la pantalla sigue abierta.
 Cómo se verifica: lectura de código (`getDriverRegistration` en `driverRepository.js`, el `useEffect` de precarga en `RegistrationFormContext.js` con `[driverId]`) y paso manual. **No verificado en dispositivo** (tarea por asignar: T-32).
 
+### Usabilidad transversal (quitar foto)
+CA-001-31 [RF-05, RF-06, RF-03, D-75]
+Dado un campo de foto con un valor cargado (subida reciente a Cloudinary o precargada desde Firestore), Cuando el conductor pulsa la «X» en la esquina superior derecha de la vista previa de la foto, Entonces el campo vuelve a su estado vacío (mismo aspecto que antes de subir una foto) y queda sujeto a la misma validación de «foto obligatoria» que el resto de campos del formulario (el error se muestra bajo el campo al salir de él o al cambiar de pestaña después de haberlo visitado, nunca mediante `Alert`); esto aplica a la foto de perfil, a la foto del vehículo y a cualquier otro campo de foto que exista en las tres pestañas. La «X» no aparece ni responde al toque si el formulario está bloqueado (`isLocked`, D-74) ni mientras la foto se está subiendo. Quitar una foto no elimina nada en Cloudinary: la URL anterior queda huérfana en la cuenta (limitación conocida, D-75).
+Cómo se verifica: paso manual en el celular (elegir una foto, quitarla con la «X», comprobar que el campo queda vacío y que el error de obligatorio aparece al salir del campo o al cambiar de pestaña; repetir con el formulario bloqueado y mientras una foto está subiendo, donde la «X» no debe aparecer ni responder) y revisión de código de la regla de validación y del bloqueo. **No verificado en dispositivo** (tarea por asignar: T-33).
+
 ### Criterios de diseño
 CA-001-D1
 Dado cada uno de los 17 campos y el botón «Enviar registro», Cuando se mide su área táctil, Entonces es de al menos 44 × 44 px (botones y controles) y cada uno lleva su `testID` del contrato (`<pantalla>-field-<campo>`, `<pantalla>-error-<campo>`, `documents-submit`); las opciones de una lista desplegable llevan `<pantalla>-field-<campo>-option-<valor>`.
@@ -225,6 +230,10 @@ CA-001-D4
 Dado el texto de etiquetas, campos y errores, Cuando se aumenta la escala de texto del sistema, Entonces ningún campo ni mensaje de error se corta ni se solapa; los contenedores crecen en alto en lugar de truncar.
 Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asignar).
 
+CA-001-D5
+Dado cualquiera de los campos de cualquiera de las tres pestañas del registro (Datos personales, Vehículo, Documentos), incluidos los ubicados en la parte baja de cada pestaña y el botón final «Enviar registro», Cuando el campo recibe el foco con teclado de texto o numérico, o Cuando se abre su selector modal (desplegable) o el selector de fecha de nacimiento, Entonces el campo activo (o el control que lo abrió) queda visible por completo —incluida su etiqueta y su mensaje de error, si lo hay— por encima del teclado en pantalla, en las tres pestañas.
+Cómo se verifica: paso manual en el celular, campo por campo, en cada una de las tres pestañas, con teclado de texto y con teclado numérico (año, capacidad, celular) y abriendo cada selector modal y el selector de fecha. **No verificado en dispositivo** (tarea por asignar: T-34).
+
 ## 5. Casos límite
 - Reinstalar la app (o borrar sus datos) pierde el acceso al `uid` anónimo anterior y, con él, al documento `drivers/{uid}` ya creado (D-53); no hay recuperación en esta entrega.
 - Placa escrita en mayúsculas, minúsculas o mixta se normaliza a mayúsculas antes de validar; las tres formas de un valor por lo demás válido dan el mismo resultado.
@@ -239,6 +248,9 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 - Correo con `@` pero sin punto en el dominio (p. ej. `a@b`) es inválido (D-62); con punto (p. ej. `a@b.com`) es válido.
 - Cambiar el idioma elegido en el formulario no traduce el resto de la interfaz en esta entrega (D-15 sigue en Propuesta y fuera de alcance aquí); solo se guarda como dato del conductor.
 - Nombre, correo, correo de Mercado Pago, marca o modelo escritos con espacios al inicio o al final (p. ej. «Anderson Londoño ») se guardan recortados, sin esos espacios; el conductor puede seguir escribiendo con espacios intermedios mientras completa un nombre de varias palabras, porque el recorte solo ocurre al enviar, no en cada tecla (D-71).
+- Quitar una foto ya subida no cancela ni revierte la subida a Cloudinary (ya terminó antes de poder quitarla); la URL anterior queda huérfana en la cuenta de Cloudinary, sin aviso al conductor (D-75).
+- Elegir una foto nueva justo después de quitar la anterior repite el comportamiento normal de subida (CA-001-01/CA-001-15): el campo queda vacío hasta que la nueva subida termine con éxito.
+- Abrir un selector modal o el selector de fecha desde un campo situado en la parte baja de una pestaña no debe dejar ese selector, ni el campo que lo abrió, oculto bajo el teclado del sistema o fuera de la parte visible de la pantalla.
 
 ## 6. No encontrado
 - Lista exacta de opciones del desplegable de género y del de color del vehículo en F1 (D-63, D-64 proponen una lista mínima y cerrada).
@@ -252,10 +264,10 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 |---|---|
 | RF-01 | Ya cubierto por CA-000-10 (spec 000); sin criterio propio aquí |
 | RF-02 | CA-001-18 |
-| RF-03 | CA-001-02 a CA-001-17 (por campo), CA-001-19, CA-001-20, CA-001-29, CA-001-30, CA-001-D3 |
+| RF-03 | CA-001-02 a CA-001-17 (por campo), CA-001-19, CA-001-20, CA-001-29, CA-001-30, CA-001-31, CA-001-D3 |
 | RF-04 | CA-001-21, CA-001-23, CA-001-28, CA-001-29, CA-001-30 |
-| RF-05 | CA-001-01 a CA-001-08 |
-| RF-06 | CA-001-09 a CA-001-15 |
+| RF-05 | CA-001-01 a CA-001-08, CA-001-31 |
+| RF-06 | CA-001-09 a CA-001-15, CA-001-31 |
 | RF-07 | CA-001-16, CA-001-17, CA-001-27 |
 | RNF-04 | CA-001-25 |
 | RNF-07 | CA-001-01, CA-001-15 |
@@ -265,3 +277,4 @@ Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asig
 | D-58 | CA-001-26 |
 | D-72 | CA-001-28, CA-001-29 |
 | D-73 | CA-001-30 |
+| D-75 | CA-001-31 |

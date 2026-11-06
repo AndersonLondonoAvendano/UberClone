@@ -17,7 +17,7 @@ import { labels } from '../../constants/labels';
 import { GENDER_OPTIONS, LANGUAGE_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
-import { color, space, type } from '../../theme/tokens';
+import { borderWidth, color, radius, space, type } from '../../theme/tokens';
 import {
   isValidFullName,
   isValidDocumentNumber,
@@ -171,5 +171,10 @@ const styles = StyleSheet.create({
   pendingNotice: {
     ...type.label,
     color: color.warning,
+    backgroundColor: color.bg,
+    borderWidth: borderWidth.thin,
+    borderColor: color.warning,
+    borderRadius: radius.sm,
+    padding: space[3],
   },
 });

@@ -18,7 +18,7 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
         keyboardType={keyboardType}
         maxLength={maxLength}
         editable={!disabled}
-        style={[styles.input, disabled && styles.inputDisabled]}
+        style={[styles.input, disabled && styles.inputDisabled, errorMessage && styles.inputError]}
       />
       <FieldError testID={errorTestID} message={errorMessage} />
     </View>
@@ -45,5 +45,8 @@ const styles = StyleSheet.create({
   },
   inputDisabled: {
     opacity: opacity.disabled,
+  },
+  inputError: {
+    borderColor: color.danger,
   },
 });

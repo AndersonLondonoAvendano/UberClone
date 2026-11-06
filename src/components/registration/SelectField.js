@@ -20,7 +20,12 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
         accessibilityLabel={label}
         onPress={() => setIsOpen(true)}
         disabled={disabled}
-        style={({ pressed }) => [styles.trigger, pressed && styles.triggerPressed, disabled && styles.triggerDisabled]}
+        style={({ pressed }) => [
+          styles.trigger,
+          pressed && styles.triggerPressed,
+          disabled && styles.triggerDisabled,
+          errorMessage && styles.triggerError,
+        ]}
       >
         <Text style={selected ? styles.triggerValue : styles.triggerPlaceholder}>
           {selected ? selected.label : label}
@@ -83,6 +88,9 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: {
     opacity: opacity.disabled,
+  },
+  triggerError: {
+    borderColor: color.danger,
   },
   triggerValue: {
     ...type.body,

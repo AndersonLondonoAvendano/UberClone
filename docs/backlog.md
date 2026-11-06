@@ -603,6 +603,34 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Diseño: N/A (sin UI nueva)
 - Estado: Implementada
 
+### T-33 — Botón para quitar una foto ya cargada
+- Spec: 001-registro-conductor
+- Requisitos: RF-05, RF-06, RF-03, D-75 (CA-001-31, nueva)
+- Depende de: T-22 (`PhotoField.js` ya integrado con `disabled`), T-25 (foto del vehículo ya usa el mismo componente)
+- Archivos: `src/components/registration/PhotoField.js` (corrige), `src/constants/labels.js` (añade el texto nuevo del control de quitar foto); `src/context/RegistrationFormContext.js` solo si al revisarlo no existe ya una forma de vaciar el valor de un campo de foto con el mismo `onChange` que usa la subida (a confirmar por el implementer antes de tocarlo)
+- Hacer: añadir a `PhotoField.js` el control descrito en CA-001-31 (la «X» en la esquina superior derecha de la vista previa), visible solo cuando `value` no está vacío, oculto o sin respuesta al toque si `disabled` es `true` o si `uploadState === 'uploading'`; al activarse, llama a `onChange('')` (mismo camino ya usado tras una subida exitosa), sin lógica de validación nueva: el campo vacío y el `combinedError` que ya recibe de la pantalla siguen el mismo patrón que el resto de campos (error bajo el campo al salir de él o al cambiar de pestaña después de haberlo visitado, nunca `Alert`). Aplicarlo donde se use `PhotoField` en las tres pestañas (foto de perfil y foto del vehículo, y cualquier otro campo de foto que exista). Sin `Alert`, sin confirmación modal, sin llamar a Cloudinary para borrar nada (D-75), sin tocar el límite de 8 MB ni el flujo de subida existente, sin dependencias nuevas.
+- Hecho cuando: con una foto cargada (recién subida o precargada desde Firestore), activar el control la quita y el campo vuelve a su aspecto vacío (igual que antes de subir una foto); el error de obligatorio aparece al salir del campo o al cambiar de pestaña tras haberlo visitado, igual que en el resto de campos; con el formulario bloqueado (`isLocked`, D-74) o con una foto subiendo, el control no aparece ni responde al toque; se comprueba en los dos campos de foto existentes (perfil y vehículo).
+- Qué debe ver Anderson en el celular (checkpoint, D-59 ampliada): subir una foto de perfil y quitarla con la «X», confirmar que el campo queda vacío y que el error de obligatorio aparece al salir del campo; repetir con la foto del vehículo; abrir las pestañas con la cuenta pendiente (formulario bloqueado) y confirmar que la «X» no aparece.
+- Validación: revisión de código (el control respeta `disabled` y `uploadState`, reutiliza `onChange` existente, sin `Alert`, sin llamada nueva a Cloudinary, sin dependencia nueva); `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer; prueba manual de Anderson en el checkpoint.
+- Riesgo: bajo (un componente ya probado, sin tocar servicios externos ni Firestore).
+- Diseño hecho cuando: capas B–D, junto con T-29 (si T-29 sigue aplazada por D-51 ampliada, este campo también queda Pendiente, mismo tratamiento que T-21/T-22/T-24/T-25/T-26/T-31).
+- Diseño: Pendiente
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo
+
+### T-34 — El campo activo y los selectores quedan visibles por encima del teclado en las 3 pestañas
+- Spec: 001-registro-conductor
+- Requisitos: RF-05, RF-06, RF-07 (CA-001-D5, nueva)
+- Depende de: T-24, T-25, T-26 (las tres pestañas de registro ya funcionales, con sus campos de texto, numéricos, selectores modales y selector de fecha)
+- Archivos: `src/screens/registration/PersonalDataScreen.js`, `src/screens/registration/VehicleScreen.js`, `src/screens/registration/DocumentsScreen.js`, y el componente que agrupa o envuelve las tres pestañas de Registro (a identificar por el implementer en el árbol real de `src/`, para resolverlo una sola vez en vez de repetirlo en cada pantalla)
+- Hacer: diagnosticar primero por qué hoy el teclado en pantalla puede tapar un campo activo, su etiqueta o su error, o un selector modal/de fecha recién abierto, en cualquiera de las tres pestañas (dejar el diagnóstico escrito en la validación). Resolverlo de forma uniforme en las tres pestañas con herramientas ya incluidas en React Native/Expo (sin dependencias nuevas, sin tocar `app.json` ni config nativa, sin recompilar el build nativo) cumpliendo CA-001-D5: el campo activo, con su etiqueta y su error si lo hay, o el control que abrió un selector modal o el selector de fecha, queda visible por completo por encima del teclado, con teclado de texto y con teclado numérico, en las tres pestañas, incluidos los campos bajos de cada una y el botón «Enviar registro». No cambiar el orden de los campos, las validaciones, los `testID` ni los textos existentes; debe seguir funcionando la barra de pestañas y el ajuste de zona segura ya existente (D-46).
+- Hecho cuando: en cada una de las tres pestañas, dar foco a cualquier campo de texto o numérico, o abrir cualquier selector modal o el selector de fecha, deja ese campo o control visible por completo sobre el teclado (incluida su etiqueta y su error si lo hay), incluidos los campos bajos de cada pestaña y «Enviar registro»; nada más cambia (orden, validaciones, `testID`, textos).
+- Qué debe ver Anderson en el celular (checkpoint, D-59 ampliada): recorrer los campos de las tres pestañas de arriba a abajo, con el teclado abierto (de texto y numérico, por ejemplo año, capacidad, celular) y abriendo cada selector modal y el selector de fecha, confirmando en cada caso que el campo o control activo se ve completo, con su etiqueta y su error si lo hay.
+- Validación: revisión de código (misma solución aplicada de forma uniforme en las tres pestañas, sin dependencia nueva, sin tocar config nativa, con `testID`/validaciones/textos intactos); `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer; prueba manual de Anderson en el checkpoint (el comportamiento del teclado solo se confirma en el celular).
+- Riesgo: medio (toca las tres pantallas de pestañas; el resultado exacto frente al teclado del sistema solo se confirma en dispositivo).
+- Diseño hecho cuando: capas B–D, junto con T-29 (si T-29 sigue aplazada por D-51 ampliada, este campo también queda Pendiente, mismo tratamiento que T-21/T-22/T-24/T-25/T-26/T-31).
+- Diseño: Pendiente
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo
+
 ## Fase 3 — Implementar
 (vacío)
 

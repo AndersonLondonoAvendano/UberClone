@@ -127,6 +127,7 @@ export const labels = {
       gallery: 'Galería',
       uploading: 'Subiendo foto',
       permissionDenied: 'Necesitamos tu permiso para continuar. Revisa los permisos de la app y vuelve a intentarlo.',
+      removePhoto: 'Quitar foto',
     },
     personalData: {
       fields: {

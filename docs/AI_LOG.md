@@ -1126,3 +1126,95 @@ Corrección de T-31 (bloqueo del formulario tras enviar) y arreglo del README.
 - Archivos y commit: Archivos arriba; sin commit (regla del proyecto, lo hace Anderson).
 - Verificación: `check-constitution.mjs` antes y después: 36 error(es) / 0 advertencia(s) / 5 regla(s) inactiva(s) sin cambio (1×C01 `.env` conocido + 35×C21 preexistentes en `docs/requisitos.md`), sin violaciones nuevas. Verificador independiente (agente `verifier`, distinto del `implementer`) confirmó por lectura de código, línea por línea, con script temporal fuera del proyecto: (a) CONFIRMADO — los 5 tipos de campo quedan no editables con `isLocked=true` y las 18 instancias de campo en las 3 pantallas reciben `disabled={isLocked}` (0 instancias sin la prop); los 4 tipos no-TextInput exponen `accessibilityState.disabled` automáticamente vía `Pressable` (RN lo fusiona cuando `disabled != null`), TextField lo expone explícito. (b) CONFIRMADO — con `submitState==='error'` y cuenta no pending, `isLocked=false` (formulario editable tras envío fallido). (c) CONFIRMADO — con `accountStatus==='pending'` (precarga), `isLocked=true` independientemente de `submitState`. (d) CONFIRMADO — con cuenta nueva (sin documento, `accountStatus` no pending, `submitState` no success), `isLocked=false`. También confirmó sin cambios: reglas de Firestore, payload de envío, aviso «Pendiente de aprobación», mensaje de confirmación y la lógica `canSubmit` del botón «Enviar registro». Veredicto: **T-31 queda "Implementada y verificada en lo estático; pendiente de validación en dispositivo"** — no "Validada" (falta Diseño Aprobado/N-A y la prueba de Anderson en el celular).
 - Aprendizaje: (pendiente: Anderson)
+
+### Entrada #37
+- Fecha: 2026-11-05
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Mejorar estilos y diseño visual de las 3 pestañas de registro sin tocar funcionalidad
+- Prompt textual:
+````
+Mejora visual de las 3 pestañas del registro de conductor (SOLO estilos y diseño).
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-05, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Mejorar estilos y diseño visual de las 3 pestañas de registro sin tocar funcionalidad", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar. Deja «Aprendizaje» vacío: lo escribe Anderson.
+
+1. ALCANCE ESTRICTO. Se puede tocar ÚNICAMENTE: objetos de estilo (StyleSheet.create y props de estilo), colores, tipografía, espaciados, bordes, sombras, tamaños, disposición visual (flex/alineación) y estilos de estado (foco, error, deshabilitado/bloqueado). Archivos permitidos: los de src/components/registration/* (TextField, SelectField, DateField, PhotoField, CheckboxField, FieldError), src/screens/registration/{PersonalDataScreen,VehicleScreen,DocumentsScreen}.js, src/navigation/RegistrationTabs.js (solo estilo de la barra de pestañas) y, si hace falta, el archivo de tokens/tema que ya exista.
+PROHIBIDO tocar: lógica, estado, hooks, props existentes, validaciones, contexto (RegistrationFormContext, AppStateContext), servicios (firebase, cloudinary, driverRepository), reglas de Firestore, navegación y su comportamiento, textos visibles (labels.js), testID, accessibilityLabel/accessibilityRole/accessibilityState, orden de los campos, manejo de teclado, package.json y dependencias. No cambies nombres de funciones ni mueves lógica. Si una mejora visual exigiera tocar algo prohibido, NO lo hagas: anótalo en un apartado "No hecho por estar fuera de alcance".
+
+2. LEE PRIMERO: DESIGN.md, AGENTS.md, la spec specs/001-registro-conductor/spec.md y los archivos de las 3 pestañas. Usa los tokens y la paleta de DESIGN.md. Si falta un token necesario, reutiliza el más cercano; solo añade uno nuevo si es imprescindible y regístralo en docs/decisiones.md. Sin librerías de UI nuevas, sin fuentes nuevas, sin imágenes ni íconos nuevos (nada que requiera dependencia).
+
+3. DIRECCIÓN DE DISEÑO: simple, limpio, profesional, tipo app de movilidad actual (sobrio, mucho aire, jerarquía clara, un solo color de acento).
+- Escala de espaciado coherente (múltiplos de 4/8) y mismo margen horizontal en las 3 pestañas.
+- Jerarquía tipográfica: título de sección, etiqueta del campo, texto de entrada, texto de ayuda y texto de error con tamaños/pesos distintos y consistentes.
+- Campos: etiqueta encima, caja con borde fino y radio consistente, altura cómoda (mínimo 48 de alto), estado de foco con borde de acento, estado de error con borde y texto de error en el color de error de DESIGN.md pegado al campo, estado deshabilitado/bloqueado (cuando el formulario está enviado) atenuado pero legible.
+- Selectores y fecha con el mismo aspecto que los campos de texto (mismo alto, borde y radio) e indicador visual claro de que son desplegables.
+- Casilla de términos: área táctil amplia, texto legible con buen interlineado.
+- Fotos: recuadro con borde punteado o sutil, marco de proporción adecuada, vista previa bien recortada con radio, estados claros (vacío, subiendo, subida, error).
+- Agrupa campos relacionados con separación visual sutil (secciones o tarjetas ligeras) sin recargar.
+- Botón «Enviar registro»: ancho completo, alto cómodo, estado normal/deshabilitado/cargando bien diferenciados; mensaje de confirmación y aviso «Pendiente de aprobación» con estilo de banner discreto.
+- Barra de pestañas: etiqueta clara, pestaña activa distinguible por algo más que el color, y sin recorte por el notch o la barra de navegación del sistema (conserva el ajuste de safe area que ya existe).
+- Consistencia total entre las 3 pestañas.
+
+4. ACCESIBILIDAD OBLIGATORIA (no negociable): áreas táctiles de al menos 44x44; contraste de texto mínimo AA (4.5:1 texto normal); nada que dependa solo del color para comunicar error o estado; el texto debe poder crecer con la escala de fuente del sistema sin recortarse ni solaparse; el teclado no debe tapar el campo activo ni el botón (no cambies el comportamiento actual, solo no lo empeores con tamaños fijos).
+
+5. VERIFICACIÓN (obligatoria):
+a) Revisa tu propio diff con git diff y confirma que TODA línea modificada es de estilo. Entrega una lista, por archivo, de cualquier línea modificada que NO sea de estilo (debe estar vacía; si no, revierte esa línea).
+b) Un verifier distinto del implementer revisa que no cambió funcionalidad: mismas props, mismos testID, mismos textos, misma lógica; y que los estados error/foco/bloqueado/cargando existen y son visibles.
+c) design-auditor (si está disponible en el proyecto) revisa contraste, áreas táctiles y consistencia, y entrega hallazgos priorizados; corrige los de severidad alta que sean solo de estilo.
+d) node scripts/check-constitution.mjs debe seguir en 36 errores / 0 advertencias (línea base conocida).
+e) Marca como "Implementada y verificada en lo estático; pendiente de validación en dispositivo". No marques nada como Validada: depende de mi prueba en el celular.
+
+6. RESTRICCIONES: no ejecutes npx expo lint ni nada que modifique package.json o cree archivos de configuración. Sin dependencias nuevas. No leas ni toques .env. No reinicies ni detengas mi Metro (los estilos se recargan solos). No hagas commit. Trabaja en la rama actual.
+
+7. SALIDA: resumen corto con (i) qué cambió visualmente por pestaña en 3-4 líneas, (ii) lista de "No hecho por estar fuera de alcance", (iii) checklist para que yo pruebe en el celular: las 3 pestañas en estado normal, con foco, con error visible, con selectores abiertos, con foto subiendo y subida, con el formulario bloqueado tras enviar, con texto grande del sistema y con la barra de pestañas junto al notch.
+````
+- Resumen de la respuesta (2–3 líneas): El implementer añadió estilos de estado (borde de error en TextField/SelectField/DateField, borde punteado vacío y borde de error en PhotoField), corrigió la opacidad del botón deshabilitado de DocumentsScreen (antes igual a la de "presionado") y convirtió el aviso "Pendiente de aprobación" en un banner con borde y relleno, igual en las 3 pestañas. No se agregaron tokens nuevos ni se hicieron agrupamientos visuales de campos (ver "No hecho por estar fuera de alcance").
+- Usado / modificado / descartado: Usado y conservado todo lo implementado. No se descartó nada; el verifier no pidió cambios ("APROBADO sin hallazgos").
+- Archivos y commit: src/components/registration/TextField.js, SelectField.js, DateField.js, PhotoField.js; src/screens/registration/PersonalDataScreen.js, VehicleScreen.js, DocumentsScreen.js. Sin commit (instrucción explícita del prompt, punto 6); cambios en working tree de la rama anderson/diseno-registro.
+- Verificación: (a) implementer revisó su propio diff: todo es de estilo. (b) verifier (invocación distinta) confirmó por lectura directa del diff real: mismos props/testID/textos/lógica en los 7 archivos; estados error/foco/bloqueado visibles; `combinedError` en PhotoField era lógica preexistente, no nueva. Veredicto: "APROBADO sin hallazgos" (con 1 nota menor no bloqueante sobre esta misma entrada de bitácora, ya resuelta). (c) design-auditor NO se ejecutó: no hay capturas de celular ni arnés web disponibles en este momento (el proyecto no tiene target web configurado y el arnés `visual-audit.mjs` solo renderiza HTML) — queda pendiente para cuando existan capturas reales; Diseño queda en "Pendiente", no "Aprobado". (d) check-constitution.mjs: 36 errores / 0 advertencias / 5 reglas inactivas, igual antes y después (confirmado por implementer y de forma independiente por el verifier). (e) Estado final: "Implementada y verificada en lo estático; pendiente de validación en dispositivo".
+- Aprendizaje: (pendiente: Anderson)
+
+---
+
+### Entrada #38
+- Fecha: 2026-11-05
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5, claude-sonnet-5)
+- Objetivo: Añadir botón para quitar la foto cargada y evitar que el teclado tape los campos en las 3 pestañas
+- Prompt textual:
+````
+Mejoras de usabilidad del registro: botón para quitar la foto y teclado que no tape los campos.
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-05, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Añadir botón para quitar la foto cargada y evitar que el teclado tape los campos en las 3 pestañas", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar. Deja «Aprendizaje» vacío: lo escribe Anderson.
+
+1. PROCESO SDD: antes de implementar, el spec-author añade a specs/001-registro-conductor/spec.md los criterios nuevos (siguientes CA libres): (a) CA de quitar foto: el usuario puede quitar una foto ya cargada con una «X» en su esquina superior derecha; el campo vuelve a su estado vacío y se aplica la validación de obligatorio igual que antes; (b) CA de teclado: al enfocar cualquier campo de las 3 pestañas, el campo activo queda visible por completo por encima del teclado, con teclado de texto, numérico y con los selectores/fecha. Registra en docs/backlog.md las tareas nuevas (siguientes T libres), una por cambio, con su CA, y en docs/decisiones.md cualquier decisión. Luego implementer y verifier distintos.
+
+2. CAMBIO 1, quitar la foto (src/components/registration/PhotoField.js, y lo mínimo imprescindible en RegistrationFormContext si no existe ya un modo de vaciar el valor):
+- Cuando el campo tiene una foto (recién subida o precargada de Firestore), muestra una «X» en la esquina superior derecha de la vista previa: botón circular con fondo oscuro semitransparente y la X en blanco (buen contraste), tamaño visual ~28-32 con área táctil de al menos 44x44 (hitSlop o contenedor), sin tapar contenido importante de la foto.
+- Al pulsarla: se vacía la URL de la foto en el estado del formulario (vuelve al estado vacío, con el mismo aspecto que antes de subir) y la validación de «foto obligatoria» se comporta como en el resto de campos (error bajo el campo según la regla DP-08: al salir del campo o al cambiar de pestaña tras haberla visitado; nunca Alert). Sin confirmación modal.
+- NO se borra nada en Cloudinary (el preset sin firma no lo permite): la foto huérfana queda allí. Regístralo como limitación conocida en docs/decisiones.md.
+- La «X» NO aparece ni funciona cuando el formulario está bloqueado tras enviar (isLocked) ni mientras la foto se está subiendo.
+- Aplica a TODOS los campos de foto del registro (foto de perfil, foto del vehículo y cualquier otro que exista en las 3 pestañas).
+- Accesibilidad: accessibilityRole="button", accessibilityLabel en español «Quitar foto» (texto en src/constants/labels.js), y testID siguiendo la convención existente.
+- Si no hay un ícono de equis ya disponible sin instalar nada (por ejemplo, si @expo/vector-icons ya está en package.json se puede usar), dibuja la X con dos Views cruzados o un carácter «✕». NO añadas dependencias.
+- No cambies el flujo de subida, el límite de 8 MB, ni el envío; no toques las reglas de Firestore ni el payload.
+
+3. CAMBIO 2, teclado que tapa los campos (3 pestañas: PersonalDataScreen, VehicleScreen, DocumentsScreen y, si procede, un componente compartido o RegistrationTabs):
+- Diagnostica primero leyendo el código: cómo está construido el contenedor de cada pestaña (ScrollView, KeyboardAvoidingView, safe area), si hay edge-to-edge en Android (Expo SDK 57 / RN 0.86) y por qué el teclado tapa los campos de abajo. Explica la causa en 3-4 líneas antes de arreglar.
+- Soluciona con herramientas ya incluidas en React Native, de forma uniforme en las 3 pestañas (idealmente en un único contenedor compartido para no repetir código): ScrollView con keyboardShouldPersistTaps="handled", KeyboardAvoidingView con el behavior adecuado por plataforma, y desplazamiento automático al campo enfocado (por ejemplo, onFocus del campo que hace scrollTo a su posición usando refs/onLayout, dejando un margen visible sobre el teclado) y relleno inferior suficiente (por ejemplo con Keyboard.addListener para la altura del teclado) para poder desplazar hasta el último campo y el botón «Enviar registro».
+- El campo activo debe verse COMPLETO, incluida su etiqueta y el mensaje de error si lo hay, mientras se escribe, con teclado de texto, numérico (año, capacidad, teléfono) y en todos los campos de las 3 pestañas, incluidos los de la parte baja.
+- No debe cambiar el orden de los campos, ni el comportamiento de los selectores modales y el selector de fecha, ni las validaciones, ni los testID, ni los textos.
+- RESTRICCIÓN CLAVE: la solución NO puede requerir recompilar el development build. Prohibido: dependencias nuevas (por ejemplo react-native-keyboard-controller), cambios en app.json/app.config, en la carpeta android/ios o en cualquier configuración nativa. Si, tras el diagnóstico, concluyes que sin eso no se puede resolver, NO lo hagas: detente, explica por qué y propón alternativas para que Anderson decida.
+- Debe seguir funcionando la barra de pestañas junto al notch y el ajuste de safe area existente.
+
+4. VERIFICACIÓN: (a) check-constitution debe seguir en 36 errores / 0 advertencias (línea base conocida); (b) un verifier distinto del implementer revisa por lectura de código: la «X» aparece solo con foto y sin bloqueo ni subida en curso, vacía el valor y dispara la validación esperada, está en todos los campos de foto; el contenedor de teclado es uniforme en las 3 pestañas, sin cambiar lógica ni testID ni textos; (c) confirma con git diff que no se tocó package.json, app.json, firestore ni servicios; (d) deja ambas tareas como "Implementada y verificada en lo estático; pendiente de validación en dispositivo". No marques Validada nada que dependa de mi prueba.
+
+5. RESTRICCIONES: no ejecutes npx expo lint ni nada que modifique package.json o cree archivos de configuración. Sin dependencias nuevas. No leas ni toques .env. No reinicies ni detengas mi Metro (se recarga solo, no requiere build). No hagas commit. No toques firestore.rules (ya es local e ignorado por Git).
+
+6. SALIDA: resumen corto con (i) la causa diagnosticada del teclado, (ii) qué se cambió en cada cosa, (iii) lo que quedó fuera de alcance o requiere decisión, y (iv) checklist para que yo pruebe en el celular.
+````
+- Resumen de la respuesta (2–3 líneas): (pendiente: completar al terminar)
+- Usado / modificado / descartado: (pendiente: completar al terminar)
+- Archivos y commit: (pendiente: completar al terminar)
+- Verificación: (pendiente: completar al terminar)
+- Aprendizaje: (pendiente: Anderson)
