@@ -1,6 +1,6 @@
 # DESIGN
 
-Estado: Aprobado por Anderson (2026-10-27), registrado por el agente principal; incluye el contrato de testID. Dirección A «Tablero» (D-25, Vigente). Nivel de diseño "cuidado" (supuesto P-12). Las skills de diseño (Taste, Impeccable, UI UX Pro Max) se consultaron leyendo su `SKILL.md`, no se cargaron con la herramienta Skill al escribir este documento (D-28, Reemplazada por D-37: desde T-05 se cargan con Skill); `draw.mjs` y los scripts de las skills no se ejecutaron. Detalle en `docs/diseno/referencias.md`. No introduce dependencias nuevas: todo se resuelve con lo que trae React Native y con las fuentes del sistema. La constitución §11 limita el código a los tokens de este archivo. Nota: la adición del token `opacity.pressed` es la decisión D-39 (aprobada por Anderson, 2026-10-27, registrada por el agente principal). Nota: la adición del token `borderWidth.thin` es la decisión D-42 (aprobada por Anderson, 2026-10-27, registrada por el agente principal).
+Estado: Aprobado por Anderson (2026-10-27) para lo que existía hasta esa fecha; las adiciones de 2026-11-01 (spec-author, spec 001-registro-conductor: patrones de selector desplegable, selector de fecha, captura de foto y casilla de verificación, y sus filas del contrato de testID) quedaron confirmadas por Anderson el mismo día (prompt #25, vía D-56/DP-09 Vigentes); no contradicen tokens existentes. Incluye el contrato de testID. Dirección A «Tablero» (D-25, Vigente). Nivel de diseño "cuidado" (supuesto P-12). Las skills de diseño (Taste, Impeccable, UI UX Pro Max) se consultaron leyendo su `SKILL.md`, no se cargaron con la herramienta Skill al escribir este documento (D-28, Reemplazada por D-37: desde T-05 se cargan con Skill); `draw.mjs` y los scripts de las skills no se ejecutaron. Detalle en `docs/diseno/referencias.md`. No introduce dependencias nuevas: todo se resuelve con lo que trae React Native y con las fuentes del sistema. La constitución §11 limita el código a los tokens de este archivo. Nota: la adición del token `opacity.pressed` es la decisión D-39 (aprobada por Anderson, 2026-10-27, registrada por el agente principal). Nota: la adición del token `borderWidth.thin` es la decisión D-42 (aprobada por Anderson, 2026-10-27, registrada por el agente principal). Nota: la adición del token `opacity.disabled` es la decisión D-74 (aprobada por Anderson, 2026-11-04, registrada por el agente principal).
 
 ## Dirección
 «El panel de un taxímetro»: neutros fríos y calmados; el único color va en el dato vivo (tarifa, temporizador, estado Disponible). Qué hace y qué prohíbe: `docs/diseno/direccion.md`.
@@ -103,11 +103,14 @@ Escala de 4: `space.1`=4, `space.2`=8, `space.3`=12, `space.4`=16, `space.5`=24,
 | Token | Valor | Uso |
 |---|---|---|
 | `opacity.pressed` | 0.9 | Estado pulsado de un control con relleno (botón primario) |
+| `opacity.disabled` | 0.5 | Estado de solo lectura/bloqueado de un campo de formulario (T-31) |
 
 - Regla: el estado pulsado se indica bajando la opacidad de TODO el control (relleno y texto) a `opacity.pressed` dentro de 80–150 ms, sin cambiar el layout (sin escalas ni movimientos) y sin otra variación de color.
 - Contraste del botón primario pulsado (`onPrimary` sobre `primary`, mezclados con el fondo detrás): 4.98:1 sobre `bg` y 4.95:1 sobre `surface` (con canales de 8 bits redondeados, como los pinta el celular: 4.95:1 y 4.93:1; en los tres casos por encima de 4.5). Cálculo con un script temporal fuera del proyecto (0.85 → 4.50 sobre `bg` y 4.47 sobre `surface`; 0.88 → 4.78; 0.90 → 4.95; 0.92 → 5.18; 0.94 → 5.39).
 - Por qué 0.9: deja un margen de 0.45 sobre el mínimo de 4.5 y mantiene un pulsado perceptible (0.85 ya no cumple sobre `surface`).
-- El token se implementa en `src/theme/tokens.js` (lo hará T-06); ningún componente usa números sueltos para la opacidad.
+- Regla: el estado bloqueado (`isLocked`, T-31) atenúa TODO el campo (marco, texto y control) a `opacity.disabled`, sin cambiar layout ni tipografía; se combina con `editable=false`/`disabled` en el control nativo, nunca solo con el estilo visual.
+- Por qué 0.5: WCAG no exige un mínimo de contraste para controles deshabilitados (no son contenido activo), así que el valor no viene de un cálculo de contraste sino del uso perceptual estándar de iOS/Android para "deshabilitado" — claramente distinto de `opacity.pressed` (0.9, casi opaco) para que bloqueado y pulsado no se confundan.
+- El token se implementa en `src/theme/tokens.js` (`opacity.pressed` lo hizo T-06; `opacity.disabled` lo hace T-31, decisión D-74); ningún componente usa números sueltos para la opacidad.
 
 ### Movimiento
 - Duración ≤ 250 ms y solo con función (transición de estado, temporizador, aparición de hoja).
@@ -127,6 +130,11 @@ Escala de 4: `space.1`=4, `space.2`=8, `space.3`=12, `space.4`=16, `space.5`=24,
 - Navegación: pestañas y Drawer en `surface`, texto `text`/`textMuted`, el destino activo se marca con peso/subrayado y texto, no con relleno de color de acento.
 - Elemento propio del producto: la franja de «tarifa en vivo» (cifra grande en `color.primary`) como pieza reconocible de la dirección.
 - Íconos: sin emoji. Sin librería de íconos propuesta (ver conflictos pendientes): se usan texto y formas básicas de `View` hasta que haya decisión.
+- Selector desplegable (categoría, color, género, idioma): mismo patrón de campo de formulario (etiqueta arriba, borde `color.border` con `borderWidth.thin`); al tocarlo abre un `Modal` con la lista de opciones en `FlatList` sobre `color.surface`; la opción activa se marca con texto/peso, igual que la navegación (sin relleno de color de acento); sin dependencia nueva (D-56, Propuesta; spec 001).
+- Selector de fecha (fecha de nacimiento): mismo patrón de campo de formulario (etiqueta arriba, borde `color.border`); al tocarlo abre el selector nativo (`@react-native-community/datetimepicker`, DP-09 aprobada, prompt #25) en modo `date`; sin personalización de color del selector (sin tokens nuevos), spec 001.
+- Captura de foto (foto de perfil, foto del vehículo): campo con marco `color.border`; muestra la foto ya elegida o, si está vacío, un marcador con la instrucción de qué hacer (cámara o galería); mientras la foto sube, se ve un indicador; si la subida falla, el error aparece bajo el campo con el mismo patrón de error de campo (spec 001, D-54).
+- Casilla de verificación (términos y condiciones): objetivo táctil de al menos 44 × 44 px con el texto explicativo junto (incluye el porcentaje de comisión cuando aplique); si no está marcada al intentar enviar, usa el mismo patrón de error bajo el campo (spec 001).
+- Campo bloqueado (registro ya enviado o precargado, `isLocked`, T-31, D-74): los cinco campos (TextField, SelectField, DateField, PhotoField, CheckboxField) quedan en solo lectura — `editable=false` o `disabled` en el control nativo, sin abrir selector/galería/cámara — con el mismo marco atenuado a `opacity.disabled` y `accessibilityState={{ disabled: true }}`; el aviso «Pendiente de aprobación» y el mensaje de confirmación de envío (D-72) siguen igual.
 
 ## Contrato de testID
 Todo elemento interactivo y todo contenedor de estado lleva un `testID` estable. Sirve a las pruebas manuales y automáticas y al arnés visual (`scripts/visual-audit.mjs`, que localiza elementos por `testID`). Cambiar un `testID` es cambiar un contrato: se anota en la spec correspondiente.
@@ -144,6 +152,7 @@ Convención: kebab-case, minúsculas, ASCII, sin espacios ni acentos.
 | Reintentar | `btn-retry` | |
 | Campo de formulario | `<pantalla>-field-<campo>` | `register-field-email` |
 | Error de campo | `<pantalla>-error-<campo>` | `register-error-email` |
+| Opción de una lista desplegable | `<pantalla>-field-<campo>-option-<valor>` | `personal-data-field-gender-option-femenino` |
 | Fila de lista | `<lista>-item-<id>` | `history-item-42` |
 
 Reglas:
@@ -160,4 +169,4 @@ Reglas:
 - Para la auditoría T-12 (D-40): marco tenue del estado vacío (solo escalón de tono `surface` sobre `bg`, 1.09:1) y `accessibilityLabel` de carga (en el contenedor, sin `accessible`).
 
 ## Pendiente de decisión
-Nada: D-25, D-26, D-37, D-39 y D-40 están Vigentes en `docs/decisiones.md`. Íconos: `@expo/vector-icons` solo si ya está en `package.json` (hoy no está); si no, texto y formas de `View` (D-29).
+D-25, D-26, D-37, D-39 y D-40 están Vigentes en `docs/decisiones.md`. Íconos: `@expo/vector-icons` solo si ya está en `package.json` (hoy no está); si no, texto y formas de `View` (D-29). Nuevo desde 2026-11-01 (spec 001): D-56 (desplegables con `Modal`/`FlatList`) quedó Vigente (prompt #25); los cuatro patrones (selector desplegable, selector de fecha, captura de foto y casilla de verificación) quedan confirmados junto con ella, salvo el de selector de fecha, corregido arriba para usar el selector nativo (DP-09, también aprobada en el prompt #25) en vez de `Modal`/`FlatList`. Ninguno introduce tokens nuevos; el selector de fecha y la captura de foto sí añaden las dependencias nativas ya aprobadas en D-65.

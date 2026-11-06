@@ -56,3 +56,6 @@ coverage/
 
 # typescript
 *.tsbuildinfo
+
+# reglas de Firestore (se publican a mano en la consola)
+firestore.rules

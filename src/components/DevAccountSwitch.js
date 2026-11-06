@@ -1,13 +1,16 @@
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #20
+// AI-assisted: see docs/AI_LOG.md #35
 // PROVISIONAL: simulates the driver account status on the device. Removed by the registration and
 // settings features once the account status is real.
-// It is always visible (loading has no retry button, so it must never hide). Tokens only; texts
-// come from labels.js.
+// Gated by SHOW_DEV_TOOLS (false in this delivery): when off, this renders nothing at any of its
+// call sites, so "always visible" below only describes its behavior while the flag is on.
+// Tokens only; texts come from labels.js.
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { labels } from '../constants/labels';
+import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { useAppState } from '../context/AppStateContext';
 import { color, space, touch, type } from '../theme/tokens';
 
@@ -20,6 +23,8 @@ const OPTIONS = [
 
 export function DevAccountSwitch() {
   const { accountStatus, simulateAccountStatus } = useAppState();
+
+  if (!SHOW_DEV_TOOLS) return null;
 
   return (
     <View style={styles.group}>

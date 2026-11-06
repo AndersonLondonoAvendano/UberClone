@@ -59,7 +59,7 @@ Cómo se verifica: paso manual en el celular. **No verificado en dispositivo** (
 
 CA-000-02 [RNF-01]
 Dado un celular Android y uno iPhone (o, si solo hay uno, el de la plataforma de P-05), Cuando se instala el development build en cada uno, Entonces la primera pantalla y la navegación funcionan en ambos.
-Cómo se verifica: paso manual por plataforma. **No verificado en dispositivo** (tarea T-01); una plataforma sin dispositivo disponible queda registrada como no verificada, no como cumplida.
+Cómo se verifica: paso manual por plataforma. **No verificado en dispositivo** (tarea T-01); una plataforma sin dispositivo disponible queda registrada como no verificada, no como cumplida. Android: cerrado por declaración de Anderson en T-11, 2026-11-01 (primera pantalla y navegación); detalle en `docs/progress.md`. iOS sigue sin verificar, no cumplido (P-05, permanente sin un equipo disponible).
 
 CA-000-03 [RNF-12]
 Dado el proyecto, Cuando se revisa `package.json`, Entonces `expo-dev-client` figura como dependencia y toda dependencia pertenece a `allowed` de `scripts/dependencies.json` o tiene decisión Vigente.

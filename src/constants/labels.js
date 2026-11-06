@@ -4,6 +4,9 @@
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
+// AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #33
+// AI-assisted: see docs/AI_LOG.md #36
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -27,6 +30,7 @@ export const labels = {
   },
   home: {
     startTrip: 'Simular solicitud (provisional)', // provisional development entry, replaced when requests are simulated
+    availabilityHint: 'Aquí aparecerá tu disponibilidad y las solicitudes.',
   },
   trip: {
     requestTitle: 'Solicitud entrante',
@@ -89,4 +93,86 @@ export const labels = {
     sharedValueLabel: 'Valor escrito en Datos personales',
     sharedValueEmpty: 'Todavía no escribiste nada',
   },
+  registration: {
+    pendingNotice: 'Pendiente de aprobación. Mientras tu cuenta se revisa, no puedes editar ni reenviar tu registro.',
+    gender: {
+      femenino: 'Femenino',
+      masculino: 'Masculino',
+      otro: 'Otro',
+      prefieroNoDecir: 'Prefiero no decir',
+    },
+    language: {
+      es: 'Español',
+      en: 'Inglés',
+    },
+    vehicleCategory: {
+      economico: 'Económico',
+      xl: 'XL',
+      premium: 'Premium',
+    },
+    vehicleColor: {
+      blanco: 'Blanco',
+      negro: 'Negro',
+      gris: 'Gris',
+      plata: 'Plata',
+      rojo: 'Rojo',
+      azul: 'Azul',
+      verde: 'Verde',
+      amarillo: 'Amarillo',
+      otro: 'Otro',
+    },
+    photo: {
+      instruction: 'Elige una foto con la cámara o la galería.',
+      camera: 'Cámara',
+      gallery: 'Galería',
+      uploading: 'Subiendo foto',
+      permissionDenied: 'Necesitamos tu permiso para continuar. Revisa los permisos de la app y vuelve a intentarlo.',
+      removePhoto: 'Quitar foto',
+    },
+    personalData: {
+      fields: {
+        profilePhotoUrl: { label: 'Foto de perfil', error: 'Elige una foto de perfil con la cámara o la galería.' },
+        fullName: { label: 'Nombre completo', error: 'Escribe tu nombre completo (máximo 50 letras, solo letras y espacios).' },
+        documentNumber: { label: 'Número de documento', error: 'Escribe un número de documento válido (6 a 10 dígitos).' },
+        phone: { label: 'Celular', error: 'Escribe un número de celular válido de 10 dígitos.' },
+        birthDate: { label: 'Fecha de nacimiento', error: 'Elige tu fecha de nacimiento; debes ser mayor de 18 años.' },
+        gender: { label: 'Género', error: 'Selecciona una opción.' },
+        email: { label: 'Correo electrónico', error: 'Escribe un correo válido, con @ y dominio.' },
+        language: { label: 'Idioma', error: 'Selecciona un idioma.' },
+      },
+    },
+    vehicle: {
+      fields: {
+        category: { label: 'Categoría', error: 'Selecciona una categoría.' },
+        plate: { label: 'Placa', error: 'Escribe una placa válida, con el formato ABC123.' },
+        brand: { label: 'Marca', error: 'Escribe la marca del vehículo (máximo 30 caracteres).' },
+        model: { label: 'Modelo', error: 'Escribe el modelo del vehículo (máximo 30 caracteres).' },
+        year: { label: 'Año', error: 'Escribe un año válido (4 dígitos, no mayor al año actual).' },
+        color: { label: 'Color', error: 'Selecciona un color.' },
+        capacity: { label: 'Capacidad', error: 'Escribe una capacidad válida (mínimo 6 para la categoría XL).' },
+        photoUrl: { label: 'Foto del vehículo (con la placa visible)', error: 'Elige una foto del vehículo con la placa visible, con la cámara o la galería.' },
+      },
+    },
+    documents: {
+      fields: {
+        mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
+        termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
+      },
+      termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent}% sobre cada viaje.',
+      submit: 'Enviar registro',
+      submitting: 'Enviando…',
+      submitSuccess: 'Registro enviado. Tu cuenta está pendiente de aprobación.',
+      submitError: 'No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo.',
+      submitErrors: {
+        'permission-denied': 'No pudimos enviar tu registro por un problema de permisos de tu cuenta. Cierra sesión y vuelve a intentarlo.',
+        unavailable: 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.',
+        'deadline-exceeded': 'La conexión tardó demasiado. Revisa tu internet e inténtalo de nuevo.',
+        unauthenticated: 'Tu sesión expiró. Vuelve a iniciar sesión.',
+      },
+    },
+  },
 };
+
+export function getSubmitErrorMessage(code) {
+  return labels.registration.documents.submitErrors[code] ?? labels.registration.documents.submitError;
+}
