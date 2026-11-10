@@ -1218,3 +1218,96 @@ Mejoras de usabilidad del registro: botón para quitar la foto y teclado que no 
 - Archivos y commit: (pendiente: completar al terminar)
 - Verificación: (pendiente: completar al terminar)
 - Aprendizaje: (pendiente: Anderson)
+
+---
+
+### Entrada #39
+- Fecha: 2026-11-10
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Opus 5.5, claude-opus-5-5)
+- Objetivo: Obtener un informe del estado real de la implementación para decidir por dónde continuar
+- Prompt textual:
+````
+Informe del estado actual de la implementación del proyecto (SOLO LECTURA).
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-10, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Obtener un informe del estado real de la implementación para decidir por dónde continuar", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar. Deja «Aprendizaje» vacío: lo escribe Anderson.
+
+1. COMPROBACIÓN DE RAMA (primero, antes de todo lo demás): con git de solo lectura (git branch --show-current, git log --oneline -10, git status, git log origin/main --oneline -5, git branch -a), dime en qué rama estoy, si mi árbol está limpio, si origin/main ya contiene el trabajo de registro (T-15 a T-34, SHOW_DEV_TOOLS, diseño del registro) o solo llega hasta el PR #1 (T-01 a T-10), y si hay ramas locales o remotas con trabajo sin fusionar. Si la rama actual NO contiene el registro, dilo en la primera línea del informe y haz el resto del análisis sobre la rama que sí lo contenga (anderson/diseno-registro u otra), indicando cuál usaste. No cambies de rama ni hagas checkout: lee con git show/git ls-tree si hace falta.
+
+2. INFORME. Léelo todo desde el código y los documentos reales (docs/requisitos.md, docs/progress.md, docs/backlog.md, docs/decisiones.md, docs/AI_LOG.md, specs/**, README.md, DESIGN.md, el código en src/ y backend/). No te fíes de lo que digan los documentos: contrasta con el código. Entrega, en este orden:
+ a) Resumen ejecutivo (máximo 10 líneas): qué funciona hoy de punta a punta, qué está solo en papel y qué falta.
+ b) Tabla por spec (000 a 009): nombre, estado real (sin empezar / spec escrita / plan hecho / en implementación / implementada / verificada en lo estático / validada en dispositivo), tareas hechas / totales, y qué bloquea el siguiente paso.
+ c) Matriz de requisitos: cada RF, RNF y ENT de docs/requisitos.md con su estado real (implementado y probado / implementado sin probar / parcial / no implementado) y dónde está en el código (archivo). Marca los que no tienen tarea (los 35 C21).
+ d) Pantallas y navegación: lista de las pantallas existentes (Startup, Home, registro 3 pestañas, Datos personales, Configuración, Trip y las demás) con su estado: real y funcional, con datos de Firestore, o solo placeholder.
+ e) Datos y servicios: qué colecciones y campos de Firestore se usan hoy, qué servicios existen (firebase, cloudinary, driverRepository, backend /health) y qué reglas de seguridad están aplicadas. Recuerda que firestore.rules es local e ignorado por Git: indica si algún documento o script lo da por existente en el repositorio.
+ f) Deuda y riesgos: elementos provisionales que siguen en el código (paneles de prueba, simulador, valores fijos como commissionRate 20 vs 0.20), diseños pospuestos (T-12, T-13, T-29), criterios "No verificado en dispositivo", T-28 sin ejecutar, preguntas aparcadas (P-01, P-03, P-04, P-09, P-10), el baseline de check-constitution y por qué.
+ g) Dependencias nativas: cuáles hay instaladas y cuáles pedirán las specs siguientes (mapa, geolocalización, notificaciones, etc.), para planear un único rebuild.
+ h) Entregas y trazabilidad: qué exige F1 §8 (bitácora, hashes, Aprendizaje, PDF, README, PRs revisados) y en qué punto está cada cosa. Lista las entradas de la bitácora sin hash o sin «Aprendizaje».
+ i) Recomendación: orden sugerido de las próximas specs con justificación (dependencias entre ellas, riesgo técnico, valor para la demo) y cuál sería la primera tarea concreta de la siguiente spec. Distingue lo que es hecho verificado de lo que es opinión tuya.
+
+3. REGLAS: es SOLO LECTURA. No modifiques código ni documentos salvo la entrada de bitácora del punto 0. No hagas commit, checkout, stash ni cambies de rama. No ejecutes npx expo lint ni nada que cree archivos de configuración o toque package.json. No leas ni toques .env. No reinicies mi Metro. Sin dependencias nuevas. Si algún dato no se puede confirmar con el código, di "no verificado" en vez de suponerlo.
+
+4. SALIDA: el informe en la conversación, con tablas cortas, sin copiar código largo. Termina con una lista de máximo 5 decisiones que Anderson debe tomar antes de continuar.
+````
+- Resumen de la respuesta (2–3 líneas): Informe de solo lectura del estado real: rama actual = main = origin/main (PR #2, registro incluido); specs 000 y 001 implementadas (001 con T-28/T-29 y 3 tareas sin validar en celular); specs 002–009 sin empezar; baseline check-constitution 36 errores (35 C21 + 1 C01 sobre `.env` ignorado). Orden recomendado: 004 → 002 → 003 → 005 → 006/007 → 008 → 009.
+- Usado / modificado / descartado: (pendiente: Anderson)
+- Archivos y commit: docs/AI_LOG.md (solo esta entrada). Sin commit.
+- Verificación: git (status, branch -a, log, merge-base) de solo lectura; lectura de requisitos, progress, backlog, decisiones, specs, README, package.json, app.json, scripts/dependencies.json, src/ y backend/src; `node scripts/check-constitution.mjs` = 36 errores / 4 advertencias / 5 inactivas. No se leyó `.env`; no se ejecutó expo lint ni se tocó Metro.
+- Aprendizaje: (pendiente: Anderson)
+
+---
+
+### Entrada #40
+- Fecha: 2026-11-10
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Opus 5.5, claude-opus-5-5)
+- Objetivo: Registrar decisiones, definir el contrato de la API del pasajero, el mapa con recorrido en tiempo real y proponer un plan recortado de 2 días
+- Prompt textual:
+````
+Plan recortado para la entrega final, contrato para la API del pasajero y mapa con recorrido en tiempo real (SOLO DOCUMENTOS, sin código).
+
+0. ANTES DE TODO: crea en docs/AI_LOG.md la entrada de ESTE prompt (siguiente número libre), fecha 2026-11-10, integrante Anderson Londoño Avendaño, herramienta Claude Code (modelo que veas), objetivo "Registrar decisiones, definir el contrato de la API del pasajero, el mapa con recorrido en tiempo real y proponer un plan recortado de 2 días", con el prompt completo copiado tal cual lo recibiste. Completa archivos y verificación al terminar. Deja «Aprendizaje» vacío: lo escribe Anderson.
+
+1. CONTEXTO: la entrega final es en 2 días (se asume jueves 2026-11-12, sin confirmar: márcalo como supuesto). La app consumirá una API que simula al pasajero. Aún no se conoce su estructura ni su funcionamiento. Todo lo que se construya debe hacer MUY FÁCIL enchufarla después sin rehacer pantallas. REQUISITO DE LA PROFESORA (obligatorio): la app debe mostrar un mapa con el RECORRIDO del conductor en tiempo real hasta la posición del pasajero. Ejemplo: el pasajero está en X y el conductor en Y; se muestra la ruta por calles de Y a X y el marcador del conductor avanzando por ella en tiempo real hasta llegar a X. Esto convierte el mapa en obligatorio (ya no opcional).
+
+2. DECISIONES a registrar en docs/decisiones.md como Vigentes (aprobadas por Anderson el 2026-11-10), con su número libre y su justificación breve:
+ a) Comisión: se representa como fracción 0.20 con una sola fuente en src/config/pricing.js; el registro la leerá de ahí y la mostrará como «20 %». Los documentos de prueba actuales se reenvían (las reglas solo exigen number).
+ b) No se adopta @react-native-firebase ni FCM; un solo SDK de Firebase (el web ya usado). Tiempo real mediante onSnapshot o sondeo detrás del contrato del punto 3.
+ c) Contrato de API del pasajero con patrón puerto y adaptador (punto 3).
+ d) Mapa obligatorio con recorrido en tiempo real (punto 4). Un ÚNICO build nativo que se hace HOY (rebanada 0) con todas las dependencias nativas necesarias, para no bloquear los dos días.
+ e) firestore.rules sigue local e ignorado por Git; documentos y README deben explicar que las reglas se publican en la consola de Firebase y describir la política en texto (crear docs/seguridad.md con la política en palabras: solo el dueño lee y crea, accountStatus pending al crear, sin edición cuando está aprobada, sin borrado). Corrige las menciones a "firestore.rules en el repo" en progress.md, backlog.md y README.
+ f) Secretos: la clave de Google Maps (y cualquier otra) nunca se versiona. Va en .env (solo el NOMBRE de la variable en .env.example). Si el plugin nativo la necesita en la configuración de la app, usar app.config.js leyendo process.env en lugar de escribir el valor en app.json.
+
+3. CONTRATO DE LA API DEL PASAJERO: crea docs/arquitectura-api-pasajero.md y márcalo "SUPUESTO hasta recibir la API real". Define:
+ - Estructura de carpetas propuesta (por ejemplo src/services/passengerApi/{index.js, contract.js, mockPassengerApi.js, httpPassengerApi.js, mappers.js}) y qué hace cada archivo.
+ - Modelo interno TripRequest (id, pasajero {nombre, calificación opcional}, origen {lat, lng, dirección}, destino {lat, lng, dirección}, distanciaKm, duraciónMin, categoría, creadaEn, venceEn) y modelo Trip con estados (aceptado, en camino al pasajero, en curso, finalizado, cancelado).
+ - Operaciones del contrato: subscribeToRequests(onRequest) que devuelve una función para cancelar; acceptRequest(id); rejectRequest(id); reportTripStatus(id, estado); cancelTrip(id); reportDriverLocation(tripId, {lat, lng, timestamp}) para que el pasajero (la API real) vea al conductor. Errores normalizados (red, expirada, ya tomada, no autorizado).
+ - Un único selector (constante, no variable de entorno secreta) mock/http y el nombre de la variable EXPO_PUBLIC_PASSENGER_API_URL para la URL base (solo el NOMBRE en .env.example; nunca valores).
+ - Que el único archivo que conoce la forma de la API real sea mappers.js.
+ - Que el mock reemplace al botón «Simular solicitud» y genere solicitudes con la forma del modelo interno, con coordenadas reales cercanas a la posición del conductor.
+ - Que la tarifa y la comisión se calculen en la app con función pura (spec 004), con la tasa 0.20 de pricing.js.
+ - Qué parte cambia el día que llegue la API real (lista corta) y qué no debe cambiar nunca.
+
+4. MAPA Y RECORRIDO EN TIEMPO REAL: crea docs/arquitectura-mapa-recorrido.md. Define y compara con evidencia (documentación oficial vía WebSearch/WebFetch; marca "no verificado" lo que no puedas confirmar):
+ - Biblioteca de mapa compatible con Expo SDK 57 / React Native 0.86 y development build (por ejemplo react-native-maps), versión exacta, plugin de configuración, y qué exige en Android (clave de API de Google Maps, cuenta de facturación, restricciones) y en iOS. Si no es compatible, alternativas.
+ - Obtención de la RUTA POR CALLES entre la posición del conductor y la del pasajero: compara al menos Google Directions API, un servicio de enrutamiento abierto sin clave (por ejemplo OSRM) y OpenRouteService, con costo, límites de uso, necesidad de clave, formato de respuesta y cómo decodificar la polilínea. Recomienda una para la demo y define cómo aislar el proveedor en un único módulo (src/services/routing/*) para poder cambiarlo.
+ - FUENTE DE POSICIÓN del conductor detrás de una interfaz intercambiable (igual que la API): (1) GPS real con expo-location (watchPositionAsync; permisos en Android; confirma compatibilidad con SDK 57) para pruebas en la calle, y (2) fuente SIMULADA que recorre la polilínea de la ruta a velocidad configurable, para la demostración sin salir de casa. Una constante selecciona la fuente.
+ - Comportamiento en pantalla: marcador del pasajero, marcador del conductor que avanza, polilínea de la ruta, cámara que sigue al conductor, tiempo y distancia restantes, detección de llegada (umbral en metros) y cambio de estado del viaje a "en camino"/"llegó". Qué pasa si se pierde el GPS o la ruta falla (estado de error con reintento, ScreenState existente).
+ - Publicación de la posición: cada cuánto se llama reportDriverLocation (limitar frecuencia) y cómo se evita saturar Firestore o la API.
+ - Rendimiento y batería: límites razonables y qué se desactiva cuando la app pasa a segundo plano (la segunda plano real queda fuera de alcance salvo que sea obligatorio; dilo).
+ - Lista EXACTA de dependencias nativas del build único con versiones verificadas, y la lista de lo que Anderson debe hacer a mano (crear y restringir la clave de Google Maps, ponerla en su .env, reconstruir). NO instales nada: la instalación y el build los aprueba y ejecuta Anderson.
+ - Plan B si el mapa nativo no compila a tiempo (por ejemplo, vista del recorrido con la misma interfaz de datos pero sin mapa) y criterio para decidir cuándo activarlo.
+
+5. PLAN RECORTADO: el planner entrega en docs/plan-entrega-final.md un plan para 2 días con "rebanadas" verticales (no 8 specs completas) en este orden: (0) HOY: dependencias nativas + clave + build único + prueba mínima de que el mapa se ve y la ubicación llega (spike con criterio de éxito claro); (A) tarifa y comisión (spec 004, función pura); (B) disponibilidad y ubicación + solicitudes entrantes (mock) + aceptar/rechazar + recorrido en tiempo real del conductor hasta el pasajero + viaje activo + resumen; (C) cobro simulado, ganancias, historial (colección trips en Firestore escrita por la app al cerrar el viaje) y perfil/configuración de solo lectura; (D) cierre: bitácora, hashes, «Aprendizaje», PDF, README, video. Para cada rebanada: qué RF/RNF/ENT cubre, tareas T-NN numeradas con CA y estimación en horas, dependencias, qué se simplifica o simula y qué queda explícitamente NO cubierto. Reserva al menos medio día para (D). Indica la ruta mínima viable (debe incluir el recorrido en tiempo real) y qué rebanada se puede abandonar sin comprometerla. Agrupa las pruebas en el celular en checkpoints (D-59). Señala los riesgos principales (build nativo, clave de Maps, permisos de ubicación, enrutamiento) y su mitigación.
+
+6. TRAZABILIDAD: corrige la tabla de specs de docs/progress.md (está desactualizada) y añade las filas que faltan para CA-001-31 y CA-001-D5 en progress.md y plan.md para eliminar las 4 advertencias C23. No marques nada como Validada.
+
+7. REGLAS: no escribas ni modifiques código fuente, no instales dependencias, no ejecutes npx expo lint ni nada que cree archivos de configuración o toque package.json o app.json, no leas ni toques .env, no reinicies mi Metro, no hagas commit, no cambies de rama. Ejecuta node scripts/check-constitution.mjs al final e informa el resultado (esperado: 36 errores, 0 advertencias; explica cualquier diferencia).
+
+8. SALIDA: resumen corto en la conversación con (i) decisiones registradas, (ii) los 4 archivos nuevos, (iii) la dependencia nativa y el proveedor de rutas recomendados con sus costos y riesgos, (iv) la ruta mínima viable y el tiempo estimado por rebanada, (v) la lista de pasos manuales que Anderson debe hacer HOY para el build nativo, y (vi) máximo 5 preguntas que Anderson debe responder antes de empezar la rebanada 0.
+````
+- Resumen de la respuesta (2–3 líneas): Solo documentos, sin tocar código. Se registraron D-76 a D-81 como Vigentes y D-82 como Propuesta, y se escribieron el contrato puerto/adaptador de la API del pasajero, la arquitectura del mapa con recorrido (react-native-maps + expo-location + OSRM con respaldo) y un plan de entrega de 2 días en rebanadas (0, A, B, C, D) con la ruta mínima 0 → A → B → D. También se corrigieron la tabla de specs y la trazabilidad de CA-001-31/D5 en progress.md y plan.md, y las menciones a `firestore.rules` (D-80).
+- Usado / modificado / descartado: (pendiente: Anderson)
+- Archivos y commit: Nuevos: `docs/seguridad.md`, `docs/arquitectura-api-pasajero.md`, `docs/arquitectura-mapa-recorrido.md`, `docs/plan-entrega-final.md`. Modificados: `docs/decisiones.md`, `docs/progress.md`, `docs/backlog.md`, `specs/001-registro-conductor/plan.md`, `README.md`, `docs/AI_LOG.md`. Sin commit.
+- Verificación: `node scripts/check-constitution.mjs` → 36 errores, 0 advertencias (antes: 36 errores y 4 advertencias C23). Los 36 errores son los de la línea base: 35 C21 (requisitos MAESTRO sin tarea, que se cubrirán al aprobar el plan de entrega) y 1 C01 (falso positivo por `.env`). No se ejecutó código, lint ni build; nada se marcó Validada.
+- Aprendizaje:
