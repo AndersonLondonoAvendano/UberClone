@@ -1,6 +1,6 @@
 # Plan recortado — Entrega final (2 días)
 
-Estado: **propuesta del planner, pendiente de aprobación de Anderson** (prompt #40). Las tareas T-35 a T-53 entran a `docs/backlog.md` cuando Anderson apruebe este plan; hasta entonces solo existen aquí.
+Estado: **aprobado por Anderson para las rebanadas 0, A y B** (prompt #41, 2026-11-10; propuesto en el prompt #40). La rebanada 0 se revisó en el prompt #41 para usar MapLibre + OpenFreeMap (D-82 Vigente MODIFICADA) y sus tareas T-35 a T-37 ya están en `docs/backlog.md`. Las tareas T-38 a T-53 entran al backlog cuando se empiece su rebanada; C y D siguen como propuesta.
 **SUPUESTO:** la entrega es el **jueves 2026-11-12** (fecha y hora no confirmadas). Hoy es el martes 2026-11-10.
 Decisiones base: D-59 (cadena con checkpoints), D-76 a D-82. Arquitectura: `docs/arquitectura-api-pasajero.md` y `docs/arquitectura-mapa-recorrido.md`. Seguridad: `docs/seguridad.md`.
 
@@ -19,19 +19,19 @@ En vez de 8 specs completas (002 a 009), se trabaja por **rebanadas verticales**
 
 ---
 
-## Rebanada 0 — Dependencias nativas, clave, build único y spike (HOY)
-**Cubre:** RNF-01, RNF-06 (mapa y geolocalización, parcial por D-77), RNF-08 (restricción de clave y alerta), RNF-12. Prepara RF-08, RF-12.
-**Depende de:** aprobar D-82 y que Anderson cree la clave (pasos manuales de `arquitectura-mapa-recorrido.md` §8).
+## Rebanada 0 — Dependencias nativas, build único y spike del mapa (HOY)
+**Cubre:** RNF-01, RNF-06 (mapa y geolocalización, parcial por D-77), RNF-08 (restricción de clave y alerta), RNF-12. Prepara RF-08, RF-12. Ya no aplica la restricción de clave de RNF-08 para el mapa: el mapa no usa clave (D-81, D-82).
+**Depende de:** D-82 Vigente MODIFICADA (prompt #41) y las dos dependencias instaladas (`@maplibre/maplibre-react-native`, `expo-location`); el build nativo lo hace Anderson (pasos de `arquitectura-mapa-recorrido.md` §8).
 
 | Tarea | Qué | CA (resumen) | Horas |
 |---|---|---|---|
-| T-35 | `app.config.js` que extiende `app.json` y añade los plugins `react-native-maps` (lee `process.env.GOOGLE_MAPS_ANDROID_API_KEY`) y `expo-location` (texto del permiso en español). `.env.example` con el nombre de la variable sin valor. | La configuración resuelta contiene ambos plugins; ningún valor de clave en archivos versionados; `check-constitution` no empeora | 1 |
-| T-36 | `src/services/routing/` (`index.js`, `osrmRouting.js`, `straightLine.js`) y `src/config/routing.js`, según §2. | Un script temporal contra OSRM real devuelve más de 2 coordenadas `{latitude, longitude}`, `distanceM > 0` y `durationS > 0`; sin red, devuelve `ROUTE_FAILED`; `straightLine` interpola N puntos | 1,5 |
-| T-37 | Pantalla de spike (solo en desarrollo) con `MapView`, permiso de ubicación, marcador en la posición real y polilínea OSRM hasta un punto fijo a ~1 km. | **Criterio de éxito del spike:** en el celular Android se ven calles (no gris), la posición real y la polilínea por calles | 1 |
-| — | **Anderson:** `npx expo install react-native-maps expo-location` y `npx expo run:android` | Build instalado | 1 a 2 (manual) |
+| T-35 | `app.json` con los plugins `@maplibre/maplibre-react-native` y `expo-location` (texto del permiso de ubicación en español, sin segundo plano). Sin `app.config.js` y sin variables nuevas. | `app.json` conserva todo lo que ya tenía y suma los dos plugins; ningún secreto en archivos versionados; `check-constitution` no empeora | 0,5 |
+| T-36 | `src/services/routing/` (`index.js`, `osrmRouting.js`, `fallbackRoute.js`, `straightLine.js`) y `src/config/routing.js`, según §2: OSRM, después la ruta de respaldo precargada y la línea recta como último recurso. | Un script temporal contra OSRM real devuelve más de 2 coordenadas `[lng, lat]`, `distanceM > 0`, `durationS > 0` y `provider: 'osrm'`; sin red y sin respaldo, rechaza con `ROUTE_FAILED`; con respaldo, devuelve la ruta precargada para los puntos fijos o la línea recta interpolada | 1,5 |
+| T-37 | Pantalla de prueba del mapa, visible solo con `SHOW_DEV_TOOLS` en `true`: `Map` de MapLibre con el estilo de OpenFreeMap, permiso de ubicación, posición actual del conductor y ruta por calles entre dos puntos fijos (capa de línea), con carga y error con reintento (`ScreenState`) y atribución visible (OpenFreeMap, OpenMapTiles, OpenStreetMap, OSRM). | **Criterio de éxito del spike:** en el celular Android se ven calles (no un fondo vacío), la atribución, la posición real y la ruta por calles; con `SHOW_DEV_TOOLS` en `false` no aparece nada de la prueba | 1,5 |
+| — | **Anderson:** `npm install` (las dependencias ya quedaron en `package.json`) y `npx expo run:android` con el celular conectado | Build instalado | 1 a 2 (manual) |
 
 **Checkpoint 0 (celular):** criterio de éxito de T-37. Si falla dos veces o pasan 3 h, se activa el **Plan B** (`arquitectura-mapa-recorrido.md` §9).
-**Se simplifica:** solo Android con Google; iOS con Apple Maps queda sin probar si no hay Mac. **No cubierto:** ubicación en segundo plano, FCM (D-77).
+**Se simplifica:** se prueba solo en Android; MapLibre también funciona en iOS, pero queda sin probar si no hay Mac. **No cubierto:** ubicación en segundo plano, FCM (D-77).
 
 ## Rebanada A — Tarifa y comisión (spec 004)
 **Cubre:** RF-20, RF-21, RF-22, RF-23 (el campo; se escribe en C) y D-76.
@@ -91,9 +91,10 @@ En vez de 8 specs completas (002 a 009), se trabaja por **rebanadas verticales**
 | Riesgo | Probabilidad e impacto | Mitigación |
 |---|---|---|
 | El build nativo falla (versiones, Gradle, plugin) | Media, alto | Se hace HOY (D-79), con `npx expo install` para versiones compatibles y `expo-doctor` antes. Si falla dos veces o pasan 3 h, Plan B. |
-| Mapa gris por la clave (restricción o SHA-1 equivocados, facturación sin activar) | Alta, alto | Primero se prueba la clave sin restricción de app durante el spike (solo con la restricción de API y la alerta de presupuesto), y se restringe por paquete y SHA-1 justo después de confirmar que funciona. |
+| No cargan las teselas (OpenFreeMap caído, red lenta o estilo que falla) | Baja-media, alto | `onDidFailLoadingMap` muestra el error con reintento; se prueba el estilo alternativo `positron`; si falla dos veces o pasan 3 h, Plan B (§9 de la arquitectura). |
+| OSRM sin internet o sin respuesta (celular sin datos, servidor demo caído o con límite) | Media, alto | Tiempo máximo por petición; cadena de respaldo: ruta precargada para los puntos fijos y después línea recta marcada «Ruta aproximada»; botón de reintento. |
 | Permiso de ubicación denegado o GPS débil en interiores | Media, medio | `ScreenState` con reintento; la fuente simulada para la demo y el video. |
-| OSRM demo caído o con límite | Baja-media, alto | Una petición por tramo, `straightLine` como respaldo marcado «Ruta aproximada», y ORS como adaptador alternativo. |
+| OSRM demo con límite de uso (1 petición por segundo) | Baja, medio | Una petición por tramo, nunca en bucle; ORS queda como adaptador alternativo futuro. |
 | La API del pasajero llega a última hora con otra forma | Media, medio | Solo cambian `mappers.js` y `httpPassengerApi.js` (D-78); si no hay tiempo, la demo sigue con el mock y se declara. |
 | Tiempo insuficiente | Alta, alto | C es abandonable, y D tiene su medio día reservado y no se recorta. |
 | Desviaciones de F1 (FCM, Google Directions, geolocalización) | Segura, medio | Declaradas en D-77, D-82 y aquí; Anderson las consulta con la profesora. |

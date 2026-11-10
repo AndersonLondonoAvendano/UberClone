@@ -7,6 +7,7 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #33
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #41
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -87,6 +88,22 @@ export const labels = {
     pending: 'Pendiente de aprobación',
     approved: 'Aprobado',
     error: 'Error',
+  },
+  mapTest: {
+    title: 'Prueba del mapa',
+    openFromHome: 'Probar mapa y ruta (provisional)', // development-only entry, gated by SHOW_DEV_TOOLS
+    attribution: '© OpenFreeMap · © OpenMapTiles · Datos © colaboradores de OpenStreetMap · Rutas: OSRM',
+    routeErrorHint: 'No pudimos calcular la ruta de prueba.',
+    mapErrorHint: 'No pudimos cargar el mapa. Revisa tu conexión a internet.',
+    fallbackNotice: 'Ruta de respaldo: no hubo conexión con el servidor de rutas y se muestra una ruta guardada.',
+    straightNotice: 'Ruta aproximada: no hubo conexión con el servidor de rutas y se muestra una línea recta que no sigue las calles.',
+    routeSummary: 'Ruta: {km} km · {min} min aprox.',
+    locationPending: 'Buscando tu posición…',
+    locationDenied: 'No diste permiso de ubicación. El mapa y la ruta se ven igual, pero sin tu posición. Puedes activarlo en los ajustes del teléfono.',
+    locationUnavailable: 'No pudimos obtener tu posición. Revisa que la ubicación del teléfono esté activada.',
+    locationReady: 'Tu posición: {lat}, {lng}',
+    showRoute: 'Ver ruta',
+    showMe: 'Ver mi posición',
   },
   demo: {
     sharedFieldLabel: 'Valor de prueba compartido',

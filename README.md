@@ -26,7 +26,7 @@ Solo se referencian por nombre; los valores reales van en `.env` (raíz, fuera d
 - `EXPO_PUBLIC_FIREBASE_API_KEY`, `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`, `EXPO_PUBLIC_FIREBASE_PROJECT_ID`, `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`, `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`, `EXPO_PUBLIC_FIREBASE_APP_ID` — configuración del SDK de Firebase para JavaScript (no se usa `google-services.json` ni `GoogleService-Info.plist`: este proyecto no usa el SDK nativo de Firebase, solo variables de entorno).
 - `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — subida de fotos (perfil, vehículo, documentos).
 
-Variable prevista para la entrega final (ver `docs/plan-entrega-final.md`; se añade a `.env.example` cuando se implemente): `GOOGLE_MAPS_ANDROID_API_KEY` (mapa en Android, leída por `app.config.js`; la clave se restringe en Google Cloud al paquete y SHA-1 de la app). La URL de la API del pasajero (`EXPO_PUBLIC_PASSENGER_API_URL`) se añadirá cuando se conozca la API.
+El mapa (MapLibre con teselas de OpenFreeMap) y las rutas (OSRM) no necesitan clave ni variable de entorno; sus URL públicas están en `src/config/map.js` y `src/config/routing.js` (D-82). Al usar el mapa, la app muestra la atribución de OpenFreeMap, OpenMapTiles, OpenStreetMap y OSRM. La URL de la API del pasajero (`EXPO_PUBLIC_PASSENGER_API_URL`) se añadirá cuando se conozca la API.
 
 ## Reglas de seguridad de Firestore
 Las reglas efectivas se publican a mano en la consola de Firebase (Firestore → Reglas). El archivo `firestore.rules` de la raíz es una copia local de trabajo que Git ignora, así que no viene al clonar. La política vigente está descrita en [docs/seguridad.md](docs/seguridad.md) (D-80).

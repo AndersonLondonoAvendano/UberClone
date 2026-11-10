@@ -21,6 +21,6 @@ Las reglas de la colección `trips` (historial, rebanada C) y de la ubicación d
 
 ## Secretos
 - Secretos de servidor (`access_token` de Mercado Pago, API secret de Cloudinary): solo en `backend/.env` (RNF-05).
-- Configuración pública de cliente (`EXPO_PUBLIC_*`) y clave de Google Maps: en `.env` local, ignorado por Git. `.env.example` lleva solo los **nombres** (D-81).
-- La clave de Google Maps queda embebida en el APK, así que no es secreta en sentido estricto. Su protección es la restricción en Google Cloud a «Android apps» (paquete `com.andersonlondono.uberclone` y SHA-1) y a la API «Maps SDK for Android», más una alerta de presupuesto (RNF-08).
+- Configuración pública de cliente (`EXPO_PUBLIC_*`): en `.env` local, ignorado por Git. `.env.example` lleva solo los **nombres** (D-81).
+- El mapa no necesita clave ni variable: MapLibre usa las teselas públicas de OpenFreeMap y las rutas salen del servidor demo público de OSRM. Sus URL son constantes públicas en `src/config/map.js` y `src/config/routing.js` (D-82 Vigente MODIFICADA, prompt #41).
 - Ningún agente de IA lee ni escribe valores de `.env` (CLAUDE.md).

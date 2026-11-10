@@ -2,9 +2,10 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #35
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #41
 // Home screen: one primary action to start the trip flow, plus the provisional account simulator.
 // The "start trip" button simulates a trip request (no real trip flow exists yet), so it is gated
-// by SHOW_DEV_TOOLS like the other provisional panels.
+// by SHOW_DEV_TOOLS like the other provisional panels. The map test entry is gated the same way.
 // The drawer button dispatches the open-drawer action; the stack does not handle it, so it reaches
 // the parent drawer navigator.
 // The availability hint always renders so the screen never looks empty with SHOW_DEV_TOOLS off.
@@ -33,6 +34,13 @@ export function HomeScreen({ navigation }) {
             testID="home-start-trip"
             label={labels.home.startTrip}
             onPress={() => navigation.navigate('TripRequest')}
+          />
+        ) : null}
+        {SHOW_DEV_TOOLS ? (
+          <PrimaryButton
+            testID="home-map-test"
+            label={labels.mapTest.openFromHome}
+            onPress={() => navigation.navigate('MapTest')}
           />
         ) : null}
         <DevAccountSwitch />

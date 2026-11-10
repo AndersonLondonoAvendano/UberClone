@@ -1,9 +1,14 @@
 // AI-assisted: see docs/AI_LOG.md #19
+// AI-assisted: see docs/AI_LOG.md #41
 // Main drawer: Home (the trip stack, not listed in the panel) plus Profile, History, Earnings and
 // Settings. Back from any destination returns to Home. Each screen draws its own header, so the
 // navigator header is hidden.
+// MapTest is a development-only screen: it is registered only while SHOW_DEV_TOOLS is on, it is not
+// listed in the drawer panel, and its module (which loads the native map) is required lazily, so
+// with the flag off nothing of the map test is loaded or rendered.
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { EarningsScreen } from '../screens/main/EarningsScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
@@ -18,6 +23,8 @@ const SCREEN_OPTIONS = {
   headerShown: false,
   drawerStyle: { backgroundColor: color.surface },
 };
+
+const getMapTestScreen = () => require('../screens/dev/MapTestScreen').MapTestScreen;
 
 const renderDrawerContent = (props) => <AppDrawerContent {...props} />;
 
@@ -34,6 +41,7 @@ export function MainDrawer() {
       <Drawer.Screen name="History" component={HistoryScreen} />
       <Drawer.Screen name="Earnings" component={EarningsScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
+      {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
     </Drawer.Navigator>
   );
 }

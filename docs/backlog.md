@@ -631,6 +631,48 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Diseño: Pendiente
 - Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo
 
+### T-35 — Plugins nativos del mapa y de la ubicación en `app.json`
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RNF-01, RNF-06, RNF-12, D-79, D-81, D-82
+- Depende de: D-82 Vigente MODIFICADA; `@maplibre/maplibre-react-native` y `expo-location` instaladas con `npx expo install`
+- Archivos: `app.json`
+- Hacer: añadir a `plugins` el de `@maplibre/maplibre-react-native` (sin opciones) y el de `expo-location` con el texto del permiso de ubicación en primer plano en español, sin ubicación en segundo plano. No crear `app.config.js`, no añadir variables de entorno y no cambiar nada de lo que ya tiene `app.json`.
+- Hecho cuando: `app.json` conserva todos los campos y plugins previos y suma los dos nuevos; ningún secreto en archivos versionados; `check-constitution` no empeora.
+- Qué debe ver Anderson en el celular (checkpoint 0): el build nativo instala y abre la app sin regresiones (inicio de sesión y registro funcionan como antes).
+- Validación: comparación con la copia previa de `app.json`; `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer.
+- Riesgo: medio (cambio nativo; solo se confirma con el build de Anderson).
+- Diseño hecho cuando: —
+- Diseño: N/A (sin UI)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+
+### T-36 — Módulo de rutas aislado (OSRM, ruta de respaldo precargada y línea recta)
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RF-12, RNF-06, RNF-08, D-82
+- Depende de: ninguna tarea (lógica JS pura)
+- Archivos: `src/config/routing.js` (nuevo), `src/services/routing/index.js`, `osrmRouting.js`, `fallbackRoute.js`, `straightLine.js` (nuevos)
+- Hacer: `getRoute(from, to, { allowFallback })` según `docs/arquitectura-mapa-recorrido.md` §2: pide la ruta a OSRM con tiempo máximo; si falla y `allowFallback` es verdadero, devuelve la ruta precargada si los puntos son los fijos de prueba, y si no la línea recta interpolada; si no hay respaldo, rechaza con `ROUTE_FAILED`. Coordenadas `[lng, lat]`. Sin dependencias nuevas.
+- Hecho cuando: un script temporal contra OSRM real devuelve más de 2 coordenadas, `distanceM > 0`, `durationS > 0` y `provider: 'osrm'`; sin red y sin respaldo rechaza con `ROUTE_FAILED`; con respaldo devuelve `provider: 'fallback'` o `'straight'`.
+- Qué debe ver Anderson en el celular (checkpoint 0): a través de T-37, la ruta por calles; con el celular sin datos, la ruta de respaldo y el aviso.
+- Validación: script temporal fuera del proyecto contra OSRM real y con red simulada caída; revisión de que el módulo no importa nada de UI ni de Firestore; verifier distinto del implementer.
+- Riesgo: bajo (módulo aislado).
+- Diseño hecho cuando: —
+- Diseño: N/A (sin UI)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+
+### T-37 — Pantalla de prueba del mapa (solo con `SHOW_DEV_TOOLS`)
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RF-08, RF-12, RNF-06, D-82
+- Depende de: T-35, T-36
+- Archivos: `src/config/map.js` (nuevo), la pantalla de prueba del mapa (nueva, en `src/screens/`), su entrada de navegación condicionada a `SHOW_DEV_TOOLS`, `src/constants/labels.js` (textos nuevos)
+- Hacer: `Map` de MapLibre con el estilo de OpenFreeMap (`liberty`), permiso de ubicación con `expo-location`, posición actual del conductor, ruta por calles entre los dos puntos fijos de `src/config/routing.js` dibujada con `GeoJSONSource` y una capa de línea, estados de carga y de error con reintento (`ScreenState`), aviso «Ruta aproximada» o «Ruta de respaldo» cuando no viene de OSRM, y atribución visible (botón nativo de MapLibre más texto de OpenFreeMap, OpenMapTiles, OpenStreetMap y OSRM). Solo se puede abrir con `SHOW_DEV_TOOLS` en `true`; el valor del repositorio sigue en `false`.
+- Hecho cuando: con `SHOW_DEV_TOOLS` en `true` se ven calles, la atribución, la posición real y la ruta; sin red aparece el error o la ruta de respaldo con reintento; con `SHOW_DEV_TOOLS` en `false` no aparece nada de la prueba.
+- Qué debe ver Anderson en el celular (checkpoint 0): el checklist del prompt #41 (mapa con atribución, permiso, posición, ruta, error de red con reintento, nada visible con la bandera en `false`).
+- Validación: revisión de código contra los tipos instalados de MapLibre v11 y `expo-location`; `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer; prueba de Anderson en el celular.
+- Riesgo: medio (API nativa nueva; solo se confirma en el celular).
+- Diseño hecho cuando: — (pantalla de desarrollo, no visible en la app entregada)
+- Diseño: N/A (pantalla solo de desarrollo)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+
 ## Fase 3 — Implementar
 (vacío)
 

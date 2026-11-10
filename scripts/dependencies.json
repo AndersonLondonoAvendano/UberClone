@@ -19,10 +19,11 @@
     "@firebase/auth",
     "@react-native-async-storage/async-storage",
     "expo-image-picker",
-    "@react-native-community/datetimepicker"
+    "@react-native-community/datetimepicker",
+    "@maplibre/maplibre-react-native",
+    "expo-location"
   ],
   "proposed": [
-    "react-native-maps",
     "@react-native-firebase/app",
     "@react-native-firebase/messaging",
     "@react-native-firebase/firestore",
