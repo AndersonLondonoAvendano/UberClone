@@ -50,8 +50,15 @@ Fuente de verdad en código: `src/theme/tokens.js`. Un solo tema claro. Solo est
 
 El botón deshabilitado usa `opacity.disabled` (0.5) y pierde la sombra; los controles deshabilitados están exentos de contraste en WCAG 2.x y siguen comunicando el estado con `accessibilityState`.
 
-## Tipografía (fuente del sistema)
+## Tipografía (Inter, D-91)
+Familias por peso: `fontFamily.regular` 400, `medium` 500, `semibold` 600, `bold` 700 (sin `fontWeight`; en Android el peso es la familia). Carga con `useFonts` y salida segura a la fuente del sistema a los 3 s o ante error.
 hero 40/46 700 · display 28/34 700 · title 20/26 600 · heading 18/24 600 · body 16/22 400 · bodyStrong 16/22 600 · label 14/18 500 · small 14/20 400 · caption 12/16 400 · numeric (tabular-nums, se compone). Todo importe, tiempo o distancia usa `type.numeric`.
+
+## Íconos
+Un solo componente `Icon` (Ionicons), decorativo, siempre con texto o etiqueta cerca. Tamaños `iconSize`: sm 16, md 20, lg 24. Contorno inactivo, relleno activo. Color por token (`tint`).
+
+## Menú lateral y pestañas de registro
+Menú: cabecera `primaryDark` con avatar de borde (`avatarSize.md`), nombre, vehículo, placa y píldora de disponibilidad con texto; entradas con ícono y texto, la activa en píldora `primarySoft` con barra `accentWidth`. Pestañas: ícono + etiqueta, la activa en píldora `primarySoft` con ícono relleno y subrayado.
 
 ## Espaciado, formas y elevación
 - `space`: 2, 4, 8, 12, 16, 24, 32, 48. Margen lateral 16.
@@ -60,7 +67,7 @@ hero 40/46 700 · display 28/34 700 · title 20/26 600 · heading 18/24 600 · b
 - `touch.min` 44, `touch.controlHeight` 48. `motion`: 150/220/400 ms.
 
 ## Componentes
-ScreenHeader (barra elevada, botón píldora con ícono dibujado y texto), PrimaryButton, SecondaryButton, ScreenState (carga con esqueleto, vacío, error con reintento), Chip (estado con texto, nunca solo color), Card (card | featured | status), DataRow (etiqueta secundaria, valor medio, separador).
+ScreenHeader (barra elevada, botón píldora con `Icon` y texto), PrimaryButton, SecondaryButton, ScreenState (carga con esqueleto, vacío, error con reintento), Chip (estado con texto, nunca solo color), Card (card | featured | status), DataRow (etiqueta secundaria, valor medio, separador).
 
 ## Reglas de uso
 1. Todo color sale de un token; sin hex sueltos.

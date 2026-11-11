@@ -1,10 +1,11 @@
 // AI-assisted: see docs/AI_LOG.md #47
 // AI-assisted: see docs/AI_LOG.md #48
 // AI-assisted: see docs/AI_LOG.md #49
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: raised sheet, icon close, highlighted earnings)
 // Incoming request as a bottom card (T-54), shown while the driver is on a drawer screen other than
 // Home. It is mounted once in MainDrawer, above the drawer, and reads the same pending request as
 // the full screen (AvailabilityContext), so both show the same countdown (from expiresAt).
-// Accept -> TripActive. Reject -> the card closes and the driver stays. «✕» only hides the card: the
+// Accept -> TripActive. Reject -> the card closes and the driver stays. The close icon only hides the card: the
 // request expires by itself. It never shows while the full-screen request is open (#49).
 // When it expires unseen-by-decision, a brief notice replaces it and the driver stays where they are.
 // The entrance animation is skipped when the system asks to reduce motion.
@@ -26,9 +27,11 @@ import {
   requestTotalSeconds,
   secondsUntil,
 } from '../services/trip/requestPresentation';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../theme/tokens';
+import { badgeSize, borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 import { calculateFare } from '../utils/fare';
 import { fillLabel, formatCop, formatKmFromMeters, formatMinutesFromSeconds } from '../utils/format';
+import { Card } from './Card';
+import { Icon } from './Icon';
 import { PrimaryButton } from './PrimaryButton';
 import { SecondaryButton } from './SecondaryButton';
 
@@ -259,19 +262,34 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
               onPress={handleDismiss}
               style={({ pressed }) => [styles.close, pressed && styles.pressed]}
             >
-              <Text style={styles.closeText}>✕</Text>
+              <Icon name="close" size={iconSize.lg} tint={color.text} />
             </Pressable>
           </View>
         </View>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-          {rating ? (
-            <Text style={[styles.body, type.numeric]} accessibilityLabel={fillLabel(labels.trip.ratingA11y, { rating })}>
-              {fillLabel(labels.trip.rating, { rating })}
-            </Text>
+          <View style={styles.passengerRow}>
+            <View style={styles.badge}>
+              <Icon name="person" size={iconSize.lg} tint={color.onPrimarySoft} />
+            </View>
+            {rating ? (
+              <Text
+                style={[styles.ratingText, type.numeric]}
+                accessibilityLabel={fillLabel(labels.trip.ratingA11y, { rating })}
+              >
+                {fillLabel(labels.trip.rating, { rating })}
+              </Text>
+            ) : null}
+          </View>
+          {toPickup ? (
+            <View style={styles.pickupRow}>
+              <Icon name="navigate" size={iconSize.md} tint={color.primary} />
+              <Text style={[styles.muted, styles.flex, type.numeric]}>{toPickup}</Text>
+            </View>
           ) : null}
-          {toPickup ? <Text style={[styles.muted, type.numeric]}>{toPickup}</Text> : null}
           {fare ? (
-            <View
+            <Card
+              variant="status"
+              tone="brand"
               style={styles.money}
               accessible
               accessibilityLabel={`${labels.trip.fare}: ${formatCop(fare.fare)}. ${labels.trip.net}: ${formatCop(fare.driverEarnings)}`}
@@ -284,7 +302,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
                 <Text style={styles.caption}>{labels.trip.net}</Text>
                 <Text style={styles.net}>{formatCop(fare.driverEarnings)}</Text>
               </View>
-            </View>
+            </Card>
           ) : null}
         </ScrollView>
         <View style={styles.footer}>
@@ -301,9 +319,12 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
             </View>
           </View>
           {error ? (
-            <Text testID="incoming-request-error" style={styles.error} accessibilityLiveRegion="polite">
-              {error}
-            </Text>
+            <Card variant="status" tone="danger" style={styles.errorCard}>
+              <Icon name="alert-circle" size={iconSize.md} tint={color.onDangerSoft} />
+              <Text testID="incoming-request-error" style={styles.error} accessibilityLiveRegion="polite">
+                {error}
+              </Text>
+            </Card>
           ) : null}
           <View style={styles.actions}>
             <View style={styles.flex}>
@@ -341,7 +362,8 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     borderRadius: radius.lg,
     borderWidth: borderWidth.thin,
-    borderColor: color.border,
+    borderColor: color.borderSubtle,
+    ...elevation.raised,
   },
   scroll: {
     flexShrink: 1,
@@ -379,9 +401,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeText: {
-    ...type.title,
+  passengerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+  },
+  badge: {
+    width: badgeSize,
+    height: badgeSize,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.full,
+    backgroundColor: color.primarySoft,
+  },
+  ratingText: {
+    ...type.bodyStrong,
     color: color.text,
+  },
+  pickupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
   },
   pressed: {
     opacity: opacity.pressed,
@@ -396,7 +436,7 @@ const styles = StyleSheet.create({
   },
   caption: {
     ...type.caption,
-    color: color.textMuted,
+    color: color.onPrimarySoft,
   },
   money: {
     flexDirection: 'row',
@@ -405,7 +445,13 @@ const styles = StyleSheet.create({
   net: {
     ...type.title,
     ...type.numeric,
-    color: color.primary,
+    color: color.onPrimarySoft,
+  },
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
+    padding: space[3],
   },
   countdown: {
     gap: space[2],
@@ -417,12 +463,10 @@ const styles = StyleSheet.create({
   },
   track: {
     flexDirection: 'row',
-    height: space[1],
+    height: space[2],
     borderRadius: radius.full,
     overflow: 'hidden',
-    backgroundColor: color.bg,
-    borderWidth: borderWidth.thin,
-    borderColor: color.border,
+    backgroundColor: color.primarySoft,
   },
   fill: {
     backgroundColor: color.primary,
@@ -432,8 +476,9 @@ const styles = StyleSheet.create({
     gap: touch.gap,
   },
   error: {
+    flex: 1,
     ...type.body,
-    color: color.danger,
+    color: color.onDangerSoft,
   },
   notice: {
     alignSelf: 'center',

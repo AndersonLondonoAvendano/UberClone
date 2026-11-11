@@ -557,4 +557,10 @@ Justificación: coherencia, jerarquía y legibilidad; la revisión visual final 
 Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #52).
 Decisión: se permiten solo tres paquetes para presentación: `@expo/vector-icons` (solo Ionicons, único componente `src/components/Icon.js`, siempre decorativo y junto a un texto), `@expo-google-fonts/inter` (pesos 400/500/600/700 como familias en los tokens de tipografía) y `expo-font`. La fuente se carga con `useFonts` en `App.js` con espera máxima de 3 s; si falla o tarda, la app sigue con la fuente del sistema y ningún estilo depende de ella. Es el único cambio no estético en el archivo raíz.
 Justificación: identidad visual y legibilidad con riesgo acotado.
-Plan de reversa: quitar los usos de `Icon` (volver a íconos dibujados con View), quitar `useInterReady` de `App.js` y los tres paquetes de `package.json`; las familias en los tokens son inofensivas sin la fuente (cae al sistema). Pendiente para Anderson: añadir los tres paquetes a `scripts/dependencies.json` (hoy C15 reporta 3 errores) y hacer el build nativo.
+Plan de reversa: quitar los usos de `Icon` (volver a íconos dibujados con View), quitar `useInterReady` de `App.js` y los tres paquetes de `package.json`; las familias en los tokens son inofensivas sin la fuente (cae al sistema). Los tres paquetes quedaron en `scripts/dependencies.json` (lista `allowed`) por aprobación de Anderson en el prompt #53 (D-91); check-constitution volvió a 13 errores. Pendiente para Anderson: el build nativo.
+
+### D-92 — Auditoría de diseño solo estática del rediseño · Vigente
+Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #53).
+Decisión: las áreas B a E del rediseño (Inicio, viaje, ganancias/historial/perfil/configuración, registro) y el pase del menú lateral y las pestañas de registro se auditan solo en lo estático, por lectura de código y contraste calculado. El campo Diseño de las tareas con interfaz que estaba en «Pendiente» pasa a «Auditado en lo estático; pendiente de revisión visual en el celular». No equivale a «Aprobado».
+Justificación: no hay dispositivo en esta sesión; la puerta visual la sigue cerrando Anderson en el celular.
+Plan de reversa: devolver el campo a «Pendiente»; el informe queda en docs/diseno/auditoria-estatica-53.md.

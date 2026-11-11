@@ -7,7 +7,9 @@
 // License/SOAT/technical review are out of scope for this delivery.
 
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Card } from '../../components/Card';
+import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { CheckboxField } from '../../components/registration/CheckboxField';
 import { FieldError } from '../../components/registration/FieldError';
@@ -16,7 +18,7 @@ import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { commissionPercent } from '../../utils/fare';
 import { isValidEmail, isTermsAccepted } from '../../utils/validators';
 
@@ -62,9 +64,13 @@ export function DocumentsScreen() {
     <PlaceholderScreen name="documents" title={labels.tabs.documents} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
-          <Text testID="documents-pending-notice" style={styles.pendingNotice}>
-            {labels.registration.pendingNotice}
-          </Text>
+          // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
+          <Card variant="status" tone="warning" style={styles.notice}>
+            <Icon name="time" size={iconSize.lg} tint={color.onWarningSoft} />
+            <Text testID="documents-pending-notice" style={styles.pendingNotice}>
+              {labels.registration.pendingNotice}
+            </Text>
+          </Card>
         ) : null}
 
         <TextField
@@ -105,6 +111,7 @@ export function DocumentsScreen() {
             pressed && canSubmit && styles.submitButtonPressed,
           ]}
         >
+          {isSubmitting ? <ActivityIndicator color={color.onPrimary} /> : null}
           <Text style={styles.submitLabel}>
             {isSubmitting ? labels.registration.documents.submitting : labels.registration.documents.submit}
           </Text>
@@ -113,9 +120,12 @@ export function DocumentsScreen() {
           <FieldError testID="documents-error-submit" message={submitErrorMessage || labels.registration.documents.submitError} />
         ) : null}
         {submitState === 'success' ? (
-          <Text testID="documents-submit-success" style={styles.submitSuccess}>
-            {labels.registration.documents.submitSuccess}
-          </Text>
+          <Card variant="status" tone="success" style={styles.notice}>
+            <Icon name="checkmark-circle" size={iconSize.lg} tint={color.onSuccessSoft} />
+            <Text testID="documents-submit-success" style={styles.submitSuccess}>
+              {labels.registration.documents.submitSuccess}
+            </Text>
+          </Card>
         ) : null}
       </View>
     </PlaceholderScreen>
@@ -123,38 +133,47 @@ export function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
+  // AI-assisted: see docs/AI_LOG.md #53 (same look as PrimaryButton: bodyStrong label, card elevation)
   submitButton: {
     alignSelf: 'stretch',
+    flexDirection: 'row',
+    gap: space[2],
     minHeight: touch.controlHeight,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: space[4],
     backgroundColor: color.primary,
     borderRadius: radius.md,
+    ...elevation.card,
   },
   submitButtonDisabled: {
     opacity: opacity.disabled,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   submitButtonPressed: {
     opacity: opacity.pressed,
   },
   submitLabel: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.onPrimary,
     textAlign: 'center',
+    flexShrink: 1,
   },
   submitSuccess: {
-    ...type.label,
-    color: color.success,
+    ...type.bodyStrong,
+    color: color.onSuccessSoft,
+    flex: 1,
+    flexShrink: 1,
   },
-  // AI-assisted: see docs/AI_LOG.md #52 (soft warning banner, same style as the chips)
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   pendingNotice: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.onWarningSoft,
-    backgroundColor: color.warningSoft,
-    borderLeftWidth: borderWidth.thick * 2,
-    borderLeftColor: color.warning,
-    borderRadius: radius.md,
-    padding: space[3],
+    flex: 1,
+    flexShrink: 1,
   },
 });

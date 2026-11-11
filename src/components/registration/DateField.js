@@ -6,7 +6,8 @@
 // unlike onChange), onDismiss covers a cancelled picker (value stays unchanged).
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 function formatDate(date) {
@@ -46,6 +47,7 @@ export function DateField({ testID, label, value, onChange, errorTestID, errorMe
         <Text style={value ? styles.triggerValue : styles.triggerPlaceholder}>
           {value ? formatDate(value) : label}
         </Text>
+        <Icon name="calendar-outline" size={iconSize.md} tint={color.textMuted} />
       </Pressable>
       <FieldError testID={errorTestID} message={errorMessage} />
     </View>
@@ -60,11 +62,14 @@ const styles = StyleSheet.create({
     ...type.label,
     color: color.text,
   },
+  // AI-assisted: see docs/AI_LOG.md #53 (calendar affordance, thick danger border on error)
   trigger: {
     minHeight: touch.controlHeight,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
     backgroundColor: color.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: borderWidth.thin,
     borderColor: color.border,
     paddingHorizontal: space[3],
@@ -74,16 +79,23 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: {
     opacity: opacity.disabled,
+    backgroundColor: color.surfaceMuted,
   },
   triggerError: {
+    borderWidth: borderWidth.thick,
     borderColor: color.danger,
+    paddingHorizontal: space[3] - (borderWidth.thick - borderWidth.thin),
   },
   triggerValue: {
     ...type.body,
     color: color.text,
+    flex: 1,
+    flexShrink: 1,
   },
   triggerPlaceholder: {
     ...type.body,
     color: color.textMuted,
+    flex: 1,
+    flexShrink: 1,
   },
 });

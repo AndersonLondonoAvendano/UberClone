@@ -70,6 +70,14 @@ export const opacity = { pressed: 0.9, disabled: 0.5 };
 
 export const borderWidth = { thin: 1, thick: 2 };
 
+// Fixed presentation sizes: profile avatar diameter, left accent bar of the active drawer entry and the
+// decorative header shape.
+export const avatarSize = { md: 64 };
+export const accentWidth = 4;
+export const shapeSize = 160;
+// Diameter of the round badge that holds a decorative icon.
+export const badgeSize = 40;
+
 // Elevation levels (iOS shadow + Android elevation). none: flat on the base; card: resting surface;
 // raised: featured card or sheet over the map.
 export const elevation = {
@@ -92,3 +100,12 @@ export const elevation = {
 
 // Motion durations (ms) for the subtle Animated transitions.
 export const motion = { fast: 150, base: 220, slow: 400 };
+
+// AI-assisted: see docs/AI_LOG.md #53
+// Map marker geometry (px): the driver is a filled dot, the target is a larger ring, so they differ by
+// shape and not only by colour.
+export const mapMarker = { driverRadius: 8, driverStroke: 3, targetRadius: 11, targetStroke: 4 };
+
+// AI-assisted: see docs/AI_LOG.md #53
+// Height (px) of the photo preview frame of the registration photo fields.
+export const photoPreviewHeight = 160;

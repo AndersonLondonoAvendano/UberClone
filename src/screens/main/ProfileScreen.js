@@ -1,20 +1,23 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: bordered avatar, category chip, DataRow groups)
 // Profile (T-49, read-only): photo, name, phone, vehicle, masked Mercado Pago email and account
 // status. The data comes from the drivers/{uid} document through the existing account subscription
 // (AppStateContext.driverProfile): no second listener. No editing and no sign-out.
 
 import { DrawerActions } from '@react-navigation/native';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { Card } from '../../components/Card';
+import { Chip } from '../../components/Chip';
+import { DataRow } from '../../components/DataRow';
+import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
-import { color, radius, space, touch, type } from '../../theme/tokens';
+import { avatarSize, borderWidth, color, iconSize, radius, space, type } from '../../theme/tokens';
 import { maskEmail } from '../../utils/mask';
-
-const PHOTO_SIZE = 96;
 
 export function ProfileScreen({ navigation }) {
   const { driverProfile, accountStatus, retryAccountStatus } = useAppState();
@@ -41,7 +44,8 @@ export function ProfileScreen({ navigation }) {
   } else {
     body = (
       <>
-        <View style={styles.photoRow}>
+        {/* AI-assisted: see docs/AI_LOG.md #53 */}
+        <Card style={styles.hero}>
           {personal?.profilePhotoUrl ? (
             <Image
               testID="profile-photo"
@@ -51,26 +55,28 @@ export function ProfileScreen({ navigation }) {
             />
           ) : (
             <View style={[styles.photo, styles.noPhoto]} accessible accessibilityLabel={labels.profile.noPhoto}>
-              <Text style={styles.muted}>{labels.profile.noPhoto}</Text>
+              <Icon name="person" size={iconSize.lg} tint={color.onPrimarySoft} />
             </View>
           )}
-        </View>
+          <Text style={styles.heroName}>{text(personal?.fullName)}</Text>
+          {category ? <Chip label={category} tone="brand" /> : null}
+        </Card>
         <Group title={labels.profile.personal}>
           <Field label={labels.profile.name} value={text(personal?.fullName)} />
-          <Field label={labels.profile.phone} value={text(personal?.phone)} numeric />
+          <Field label={labels.profile.phone} value={text(personal?.phone)} last />
         </Group>
         <Group title={labels.profile.vehicle}>
           <Field label={labels.profile.brandModel} value={text([vehicle?.brand, vehicle?.model].filter(Boolean).join(' '))} />
           <Field label={labels.profile.plate} value={text(vehicle?.plate)} />
-          <Field label={labels.profile.year} value={text(vehicle?.year)} numeric />
+          <Field label={labels.profile.year} value={text(vehicle?.year)} />
           <Field label={labels.profile.color} value={text(vehicleColor)} />
-          <Field label={labels.profile.category} value={text(category)} />
+          <Field label={labels.profile.category} value={text(category)} last />
         </Group>
         <Group title={labels.profile.payments}>
-          <Field label={labels.profile.mercadoPago} value={text(email)} />
+          <Field label={labels.profile.mercadoPago} value={text(email)} last />
         </Group>
         <Group title={labels.profile.account}>
-          <Field label={labels.profile.account} value={statusText} />
+          <Field label={labels.profile.account} value={statusText} last />
         </Group>
         <Text style={styles.muted}>{labels.profile.readOnly}</Text>
       </>
@@ -91,32 +97,37 @@ export function ProfileScreen({ navigation }) {
 
 function Group({ title, children }) {
   return (
-    <View style={styles.group}>
+    <Card style={styles.group}>
       <Text style={styles.section} accessibilityRole="header">
         {title}
       </Text>
-      {children}
-    </View>
+      <View>{children}</View>
+    </Card>
   );
 }
 
-function Field({ label, value, numeric = false }) {
+function Field({ label, value, last = false }) {
   return (
-    <View style={styles.field} accessible accessibilityLabel={`${label}: ${value}`}>
-      <Text style={styles.muted}>{label}</Text>
-      <Text style={[styles.body, numeric && type.numeric]}>{value}</Text>
+    <View accessible accessibilityLabel={`${label}: ${value}`}>
+      <DataRow label={label} value={value} last={last} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
-  photoRow: { alignItems: 'center' },
-  photo: { width: PHOTO_SIZE, height: PHOTO_SIZE, borderRadius: PHOTO_SIZE / 2, backgroundColor: color.surface },
+  hero: { alignItems: 'center', gap: space[2] },
+  photo: {
+    width: avatarSize.md,
+    height: avatarSize.md,
+    borderRadius: radius.full,
+    borderWidth: borderWidth.thick,
+    borderColor: color.primary,
+    backgroundColor: color.primarySoft,
+  },
   noPhoto: { alignItems: 'center', justifyContent: 'center' },
-  group: { gap: space[2], padding: space[4], backgroundColor: color.surface, borderRadius: radius.md },
+  heroName: { ...type.title, color: color.text, textAlign: 'center' },
+  group: { gap: space[2] },
   section: { ...type.title, color: color.text },
-  field: { gap: space[1], minHeight: touch.min, justifyContent: 'center' },
-  body: { ...type.body, color: color.text },
   muted: { ...type.caption, color: color.textMuted },
 });

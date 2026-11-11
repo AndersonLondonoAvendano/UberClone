@@ -7,7 +7,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
-import { borderWidth, color, elevation, motion, opacity, radius, space, touch, type } from '../theme/tokens';
+import { borderWidth, color, elevation, iconSize, motion, opacity, radius, space, touch, type } from '../theme/tokens';
+import { Icon } from './Icon';
 
 // Pulsing placeholder block. Static when the system asks to reduce motion.
 export function SkeletonBlock({ height = space[5], width = '100%', style }) {
@@ -76,7 +77,12 @@ export function ScreenState({ kind, onRetry, title, message }) {
           <SkeletonBlock height={space[7]} />
         </View>
       ) : null}
-      {isEmpty ? <View style={styles.emptyIcon} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden /> : null}
+      {isEmpty ? (
+        <View style={styles.emptyIcon} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <Icon name="file-tray-outline" size={iconSize.lg} tint={color.textMuted} />
+        </View>
+      ) : null}
+      {isError ? <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} /> : null}
       <Text accessibilityRole="header" style={[styles.title, isError && styles.titleError]}>
         {copy.title}
       </Text>
@@ -133,6 +139,8 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.thick,
     borderColor: color.border,
     borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: space[2],
   },
   title: {
@@ -168,4 +176,5 @@ const styles = StyleSheet.create({
     color: color.onPrimary,
     textAlign: 'center',
   },
+  // AI-assisted: see docs/AI_LOG.md #53 (icons on the empty and error states)
 });

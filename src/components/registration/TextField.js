@@ -1,10 +1,15 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #53 (rest / focus / error / disabled states, error with icon)
+import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
 export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false }) {
+  const [focused, setFocused] = useState(false);
+  const hasError = Boolean(errorMessage);
+
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -14,16 +19,30 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
         accessibilityState={{ disabled: !!disabled }}
         value={value}
         onChangeText={onChangeText}
-        onBlur={onBlur}
+        onFocus={() => setFocused(true)}
+        onBlur={(event) => {
+          setFocused(false);
+          if (onBlur) onBlur(event);
+        }}
         keyboardType={keyboardType}
         maxLength={maxLength}
         editable={!disabled}
-        style={[styles.input, disabled && styles.inputDisabled, errorMessage && styles.inputError]}
+        placeholderTextColor={color.textMuted}
+        style={[
+          styles.input,
+          focused && !hasError && styles.inputFocused,
+          hasError && styles.inputError,
+          disabled && styles.inputDisabled,
+        ]}
       />
       <FieldError testID={errorTestID} message={errorMessage} />
     </View>
   );
 }
+
+// The thick border (focus, error) takes the place of the thin one without moving the content: the
+// padding gives back the extra width.
+const BORDER_EXTRA = borderWidth.thick - borderWidth.thin;
 
 const styles = StyleSheet.create({
   field: {
@@ -38,15 +57,23 @@ const styles = StyleSheet.create({
     minHeight: touch.controlHeight,
     color: color.text,
     backgroundColor: color.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: borderWidth.thin,
     borderColor: color.border,
     padding: space[3],
   },
-  inputDisabled: {
-    opacity: opacity.disabled,
+  inputFocused: {
+    borderWidth: borderWidth.thick,
+    borderColor: color.primary,
+    padding: space[3] - BORDER_EXTRA,
   },
   inputError: {
+    borderWidth: borderWidth.thick,
     borderColor: color.danger,
+    padding: space[3] - BORDER_EXTRA,
+  },
+  inputDisabled: {
+    opacity: opacity.disabled,
+    backgroundColor: color.surfaceMuted,
   },
 });

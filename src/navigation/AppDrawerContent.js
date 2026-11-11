@@ -14,11 +14,14 @@ import { labels } from '../constants/labels';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import {
+  accentWidth,
+  avatarSize,
   borderWidth,
   color,
   iconSize,
   opacity,
   radius,
+  shapeSize,
   space,
   touch,
   type,
@@ -55,10 +58,6 @@ const ITEMS = [
     icon: 'settings',
   },
 ];
-
-const AVATAR_SIZE = 64;
-const ACCENT_WIDTH = 4;
-const SHAPE_SIZE = 160;
 
 function DrawerHeader({ topInset }) {
   const { driverProfile } = useAppState();
@@ -195,11 +194,11 @@ const styles = StyleSheet.create({
   },
   shape: {
     position: 'absolute',
-    top: -SHAPE_SIZE / 3,
-    right: -SHAPE_SIZE / 3,
-    width: SHAPE_SIZE,
-    height: SHAPE_SIZE,
-    borderRadius: SHAPE_SIZE / 2,
+    top: -shapeSize / 3,
+    right: -shapeSize / 3,
+    width: shapeSize,
+    height: shapeSize,
+    borderRadius: shapeSize / 2,
     backgroundColor: color.primary,
   },
   appName: {
@@ -212,9 +211,9 @@ const styles = StyleSheet.create({
     gap: space[3],
   },
   avatar: {
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
+    width: avatarSize.md,
+    height: avatarSize.md,
+    borderRadius: avatarSize.md / 2,
     borderWidth: borderWidth.thick,
     borderColor: color.onBrand,
     backgroundColor: color.primarySoft,
@@ -283,7 +282,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: space[2],
     bottom: space[2],
-    width: ACCENT_WIDTH,
+    width: accentWidth,
     borderRadius: radius.sm,
     backgroundColor: color.primary,
   },
