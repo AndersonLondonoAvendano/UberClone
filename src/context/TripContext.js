@@ -16,13 +16,17 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import * as tripConfig from '../config/trip';
 import { TRIP_LOCATION_SOURCE, TRIP_SPEED_FACTOR } from '../config/trip';
 import { SIMULATED_SPEED_KMH } from '../config/location';
-import { DRIVER_LOCATION_IDLE_STATUS } from '../constants/tripStatus';
+import { DRIVER_LOCATION_IDLE_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { publishDriverLocation, publishDriverTripStatus } from '../services/driverLocationPublisher';
 import { createTripLocationSource } from '../services/location';
 import { cancelTrip, releaseTrip, reportDriverLocation, reportTripStatus } from '../services/passengerApi';
 import { getRoute } from '../services/routing';
 import { buildStraightLineRoute } from '../services/routing/straightLine';
 import { createTripController } from '../services/trip/tripController';
+import { saveTrip } from '../services/tripRepository';
+import { saveWithRetry } from '../services/trip/saveRetry';
+import { buildTripRecord, SAVED_STATUS } from '../services/trip/tripRecord';
+import { useAppState } from './AppStateContext';
 import { useAvailability } from './AvailabilityContext';
 
 const TripContext = createContext(null);
@@ -45,6 +49,7 @@ const quietly = (call) => {
 
 export function TripProvider({ children }) {
   const { getDriverPosition, setOnTrip } = useAvailability();
+  const { driverId } = useAppState();
   const [trip, setTrip] = useState(null); // controller state, or null without a trip
   const controllerRef = useRef(null);
 
@@ -92,10 +97,24 @@ export function TripProvider({ children }) {
     controllerRef.current = null;
     controller.dispose();
     quietly(() => releaseTrip(final.tripId));
+    // AI-assisted: see docs/AI_LOG.md #50 (cancelled trips are saved silently, bounded retry, never blocking)
+    if (driverId && final.finished === TRIP_STATUS.CANCELLED) {
+      quietly(async () => {
+        const record = buildTripRecord({
+          driverId,
+          tripId: final.tripId,
+          request: final.request,
+          status: SAVED_STATUS.CANCELLED,
+          startedAt: final.startedAt,
+          finishedAt: final.finishedAt,
+        });
+        await saveWithRetry(() => saveTrip(driverId, final.tripId, record));
+      });
+    }
     quietly(() => publishDriverTripStatus(DRIVER_LOCATION_IDLE_STATUS, final.position));
     setTrip(null);
     setOnTrip(false);
-  }, [setOnTrip]);
+  }, [driverId, setOnTrip]);
 
   // Each action is a no-op without a trip and always returns a promise.
   const call = useCallback((name) => {

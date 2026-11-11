@@ -10,9 +10,11 @@ import { color, opacity, radius, space, touch, type } from '../theme/tokens';
 // kind: 'loading' | 'empty' | 'error'.
 // Error without onRetry: the retry button is NOT rendered (a button that does nothing misleads);
 // the error title and message still show.
-export function ScreenState({ kind, onRetry }) {
-  const copy = labels.states[kind];
-  if (!copy) return null;
+// AI-assisted: see docs/AI_LOG.md #50 (optional title/message replace the generic copy of that kind)
+export function ScreenState({ kind, onRetry, title, message }) {
+  const base = labels.states[kind];
+  if (!base) return null;
+  const copy = { title: title ?? base.title, message: message ?? base.message };
 
   const isLoading = kind === 'loading';
   const isEmpty = kind === 'empty';

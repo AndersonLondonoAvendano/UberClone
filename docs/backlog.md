@@ -809,8 +809,61 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Diseño hecho cuando: solo tokens de DESIGN.md; sin rojo en la cuenta regresiva; objetivos táctiles de 44x44; contraste AA; reduce-motion.
 - Checkpoint en celular (Anderson, prompt #48, 2026-11-10, SHOW_DEV_TOOLS=false): puntos 1 a 9 validados por declaración; NO validado el escenario del hallazgo mayor (Ver detalle → deslizar a otra pestaña → Aceptar/Rechazar en la tarjeta).
 - Simplificación (Anderson, prompt #49, 2026-11-10, D-85): se elimina «Ver detalle» y el regreso a la pestaña de origen; una única `TripRequest` (id fijo) abierta solo con Inicio enfocado; con `TripRequest` abierta la tarjeta no se muestra y el drawer no se desliza; al resolverse la solicitud la `TripRequest` oculta se cierra sola sin cambiar de pestaña. Donde CA-054-03 y CA-054-04 mencionan «Ver detalle» o `TripRequest` abierta desde otra pantalla, rige esta simplificación.
+- Checkpoint en celular (Anderson, prompt #50, 2026-11-10, SHOW_DEV_TOOLS=false): **T-54 VALIDADA en dispositivo por declaración de Anderson** con la lista simplificada de 9 puntos: tarjeta sin «Ver detalle» en las pestañas del drawer; Rechazar, «✕» y vencimiento sin ir a Inicio; Inicio a pantalla completa; menú bloqueado con la solicitud abierta; nada aparece durante un viaje; texto grande. Aprobación registrada.
 - Diseño: Pendiente
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (simplificación D-85, prompt #49; verifier nuevo ac8e2c92b63c180ef APRUEBA por lectura de código, 0 hallazgos mayores, 2 menores; check-constitution 23/0; script temporal 22/22). Antes: Rechazada (verifier #47 y #48, causa común: más de una pantalla de solicitud viva). No pasa a «Validada» sin la prueba en el celular.
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-10, prompt #50). Antes: implementada y verificada en lo estático (simplificación D-85, prompt #49; verifier nuevo ac8e2c92b63c180ef APRUEBA por lectura de código, 0 hallazgos mayores, 2 menores; check-constitution 23/0; script temporal 22/22). Antes: Rechazada (verifier #47 y #48, causa común: más de una pantalla de solicitud viva). No pasa a «Validada» sin la prueba en el celular.
+
+### T-46 — Cobro simulado y viajes guardados
+- Spec: rebanada C de `docs/plan-entrega-final.md`
+- Requisitos: RF-14, RF-15 (modo simulado, P-03), RF-23 (`commissionRate` no se guarda por documento: la tasa vive en `pricing.js`, D-86), RNF-09
+- Depende de: T-45
+- Archivos: `src/screens/trip/TripSummaryScreen.js`, `src/services/tripRepository.js`, `src/services/trip/tripRecord.js`, `src/services/trip/saveRetry.js`, `src/context/TripContext.js`, `src/services/trip/tripController.js`, `firestore.rules` (copia local), `docs/seguridad.md`, `src/constants/labels.js`
+- Hacer: «Confirmar cobro» guarda `drivers/{uid}/trips/{tripId}` de forma idempotente (D-86); sin coordenadas (D-87); montos en COP enteros (D-88); cobro simulado y rotulado (D-89). Error con «Reintentar» y la salida segura «Volver a Inicio sin guardar» (con confirmación, sin Alert). Los viajes cancelados se guardan en silencio con reintento acotado y nunca bloquean la salida. Se conservan `popTo('Home')`, `endTrip` y los estados de `tripStatus`.
+- Hecho cuando: el documento tiene exactamente los 15 campos de la regla, los montos guardados son los mostrados, guardar dos veces deja un solo documento y los fallos tienen salida.
+- Qué debe ver Anderson en el celular (checkpoint 3): publicar la regla; terminar un viaje y pulsar «Confirmar cobro» → documento en la consola sin coordenadas; modo avión al confirmar → error con «Reintentar» y salida segura.
+- Validación: script temporal fuera del proyecto (60 comprobaciones), `check-constitution`, verifier distinto, prueba en el celular.
+- Riesgo: medio (regla de seguridad que publica Anderson).
+- Diseño: Pendiente
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50, 2026-11-11). La regla NO está publicada; sin ella, «Confirmar cobro» muestra el error con «Reintentar».
+
+### T-47 — Ganancias (hoy / semana / mes)
+- Spec: rebanada C de `docs/plan-entrega-final.md`
+- Requisitos: RF-24 (propinas: no existen en el modelo, se omiten; D-88), RF-25 (saldo simulado, sin pasarela real), RNF-03
+- Depende de: T-46
+- Archivos: `src/screens/main/EarningsScreen.js`, `src/utils/earnings.js`, `src/hooks/useTrips.js`, `src/services/tripRepository.js`, `src/constants/labels.js`
+- Hacer: totales de hoy, semana (desde el lunes) y mes calendario, en hora local, sobre los viajes completados; los cancelados no suman; suscripción en vivo con limpieza; estados de carga, vacío y error con reintento; `useMemo` sobre la función pura `computePeriodTotals`.
+- Hecho cuando: con viajes de prueba los totales coinciden con el cálculo a mano en los bordes de día, semana y mes.
+- Qué debe ver Anderson en el celular: el viaje guardado aparece en Hoy, Semana y Mes y se actualiza en vivo; un viaje cancelado no suma.
+- Validación: script temporal (bordes de periodo, vacío, comisión), verifier distinto, prueba en el celular.
+- Riesgo: bajo.
+- Diseño: Pendiente
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
+
+### T-48 — Historial
+- Spec: rebanada C de `docs/plan-entrega-final.md`
+- Requisitos: RF-26 (sin filtros de rango por alcance del plan), RF-27 (sin ruta dibujada: no se guardan coordenadas, D-87), RF-28, RNF-10
+- Depende de: T-46
+- Archivos: `src/screens/main/HistoryScreen.js`, `src/hooks/useTrips.js`, `src/utils/format.js`, `src/constants/labels.js`
+- Hacer: `FlatList` del más reciente al más antiguo, 20 por página con «Ver más», fecha y hora, origen → destino, categoría, tarifa, ganancia neta y estado (completado/cancelado), estados de carga, vacío y error.
+- Hecho cuando: lista vacía muestra el mensaje; con datos el orden es correcto y los cancelados se distinguen con texto.
+- Qué debe ver Anderson en el celular: el viaje guardado y el cancelado aparecen en el orden correcto y en vivo.
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: bajo.
+- Diseño: Pendiente
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
+
+### T-49 — Perfil y Configuración (solo lectura)
+- Spec: rebanada C de `docs/plan-entrega-final.md`
+- Requisitos: RF-29 (solo lectura; edición y cierre de sesión fuera de alcance, sesión anónima)
+- Depende de: T-46
+- Archivos: `src/screens/main/ProfileScreen.js`, `src/screens/main/SettingsScreen.js`, `src/utils/mask.js`, `src/context/AppStateContext.js`, `src/services/driverRepository.js`, `src/constants/labels.js`
+- Hacer: Perfil con foto, nombre, teléfono, vehículo, correo de Mercado Pago enmascarado y estado de cuenta, desde la suscripción existente a `drivers/{uid}` (sin segundo listener); Configuración con nombre y versión de la app, nota de pago simulado y créditos del mapa; los paneles provisionales solo con `SHOW_DEV_TOOLS`.
+- Hecho cuando: Perfil muestra los datos del registro con el correo enmascarado y Configuración no muestra paneles provisionales con `SHOW_DEV_TOOLS=false`.
+- Qué debe ver Anderson en el celular: Perfil con datos correctos; Configuración limpia.
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: bajo.
+- Diseño: Pendiente
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
 
 ## Fase 3 — Implementar
 (vacío)

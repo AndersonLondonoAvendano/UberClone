@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #12
 // AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see docs/AI_LOG.md #50
 // Shared app state (useContext): real account status (Firestore) with a local override, and the demo value.
 
 import {
@@ -24,6 +25,7 @@ const AppStateContext = createContext(null);
 export function AppStateProvider({ children }) {
   const [driverId, setDriverId] = useState(null);
   const [realAccountStatus, setRealAccountStatus] = useState(null); // null = no drivers/{uid} doc yet
+  const [driverProfile, setDriverProfile] = useState(null); // drivers/{uid} data, same subscription
   const [accountError, setAccountError] = useState(null);
   const [isResolving, setIsResolving] = useState(true);
   const [simulatedStatus, setSimulatedStatus] = useState(null); // local override, set by simulateAccountStatus
@@ -42,6 +44,9 @@ export function AppStateProvider({ children }) {
         if (cancelled) return;
         setDriverId(uid);
         unsubscribeSnapshot = listenToDriverAccount(uid, {
+          onData: (data) => {
+            if (!cancelled) setDriverProfile(data);
+          },
           onChange: (status) => {
             if (cancelled) return;
             setIsResolving(false);
@@ -81,8 +86,8 @@ export function AppStateProvider({ children }) {
     ?? (accountError ? ACCOUNT_STATUS.ERROR : (isResolving ? ACCOUNT_STATUS.LOADING : realAccountStatus));
 
   const value = useMemo(
-    () => ({ driverId, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue, setDemoValue }),
-    [driverId, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue],
+    () => ({ driverId, driverProfile, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue, setDemoValue }),
+    [driverId, driverProfile, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue],
   );
 
   return createElement(AppStateContext.Provider, { value }, children);

@@ -83,6 +83,8 @@ export function createTripController({
     cancelError: false,
     finished: null, // null | completed | cancelled (TRIP_STATUS values)
     finishedAt: null,
+    // AI-assisted: see docs/AI_LOG.md #50
+    startedAt: null, // when the passenger boarded (saved with the trip)
     // AI-assisted: see docs/AI_LOG.md #44
     finishing: false,
     finishError: null, // null | one of FINISH_ERROR
@@ -408,6 +410,7 @@ export function createTripController({
     startRide() {
       if (state.phase !== TRIP_PHASE.AT_PICKUP) return Promise.resolve(false);
       if (!changeStatus(TRIP_STATUS.IN_PROGRESS)) return Promise.resolve(false);
+      set({ startedAt: now() });
       return beginLeg(TRIP_PHASE.TO_DESTINATION, request.destination).then(() => true);
     },
 
