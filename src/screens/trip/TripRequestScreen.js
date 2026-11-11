@@ -2,9 +2,12 @@
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #48
+// AI-assisted: see docs/AI_LOG.md #49
 // The drawer keeps this screen mounted when the driver switches tab, so it acts only while focused:
 // timers, the quiet reject, leaving and the accept navigation wait for focus. A request resolved
-// elsewhere (the bottom card) is never rejected or left again from a hidden screen.
+// elsewhere is never rejected or left again from a hidden screen; it only closes itself, quietly,
+// inside its own stack (no tab change). It is the only TripRequest (fixed id) and publishes its
+// request id in the context while open, so the bottom card never shows for it.
 // Incoming request card (T-43). Opened by Home when a request arrives while the driver is available.
 // Shows the passenger, the distance and time to the pickup (straight line from the driver position),
 // the trip length, category, payment, the fare split from calculateFare and a countdown to expiresAt.
@@ -71,8 +74,8 @@ function fareOf(request) {
   }
 }
 
-export function TripRequestScreen({ navigation, route }) {
-  const { pendingRequest, clearPendingRequest, getDriverPosition } = useAvailability();
+export function TripRequestScreen({ navigation }) {
+  const { pendingRequest, clearPendingRequest, getDriverPosition, setRequestScreenId } = useAvailability();
   const { startTrip } = useTrip();
   // The card keeps the request it opened with; a later one never replaces it.
   const [request] = useState(() => pendingRequest);
@@ -117,15 +120,27 @@ export function TripRequestScreen({ navigation, route }) {
     return () => clearInterval(id);
   }, [isFocused, request, expired, decided, error]);
 
-  // AI-assisted: see docs/AI_LOG.md #47
-  // Every exit goes through here. Opened from the bottom card, the driver returns to the drawer
-  // screen they were on; otherwise to Home (popTo: navigate would push a second Home).
-  const originRoute = route?.params?.originRoute;
-  const leave = useCallback(() => {
-    const drawer = navigation.getParent();
-    navigation.popTo('Home');
-    if (originRoute && originRoute !== 'Home') drawer?.navigate(originRoute);
-  }, [navigation, originRoute]);
+  // Every exit goes through here: back to Home inside this stack (popTo: navigate would push a second Home).
+  const leave = useCallback(() => navigation.popTo('Home'), [navigation]);
+
+  // AI-assisted: see docs/AI_LOG.md #49
+  // While open (focused or hidden behind another tab) the request id is published, so the bottom
+  // card stays out of the way; it is withdrawn when this screen goes away.
+  const openId = request?.id ?? null;
+  useEffect(() => {
+    if (openId == null) return undefined;
+    setRequestScreenId(openId);
+    return () => setRequestScreenId((current) => (current === openId ? null : current));
+  }, [openId, setRequestScreenId]);
+
+  // The request was resolved elsewhere (cancelled, taken, cleared) while this screen is hidden:
+  // close it inside its own stack. No tab change, no notice, no reject. Not when it decided itself
+  // (an accept in flight finishes through pendingExit).
+  useEffect(() => {
+    if (isFocused || !released || decided) return;
+    decidedRef.current = true;
+    leave();
+  }, [isFocused, released, decided, leave]);
 
   // AI-assisted: see docs/AI_LOG.md #48
   const exitOrDefer = useCallback(

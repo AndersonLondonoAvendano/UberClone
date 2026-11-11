@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see docs/AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
 // Driver availability (T-42, RF-08). In memory only: no Firestore writes for availability.
 // Turning it on (a user action) asks the location permission if missing, then checks that the phone
 // location is on; if it is off it shows the system dialog ONCE (askToEnableServices). If location is
@@ -27,6 +28,7 @@ export function AvailabilityProvider({ children }) {
   const [isChanging, setIsChanging] = useState(false);
   const [onTrip, setOnTripState] = useState(false);
   const [notice, setNotice] = useState(null); // null | 'denied' | 'unavailable' | 'services_off'
+  const [requestScreenId, setRequestScreenId] = useState(null);
   const mountedRef = useRef(true);
   // A user action (permission or the location dialog) is in progress.
   const changingRef = useRef(false);
@@ -153,6 +155,8 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      requestScreenId,
+      setRequestScreenId,
       lastRequest,
       requestsError,
       requestSimulatedTrip,
@@ -169,6 +173,7 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      requestScreenId,
       lastRequest,
       requestsError,
       requestSimulatedTrip,

@@ -4,6 +4,7 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #47
 // AI-assisted: see docs/AI_LOG.md #48 (indentation)
+// AI-assisted: see docs/AI_LOG.md #49 (swipe blocked while the full-screen request is open)
 // The incoming-request bottom card (T-54) is mounted once here, above the drawer and inside the
 // providers; it follows the focused drawer screen through screenListeners.
 // Main drawer: Home (the trip stack, not listed in the panel) plus Profile, History, Earnings and
@@ -16,11 +17,11 @@
 // TripProvider (T-44) sits inside it: the trip pauses and later resumes availability.
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { IncomingRequestCard } from '../components/IncomingRequestCard';
 import { SHOW_DEV_TOOLS } from '../constants/devTools';
-import { AvailabilityProvider } from '../context/AvailabilityContext';
+import { AvailabilityProvider, useAvailability } from '../context/AvailabilityContext';
 import { TripProvider } from '../context/TripContext';
 import { EarningsScreen } from '../screens/main/EarningsScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
@@ -43,7 +44,12 @@ const renderDrawerContent = (props) => <AppDrawerContent {...props} />;
 
 const styles = StyleSheet.create({ root: { flex: 1 } });
 
-export function MainDrawer() {
+function DrawerBody() {
+  const { requestScreenId } = useAvailability();
+  const screenOptions = useMemo(
+    () => ({ ...SCREEN_OPTIONS, swipeEnabled: requestScreenId == null }),
+    [requestScreenId],
+  );
   // AI-assisted: see docs/AI_LOG.md #47
   const [currentRoute, setCurrentRoute] = useState('Home');
   const navigationRef = useRef(null);
@@ -59,25 +65,31 @@ export function MainDrawer() {
   );
 
   return (
+    <View style={styles.root}>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        backBehavior="initialRoute"
+        screenOptions={screenOptions}
+        drawerContent={renderDrawerContent}
+        screenListeners={screenListeners}
+      >
+        <Drawer.Screen name="Home" component={TripStack} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="History" component={HistoryScreen} />
+        <Drawer.Screen name="Earnings" component={EarningsScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+        {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
+      </Drawer.Navigator>
+      <IncomingRequestCard currentRoute={currentRoute} getNavigation={getNavigation} />
+    </View>
+  );
+}
+
+export function MainDrawer() {
+  return (
     <AvailabilityProvider>
       <TripProvider>
-        <View style={styles.root}>
-          <Drawer.Navigator
-            initialRouteName="Home"
-            backBehavior="initialRoute"
-            screenOptions={SCREEN_OPTIONS}
-            drawerContent={renderDrawerContent}
-            screenListeners={screenListeners}
-          >
-            <Drawer.Screen name="Home" component={TripStack} />
-            <Drawer.Screen name="Profile" component={ProfileScreen} />
-            <Drawer.Screen name="History" component={HistoryScreen} />
-            <Drawer.Screen name="Earnings" component={EarningsScreen} />
-            <Drawer.Screen name="Settings" component={SettingsScreen} />
-            {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
-          </Drawer.Navigator>
-          <IncomingRequestCard currentRoute={currentRoute} getNavigation={getNavigation} />
-        </View>
+        <DrawerBody />
       </TripProvider>
     </AvailabilityProvider>
   );

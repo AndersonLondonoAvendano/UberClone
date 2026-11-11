@@ -1,14 +1,14 @@
 // AI-assisted: see docs/AI_LOG.md #47
 // AI-assisted: see docs/AI_LOG.md #48
+// AI-assisted: see docs/AI_LOG.md #49
 // Incoming request as a bottom card (T-54), shown while the driver is on a drawer screen other than
 // Home. It is mounted once in MainDrawer, above the drawer, and reads the same pending request as
 // the full screen (AvailabilityContext), so both show the same countdown (from expiresAt).
-// Accept -> TripActive. Reject -> the card closes and the driver stays. «Ver detalle» -> the full
-// screen with the same request. «✕» only hides the card: the request expires by itself.
+// Accept -> TripActive. Reject -> the card closes and the driver stays. «✕» only hides the card: the
+// request expires by itself. It never shows while the full-screen request is open (#49).
 // When it expires unseen-by-decision, a brief notice replaces it and the driver stays where they are.
 // The entrance animation is skipped when the system asks to reduce motion.
 
-import { StackActions } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -61,20 +61,11 @@ function errorMessage(error) {
   }
 }
 
-// AI-assisted: see docs/AI_LOG.md #48
-// The TripRequest route (and its stack) left open in Home, if any: it is replaced, not stacked over.
-function findOpenRequestRoute(navigation) {
-  const home = navigation?.getState?.()?.routes?.find((route) => route.name === 'Home');
-  const stack = home?.state;
-  const open = stack?.routes?.find((route) => route.name === 'TripRequest');
-  return open ? { source: open.key, target: stack.key } : null;
-}
-
 // currentRoute: focused drawer screen name. getNavigation: returns a navigation object that can
 // reach the drawer screens (kept by MainDrawer).
 export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const { accountStatus } = useAppState();
-  const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip } = useAvailability();
+  const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId } = useAvailability();
   const { startTrip } = useTrip();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -87,7 +78,14 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const shownRef = useRef(null); // { id, expiresAt, handled } of the request the card is showing
   const mountedRef = useRef(true);
 
-  const presentation = decideRequestPresentation(currentRoute, onTrip, accountStatus, Boolean(pendingRequest));
+  // AI-assisted: see docs/AI_LOG.md #49
+  const presentation = decideRequestPresentation(
+    currentRoute,
+    onTrip,
+    accountStatus,
+    Boolean(pendingRequest),
+    requestScreenId != null,
+  );
   const visible = presentation === PRESENTATION.CARD && pendingRequest != null && dismissedId !== pendingRequest.id;
   const request = visible ? pendingRequest : null;
 
@@ -185,15 +183,8 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
       const trip = await acceptRequest(request.id);
       clearPendingRequest(request.id);
       startTrip(trip);
-      // AI-assisted: see docs/AI_LOG.md #48
-      const navigation = getNavigation();
-      const open = findOpenRequestRoute(navigation);
-      if (open) {
-        navigation.dispatch({ ...StackActions.replace('TripActive'), ...open });
-        navigation.navigate('Home');
-      } else {
-        navigation?.navigate('Home', { screen: 'TripActive' });
-      }
+      // AI-assisted: see docs/AI_LOG.md #49 (the card never shows while TripRequest is open, so there is none to replace)
+      getNavigation()?.navigate('Home', { screen: 'TripActive' });
     } catch (cause) {
       if (!mountedRef.current) return;
       const gone = cause?.code === PASSENGER_API_ERROR.ALREADY_TAKEN || cause?.code === PASSENGER_API_ERROR.EXPIRED;
@@ -220,12 +211,6 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     clearPendingRequest(request.id);
     if (mountedRef.current) setWorking(false);
   }, [request, working, markHandled, clearPendingRequest]);
-
-  const handleDetail = useCallback(() => {
-    if (!request) return;
-    markHandled();
-    getNavigation()?.navigate('Home', { screen: 'TripRequest', params: { originRoute: currentRoute, requestId: request.id } });
-  }, [request, currentRoute, markHandled, getNavigation]);
 
   const handleDismiss = useCallback(() => {
     if (!request) return;
@@ -340,16 +325,6 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
               />
             </View>
           </View>
-          <Pressable
-            testID="incoming-request-detail"
-            accessibilityRole="button"
-            accessibilityLabel={labels.trip.viewDetail}
-            accessibilityHint={labels.trip.viewDetailHint}
-            onPress={handleDetail}
-            style={({ pressed }) => [styles.detail, pressed && styles.pressed]}
-          >
-            <Text style={styles.detailText}>{labels.trip.viewDetail}</Text>
-          </Pressable>
         </View>
       </View>
     </Animated.View>
@@ -455,16 +430,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: touch.gap,
-  },
-  detail: {
-    minHeight: touch.min,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detailText: {
-    ...type.label,
-    color: color.primary,
-    textDecorationLine: 'underline',
   },
   error: {
     ...type.body,

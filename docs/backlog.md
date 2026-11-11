@@ -808,8 +808,9 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio.
 - Diseño hecho cuando: solo tokens de DESIGN.md; sin rojo en la cuenta regresiva; objetivos táctiles de 44x44; contraste AA; reduce-motion.
 - Checkpoint en celular (Anderson, prompt #48, 2026-11-10, SHOW_DEV_TOOLS=false): puntos 1 a 9 validados por declaración; NO validado el escenario del hallazgo mayor (Ver detalle → deslizar a otra pestaña → Aceptar/Rechazar en la tarjeta).
+- Simplificación (Anderson, prompt #49, 2026-11-10, D-85): se elimina «Ver detalle» y el regreso a la pestaña de origen; una única `TripRequest` (id fijo) abierta solo con Inicio enfocado; con `TripRequest` abierta la tarjeta no se muestra y el drawer no se desliza; al resolverse la solicitud la `TripRequest` oculta se cierra sola sin cambiar de pestaña. Donde CA-054-03 y CA-054-04 mencionan «Ver detalle» o `TripRequest` abierta desde otra pantalla, rige esta simplificación.
 - Diseño: Pendiente
-- Estado: **Rechazada (verifier estático #47: la solicitud sigue viva en TripRequest oculta bajo otra pantalla del drawer y choca con la tarjeta; ver progress.md)**. Antes: En curso (registrada y aprobada por Anderson en el prompt #47, 2026-11-10). Al terminar quedará «Implementada y verificada en lo estático; pendiente de validación en dispositivo».
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (simplificación D-85, prompt #49; verifier nuevo ac8e2c92b63c180ef APRUEBA por lectura de código, 0 hallazgos mayores, 2 menores; check-constitution 23/0; script temporal 22/22). Antes: Rechazada (verifier #47 y #48, causa común: más de una pantalla de solicitud viva). No pasa a «Validada» sin la prueba en el celular.
 
 ## Fase 3 — Implementar
 (vacío)
