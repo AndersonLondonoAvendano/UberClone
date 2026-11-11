@@ -86,7 +86,7 @@ Una constante `LOCATION_SOURCE = 'simulated' | 'gps'` (en `src/config/location.j
 - **Tiempo y distancia restantes:**
   - Distancia: la distancia sobre la polilínea desde el punto más cercano al conductor hasta X, calculada con haversine sobre los vértices, sin red.
   - Tiempo: la distancia restante por `durationS / distanceM` de la ruta.
-- **Llegada:** si la distancia en línea recta a X es **≤ 30 m** (constante `ARRIVAL_THRESHOLD_M`), se muestra «Llegaste» y se habilita «Pasajero a bordo», que llama a `reportTripStatus(id, 'in_progress')` y pide la ruta X→destino. Llegar al destino con el mismo umbral habilita «Finalizar viaje» (`completed`).
+- **Llegada:** si la distancia en línea recta a X es **≤ 25 m** (constante `ARRIVAL_THRESHOLD_M`; corregido en el prompt #44, antes decía 30 m), se muestra «Llegaste» y se habilita «Pasajero a bordo», que llama a `reportTripStatus(id, 'in_progress')` y pide la ruta X→destino. Llegar al destino con el mismo umbral habilita «Finalizar viaje» (`completed`). Mientras el botón principal está deshabilitado, debajo se muestra en texto la razón (D-83).
 - **Errores (con `ScreenState` existente):**
   - Sin permiso de ubicación → `kind="error"` con texto que lleva a Ajustes, y `onRetry` vuelve a pedir el permiso.
   - GPS perdido (no llega posición en 15 s) → aviso no bloqueante; el mapa conserva la última posición.
@@ -94,12 +94,23 @@ Una constante `LOCATION_SOURCE = 'simulated' | 'gps'` (en `src/config/location.j
   - Carga inicial → `kind="loading"`.
 
 ## 5. Estados del viaje en la pantalla
-`accepted` → (ruta Y→X cargada) `driver_arriving` → (≤ 30 m y «Pasajero a bordo») `in_progress` → (≤ 30 m del destino y «Finalizar») `completed` → `TripSummaryScreen`. `cancelled` es posible desde `accepted`, `driver_arriving` e `in_progress`.
+`accepted` → (ruta Y→X cargada) `driver_arriving` → (≤ 25 m y «Pasajero a bordo») `in_progress` → (≤ 25 m del destino y «Finalizar viaje») `completed` → `TripSummaryScreen`. `cancelled` es posible desde `accepted`, `driver_arriving` e `in_progress`.
+
+### 5.1 Cierre del viaje: estado final, salida segura y reposo (prompt #44, D-83)
+El controlador (`src/services/trip/tripController.js`) es el único que decide el estado final; las pantallas solo navegan.
+- **Completar.** «Finalizar viaje» llama a `finish()`: reporta `completed` a la API del pasajero con tiempo máximo por intento (`REPORT_ATTEMPT_TIMEOUT_MS`) y tiempo máximo total (`FINISH_TIMEOUT_MS`). Si la API acepta, el viaje queda `finished = completed`, se escribe UNA vez `tripStatus: 'completed'` en `driverLocations/{uid}` (`publishFinal`, fuera del regulador de 5 s / 20 m, con `PUBLISH_STATUS_MAX_ATTEMPTS` intentos separados por `PUBLISH_STATUS_RETRY_DELAY_MS` y `PUBLISH_WRITE_TIMEOUT_MS` por intento) y la pantalla pasa al resumen. Nada de esto bloquea la interfaz: la escritura final sigue en segundo plano.
+- **Falla al completar.** Sin red o por tiempo agotado, el viaje sigue abierto con `finishError` (`network` o `timeout`) y la pantalla muestra el texto, «Reintentar» y «Salir del viaje» (con confirmación). Si la API responde `INVALID_STATE` (el pasajero ya cerró el viaje), `finishError = rejected`: no hay reintento, solo la salida segura. La pantalla nunca queda sin salida.
+- **Respuesta tardía de `completed`.** Si un intento de reportar `completed` agota su tiempo pero la API responde después con éxito, esa respuesta cuenta (`trackLateCompleted`): el viaje cierra como completado y un `INVALID_STATE` posterior del reintento («ya completado») no se lee como rechazo. Así «Reintentar» tras un `timeout` termina en `completed` y el estado final se escribe una sola vez.
+- **Salir del viaje (`abandon()`).** Síncrona. Si el conductor había llegado al destino o `completed` ya se había entregado, el estado final es `completed`; en cualquier otro caso es `cancelled`. Escribe el estado final igual que al completar y vuelve a Inicio.
+- **Cancelar.** `cancel()` reporta `cancelled` con el mismo tiempo máximo; `INVALID_STATE` cuenta como éxito (el viaje ya no existe). Deja `finished = cancelled` y escribe el estado final.
+- **Disponible apagado a mitad de viaje.** El viaje no se detiene (D-83 y nota de `TripContext`). Al terminar, `endTrip` libera igual; como `isAvailable` es `false`, la vigilancia de ubicación y la suscripción a solicitudes no se reanudan y no llega otra solicitud hasta que el conductor vuelva a encender Disponible.
+- **Reposo.** Al desmontar el resumen o al volver a Inicio desde cualquier camino, `endTrip` (en `TripContext`) abandona el viaje si aún no terminó, libera el controlador (temporizadores, fuente de ubicación, cola), llama a `releaseTrip(tripId)` en el adaptador (el mock suelta su viaje activo aunque `completed` nunca haya llegado) y escribe `tripStatus: DRIVER_LOCATION_IDLE_STATUS` (`'idle'`) con la última posición conocida. Después pone `onTrip` en `false`, así que el conductor puede aceptar otro viaje. `endTrip` es idempotente.
+- **Limitación sin conexión.** La cola de `driverLocationWriter` conserva todos los cambios de estado (`completed`/`cancelled`/`idle`, en orden) pero **una sola** escritura de posición pendiente: la última reemplaza a la anterior. Con el SDK de Firestore sin red, `setDoc` queda pendiente hasta que vuelva la conexión; por eso cada intento tiene tiempo máximo y, agotados los intentos, la escritura final se descarta y el documento puede quedar con un `tripStatus` desactualizado hasta la siguiente escritura con red. Se acepta para la demo y se declara en el README.
 
 ## 6. Publicación de la posición
 - `reportDriverLocation(tripId, …)` se llama **como máximo cada 5 s, y solo si el conductor se movió ≥ 20 m** desde el último envío, con un regulador en el hook. Siempre se envía en los cambios de estado.
 - Disponible sin viaje (RF-09): la escritura en Firestore (`drivers/{uid}` o `driverLocations/{uid}`, a definir en la rebanada B junto con su regla) sigue el mismo límite de 5 s y 20 m. Eso son como máximo unas 720 escrituras por hora en movimiento continuo, dentro de la cuota gratuita diaria de Firestore para una demo.
-- Si la escritura falla, no hay reintentos en cola: se descarta y se envía la siguiente.
+- Si la escritura de posición falla, no hay reintentos en cola: se descarta y se envía la siguiente. Los cambios de `tripStatus` sí se reintentan (§5.1).
 
 ## 7. Rendimiento, batería y segundo plano
 - `Accuracy.High` solo durante un viaje. Disponible sin viaje usa `Accuracy.Balanced` y `distanceInterval: 20`.

@@ -685,7 +685,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: bajo.
 - Diseño hecho cuando: — (cambio de texto)
 - Diseño: N/A (solo cambia el número del texto)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
 
 ### T-39 — Función pura `calculateFare`
 - Spec: rebanada A de `docs/plan-entrega-final.md`
@@ -699,7 +699,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: bajo.
 - Diseño hecho cuando: —
 - Diseño: N/A (sin interfaz)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
 
 ### T-40 — API del pasajero: contrato, selector, mock, esqueleto http y mappers
 - Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-api-pasajero.md` (D-78)
@@ -713,7 +713,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio.
 - Diseño hecho cuando: —
 - Diseño: N/A (sin interfaz)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
 
 ### T-41 — Fuente de posición intercambiable y hook `useDriverLocation`
 - Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-mapa-recorrido.md` §3 y §7
@@ -727,7 +727,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio.
 - Diseño hecho cuando: —
 - Diseño: N/A (sin interfaz propia)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada): con la ubicación del sistema apagada el diálogo sale una sola vez, sin bucle. Antes, en el checkpoint 1 (prompt #43), el diálogo de Google «Precisión de la ubicación» salía en bucle aun después de «No, gracias»; la corrección del prompt #43 hizo que las fuentes no muestren el diálogo, que el hook informe `services_off` y que el diálogo se ofrezca una sola vez por toque del interruptor. El ícono de ubicación no aparece nunca en ese celular, así que la limpieza al desmontar se verificó leyendo el código.
 
 ### T-42 — Interruptor Disponible / No disponible en Inicio
 - Spec: rebanada B de `docs/plan-entrega-final.md`
@@ -741,7 +741,51 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio.
 - Diseño hecho cuando: el interruptor usa solo tokens de DESIGN.md y comunica el estado con texto, no solo con color.
 - Diseño: Pendiente
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
+
+### T-43 — Tarjeta de solicitud con cuenta regresiva
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-api-pasajero.md`
+- Requisitos: RF-10, RF-11 (vencimiento de 30 s en lugar de 15 s, decisión de Anderson en el prompt #43), RF-13, RF-20, RF-21, RNF-02
+- Depende de: T-39, T-40, T-42
+- Archivos: `src/screens/trip/TripRequestScreen.js`, `src/services/trip/pendingRequest.js` (nuevo), `src/components/SecondaryButton.js` (nuevo), `src/components/PrimaryButton.js`, `src/utils/format.js` (nuevo), `src/constants/labels.js`
+- Hacer: tarjeta con pasajero y calificación, recogida (con distancia y tiempo hasta ella), destino, longitud del viaje, categoría, pago, tarifa, comisión y ganancia neta (`calculateFare`); cuenta regresiva hasta `expiresAt` (30 s, `MOCK_REQUEST_TTL_MS`, decidido por Anderson en el prompt #43; en rojo los últimos 10 s); al llegar a 0 se muestra «Solicitud vencida» y vuelve a Inicio; una solicitud a la vez; aceptar → viaje activo; rechazar → Inicio; `ALREADY_TAKEN`/`EXPIRED` con aviso y regreso, error de red con reintento manual.
+- Hecho cuando: un script temporal comprueba el vencimiento y la regla de una solicitud a la vez; las pantallas no importan el mock.
+- Qué debe ver Anderson en el celular (checkpoint 2): la tarjeta con cifras, aceptar, rechazar y dejarla vencer.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: solo tokens de DESIGN.md; botones de 44 pt con texto accesible; contraste AA.
+- Diseño: Pendiente (ronda 2 estática, 2026-11-10, prompt #44: los 3 hallazgos de la ronda 1 resueltos; 2 hallazgos medios nuevos —cuenta regresiva visible con solicitud ya tomada, barra urgente con opacidad suelta y par fuera de tabla— en `docs/diseno/auditorias/ronda-2-viaje.md`; falta la evidencia en el celular)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada); implementada y verificada en lo estático en el prompt #43. El mensaje de `ALREADY_TAKEN` («otro conductor tomó el viaje») es correcto y no se toca. Ajustes del prompt #44 (vencida → `rejectRequest` silencioso, un solo texto «La solicitud venció», cuenta regresiva más visible) quedan pendientes de verse en el celular.
+
+### T-44 — Viaje activo con recorrido en tiempo real
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-mapa-recorrido.md`
+- Requisitos: RF-12 (rutas con OSRM, D-82), RF-13, RNF-02, RNF-06 (parcial, D-77), RNF-08 (parcial)
+- Depende de: T-37, T-41, T-43
+- Archivos: `src/screens/trip/TripActiveScreen.js`, `src/context/TripContext.js` (nuevo), `src/services/trip/{tripController,tripMachine,routeProgress}.js` (nuevos), `src/services/driverLocationPublisher.js` (nuevo), `src/components/map/TripMap.js` (nuevo), `src/config/trip.js` (nuevo), `src/services/location/index.js`, `src/constants/tripStatus.js`, `src/constants/labels.js`
+- Hacer: dos tramos (conductor → recogida con `driver_arriving`, recogida → destino con `in_progress`); ruta OSRM con reintentos acotados y línea recta marcada «aproximada»; distancia y tiempo restantes; llegada por umbral (`ARRIVAL_THRESHOLD_M`); «Iniciar viaje» solo en la recogida y «Finalizar viaje» solo en el destino; cancelar con confirmación en línea; estados en orden por una cola con reintentos acotados; reporte de posición regulado y documento `driverLocations/{uid}`; errores de ruta, posición y reporte con su botón «Reintentar»; nada reintenta solo; la disponibilidad queda en pausa durante el viaje.
+- Hecho cuando: un script temporal comprueba la máquina de estados (válidas e inválidas), la llegada por umbral sobre una polilínea simulada, el restante, el regulador del reporte y la limpieza.
+- Qué debe ver Anderson en el celular (checkpoint 2): el viaje simulado completo, cancelar y modo avión a mitad de viaje; el documento `driverLocations` en la consola.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: alto.
+- Diseño hecho cuando: solo tokens de DESIGN.md; atribución del mapa visible; avisos con texto, no solo color.
+- Diseño: Pendiente (ronda 2 estática, 2026-11-10, prompt #44: hallazgos 2 y 3 de la ronda 1 resueltos; 1 hallazgo medio nuevo —restante en `type.body` y tres textos que no siguen D-83— en `docs/diseno/auditorias/ronda-2-viaje.md`; cámara y puntos del mapa en cola para el celular)
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (verifier #44, 2026-11-10: 91 comprobaciones, sin hallazgos críticos ni mayores; 3 menores abiertos: reintentos en vuelo tras `cancel()` o cierre tardío en el bucle de `pump`, y un temporizador residual tras `dispose`). Antes: **No validada** en el checkpoint 2 (a: `tripStatus` quedaba en `in_progress`; b: no se podía tomar otra solicitud) y **Rechazada** por el verifier del prompt #43. Corrección en D-83. No pasa a «Validada» sin la evidencia del celular. Ajustes de diseño de la ronda 2 aplicados; Diseño sigue Pendiente hasta capturas del celular.
+- **Checkpoint 3 (Anderson, 2026-11-10, celular real, fuente simulada, prompt #45):** VALIDADO por declaración: `tripStatus` pasa a `completed` y luego a `idle` al volver a Inicio; `cancelled` se publica al cancelar; «Pasajero a bordo» visible en la recogida; la cuenta regresiva es más fuerte; sin diálogo de permiso al volver a la app; modo avión al finalizar funciona. NO VALIDADO, defecto nuevo (c): tras finalizar O cancelar un viaje, con Disponible activo, ubicación del sistema encendida y permiso concedido, el aviso de Inicio queda para siempre en «Obteniendo tu ubicación…»; «Simular solicitud (provisional)» responde «Activa Disponible para simular una solicitud.»; no llegan solicitudes; apagar y encender el interruptor NO lo recupera; reiniciar la app sí; antes del primer viaje todo funciona. Los pasos 2 y 3 de la lista no se pudieron probar. T-44 sigue sin validar; diagnóstico y corrección en el prompt #45 (D-84).
+- **Checkpoint 3, repetición (Anderson, 2026-11-10, celular real, fuente simulada, SHOW_DEV_TOOLS=true, prompt #46):** el defecto (c) queda **CORREGIDO y VALIDADO por declaración de Anderson**: con `popTo('Home')` en las tres pantallas del viaje y el ajuste de `pump`, Disponible → simular solicitud → aceptar → finalizar → Inicio → llega otra sola; cancelar a mitad → llega otra; apagar y encender Disponible tras un viaje; repetido varias veces. **T-44 queda VALIDADA por declaración de Anderson en dispositivo**; Diseño sigue Pendiente (cola de diseño). Instrumentación `[DIAG-LOC]` retirada (D-84).
+
+### T-45 — Resumen del viaje
+- Spec: rebanada B de `docs/plan-entrega-final.md`
+- Requisitos: RF-14 (parcial: sin estado del pago, que llega con T-46), RF-20, RF-22
+- Depende de: T-44
+- Archivos: `src/screens/trip/TripSummaryScreen.js`, `src/constants/labels.js`
+- Hacer: pasajero, hora de fin, distancia, duración, tarifa, comisión y ganancia neta con `calculateFare` sobre los valores de la solicitud aceptada (coinciden con la tarjeta); «Volver a Inicio» termina el viaje y reanuda la disponibilidad; nada se guarda (eso es T-46).
+- Hecho cuando: las cifras coinciden con `calculateFare` para la distancia y duración de la solicitud.
+- Qué debe ver Anderson en el celular (checkpoint 2): el resumen al finalizar con las mismas cifras de la tarjeta.
+- Validación: revisión de código; verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: solo tokens de DESIGN.md; cifras con estilo numérico; contraste AA.
+- Diseño: Aprobado condicionado a celular (ronda 2 estática, 2026-11-10, prompt #44: hallazgos 1 y 2 de la ronda 1 resueltos, sin hallazgos nuevos; solo cola baja en `docs/diseno/auditorias/ronda-2-viaje.md`; falta ver la pantalla real)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada); implementada y verificada en lo estático en el prompt #43. El ajuste del prompt #44 (sin parpadeo de «sin viaje» al volver a Inicio) queda pendiente de verse en el celular.
 
 ## Fase 3 — Implementar
 (vacío)

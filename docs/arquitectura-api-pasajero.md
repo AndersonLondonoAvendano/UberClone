@@ -40,7 +40,7 @@ Las pantallas (`TripRequestScreen`, `TripActiveScreen`, `TripSummaryScreen`) y l
 | `category` | `'economico' \| 'xl' \| 'premium'` | mismos valores que el registro (`registrationOptions.js`, RF-06) |
 | `paymentMethod` | `'card' \| 'cash'` | RF-10 lo exige en la tarjeta; el mock lo inventa |
 | `createdAt` | number (ms epoch) | |
-| `expiresAt` | number (ms epoch) | `createdAt + 15 000` (RF-11) |
+| `expiresAt` | number (ms epoch) | `createdAt + 30 000` (RF-11; `MOCK_REQUEST_TTL_MS` en el mock, decisión de Anderson en la entrada #43) |
 
 La tarifa estimada y la ganancia neta **no** vienen de la API: la app las calcula (sección 6).
 
@@ -58,6 +58,7 @@ La tarifa estimada y la ganancia neta **no** vienen de la API: la app las calcul
 |---|---|
 | `accepted` | el conductor aceptó |
 | `driver_arriving` | el conductor va hacia el pasajero (el recorrido en el mapa) |
+| `driver_arrived` | el conductor llegó al punto de recogida (umbral `ARRIVAL_THRESHOLD_M`, 25 m) y espera al pasajero |
 | `in_progress` | «Pasajero a bordo»: la ruta cambia al destino |
 | `completed` | el conductor finaliza |
 | `cancelled` | el conductor o el pasajero cancela |
@@ -73,7 +74,7 @@ Todas devuelven `Promise` salvo `subscribeToRequests`. Todas rechazan **solo** c
 | `subscribeToRequests` | `(onRequest: (req: TripRequest) => void, onError?: (e) => void) => unsubscribe` | Entrega solicitudes nuevas mientras el conductor está Disponible. La función que devuelve se llama en la limpieza del `useEffect` (RF-09, RNF-02). |
 | `acceptRequest` | `(requestId) => Promise<Trip>` | Devuelve el viaje en `accepted`. Puede fallar con `EXPIRED` o `ALREADY_TAKEN`. |
 | `rejectRequest` | `(requestId) => Promise<void>` | Rechazo manual o automático al llegar a 0 (RF-11). |
-| `reportTripStatus` | `(tripId, status: TripStatus) => Promise<Trip>` | `driver_arriving` → `in_progress` → `completed`. |
+| `reportTripStatus` | `(tripId, status: TripStatus) => Promise<Trip>` | `driver_arriving` → `driver_arrived` → `in_progress` → `completed`. Los textos de los estados viven solo en `src/constants/tripStatus.js`; las transiciones válidas, en `NEXT_TRIP_STATUS` de `contract.js` (cualquier estado no final puede pasar a `cancelled`). |
 | `cancelTrip` | `(tripId) => Promise<Trip>` | Pasa a `cancelled`. |
 | `reportDriverLocation` | `(tripId, { lat, lng, timestamp }) => Promise<void>` | Para que el pasajero vea al conductor. **Límite de frecuencia** en el llamador (ver `arquitectura-mapa-recorrido.md` §6). Los errores de red se descartan en silencio y se reintenta en el siguiente punto. |
 
@@ -95,7 +96,7 @@ Los textos van en `labels.js` (tarea de la rebanada B).
 
 ## 5. El mock
 - Reemplaza el botón «Simular solicitud (provisional)» (`src/constants/labels.js`, clave `startTrip`). Al ponerse Disponible, el mock emite una solicitud cada N segundos (constante, por ejemplo entre 10 y 20 s), de a una a la vez.
-- Genera datos con la **forma interna** (sección 2) y coordenadas **reales cercanas** a la posición actual del conductor: el origen a 300–1500 m y el destino a 2–8 km, con desplazamientos aleatorios de lat/lng. La dirección es un texto genérico («Calle cercana (simulada)»), porque la geocodificación inversa queda fuera de alcance. `distanceKm` y `durationMin` se aproximan por distancia en línea recta × 1,3 y una velocidad media de 25 km/h.
+- Genera datos con la **forma interna** (sección 2) y coordenadas **reales cercanas** a la posición actual del conductor: el origen a 0,8–2 km y el destino a 2–6 km del origen (constantes `MOCK_PICKUP_*` y `MOCK_DESTINATION_*` de `src/config/passengerApi.js`), con desplazamientos aleatorios de lat/lng. La dirección es un texto genérico («Calle cercana (simulada)»), porque la geocodificación inversa queda fuera de alcance. `distanceKm` y `durationMin` se aproximan por distancia en línea recta × 1,3 y una velocidad media de 25 km/h.
 - Simula los casos de error con una probabilidad baja configurable: `ALREADY_TAKEN` y `EXPIRED`, este último si se acepta después de `expiresAt`.
 - `reportDriverLocation` y `reportTripStatus` del mock solo registran en memoria (y en `console` en modo desarrollo).
 

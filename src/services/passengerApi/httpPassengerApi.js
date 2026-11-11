@@ -79,6 +79,11 @@ export function createHttpPassengerApi({ baseUrl = process.env.EXPO_PUBLIC_PASSE
     async reportDriverLocation(tripId, location) {
       await request(`/trips/${encodeURIComponent(tripId)}/location`, { method: 'POST', body: fromLocation(location) });
     },
+    // AI-assisted: see docs/AI_LOG.md #44
+    // The real backend owns the trip state: there is nothing to release on the client.
+    releaseTrip() {
+      return Promise.resolve(false);
+    },
     // The real API cannot be asked for a request on demand.
     requestNow() {
       return 'not_supported';

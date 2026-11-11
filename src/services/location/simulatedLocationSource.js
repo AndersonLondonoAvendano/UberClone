@@ -1,8 +1,9 @@
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #43
 // Simulated location source (T-41): walks a polyline ([lng, lat][]) at a constant speed, emitting
 // one interpolated point every tickMs, then the last point, then onEnd. Without coordinates it uses
 // the routing module (T-36, unchanged) between the fixed test points. Same interface as the GPS
-// source; permission is always 'granted'. Timers are injectable so a script can test it.
+// source; permission is always 'granted' and the services are always on. Timers are injectable so a script can test it.
 
 import { SIMULATED_SPEED_KMH, SIMULATED_TICK_MS } from '../../config/location';
 import { TEST_ROUTE_FROM, TEST_ROUTE_TO } from '../../config/routing';
@@ -10,7 +11,7 @@ import { getRoute } from '../routing';
 import { haversineDistanceM } from '../routing/straightLine';
 
 // Cumulative distance, in meters, at each vertex of the polyline.
-function cumulativeDistances(coordinates) {
+export function cumulativeDistances(coordinates) {
   const result = [0];
   for (let i = 1; i < coordinates.length; i += 1) {
     result.push(result[i - 1] + haversineDistanceM(coordinates[i - 1], coordinates[i]));
@@ -44,6 +45,19 @@ export function createSimulatedLocationSource({
   return {
     async requestPermission() {
       return 'granted';
+    },
+
+    // AI-assisted: see docs/AI_LOG.md #44
+    async getPermission() {
+      return 'granted';
+    },
+
+    async checkServices() {
+      return true;
+    },
+
+    async askToEnableServices() {
+      return true;
     },
 
     start({ onPosition, onError, onEnd } = {}) {

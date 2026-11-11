@@ -27,7 +27,7 @@
 //   subscribeToRequests(onRequest, onError?, { getDriverPosition }?) => unsubscribe
 //   acceptRequest(requestId) => Promise<Trip>            EXPIRED | ALREADY_TAKEN
 //   rejectRequest(requestId) => Promise<void>            EXPIRED when it is no longer pending
-//   reportTripStatus(tripId, status) => Promise<Trip>    accepted -> driver_arriving -> in_progress -> completed
+//   reportTripStatus(tripId, status) => Promise<Trip>    accepted -> driver_arriving -> driver_arrived -> in_progress -> completed
 //   cancelTrip(tripId) => Promise<Trip>
 //   reportDriverLocation(tripId, { lat, lng, timestamp }) => Promise<void>
 // The optional third argument of subscribeToRequests gives the adapter the driver's current
@@ -51,7 +51,9 @@ export { TRIP_STATUS };
 // Allowed reportTripStatus transitions (cancelTrip handles the cancelled state).
 export const NEXT_TRIP_STATUS = {
   [TRIP_STATUS.ACCEPTED]: TRIP_STATUS.DRIVER_ARRIVING,
-  [TRIP_STATUS.DRIVER_ARRIVING]: TRIP_STATUS.IN_PROGRESS,
+  // AI-assisted: see docs/AI_LOG.md #43 (driver_arrived between arriving and in progress)
+  [TRIP_STATUS.DRIVER_ARRIVING]: TRIP_STATUS.DRIVER_ARRIVED,
+  [TRIP_STATUS.DRIVER_ARRIVED]: TRIP_STATUS.IN_PROGRESS,
   [TRIP_STATUS.IN_PROGRESS]: TRIP_STATUS.COMPLETED,
 };
 

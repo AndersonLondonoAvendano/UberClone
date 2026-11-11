@@ -16,8 +16,33 @@ Estado: vigente (D-80, D-81; 2026-11-10).
 4. **Sin borrado.** Nadie puede borrar el documento desde la app.
 5. **Todo lo demás está cerrado.** Ninguna otra colección tiene reglas, así que el acceso queda denegado por defecto.
 
+## Ubicación del conductor (`driverLocations/{uid}`) — borrador, pendiente de publicar
+Redactada en el prompt #43 (T-44). **No está publicada:** Anderson la pega en la consola (Firestore → Reglas), dentro de `match /databases/{database}/documents`, junto a la de `drivers`. Ya está en la copia local `firestore.rules`. Hasta que se publique, las escrituras de la app fallan en silencio y el viaje sigue sin ellas.
+1. **Solo el dueño lee y escribe.** El id del documento debe ser el `uid` del usuario autenticado.
+2. **Forma cerrada.** Solo se aceptan los campos `lat` y `lng` (números en rango), `timestamp` (número), `tripStatus` (texto o nulo) y `updatedAt` (hora del servidor, `serverTimestamp()`). Desde el prompt #44 (D-83) la app también escribe en `tripStatus` el valor de reposo `idle` al volver a Inicio; es un texto, así que la regla publicada lo acepta sin cambios.
+3. **Sin borrado** desde la app.
+
+```
+    // Driver position during a trip (T-44): only the owner reads and writes; never deleted.
+    match /driverLocations/{uid} {
+      function validLocation() {
+        let data = request.resource.data;
+        return data.keys().hasOnly(['lat', 'lng', 'timestamp', 'tripStatus', 'updatedAt'])
+          && data.lat is number && data.lat >= -90 && data.lat <= 90
+          && data.lng is number && data.lng >= -180 && data.lng <= 180
+          && data.timestamp is number
+          && (data.tripStatus == null || data.tripStatus is string)
+          && data.updatedAt == request.time;
+      }
+
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid && validLocation();
+      allow delete: if false;
+    }
+```
+
 ## Ampliaciones previstas (no publicadas todavía)
-Las reglas de la colección `trips` (historial, rebanada C) y de la ubicación del conductor (rebanada B) se definen en sus tareas de `docs/plan-entrega-final.md`. Al publicarse, se describen aquí con el mismo formato. Hasta entonces no existen y el acceso a esas colecciones está denegado.
+Las reglas de la colección `trips` (historial, rebanada C) se definen en su tarea de `docs/plan-entrega-final.md`. Al publicarse, se describen aquí con el mismo formato. Hasta entonces no existen y el acceso a esa colección está denegado.
 
 ## Secretos
 - Secretos de servidor (`access_token` de Mercado Pago, API secret de Cloudinary): solo en `backend/.env` (RNF-05).

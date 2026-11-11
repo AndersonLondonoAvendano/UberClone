@@ -41,11 +41,11 @@ import { getDriverRegistration, submitDriverRegistration } from '../services/dri
 import { labels, getSubmitErrorMessage } from '../constants/labels';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { COMMISSION_RATE } from '../config/pricing';
-import { normalizeCommissionRate } from '../utils/fare';
 
 // RF-07/RF-21 (T-38): the commission rate comes only from src/config/pricing.js as a fraction
 // (0.2). It is shown on the terms checkbox as a percentage and stored with the registration as the
-// fraction. A preloaded old document that stored 20 is read as 20 % (normalizeCommissionRate).
+// fraction. A rate stored in an older document is ignored: COMMISSION_RATE always applies.
+// AI-assisted: see docs/AI_LOG.md #43
 
 const INITIAL_PERSONAL_DATA = {
   fullName: '',
@@ -102,7 +102,7 @@ export function RegistrationFormProvider({ children }) {
   const [vehicle, setVehicleState] = useState(INITIAL_VEHICLE);
   const [vehicleTouched, setVehicleTouched] = useState(() => emptyTouched(INITIAL_VEHICLE));
   const [documents, setDocumentsState] = useState(INITIAL_DOCUMENTS);
-  const [commissionRate, setCommissionRate] = useState(COMMISSION_RATE);
+  const commissionRate = COMMISSION_RATE;
   const [documentsTouched, setDocumentsTouched] = useState(() => emptyTouched(INITIAL_DOCUMENTS));
   const [visitedTabs, setVisitedTabs] = useState(INITIAL_VISITED_TABS);
   const [submitState, setSubmitState] = useState('idle');
@@ -141,10 +141,9 @@ export function RegistrationFormProvider({ children }) {
       if (stored.documents) {
         // commissionRate is not part of INITIAL_DOCUMENTS; drop it so the spread never adds a
         // field the rest of the form state does not expect.
-        const { commissionRate: storedRate, ...restDocuments } = stored.documents;
+        // eslint-disable-next-line no-unused-vars
+        const { commissionRate: ignoredStoredRate, ...restDocuments } = stored.documents;
         setDocumentsState((current) => ({ ...current, ...restDocuments }));
-        const rate = normalizeCommissionRate(storedRate);
-        if (rate !== null) setCommissionRate(rate);
       }
     });
 

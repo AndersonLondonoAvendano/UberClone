@@ -187,6 +187,16 @@ export function createMockPassengerApi({
       };
     },
 
+    // AI-assisted: see docs/AI_LOG.md #44
+    // Releases a trip the driver left without its final status reaching the API ("Salir del viaje",
+    // or ending the trip after a failure), so new requests flow again. No-op for another trip.
+    async releaseTrip(tripId) {
+      if (activeTripId !== tripId) return false;
+      log('trip released', tripId);
+      finishTrip(tripId);
+      return true;
+    },
+
     async acceptRequest(requestId) {
       const request = takePending(requestId);
       if (random() < alreadyTakenProbability) {
