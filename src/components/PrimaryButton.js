@@ -1,18 +1,22 @@
 // AI-assisted: see docs/AI_LOG.md #18
+// AI-assisted: see docs/AI_LOG.md #43 (optional disabled state and accessibility hint)
 // Primary action button: the single accent-filled control of a screen.
 // Tokens only. Press feedback changes opacity only, so the layout never moves.
 
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { color, opacity, radius, space, touch, type } from '../theme/tokens';
 
-export function PrimaryButton({ testID, label, onPress }) {
+export function PrimaryButton({ testID, label, onPress, disabled = false, accessibilityHint }) {
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.button, pressed && styles.pressed, disabled && styles.disabled]}
     >
       <Text style={styles.label}>{label}</Text>
     </Pressable>
@@ -31,6 +35,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: opacity.pressed,
+  },
+  disabled: {
+    opacity: opacity.disabled,
   },
   label: {
     ...type.label,

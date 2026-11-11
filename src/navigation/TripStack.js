@@ -17,11 +17,16 @@ const SCREEN_OPTIONS = {
   contentStyle: { backgroundColor: color.bg },
 };
 
+// A single TripRequest screen can exist: navigating to it again reuses it, never stacks another.
+const REQUEST_SCREEN_ID = 'trip-request';
+const getRequestId = () => REQUEST_SCREEN_ID;
+
 export function TripStack() {
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={SCREEN_OPTIONS}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="TripRequest" component={TripRequestScreen} />
+      {/* AI-assisted: see docs/AI_LOG.md #49 */}
+      <Stack.Screen name="TripRequest" component={TripRequestScreen} getId={getRequestId} />
       <Stack.Screen name="TripActive" component={TripActiveScreen} />
       <Stack.Screen name="TripSummary" component={TripSummaryScreen} />
     </Stack.Navigator>

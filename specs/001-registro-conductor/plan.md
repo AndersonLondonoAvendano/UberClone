@@ -1,7 +1,7 @@
 # Plan 001 — Registro del conductor
 
 Spec: `specs/001-registro-conductor/spec.md` (Aprobada por Anderson, 2026-11-01, prompt #24).
-Requisitos: RF-01 a RF-07, RNF-04, RNF-07. Criterios: CA-001-01 a CA-001-30, CA-001-D1 a D4.
+Requisitos: RF-01 a RF-07, RNF-04, RNF-07. Criterios: CA-001-01 a CA-001-31, CA-001-D1 a D5.
 Precedencia: ENCARGO > constitución > decisiones > spec/diseño > este plan > tareas.
 Estado del plan: recién escrito, pendiente de revisión de Anderson. Ninguna tarea autorizada todavía (todas Pendiente).
 
@@ -35,7 +35,7 @@ De la spec 000 (sin tocar salvo que se diga lo contrario): `RegistrationTabs` (t
 - **DP-09 (fecha de nacimiento con `@react-native-community/datetimepicker`, no `Modal`/`FlatList`).** Decisión operativa para ahorrar tiempo antes del jueves (indicada en el encargo de esta tarea): el selector de fecha de nacimiento usa el picker nativo en vez de construir uno propio. D-56 (Vigente) sigue aplicando solo a los CUATRO desplegables de opciones fijas (categoría, color, género, idioma); esos siguen con `Modal` + `FlatList` propios, sin dependencia nueva. Necesita la decisión Vigente D-65 (abajo) para promover `@react-native-community/datetimepicker` a `allowed`.
 - **DP-10 (foto: dos botones, no un menú).** El campo de foto (perfil y vehículo) ofrece dos botones con su propio `testID` (`-camera`, `-gallery`) en vez de un único control que abra un menú contextual; así cada uno es un objetivo táctil propio de ≥ 44 × 44, sin añadir un `Modal` adicional para elegir el origen.
 - **DP-11 (Cloudinary sin SDK; parte del archivo en base64, D-68).** Subida con `fetch`/`FormData` contra `https://api.cloudinary.com/v1_1/<cloud_name>/image/upload` (D-54); `<cloud_name>` se interpola en tiempo de ejecución desde `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, el campo `upload_preset` del cuerpo desde `EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET`. Ningún valor en el código, solo los nombres de las variables (RNF-07, D-54). La parte `file` del `FormData` se envía como el string `data:<mime>;base64,<datos>` (no como `{ uri, type, name }`, D-68): el `fetch` global de Expo SDK 57 rechaza esa forma clásica de React Native con "Unsupported FormDataPart implementation". `PhotoField` pide el `base64` a `expo-image-picker` (`base64: true`, `quality: 0.7`); `cloudinary.js` rechaza con un mensaje claro un base64 mayor a ~8 MB antes de intentar la subida, y nunca lo guarda fuera del tiempo de vida de la llamada.
-- **DP-12 (`firestore.rules` versionado como texto, sin despliegue automatizado).** Vive en la raíz del repo (`firestore.rules`). No hay Firebase CLI en `scripts/dependencies.json` y no se añade solo para esto (no es dependencia de la app, D-52 ya descartó meter más piezas de Firebase de las necesarias): Anderson copia el contenido a la consola de Firebase o lo despliega con una CLI que ya tenga instalada fuera de este proyecto.
+- **DP-12 (`firestore.rules` como texto, sin despliegue automatizado).** Vive en la raíz del proyecto (`firestore.rules`). **Corrección (D-80, 2026-11-10):** el archivo es una copia local ignorada por Git, no está versionado; las reglas efectivas son las publicadas en la consola de Firebase y la política se describe en `docs/seguridad.md`. No hay Firebase CLI en `scripts/dependencies.json` y no se añade solo para esto (no es dependencia de la app, D-52 ya descartó meter más piezas de Firebase de las necesarias): Anderson copia el contenido a la consola de Firebase o lo despliega con una CLI que ya tenga instalada fuera de este proyecto.
 - **DP-13 (envío idempotente).** «Enviar registro» puede pulsarse más de una vez (reintento tras un error de red) sin duplicar nada: siempre se usa `setDoc(ref, payload, { merge: true })` sobre `drivers/{uid}` (nunca `addDoc`), así reenviar sobrescribe el mismo documento.
 - **DP-14 (fotos no se re-suben sin tocarlas).** Si el campo de foto ya tiene una URL válida y el conductor no lo vuelve a tocar, enviar el formulario reutiliza esa URL; solo se sube de nuevo si el conductor elige otra foto.
 - **DP-15 (variables de entorno públicas, archivo `.env.example` en la raíz).** Nuevo archivo `.env.example` en la raíz del proyecto (no en `backend/`, que no cambia, D-58) con los NOMBRES de las variables `EXPO_PUBLIC_FIREBASE_*` y `EXPO_PUBLIC_CLOUDINARY_*`, sin valores. `.env` de la raíz ya queda fuera de Git por el patrón `.env`/`.env.*` existente en `.gitignore`. El planner no lee ni escribe valores de ningún `.env`; Anderson crea el `.env` real con sus propios valores de Firebase/Cloudinary.
@@ -311,10 +311,12 @@ Dirección A «Tablero» (D-25), solo tokens de `DESIGN.md` (ya ampliado el 2026
 | CA-001-28 (mensaje de éxito tras envío, D-72) | T-31 | revisión de `testID`/`labels.js` + Anderson, celular. No verificado en dispositivo |
 | CA-001-29 (aviso «Pendiente de aprobación» y envío deshabilitado, D-72) | T-31 | revisión de código (`accountStatus`, `disabled`) + Anderson, celular. No verificado en dispositivo |
 | CA-001-30 (precarga desde Firestore al abrir las pestañas, D-73) | T-32 | script fuera del proyecto (conversiones inversas) + Anderson, celular. No verificado en dispositivo |
+| CA-001-31 (quitar foto con la «X», D-75) | T-33 | revisión de código + Anderson, celular. No verificado en dispositivo |
 | CA-001-D1 (táctil ≥44, testID) | T-21, T-22, T-24, T-25, T-26, T-29 | revisión de `testID` + medidas en capturas (T-29) |
 | CA-001-D2 (solo tokens, Modal/FlatList, sin emoji) | T-21, T-22, T-24, T-25, T-26, T-29 | revisión de código + T-29 |
 | CA-001-D3 (error en `type.caption`/`color.danger`, nunca solo color) | T-21, T-24, T-25, T-26, T-29 | revisión de código + T-29 |
 | CA-001-D4 (escala de texto sin cortes) | T-21, T-22, T-24, T-25, T-26, T-29 | Anderson, escala máxima + T-29 |
+| CA-001-D5 (teclado y selectores no tapan campos) | T-34 | Anderson, celular, campo por campo en las tres pestañas. No verificado en dispositivo |
 
 ## 9. Riesgos y qué recortar primero si el tiempo no alcanza
 

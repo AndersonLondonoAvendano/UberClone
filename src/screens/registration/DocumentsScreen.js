@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #27
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #42
 // Documents tab (minimal scope for this delivery): Mercado Pago email, terms checkbox with
 // the commission percentage, and the "Enviar registro" button that submits the whole form.
 // License/SOAT/technical review are out of scope for this delivery.
@@ -14,8 +15,9 @@ import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
-import { COMMISSION_RATE_PERCENT, useRegistrationForm } from '../../context/RegistrationFormContext';
+import { useRegistrationForm } from '../../context/RegistrationFormContext';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { commissionPercent } from '../../utils/fare';
 import { isValidEmail, isTermsAccepted } from '../../utils/validators';
 
 const SAFE_EDGES = ['top'];
@@ -32,6 +34,7 @@ export function DocumentsScreen() {
     submitErrorMessage,
     submitRegistration,
     isLocked,
+    commissionRate,
   } = useRegistrationForm();
   const { accountStatus } = useAppState();
 
@@ -46,7 +49,10 @@ export function DocumentsScreen() {
   const termsError =
     !isTermsAccepted(documents.termsAccepted) && (termsTouched || showErrors) ? FIELDS.termsAccepted.error : null;
 
-  const termsLabel = labels.registration.documents.termsLabel.replace('{percent}', String(COMMISSION_RATE_PERCENT));
+  const termsLabel = labels.registration.documents.termsLabel.replace(
+    '{percent}',
+    String(commissionPercent(commissionRate)),
+  );
   const isSubmitting = submitState === 'submitting';
   // The account stays pending until an admin approves it elsewhere, so the submit action must
   // not be reachable again (no edit, no re-send) while it is pending.

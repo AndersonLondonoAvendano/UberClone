@@ -30,6 +30,13 @@
           "photosPermission": "UberClone Conductor necesita tu galería para elegir tu foto de perfil o la de tu vehículo.",
           "microphonePermission": false
         }
+      ],
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "UberClone Conductor necesita tu ubicación mientras usas la app para mostrar tu posición en el mapa y calcular la ruta hacia el pasajero."
+        }
       ]
     ]
   }

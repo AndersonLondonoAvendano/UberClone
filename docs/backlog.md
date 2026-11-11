@@ -525,14 +525,14 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Spec: 001-registro-conductor
 - Requisitos: RF-04, D-52 (CA-001-22)
 - Depende de: T-17 (necesita conocer la forma final de `drivers/{uid}`, aunque las reglas no dependen de los campos, solo del `uid`)
-- Archivos: `firestore.rules` (nuevo, raíz del repo)
+- Archivos: `firestore.rules` (nuevo, raíz del repo; copia local ignorada por Git: las reglas efectivas se publican en la consola de Firebase, ver `docs/seguridad.md` y D-80)
 - Hacer: AMPLIADO sobre el borrador original del plan §4 (prompt #27, punto 2, aprobado por Anderson): además del `allow read/write: if request.auth != null && request.auth.uid == driverId`, las reglas (a) exigen `request.resource.data.accountStatus == 'pending'` en toda escritura del cliente (nunca puede escribir `'approved'`: impide que se apruebe solo) y (b) bloquean `allow update` por completo una vez `resource.data.accountStatus == 'approved'` (el cliente no puede volver a escribir después de aprobado) y (c) validan tipo/longitud básicos de los campos reales de `personalData`/`vehicle`/`documents` (coherentes con `src/utils/validators.js`) y que las fotos sean URLs `https://`. Sin ninguna otra ruta abierta; `allow delete: if false`. El implementer NO despliega las reglas (DP-12): deja el archivo listo para que Anderson lo pegue en la consola de Firebase.
 - Hecho cuando: el archivo existe con exactamente esas reglas; Anderson confirma que las pegó/publicó en el proyecto real de Firebase.
 - Validación: revisión de línea por línea contra el esquema real de `driverRepository.js`/`RegistrationFormContext.js`; simulador de reglas de la consola de Firebase (Rules Playground), que Anderson corre él mismo; `check-constitution`.
 - Riesgo: medio (si Anderson olvida desplegarlas, CA-001-22 queda sin cumplir aunque el archivo exista; anotar explícitamente la confirmación en progress.md).
 - Diseño hecho cuando: —
 - Diseño: N/A (sin UI)
-- Estado: Validada en lo estático (verifier independiente, 2026-11-02; Diseño N/A). `firestore.rules` en la raíz del repo (no en `src/`); `node scripts/check-constitution.mjs` corrido por mí: 38 errores/1 advertencia/5 inactivas, todos preexistentes y ajenos a `firestore.rules` (35 C21 de requisitos sin tarea aún, 1 C01 sobre `.env` de la raíz —no leído su contenido—, 2 C18 de la marca #27 en `DocumentsScreen.js`/`VehicleScreen.js`, ajenos a esta tarea; `check-constitution` no tiene ninguna regla propia para `.rules`). Revisión línea por línea confirmada: (1) `isOwner()` exige `request.auth != null && request.auth.uid == driverId` (líneas 5-7). (2) `allow create` (línea 53) y `allow update` (línea 55) exigen `request.resource.data.accountStatus == 'pending'` vía `validSubmission()` (líneas 44-50): confirmado explícitamente que esto impide que el cliente se apruebe a sí mismo, porque ninguna escritura del cliente puede llevar `accountStatus` distinto de `'pending'`. (3) `allow update` además exige `resource.data.accountStatus != 'approved'` (línea 55): una vez aprobado, cualquier intento de `update` del cliente se rechaza sin llegar siquiera a `validSubmission()`. Together, create+update cubren exactamente el flujo de «Enviar registro» (creación con `pending` al enviar, cero escrituras del cliente después de aprobado). (4) Comparé campo por campo el payload real de `submitDriverRegistration` (`src/services/driverRepository.js:23-36`) y `RegistrationFormContext.js:150-154` contra `validPersonalData`/`validVehicle`/`validDocuments`: los 8 campos de `personalData`, los 8 de `vehicle` y los 3 de `documents` (incluido `commissionRate`, que SÍ se escribe) coinciden exactamente con lo que las reglas esperan; nada que el código escriba queda sin regla y viceversa. Las reglas solo validan tipo/longitud básicos (como pide el "Hacer" de la tarea), no las reglas de negocio completas de `validators.js` (no comprueban el enum de `gender`/`language`/`category`/`color`, el patrón exacto de `fullName`/`email`/`placa`, `year <= añoActual`, `capacidad >= 6` para XL, ni que `commissionRate === 20`); tampoco usan `hasOnly`, así que un cliente podría añadir campos extra dentro de `personalData`/`vehicle`/`documents` o al documento sin que la regla lo rechace. HALLAZGO MENOR (no bloqueante, dentro del alcance declarado de la tarea): ningún `hasOnly` para impedir campos adicionales y ninguna validación de enum/patrón/rango más allá de tipo y longitud; a decidir si se amplía en una ronda futura o se acepta como está. (5) `allow delete: if false` (línea 56) confirmado; `match /databases/{database}/documents` solo declara `match /drivers/{driverId}` (líneas 3-57), sin ninguna otra ruta abierta — cerrado por defecto, confirmado también por el comentario de la línea 59. (6) Sintaxis: `let data = request.resource.data;` dentro de una función (línea 45) es una construcción estándar y ampliamente usada en Firestore Rules `rules_version '2'` (alta confianza, no verificada contra la documentación oficial en esta sesión). `isHttpsUrl` usa `value.matches('^https://.+')` (línea 10): el `^` ancla el inicio y `.+` consume el resto, por lo que detecta correctamente que el valor empieza con `https://` seguido de al menos un carácter; la semántica exacta de anclaje de `matches()` en CEL/RE2 (si exige coincidencia de cadena completa o solo desde el punto de anclaje dado) no quedó verificada contra la documentación oficial en esta sesión — no bloqueante porque el patrón funciona igual en ambas interpretaciones al no haber nada después de `.+` que pudiera quedar sin consumir. (7) Confirmado que el archivo vive en la raíz (`firestore.rules`, no `src/`) y que no existe ningún script que llame a una API de Firebase para publicarlo (`grep` de `firebase deploy|firestore:rules|admin.initializeApp|firebase-tools` en todo el repo: única coincidencia en `docs/AI_LOG.md`, una referencia documental, no código). RESPUESTA A LA PREGUNTA CLAVE: sí, las reglas impiden que el cliente se apruebe a sí mismo (toda escritura del cliente queda forzada a `accountStatus == 'pending'`, y tras `'approved'` el `update` del cliente queda bloqueado por completo); la regla de creación y la de actualización cubren el flujo completo de «Enviar registro» (creación con `pending` al enviar, sin cambios posteriores del cliente). No bloqueante para "Validada en lo estático"; falta el checkpoint 3 (D-59): Anderson pega/publica el archivo en la consola de Firebase real y lo prueba con el Rules Playground antes de que esto pueda ser "Validada" completa.
+- Estado: Validada en lo estático (verifier independiente, 2026-11-02; Diseño N/A). `firestore.rules` en la raíz del proyecto (no en `src/`; copia local ignorada por Git, D-80); `node scripts/check-constitution.mjs` corrido por mí: 38 errores/1 advertencia/5 inactivas, todos preexistentes y ajenos a `firestore.rules` (35 C21 de requisitos sin tarea aún, 1 C01 sobre `.env` de la raíz —no leído su contenido—, 2 C18 de la marca #27 en `DocumentsScreen.js`/`VehicleScreen.js`, ajenos a esta tarea; `check-constitution` no tiene ninguna regla propia para `.rules`). Revisión línea por línea confirmada: (1) `isOwner()` exige `request.auth != null && request.auth.uid == driverId` (líneas 5-7). (2) `allow create` (línea 53) y `allow update` (línea 55) exigen `request.resource.data.accountStatus == 'pending'` vía `validSubmission()` (líneas 44-50): confirmado explícitamente que esto impide que el cliente se apruebe a sí mismo, porque ninguna escritura del cliente puede llevar `accountStatus` distinto de `'pending'`. (3) `allow update` además exige `resource.data.accountStatus != 'approved'` (línea 55): una vez aprobado, cualquier intento de `update` del cliente se rechaza sin llegar siquiera a `validSubmission()`. Together, create+update cubren exactamente el flujo de «Enviar registro» (creación con `pending` al enviar, cero escrituras del cliente después de aprobado). (4) Comparé campo por campo el payload real de `submitDriverRegistration` (`src/services/driverRepository.js:23-36`) y `RegistrationFormContext.js:150-154` contra `validPersonalData`/`validVehicle`/`validDocuments`: los 8 campos de `personalData`, los 8 de `vehicle` y los 3 de `documents` (incluido `commissionRate`, que SÍ se escribe) coinciden exactamente con lo que las reglas esperan; nada que el código escriba queda sin regla y viceversa. Las reglas solo validan tipo/longitud básicos (como pide el "Hacer" de la tarea), no las reglas de negocio completas de `validators.js` (no comprueban el enum de `gender`/`language`/`category`/`color`, el patrón exacto de `fullName`/`email`/`placa`, `year <= añoActual`, `capacidad >= 6` para XL, ni que `commissionRate === 20`); tampoco usan `hasOnly`, así que un cliente podría añadir campos extra dentro de `personalData`/`vehicle`/`documents` o al documento sin que la regla lo rechace. HALLAZGO MENOR (no bloqueante, dentro del alcance declarado de la tarea): ningún `hasOnly` para impedir campos adicionales y ninguna validación de enum/patrón/rango más allá de tipo y longitud; a decidir si se amplía en una ronda futura o se acepta como está. (5) `allow delete: if false` (línea 56) confirmado; `match /databases/{database}/documents` solo declara `match /drivers/{driverId}` (líneas 3-57), sin ninguna otra ruta abierta — cerrado por defecto, confirmado también por el comentario de la línea 59. (6) Sintaxis: `let data = request.resource.data;` dentro de una función (línea 45) es una construcción estándar y ampliamente usada en Firestore Rules `rules_version '2'` (alta confianza, no verificada contra la documentación oficial en esta sesión). `isHttpsUrl` usa `value.matches('^https://.+')` (línea 10): el `^` ancla el inicio y `.+` consume el resto, por lo que detecta correctamente que el valor empieza con `https://` seguido de al menos un carácter; la semántica exacta de anclaje de `matches()` en CEL/RE2 (si exige coincidencia de cadena completa o solo desde el punto de anclaje dado) no quedó verificada contra la documentación oficial en esta sesión — no bloqueante porque el patrón funciona igual en ambas interpretaciones al no haber nada después de `.+` que pudiera quedar sin consumir. (7) Confirmado que el archivo vive en la raíz (`firestore.rules`, no `src/`) y que no existe ningún script que llame a una API de Firebase para publicarlo (`grep` de `firebase deploy|firestore:rules|admin.initializeApp|firebase-tools` en todo el repo: única coincidencia en `docs/AI_LOG.md`, una referencia documental, no código). RESPUESTA A LA PREGUNTA CLAVE: sí, las reglas impiden que el cliente se apruebe a sí mismo (toda escritura del cliente queda forzada a `accountStatus == 'pending'`, y tras `'approved'` el `update` del cliente queda bloqueado por completo); la regla de creación y la de actualización cubren el flujo completo de «Enviar registro» (creación con `pending` al enviar, sin cambios posteriores del cliente). No bloqueante para "Validada en lo estático"; falta el checkpoint 3 (D-59): Anderson pega/publica el archivo en la consola de Firebase real y lo prueba con el Rules Playground antes de que esto pueda ser "Validada" completa.
 - **Estado: Validada (cierre por declaración de Anderson, checkpoint 3, 2026-11-02, nombrada explícitamente por Anderson entre las tareas a cerrar).** Evidencia real disponible: Anderson publicó/activó las reglas en el proyecto de Firebase real (paso 4, el documento se creó desde el cliente, lo que solo es posible si `firestore.rules` ya está desplegado y permite la escritura con `accountStatus: pending`); pasos 5–7 confirman en vivo el bloqueo de escritura tras `approved` descrito en la revisión estática (volver a `pending` manualmente desde la consola —no desde el cliente— hizo reaparecer las pestañas, consistente con que el cliente no pudo escribir mientras estaba `approved`). **Aviso honesto:** Anderson no corrió el Rules Playground con dos sesiones anónimas (la prueba formal que pedía la tarea); lo que hay es evidencia indirecta por comportamiento observado, no la prueba dirigida. Anderson nombró T-27 explícitamente entre las tareas que pasan a "Validada" en su punto 1, así que se cierra por esa instrucción directa, dejando constancia de que el Rules Playground formal queda sin correr (no se inventa esa prueba). **Diseño: N/A** (sin UI).
 
 ### T-28 — Prueba integral en el celular y verificación final de la spec 001
@@ -630,6 +630,187 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Diseño hecho cuando: capas B–D, junto con T-29 (si T-29 sigue aplazada por D-51 ampliada, este campo también queda Pendiente, mismo tratamiento que T-21/T-22/T-24/T-25/T-26/T-31).
 - Diseño: Pendiente
 - Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo
+
+### T-35 — Plugins nativos del mapa y de la ubicación en `app.json`
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RNF-01, RNF-06, RNF-12, D-79, D-81, D-82
+- Depende de: D-82 Vigente MODIFICADA; `@maplibre/maplibre-react-native` y `expo-location` instaladas con `npx expo install`
+- Archivos: `app.json`
+- Hacer: añadir a `plugins` el de `@maplibre/maplibre-react-native` (sin opciones) y el de `expo-location` con el texto del permiso de ubicación en primer plano en español, sin ubicación en segundo plano. No crear `app.config.js`, no añadir variables de entorno y no cambiar nada de lo que ya tiene `app.json`.
+- Hecho cuando: `app.json` conserva todos los campos y plugins previos y suma los dos nuevos; ningún secreto en archivos versionados; `check-constitution` no empeora.
+- Qué debe ver Anderson en el celular (checkpoint 0): el build nativo instala y abre la app sin regresiones (inicio de sesión y registro funcionan como antes).
+- Validación: comparación con la copia previa de `app.json`; `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer.
+- Riesgo: medio (cambio nativo; solo se confirma con el build de Anderson).
+- Diseño hecho cuando: —
+- Diseño: N/A (sin UI)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
+
+### T-36 — Módulo de rutas aislado (OSRM, ruta de respaldo precargada y línea recta)
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RF-12, RNF-06, RNF-08, D-82
+- Depende de: ninguna tarea (lógica JS pura)
+- Archivos: `src/config/routing.js` (nuevo), `src/services/routing/index.js`, `osrmRouting.js`, `fallbackRoute.js`, `straightLine.js` (nuevos)
+- Hacer: `getRoute(from, to, { allowFallback })` según `docs/arquitectura-mapa-recorrido.md` §2: pide la ruta a OSRM con tiempo máximo; si falla y `allowFallback` es verdadero, devuelve la ruta precargada si los puntos son los fijos de prueba, y si no la línea recta interpolada; si no hay respaldo, rechaza con `ROUTE_FAILED`. Coordenadas `[lng, lat]`. Sin dependencias nuevas.
+- Hecho cuando: un script temporal contra OSRM real devuelve más de 2 coordenadas, `distanceM > 0`, `durationS > 0` y `provider: 'osrm'`; sin red y sin respaldo rechaza con `ROUTE_FAILED`; con respaldo devuelve `provider: 'fallback'` o `'straight'`.
+- Qué debe ver Anderson en el celular (checkpoint 0): a través de T-37, la ruta por calles; con el celular sin datos, la ruta de respaldo y el aviso.
+- Validación: script temporal fuera del proyecto contra OSRM real y con red simulada caída; revisión de que el módulo no importa nada de UI ni de Firestore; verifier distinto del implementer.
+- Riesgo: bajo (módulo aislado).
+- Diseño hecho cuando: —
+- Diseño: N/A (sin UI)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
+
+### T-37 — Pantalla de prueba del mapa (solo con `SHOW_DEV_TOOLS`)
+- Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
+- Requisitos: RF-08, RF-12, RNF-06, D-82
+- Depende de: T-35, T-36
+- Archivos: `src/config/map.js` (nuevo), la pantalla de prueba del mapa (nueva, en `src/screens/`), su entrada de navegación condicionada a `SHOW_DEV_TOOLS`, `src/constants/labels.js` (textos nuevos)
+- Hacer: `Map` de MapLibre con el estilo de OpenFreeMap (`liberty`), permiso de ubicación con `expo-location`, posición actual del conductor, ruta por calles entre los dos puntos fijos de `src/config/routing.js` dibujada con `GeoJSONSource` y una capa de línea, estados de carga y de error con reintento (`ScreenState`), aviso «Ruta aproximada» o «Ruta de respaldo» cuando no viene de OSRM, y atribución visible (botón nativo de MapLibre más texto de OpenFreeMap, OpenMapTiles, OpenStreetMap y OSRM). Solo se puede abrir con `SHOW_DEV_TOOLS` en `true`; el valor del repositorio sigue en `false`.
+- Hecho cuando: con `SHOW_DEV_TOOLS` en `true` se ven calles, la atribución, la posición real y la ruta; sin red aparece el error o la ruta de respaldo con reintento; con `SHOW_DEV_TOOLS` en `false` no aparece nada de la prueba.
+- Qué debe ver Anderson en el celular (checkpoint 0): el checklist del prompt #41 (mapa con atribución, permiso, posición, ruta, error de red con reintento, nada visible con la bandera en `false`).
+- Validación: revisión de código contra los tipos instalados de MapLibre v11 y `expo-location`; `node scripts/check-constitution.mjs` antes y después; verifier distinto del implementer; prueba de Anderson en el celular.
+- Riesgo: medio (API nativa nueva; solo se confirma en el celular).
+- Diseño hecho cuando: — (pantalla de desarrollo, no visible en la app entregada)
+- Diseño: N/A (pantalla solo de desarrollo)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
+
+### T-38 — Parámetros de tarifa en `src/config/pricing.js` y comisión única del registro
+- Spec: rebanada A de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompts #41 y #42)
+- Requisitos: RF-21, RF-22, D-76
+- Depende de: —
+- Archivos: `src/config/pricing.js` (nuevo), `src/context/RegistrationFormContext.js`, `src/screens/registration/DocumentsScreen.js`, `src/constants/labels.js`
+- Hacer: parámetros de RF-21 en COP enteros y `COMMISSION_RATE = 0.20`. El registro lee la tasa de ahí, la muestra como «20 %» y envía `commissionRate: 0.2`; al precargar un documento antiguo, un valor mayor que 1 se interpreta como porcentaje (20 → 0,20). Se elimina `COMMISSION_RATE_PERCENT`. Las reglas solo exigen `commissionRate is number` (`docs/seguridad.md`), así que no cambian.
+- Hecho cuando: una sola definición de la tasa en `src/`; la casilla de términos dice «20 %»; el envío lleva `commissionRate: 0.2`.
+- Qué debe ver Anderson en el celular (checkpoint 1): «20 %» en Documentos; `commissionRate` 0.2 en Firestore tras un registro nuevo; precarga correcta, también con un documento antiguo con 20.
+- Validación: grep de la tasa; script temporal; verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: — (cambio de texto)
+- Diseño: N/A (solo cambia el número del texto)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
+
+### T-39 — Función pura `calculateFare`
+- Spec: rebanada A de `docs/plan-entrega-final.md`
+- Requisitos: RF-20, RF-21, RF-22
+- Depende de: T-38
+- Archivos: `src/utils/fare.js` (nuevo)
+- Hacer: `calculateFare({ distanceKm, durationMin, category, tip })` → `{ fare, commission, driverEarnings }`, sin React, red ni efectos; tarifa mínima, redondeo a 100 COP antes de la comisión, comisión redondeada al peso, propina íntegra al conductor; entradas inválidas lanzan un error con código.
+- Hecho cuando: un script temporal reproduce RF-22 (Económico 19.200/3.840/15.360; XL 26.900/5.380/21.520) y los casos de borde.
+- Qué debe ver Anderson en el celular: nada (lógica pura); se ve en la tarjeta de T-43.
+- Validación: script temporal; verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
+
+### T-40 — API del pasajero: contrato, selector, mock, esqueleto http y mappers
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-api-pasajero.md` (D-78)
+- Requisitos: RF-10, RF-11, RF-13, RNF-03, D-77, D-78
+- Depende de: T-39
+- Archivos: `src/config/passengerApi.js` (nuevo), `src/services/passengerApi/{index,contract,mockPassengerApi,httpPassengerApi,mappers}.js` (nuevos)
+- Hacer: las 6 operaciones del contrato con errores normalizados; `PASSENGER_API_MODE = 'mock'`; el mock genera solicitudes cerca de la posición del conductor. **Ajustes del prompt #42 sobre el documento de arquitectura:** recogida a 0,8–2 km (no 300–1500 m), destino a 2–6 km (no 2–8 km) y vencimiento de unos 30 s (no 15 s; la cuenta regresiva de 15 s de RF-11 se decide en T-43).
+- Hecho cuando: un script temporal comprueba solicitudes válidas cada 10–20 s, vencimiento, fin de emisión tras `unsubscribe` y los errores `EXPIRED`/`ALREADY_TAKEN`/estado inválido.
+- Qué debe ver Anderson en el celular (checkpoint 1): con `SHOW_DEV_TOOLS` en `true`, solicitudes generadas cerca de su posición.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
+
+### T-41 — Fuente de posición intercambiable y hook `useDriverLocation`
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-mapa-recorrido.md` §3 y §7
+- Requisitos: RF-08, RF-12, RNF-02, RNF-06, D-82
+- Depende de: T-36
+- Archivos: `src/config/location.js` (nuevo), `src/services/location/*` (nuevos), `src/hooks/useDriverLocation.js` (nuevo), `src/constants/labels.js`
+- Hacer: interfaz común con dos fuentes elegidas por una constante: GPS real (`expo-location`, `watchPositionAsync`) y simulada (recorre una polilínea del módulo de rutas de T-36 a velocidad configurable); permisos con textos en español; limpieza al desmontar; regulador de 5 s / 20 m; pausa con `AppState`; sin ubicación en segundo plano.
+- Hecho cuando: la fuente simulada recorre una polilínea de extremo a extremo y termina; el regulador no deja pasar más de una posición cada 5 s; hay limpieza en `useEffect`.
+- Qué debe ver Anderson en el celular (checkpoint 1): el permiso se pide al ponerse Disponible.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz propia)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada): con la ubicación del sistema apagada el diálogo sale una sola vez, sin bucle. Antes, en el checkpoint 1 (prompt #43), el diálogo de Google «Precisión de la ubicación» salía en bucle aun después de «No, gracias»; la corrección del prompt #43 hizo que las fuentes no muestren el diálogo, que el hook informe `services_off` y que el diálogo se ofrezca una sola vez por toque del interruptor. El ícono de ubicación no aparece nunca en ese celular, así que la limpieza al desmontar se verificó leyendo el código.
+
+### T-42 — Interruptor Disponible / No disponible en Inicio
+- Spec: rebanada B de `docs/plan-entrega-final.md`
+- Requisitos: RF-09, RF-10 (preparación), RNF-02, RNF-04
+- Depende de: T-40, T-41
+- Archivos: `src/context/AvailabilityContext.js` (nuevo), `src/hooks/useTripRequests.js` (nuevo), `src/components/AvailabilitySwitch.js` (nuevo), `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`
+- Hacer: interruptor accesible (área táctil ≥ 44, estado también en texto). Al activarlo pide el permiso si falta y se suscribe al mock; al desactivarlo cancela la suscripción y la fuente de posición. Estado en un contexto de la app. **Ajustes del prompt #42 sobre el plan:** sin escrituras nuevas en Firestore (`driverLocations` y su regla pasan a la segunda mitad) y sin mapa en Inicio en esta mitad; bajo `SHOW_DEV_TOOLS`, «Simular solicitud (provisional)» pide una solicitud al mock y una línea «Solicitud recibida: <id>» la muestra mientras no exista la tarjeta de T-43.
+- Hecho cuando: al pasar a No disponible se detienen la posición y la suscripción; no hay escrituras en Firestore; con `SHOW_DEV_TOOLS` en `false` no se ve nada provisional.
+- Qué debe ver Anderson en el celular (checkpoint 1): activar y desactivar Disponible con y sin permiso; con la bandera en `true`, la línea de depuración con una solicitud cercana.
+- Validación: revisión de código; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: el interruptor usa solo tokens de DESIGN.md y comunica el estado con texto, no solo con color.
+- Diseño: Pendiente
+- Estado: **Validada** por declaración de Anderson en el checkpoint 1 (2026-11-10, prompt #43; implementada y verificada en lo estático en el prompt #42)
+
+### T-43 — Tarjeta de solicitud con cuenta regresiva
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-api-pasajero.md`
+- Requisitos: RF-10, RF-11 (vencimiento de 30 s en lugar de 15 s, decisión de Anderson en el prompt #43), RF-13, RF-20, RF-21, RNF-02
+- Depende de: T-39, T-40, T-42
+- Archivos: `src/screens/trip/TripRequestScreen.js`, `src/services/trip/pendingRequest.js` (nuevo), `src/components/SecondaryButton.js` (nuevo), `src/components/PrimaryButton.js`, `src/utils/format.js` (nuevo), `src/constants/labels.js`
+- Hacer: tarjeta con pasajero y calificación, recogida (con distancia y tiempo hasta ella), destino, longitud del viaje, categoría, pago, tarifa, comisión y ganancia neta (`calculateFare`); cuenta regresiva hasta `expiresAt` (30 s, `MOCK_REQUEST_TTL_MS`, decidido por Anderson en el prompt #43; en rojo los últimos 10 s); al llegar a 0 se muestra «Solicitud vencida» y vuelve a Inicio; una solicitud a la vez; aceptar → viaje activo; rechazar → Inicio; `ALREADY_TAKEN`/`EXPIRED` con aviso y regreso, error de red con reintento manual.
+- Hecho cuando: un script temporal comprueba el vencimiento y la regla de una solicitud a la vez; las pantallas no importan el mock.
+- Qué debe ver Anderson en el celular (checkpoint 2): la tarjeta con cifras, aceptar, rechazar y dejarla vencer.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: solo tokens de DESIGN.md; botones de 44 pt con texto accesible; contraste AA.
+- Diseño: Pendiente (ronda 2 estática, 2026-11-10, prompt #44: los 3 hallazgos de la ronda 1 resueltos; 2 hallazgos medios nuevos —cuenta regresiva visible con solicitud ya tomada, barra urgente con opacidad suelta y par fuera de tabla— en `docs/diseno/auditorias/ronda-2-viaje.md`; falta la evidencia en el celular)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada); implementada y verificada en lo estático en el prompt #43. El mensaje de `ALREADY_TAKEN` («otro conductor tomó el viaje») es correcto y no se toca. Ajustes del prompt #44 (vencida → `rejectRequest` silencioso, un solo texto «La solicitud venció», cuenta regresiva más visible) quedan pendientes de verse en el celular.
+
+### T-44 — Viaje activo con recorrido en tiempo real
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-mapa-recorrido.md`
+- Requisitos: RF-12 (rutas con OSRM, D-82), RF-13, RNF-02, RNF-06 (parcial, D-77), RNF-08 (parcial)
+- Depende de: T-37, T-41, T-43
+- Archivos: `src/screens/trip/TripActiveScreen.js`, `src/context/TripContext.js` (nuevo), `src/services/trip/{tripController,tripMachine,routeProgress}.js` (nuevos), `src/services/driverLocationPublisher.js` (nuevo), `src/components/map/TripMap.js` (nuevo), `src/config/trip.js` (nuevo), `src/services/location/index.js`, `src/constants/tripStatus.js`, `src/constants/labels.js`
+- Hacer: dos tramos (conductor → recogida con `driver_arriving`, recogida → destino con `in_progress`); ruta OSRM con reintentos acotados y línea recta marcada «aproximada»; distancia y tiempo restantes; llegada por umbral (`ARRIVAL_THRESHOLD_M`); «Iniciar viaje» solo en la recogida y «Finalizar viaje» solo en el destino; cancelar con confirmación en línea; estados en orden por una cola con reintentos acotados; reporte de posición regulado y documento `driverLocations/{uid}`; errores de ruta, posición y reporte con su botón «Reintentar»; nada reintenta solo; la disponibilidad queda en pausa durante el viaje.
+- Hecho cuando: un script temporal comprueba la máquina de estados (válidas e inválidas), la llegada por umbral sobre una polilínea simulada, el restante, el regulador del reporte y la limpieza.
+- Qué debe ver Anderson en el celular (checkpoint 2): el viaje simulado completo, cancelar y modo avión a mitad de viaje; el documento `driverLocations` en la consola.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: alto.
+- Diseño hecho cuando: solo tokens de DESIGN.md; atribución del mapa visible; avisos con texto, no solo color.
+- Diseño: Pendiente (ronda 2 estática, 2026-11-10, prompt #44: hallazgos 2 y 3 de la ronda 1 resueltos; 1 hallazgo medio nuevo —restante en `type.body` y tres textos que no siguen D-83— en `docs/diseno/auditorias/ronda-2-viaje.md`; cámara y puntos del mapa en cola para el celular)
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (verifier #44, 2026-11-10: 91 comprobaciones, sin hallazgos críticos ni mayores; 3 menores abiertos: reintentos en vuelo tras `cancel()` o cierre tardío en el bucle de `pump`, y un temporizador residual tras `dispose`). Antes: **No validada** en el checkpoint 2 (a: `tripStatus` quedaba en `in_progress`; b: no se podía tomar otra solicitud) y **Rechazada** por el verifier del prompt #43. Corrección en D-83. No pasa a «Validada» sin la evidencia del celular. Ajustes de diseño de la ronda 2 aplicados; Diseño sigue Pendiente hasta capturas del celular.
+- **Checkpoint 3 (Anderson, 2026-11-10, celular real, fuente simulada, prompt #45):** VALIDADO por declaración: `tripStatus` pasa a `completed` y luego a `idle` al volver a Inicio; `cancelled` se publica al cancelar; «Pasajero a bordo» visible en la recogida; la cuenta regresiva es más fuerte; sin diálogo de permiso al volver a la app; modo avión al finalizar funciona. NO VALIDADO, defecto nuevo (c): tras finalizar O cancelar un viaje, con Disponible activo, ubicación del sistema encendida y permiso concedido, el aviso de Inicio queda para siempre en «Obteniendo tu ubicación…»; «Simular solicitud (provisional)» responde «Activa Disponible para simular una solicitud.»; no llegan solicitudes; apagar y encender el interruptor NO lo recupera; reiniciar la app sí; antes del primer viaje todo funciona. Los pasos 2 y 3 de la lista no se pudieron probar. T-44 sigue sin validar; diagnóstico y corrección en el prompt #45 (D-84).
+- **Checkpoint 3, repetición (Anderson, 2026-11-10, celular real, fuente simulada, SHOW_DEV_TOOLS=true, prompt #46):** el defecto (c) queda **CORREGIDO y VALIDADO por declaración de Anderson**: con `popTo('Home')` en las tres pantallas del viaje y el ajuste de `pump`, Disponible → simular solicitud → aceptar → finalizar → Inicio → llega otra sola; cancelar a mitad → llega otra; apagar y encender Disponible tras un viaje; repetido varias veces. **T-44 queda VALIDADA por declaración de Anderson en dispositivo**; Diseño sigue Pendiente (cola de diseño). Instrumentación `[DIAG-LOC]` retirada (D-84).
+
+### T-45 — Resumen del viaje
+- Spec: rebanada B de `docs/plan-entrega-final.md`
+- Requisitos: RF-14 (parcial: sin estado del pago, que llega con T-46), RF-20, RF-22
+- Depende de: T-44
+- Archivos: `src/screens/trip/TripSummaryScreen.js`, `src/constants/labels.js`
+- Hacer: pasajero, hora de fin, distancia, duración, tarifa, comisión y ganancia neta con `calculateFare` sobre los valores de la solicitud aceptada (coinciden con la tarjeta); «Volver a Inicio» termina el viaje y reanuda la disponibilidad; nada se guarda (eso es T-46).
+- Hecho cuando: las cifras coinciden con `calculateFare` para la distancia y duración de la solicitud.
+- Qué debe ver Anderson en el celular (checkpoint 2): el resumen al finalizar con las mismas cifras de la tarjeta.
+- Validación: revisión de código; verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: solo tokens de DESIGN.md; cifras con estilo numérico; contraste AA.
+- Diseño: Aprobado condicionado a celular (ronda 2 estática, 2026-11-10, prompt #44: hallazgos 1 y 2 de la ronda 1 resueltos, sin hallazgos nuevos; solo cola baja en `docs/diseno/auditorias/ronda-2-viaje.md`; falta ver la pantalla real)
+- Estado: **Validada** por declaración de Anderson en el checkpoint 2 (2026-11-10, prompt #44, celular real con la fuente simulada); implementada y verificada en lo estático en el prompt #43. El ajuste del prompt #44 (sin parpadeo de «sin viaje» al volver a Inicio) queda pendiente de verse en el celular.
+
+### T-54 — Solicitud entrante como tarjeta inferior fuera de Inicio
+- Spec: no contemplado en F1 (decisión D-85); extiende T-43 de `docs/plan-entrega-final.md`
+- Requisitos: RF-10, RF-11, RF-13 y RNF-02 (hooks, función pura aislada); no existe un RNF de accesibilidad en `docs/requisitos.md`, así que la accesibilidad se rige por DESIGN.md. Hallazgo SDD: RF-10 define solo el contenido de la solicitud entrante, RF-11 el temporizador (30 s, prompt #43) y T-43 la tarjeta a pantalla completa con cuenta regresiva y rechazo automático; ningún RF/CA de F1 ni del plan define cómo se presenta la solicitud cuando el conductor no está en Inicio. No estaba contemplado y no entra en conflicto: en Inicio sigue a pantalla completa como hoy (T-43) y esta tarea lo extiende.
+- Depende de: T-43, T-44
+- Archivos: `src/navigation/MainDrawer.js`, `src/components/IncomingRequestCard.js` (nuevo), `src/services/trip/requestPresentation.js` (nuevo; función pura `decideRequestPresentation(currentRoute, onTrip, accountStatus, hasRequest)` → `'fullscreen'|'card'|'none'`), `src/screens/home/HomeScreen.js`, `src/screens/trip/TripRequestScreen.js`, `src/context/AvailabilityContext.js` (si hace falta), `src/constants/labels.js`
+- Hacer: montar una vez en `MainDrawer`, dentro de los providers, una tarjeta inferior superpuesta que muestra la solicitud pendiente cuando el conductor no está en Inicio; ceñir el efecto de `HomeScreen` a Inicio enfocado; las salidas de `TripRequest` vuelven a la pantalla de origen.
+- Criterios de aceptación:
+  - CA-054-01: en Inicio la solicitud sigue a pantalla completa (`TripRequest`) como hoy.
+  - CA-054-02: en cualquier otra pantalla del drawer (Perfil, Historial, Ganancias, Ajustes y las demás) aparece una tarjeta inferior sin cambiar la pantalla ni la navegación; contiene nombre y calificación del pasajero, distancia y tiempo hasta la recogida, tarifa estimada y ganancia neta (`calculateFare` y `pricing.js`, igual que la tarjeta completa), cuenta regresiva en texto y barra, y los botones «Aceptar», «Rechazar», «Ver detalle» y un botón de cierre «✕».
+  - CA-054-03: Aceptar desde la tarjeta lleva a `TripActive` a pantalla completa (mismo flujo de hoy). Rechazar la cierra y el conductor se queda en su pantalla. «Ver detalle» abre `TripRequest` a pantalla completa con la misma solicitud y el tiempo restante real. «✕» solo oculta la tarjeta: no rechaza; la solicitud vence sola y no se vuelve a mostrar.
+  - CA-054-04: al vencer, la tarjeta se retira con un aviso breve («La solicitud venció») y el conductor sigue donde estaba; no se navega a Inicio. Si estaba en `TripRequest` abierta desde otra pantalla (vía «Ver detalle»), al rechazar o vencer vuelve a la pantalla de origen (`goBack` si hay pantalla previa; `popTo('Home')` solo si no la hay; `navigate('Home')` empuja un Home duplicado en React Navigation 7, D-84). Desde Inicio se mantiene volver a Inicio.
+  - CA-054-05: la tarjeta no aparece durante un viaje (cualquier pantalla `Trip*`), ni en Startup, registro, carga o error, ni con cuenta no aprobada, ni si ya hay otra solicitud pendiente (una a la vez).
+  - CA-054-06: una sola fuente de verdad de la solicitud pendiente (el contexto existente): la tarjeta y `TripRequest` muestran la misma cuenta regresiva calculada desde el vencimiento (`expiresAt`) de la solicitud.
+  - CA-054-07 (accesibilidad y diseño): botones de al menos 44x44; respeta el safe area inferior y no tapa la barra de pestañas ni contenido esencial (va encima con margen); anunciada a lectores de pantalla como región viva con «Nueva solicitud de {nombre}»; la información no depende solo del color (sin rojo en la cuenta regresiva); la entrada animada respeta reduce-motion (`AccessibilityInfo.isReduceMotionEnabled`: sin animación o fundido simple); el texto crece con la escala del sistema sin recortarse; orden de lectura y foco coherentes; con la tarjeta visible la pantalla de abajo sigue desplazable y usable.
+  - CA-054-08 (restricciones): sin dependencias nuevas ni cambios nativos (sin bottom-sheet ni vibración; `Animated` y componentes de React Native); textos en español en `src/constants/labels.js`; estilos solo con tokens de DESIGN.md; la decisión de presentación aislada en la función pura.
+- Hecho cuando: se cumplen CA-054-01 a CA-054-08 en lo estático y el script temporal confirma la función pura en todos sus casos (Inicio, otra pantalla del drawer, `Trip*`, Startup/registro, cuenta no aprobada, solicitud ya pendiente).
+- Qué debe ver Anderson en el celular: con Disponible activo, desde Perfil o Historial simular una solicitud: sale la tarjeta inferior sin cambiar de pantalla; probar Aceptar, Rechazar, Ver detalle, «✕» y el vencimiento; en Inicio sigue a pantalla completa; con TalkBack/VoiceOver y la escala de texto máxima.
+- Validación: script temporal fuera del proyecto contra el código real (función pura y salidas de navegación); `check-constitution` antes y después; verifier distinto del implementer; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: solo tokens de DESIGN.md; sin rojo en la cuenta regresiva; objetivos táctiles de 44x44; contraste AA; reduce-motion.
+- Checkpoint en celular (Anderson, prompt #48, 2026-11-10, SHOW_DEV_TOOLS=false): puntos 1 a 9 validados por declaración; NO validado el escenario del hallazgo mayor (Ver detalle → deslizar a otra pestaña → Aceptar/Rechazar en la tarjeta).
+- Simplificación (Anderson, prompt #49, 2026-11-10, D-85): se elimina «Ver detalle» y el regreso a la pestaña de origen; una única `TripRequest` (id fijo) abierta solo con Inicio enfocado; con `TripRequest` abierta la tarjeta no se muestra y el drawer no se desliza; al resolverse la solicitud la `TripRequest` oculta se cierra sola sin cambiar de pestaña. Donde CA-054-03 y CA-054-04 mencionan «Ver detalle» o `TripRequest` abierta desde otra pantalla, rige esta simplificación.
+- Diseño: Pendiente
+- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (simplificación D-85, prompt #49; verifier nuevo ac8e2c92b63c180ef APRUEBA por lectura de código, 0 hallazgos mayores, 2 menores; check-constitution 23/0; script temporal 22/22). Antes: Rechazada (verifier #47 y #48, causa común: más de una pantalla de solicitud viva). No pasa a «Validada» sin la prueba en el celular.
 
 ## Fase 3 — Implementar
 (vacío)

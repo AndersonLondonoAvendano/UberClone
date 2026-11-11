@@ -2,6 +2,7 @@
 // AI-assisted: see docs/AI_LOG.md #33
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see docs/AI_LOG.md #42
 // Registration form state (useContext): the 17 fields across the three tabs, per-field "touched"
 // flags and per-tab "visited" flags (DP-08), aggregate validity per tab and overall (RF-02), and
 // the submit flow (RF-04). The plate is normalized to uppercase on every change, so the field
@@ -39,11 +40,12 @@ import { useAppState } from './AppStateContext';
 import { getDriverRegistration, submitDriverRegistration } from '../services/driverRepository';
 import { labels, getSubmitErrorMessage } from '../constants/labels';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
+import { COMMISSION_RATE } from '../config/pricing';
 
-// RF-07/RF-21: 20% is the only fare/commission figure this spec needs (shown on the terms
-// checkbox, T-26, and stored with the registration). It stays local on purpose: the shared
-// pricing config and its pure fare function are the fare spec's (004) deliverable, not this one's.
-export const COMMISSION_RATE_PERCENT = 20;
+// RF-07/RF-21 (T-38): the commission rate comes only from src/config/pricing.js as a fraction
+// (0.2). It is shown on the terms checkbox as a percentage and stored with the registration as the
+// fraction. A rate stored in an older document is ignored: COMMISSION_RATE always applies.
+// AI-assisted: see docs/AI_LOG.md #43
 
 const INITIAL_PERSONAL_DATA = {
   fullName: '',
@@ -100,6 +102,7 @@ export function RegistrationFormProvider({ children }) {
   const [vehicle, setVehicleState] = useState(INITIAL_VEHICLE);
   const [vehicleTouched, setVehicleTouched] = useState(() => emptyTouched(INITIAL_VEHICLE));
   const [documents, setDocumentsState] = useState(INITIAL_DOCUMENTS);
+  const commissionRate = COMMISSION_RATE;
   const [documentsTouched, setDocumentsTouched] = useState(() => emptyTouched(INITIAL_DOCUMENTS));
   const [visitedTabs, setVisitedTabs] = useState(INITIAL_VISITED_TABS);
   const [submitState, setSubmitState] = useState('idle');
@@ -138,7 +141,8 @@ export function RegistrationFormProvider({ children }) {
       if (stored.documents) {
         // commissionRate is not part of INITIAL_DOCUMENTS; drop it so the spread never adds a
         // field the rest of the form state does not expect.
-        const { commissionRate, ...restDocuments } = stored.documents;
+        // eslint-disable-next-line no-unused-vars
+        const { commissionRate: ignoredStoredRate, ...restDocuments } = stored.documents;
         setDocumentsState((current) => ({ ...current, ...restDocuments }));
       }
     });
@@ -248,7 +252,7 @@ export function RegistrationFormProvider({ children }) {
     const documentsPayload = {
       ...documents,
       mercadoPagoEmail: documents.mercadoPagoEmail.trim(),
-      commissionRate: COMMISSION_RATE_PERCENT,
+      commissionRate,
     };
 
     try {
@@ -262,7 +266,7 @@ export function RegistrationFormProvider({ children }) {
       setSubmitState('error');
       setSubmitErrorMessage(getSubmitErrorMessage(error.code));
     }
-  }, [isRegistrationValid, driverId, personalData, vehicle, documents]);
+  }, [isRegistrationValid, driverId, personalData, vehicle, documents, commissionRate]);
 
   const value = useMemo(
     () => ({
@@ -280,6 +284,7 @@ export function RegistrationFormProvider({ children }) {
       setDocumentsField,
       touchDocumentsField,
       isDocumentsValid,
+      commissionRate,
 
       visitedTabs,
       markTabVisited,
@@ -306,6 +311,7 @@ export function RegistrationFormProvider({ children }) {
       setDocumentsField,
       touchDocumentsField,
       isDocumentsValid,
+      commissionRate,
       visitedTabs,
       markTabVisited,
       isRegistrationValid,
