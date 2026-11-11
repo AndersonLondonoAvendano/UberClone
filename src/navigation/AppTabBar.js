@@ -1,13 +1,18 @@
 // AI-assisted: see docs/AI_LOG.md #16
+// AI-assisted: see docs/AI_LOG.md #52 (icon per tab, soft brand pill when active)
 // Custom bottom tab bar for the registration tabs. It lives in the layout flow below the scenes and
 // its height comes from its content, so it grows with the text scale. Flat surface, no border or
-// shadow; the active tab is marked by weight, underline and text color (no accent fill).
+// shadow; the active tab is a soft brand pill with a filled icon, heavier text and an underline, so it is
+// never marked by color alone.
 
 import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
 import { CommonActions } from '@react-navigation/native';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { color, opacity, space, touch, type } from '../theme/tokens';
+import { Icon } from '../components/Icon';
+import { color, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
+
+const TAB_ICONS = { PersonalData: 'person', Vehicle: 'car', Documents: 'document-text' };
 
 // Same keyboard events the library uses for its hide-on-keyboard option.
 function useKeyboardVisible() {
@@ -72,6 +77,7 @@ export function AppTabBar({ state, descriptors, navigation, insets }) {
       {state.routes.map((route, index) => {
         const focused = index === state.index;
         const { options } = descriptors[route.key];
+        const iconName = TAB_ICONS[route.name] ?? 'ellipse';
 
         const handlePress = () => {
           const event = navigation.emit({
@@ -102,12 +108,20 @@ export function AppTabBar({ state, descriptors, navigation, insets }) {
             onLongPress={handleLongPress}
             style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
           >
-            <Text
-              allowFontScaling
-              style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}
-            >
-              {tabText(options, route)}
-            </Text>
+            <View style={[styles.pill, focused && styles.pillActive]}>
+              <Icon
+                name={focused ? iconName : `${iconName}-outline`}
+                size={iconSize.lg}
+                tint={focused ? color.onPrimarySoft : color.textMuted}
+              />
+              <Text
+                allowFontScaling
+                numberOfLines={1}
+                style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}
+              >
+                {tabText(options, route)}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
@@ -131,13 +145,24 @@ const styles = StyleSheet.create({
   tabPressed: {
     opacity: opacity.pressed,
   },
+  pill: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    gap: space[0],
+    paddingVertical: space[1],
+    paddingHorizontal: space[2],
+    borderRadius: radius.lg,
+  },
+  pillActive: {
+    backgroundColor: color.primarySoft,
+  },
   label: {
     ...type.label,
     textAlign: 'center',
   },
   labelActive: {
-    color: color.text,
-    fontWeight: type.title.fontWeight,
+    color: color.onPrimarySoft,
+    fontFamily: type.bodyStrong.fontFamily,
     textDecorationLine: 'underline',
   },
   labelInactive: {

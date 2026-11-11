@@ -11,6 +11,10 @@ Estado: Aprobado por Anderson (2026-10-27) para lo que existía hasta esa fecha;
 - El mapa es protagonista en la pantalla de inicio; la navegación se retira cuando no hace falta.
 - Tema claro único (D-26); coincide con `userInterfaceStyle: "light"` del scaffold (D-22 lo revisa el planner). Modo oscuro: no encontrado en F1; no se propone.
 
+## Actualización de tokens — rediseño (prompt #51, D-90)
+El rediseño amplía los tokens sin renombrar ni borrar ninguno. Valores, roles, escala tipográfica, espaciado, radios, elevaciones, contrastes y reglas de uso: `docs/diseno/guia-de-estilo.md` (fuente en código: `src/theme/tokens.js`). Cambios de valor: `bg` #EEF2F1, `type.display` etc. conservan nombre. Nuevos: `surfaceMuted`, `borderSubtle`, `primaryDark`, `primarySoft`, `onPrimarySoft`, `onBrand`, `onBrandMuted`, `*Soft`, `on*Soft`, `skeleton`, `type.hero/heading/bodyStrong/small`, `space.0/7`, `radius.xl`, `touch.controlHeight`, `elevation`, `motion`.
+Esta sección reemplaza lo contrario en las tablas siguientes: las sombras ya no están prohibidas en reposo (`elevation.card`), y `borderSubtle` sí puede separar filas y tarjetas. Los pares de contraste vigentes son los de la guía de estilo.
+
 ## Tokens
 
 ### Color

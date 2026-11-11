@@ -150,13 +150,14 @@ export function VehicleScreen() {
 }
 
 const styles = StyleSheet.create({
+  // AI-assisted: see docs/AI_LOG.md #52 (soft warning banner, same style as the chips)
   pendingNotice: {
     ...type.label,
-    color: color.warning,
-    backgroundColor: color.bg,
-    borderWidth: borderWidth.thin,
-    borderColor: color.warning,
-    borderRadius: radius.sm,
+    color: color.onWarningSoft,
+    backgroundColor: color.warningSoft,
+    borderLeftWidth: borderWidth.thick * 2,
+    borderLeftColor: color.warning,
+    borderRadius: radius.md,
     padding: space[3],
   },
 });

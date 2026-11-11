@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #51 (redesign: stronger label, clearer outline)
 // AI-assisted: see docs/AI_LOG.md #43
 // Secondary action button (T-43, T-44): bordered surface, same height as PrimaryButton.
 // variant 'danger' only changes the text color (destructive actions such as cancelling a trip).
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: space[3],
-    borderWidth: borderWidth.thin,
+    borderWidth: borderWidth.thick,
     borderColor: color.border,
     borderRadius: radius.md,
     backgroundColor: color.surface,
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     opacity: opacity.disabled,
   },
   label: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.text,
     textAlign: 'center',
   },
