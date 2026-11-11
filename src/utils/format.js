@@ -37,3 +37,13 @@ export function formatClock(timestamp) {
 export function fillLabel(template, values) {
   return Object.keys(values).reduce((text, key) => text.split(`{${key}}`).join(String(values[key])), template);
 }
+
+// AI-assisted: see docs/AI_LOG.md #50
+// Local date and time "11/11/2026 14:05" (day first, as in Colombia). Empty text for an unknown date.
+export function formatDateTime(timestamp) {
+  if (timestamp == null || Number.isNaN(new Date(timestamp).getTime())) return '';
+  const date = new Date(timestamp);
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mo = String(date.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mo}/${date.getFullYear()} ${formatClock(timestamp)}`;
+}

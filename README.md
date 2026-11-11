@@ -45,6 +45,9 @@ npm start
 ```
 Esto abre Metro con `expo start --dev-client`. Conecta el development build al servidor que aparece en la terminal.
 
+## Cobro simulado
+El cobro de esta versión es **simulado**: no hay pasarela de pago real (Mercado Pago/Stripe quedan fuera de esta entrega, P-03). «Confirmar cobro» solo guarda el viaje en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros) y no se cobra dinero. Ganancias e Historial leen esos viajes. La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
+
 ## Estructura del proyecto
 - `src/screens/` — pantallas por flujo (`registration/`, `home/`, `main/`, `trip/`, `startup/`).
 - `src/components/` — componentes compartidos (incluye elementos provisionales de desarrollo, ver [Herramientas de desarrollo](#herramientas-de-desarrollo-show_dev_tools) más abajo).

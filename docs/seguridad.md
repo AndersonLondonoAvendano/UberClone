@@ -1,6 +1,6 @@
 # Seguridad — UberClone Conductor
 
-Estado: vigente (D-80, D-81; 2026-11-10).
+Estado: vigente para `drivers` y `driverLocations` (D-80, D-81; 2026-11-10). Borrador pendiente de publicar: `drivers/{uid}/trips/{tripId}` (D-86 a D-89; prompt #50, 2026-11-11).
 
 ## Dónde viven las reglas de Firestore
 - Las reglas **efectivas** son las publicadas en la consola de Firebase (Firestore → Reglas). Anderson las publica a mano.
@@ -41,8 +41,54 @@ Redactada en el prompt #43 (T-44). **No está publicada:** Anderson la pega en l
     }
 ```
 
-## Ampliaciones previstas (no publicadas todavía)
-Las reglas de la colección `trips` (historial, rebanada C) se definen en su tarea de `docs/plan-entrega-final.md`. Al publicarse, se describen aquí con el mismo formato. Hasta entonces no existen y el acceso a esa colección está denegado.
+## Viajes guardados (`drivers/{uid}/trips/{tripId}`) — borrador, pendiente de publicar
+Redactada en el prompt #50 (T-46 a T-48). **No está publicada:** Anderson la pega en la consola (Firestore → Reglas), dentro de `match /databases/{database}/documents`, **como bloque nuevo** junto a `drivers` y `driverLocations`, sin tocar esos dos bloques. Ya está en la copia local `firestore.rules`. Hasta que se publique, «Confirmar cobro» muestra el error con «Reintentar» y la salida segura, y Ganancias e Historial muestran su estado de error.
+1. **Solo el dueño lee.** El id de la subcolección debe ser el `uid` del usuario autenticado.
+2. **Solo el dueño crea, con la cuenta aprobada.** Se consulta `drivers/{uid}` con `get()` y su `accountStatus` debe ser `approved`.
+3. **Forma cerrada.** Solo los 15 campos del documento (`hasOnly` y `hasAll`): `driverId` (igual al `uid`), `status` (`completed` o `cancelled`), `category`, `passengerName` (hasta 80), `originLabel` y `destinationLabel` (hasta 200), `distanceKm` (0 a 500) y `durationMin` (0 a 1440) numéricos, `fare`, `commission` y `driverEarnings` enteros no negativos (pesos COP enteros, `commission + driverEarnings == fare`), `paymentMethod` (`cash`, `transfer` o `none`), `startedAt` (fecha o nulo), `finishedAt` (fecha) y `createdAt` (hora del servidor, `serverTimestamp()`).
+4. **Sin coordenadas.** La regla no admite ningún campo de ubicación; el documento solo guarda direcciones en texto (D-87).
+5. **Sin edición ni borrado** desde la app. Por eso guardar es idempotente leyendo antes: si el documento ya existe, no se escribe de nuevo.
+
+```
+    // Saved trips (T-46 to T-48): only the owner reads; created once by an approved driver; never
+    // edited or deleted. No coordinates: only labels, distance, duration, whole-COP amounts and dates.
+    match /drivers/{uid}/trips/{tripId} {
+      function isTripOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      function isApprovedDriver() {
+        return get(/databases/$(database)/documents/drivers/$(uid)).data.accountStatus == 'approved';
+      }
+
+      function validTrip() {
+        let data = request.resource.data;
+        return data.keys().hasOnly(['driverId', 'status', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
+          && data.keys().hasAll(['driverId', 'status', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
+          && data.driverId == uid
+          && data.status in ['completed', 'cancelled']
+          && data.category is string && data.category.size() > 0 && data.category.size() <= 20
+          && data.passengerName is string && data.passengerName.size() <= 80
+          && data.originLabel is string && data.originLabel.size() <= 200
+          && data.destinationLabel is string && data.destinationLabel.size() <= 200
+          && data.distanceKm is number && data.distanceKm >= 0 && data.distanceKm <= 500
+          && data.durationMin is number && data.durationMin >= 0 && data.durationMin <= 1440
+          && data.fare is int && data.fare >= 0 && data.fare <= 10000000
+          && data.commission is int && data.commission >= 0 && data.commission <= data.fare
+          && data.driverEarnings is int && data.driverEarnings >= 0 && data.driverEarnings <= data.fare
+          && data.commission + data.driverEarnings == data.fare
+          && data.paymentMethod in ['cash', 'transfer', 'none']
+          && (data.startedAt == null || data.startedAt is timestamp)
+          && data.finishedAt is timestamp
+          && data.createdAt == request.time;
+      }
+
+      allow read: if isTripOwner();
+      allow create: if isTripOwner() && isApprovedDriver() && validTrip();
+      allow update: if false;
+      allow delete: if false;
+    }
+```
 
 ## Secretos
 - Secretos de servidor (`access_token` de Mercado Pago, API secret de Cloudinary): solo en `backend/.env` (RNF-05).

@@ -7,11 +7,15 @@ import { db } from './firebase';
 // when the document does not exist yet (treated as "not registered", not an error).
 // onError only fires for real read failures (network/permissions).
 // Returns the unsubscribe function; the caller must invoke it (e.g. in a useEffect cleanup).
-export function listenToDriverAccount(uid, { onChange, onError }) {
+// AI-assisted: see docs/AI_LOG.md #50
+// The optional onData receives the whole document data (or null) so the profile reuses this same
+// subscription instead of opening another one.
+export function listenToDriverAccount(uid, { onChange, onError, onData }) {
   const ref = doc(db, 'drivers', uid);
   const unsubscribe = onSnapshot(
     ref,
     (snapshot) => {
+      if (onData) onData(snapshot.exists() ? snapshot.data() : null);
       onChange(snapshot.exists() ? snapshot.data().accountStatus ?? null : null);
     },
     (error) => {
