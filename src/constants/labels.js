@@ -83,6 +83,13 @@ export const labels = {
     errorTaken: 'Otro conductor tomó esta solicitud.',
     errorNetwork: 'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
     errorGeneric: 'Algo salió mal. Inténtalo de nuevo.',
+    // AI-assisted: see docs/AI_LOG.md #47
+    newRequest: 'Nueva solicitud de {name}',
+    viewDetail: 'Ver detalle',
+    viewDetailHint: 'Abre la solicitud completa con el tiempo que le queda',
+    dismiss: 'Cerrar',
+    dismissHint: 'Oculta la tarjeta sin rechazar; la solicitud vence sola',
+    rejectCardHint: 'Rechaza la solicitud y te quedas en esta pantalla',
     phase: {
       starting: 'Preparando el viaje…',
       toPickup: 'En camino al pasajero',

@@ -1,6 +1,10 @@
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see docs/AI_LOG.md #48
+// The drawer keeps this screen mounted when the driver switches tab, so it acts only while focused:
+// timers, the quiet reject, leaving and the accept navigation wait for focus. A request resolved
+// elsewhere (the bottom card) is never rejected or left again from a hidden screen.
 // Incoming request card (T-43). Opened by Home when a request arrives while the driver is available.
 // Shows the passenger, the distance and time to the pickup (straight line from the driver position),
 // the trip length, category, payment, the fare split from calculateFare and a countdown to expiresAt.
@@ -16,6 +20,7 @@
 // fills with color.primary (emphasis, never red). An expired request is rejected quietly and
 // shows one text, labels.trip.expired. No borders or dividers: surface steps and space only.
 
+import { useIsFocused } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +35,8 @@ import { useAvailability } from '../../context/AvailabilityContext';
 import { useTrip } from '../../context/TripContext';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../services/passengerApi';
 import { haversineDistanceM } from '../../services/routing/straightLine';
+// AI-assisted: see docs/AI_LOG.md #47
+import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
 import { color, radius, space, touch, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { fillLabel, formatCop, formatKm, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
@@ -42,7 +49,6 @@ const toLngLat = (point) => [point.lng, point.lat];
 // Rating with one decimal and a comma: 4.85 -> "4,9".
 const formatRating = (rating) => String(Math.round(rating * 10) / 10).replace('.', ',');
 
-const secondsUntil = (expiresAt, now) => Math.max(0, Math.ceil((expiresAt - now) / 1000));
 
 function errorMessage(error) {
   switch (error?.code) {
@@ -65,7 +71,7 @@ function fareOf(request) {
   }
 }
 
-export function TripRequestScreen({ navigation }) {
+export function TripRequestScreen({ navigation, route }) {
   const { pendingRequest, clearPendingRequest, getDriverPosition } = useAvailability();
   const { startTrip } = useTrip();
   // The card keeps the request it opened with; a later one never replaces it.
@@ -73,12 +79,20 @@ export function TripRequestScreen({ navigation }) {
   const [driverPosition] = useState(() => getDriverPosition());
   const [now, setNow] = useState(() => Date.now());
   // Seconds the card opened with: the bar drains from here.
-  const [totalSeconds] = useState(() => (pendingRequest ? Math.max(1, secondsUntil(pendingRequest.expiresAt, Date.now())) : 1));
+  const [totalSeconds] = useState(() => requestTotalSeconds(pendingRequest)); // AI-assisted: see docs/AI_LOG.md #47 (same window as the bottom card)
   const [working, setWorking] = useState(false);
   const [error, setError] = useState(null); // { message, gone }
   const [decided, setDecided] = useState(false);
   const decidedRef = useRef(false);
   const mountedRef = useRef(true);
+  // AI-assisted: see docs/AI_LOG.md #48
+  const isFocused = useIsFocused();
+  const focusedRef = useRef(isFocused);
+  const [pendingExit, setPendingExit] = useState(null); // leave | trip: an exit that happened while hidden
+  useEffect(() => {
+    focusedRef.current = isFocused;
+    if (isFocused) setNow(Date.now());
+  }, [isFocused]);
 
   const markDecided = useCallback((value) => {
     decidedRef.current = value;
@@ -98,34 +112,68 @@ export function TripRequestScreen({ navigation }) {
 
   // Countdown: one tick per second while the card is open and undecided.
   useEffect(() => {
-    if (!request || expired || decided || error?.gone) return undefined;
+    if (!isFocused || !request || expired || decided || error?.gone) return undefined;
     const id = setInterval(() => setNow(Date.now()), TICK_MS);
     return () => clearInterval(id);
-  }, [request, expired, decided, error]);
+  }, [isFocused, request, expired, decided, error]);
+
+  // AI-assisted: see docs/AI_LOG.md #47
+  // Every exit goes through here. Opened from the bottom card, the driver returns to the drawer
+  // screen they were on; otherwise to Home (popTo: navigate would push a second Home).
+  const originRoute = route?.params?.originRoute;
+  const leave = useCallback(() => {
+    const drawer = navigation.getParent();
+    navigation.popTo('Home');
+    if (originRoute && originRoute !== 'Home') drawer?.navigate(originRoute);
+  }, [navigation, originRoute]);
+
+  // AI-assisted: see docs/AI_LOG.md #48
+  const exitOrDefer = useCallback(
+    (kind) => {
+      if (!focusedRef.current) {
+        setPendingExit(kind);
+        return;
+      }
+      if (kind === 'trip') navigation.replace('TripActive');
+      else leave();
+    },
+    [navigation, leave],
+  );
+
+  useEffect(() => {
+    if (!isFocused || !pendingExit) return;
+    setPendingExit(null);
+    if (pendingExit === 'trip') navigation.replace('TripActive');
+    else leave();
+  }, [isFocused, pendingExit, navigation, leave]);
 
   // Expired: reject quietly (the passenger side already dropped it), show the notice, then Home.
   const [expiredShown, setExpiredShown] = useState(false);
   useEffect(() => {
-    if (!expired || expiredShown) return;
+    if (!isFocused || !expired || expiredShown) return;
     setExpiredShown(true);
     decidedRef.current = true;
     // AI-assisted: see docs/AI_LOG.md #44 (5e: silent reject on expiry)
-    rejectRequest(request.id).catch(() => {});
-    clearPendingRequest(request.id);
-  }, [expired, expiredShown, request, clearPendingRequest]);
+    // AI-assisted: see docs/AI_LOG.md #48 (a slot already released was resolved elsewhere: no second reject)
+    if (!released) {
+      rejectRequest(request.id).catch(() => {});
+      clearPendingRequest(request.id);
+    }
+  }, [isFocused, expired, released, expiredShown, request, clearPendingRequest]);
 
   useEffect(() => {
-    if (!expiredShown) return undefined;
-    const id = setTimeout(() => navigation.popTo('Home'), EXPIRED_NOTICE_MS);
+    if (!isFocused || !expiredShown) return undefined;
+    const id = setTimeout(leave, EXPIRED_NOTICE_MS);
     return () => clearTimeout(id);
-  }, [expiredShown, navigation]);
+  }, [isFocused, expiredShown, leave]);
 
   // Leaving the card without a decision rejects the request (errors ignored: it expires anyway).
   const requestRef = useRef(request);
   useEffect(
     () => () => {
       const current = requestRef.current;
-      if (!current || decidedRef.current) return;
+      // AI-assisted: see docs/AI_LOG.md #48 (hidden: the request was resolved elsewhere)
+      if (!current || decidedRef.current || !focusedRef.current) return;
       decidedRef.current = true;
       rejectRequest(current.id).catch(() => {});
       clearPendingRequest(current.id);
@@ -142,7 +190,7 @@ export function TripRequestScreen({ navigation }) {
     return fillLabel(labels.trip.toPickup, { km: formatKmFromMeters(meters), min: formatMinutesFromSeconds(seconds) });
   }, [request, driverPosition]);
 
-  const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
+  const goHome = leave;
 
   const handleAccept = useCallback(async () => {
     if (!request || working || decidedRef.current || expired) return;
@@ -154,7 +202,7 @@ export function TripRequestScreen({ navigation }) {
       clearPendingRequest(request.id);
       if (!mountedRef.current) return;
       startTrip(trip);
-      navigation.replace('TripActive');
+      exitOrDefer('trip');
     } catch (cause) {
       if (!mountedRef.current) return;
       const gone =
@@ -164,7 +212,7 @@ export function TripRequestScreen({ navigation }) {
       setError({ message: errorMessage(cause), gone });
       setWorking(false);
     }
-  }, [request, working, expired, markDecided, clearPendingRequest, startTrip, navigation]);
+  }, [request, working, expired, markDecided, clearPendingRequest, startTrip, exitOrDefer]);
 
   const handleReject = useCallback(async () => {
     if (!request || working || decidedRef.current || expired) return;
@@ -176,8 +224,8 @@ export function TripRequestScreen({ navigation }) {
       // The request expires by itself on the passenger side; the driver still goes back to Home.
     }
     clearPendingRequest(request.id);
-    if (mountedRef.current) navigation.popTo('Home');
-  }, [request, working, expired, markDecided, clearPendingRequest, navigation]);
+    if (mountedRef.current) exitOrDefer('leave');
+  }, [request, working, expired, markDecided, clearPendingRequest, exitOrDefer]);
 
   let body;
   if (!request) {

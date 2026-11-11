@@ -5,6 +5,7 @@
 // AI-assisted: see docs/AI_LOG.md #41
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see docs/AI_LOG.md #48 (import order)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
@@ -14,16 +15,18 @@
 // T-43: each new incoming request (one at a time) opens the request card once; the phone location
 // being off shows its own notice (no automatic retry, see AvailabilityContext).
 
-import { DrawerActions } from '@react-navigation/native';
+import { DrawerActions, useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { AvailabilitySwitch } from '../../components/AvailabilitySwitch';
 import { DevAccountSwitch } from '../../components/DevAccountSwitch';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { labels } from '../../constants/labels';
+import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
+import { labels } from '../../constants/labels';
 import { useAvailability } from '../../context/AvailabilityContext';
+import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
 import { color, space, type } from '../../theme/tokens';
 
 const HINT_BY_LOCATION_STATUS = {
@@ -60,15 +63,22 @@ export function HomeScreen({ navigation }) {
   } = useAvailability();
   const [devMessage, setDevMessage] = useState(null);
   const announcedIdRef = useRef(null);
+  const focused = useIsFocused(); // AI-assisted: see docs/AI_LOG.md #47 (Home stays mounted under the other drawer screens)
 
   // Opens the card once per request id, only while available and without a trip.
   useEffect(() => {
     if (!pendingRequest || !isAvailable || onTrip) return;
+    // AI-assisted: see docs/AI_LOG.md #47
+    // Full screen only while Home is the screen in front; elsewhere the bottom card shows it, and
+    // coming back to Home with the request still pending opens it here with the real time left.
+    if (!focused) return;
+    if (decideRequestPresentation('Home', onTrip, ACCOUNT_STATUS.APPROVED, true) !== PRESENTATION.FULLSCREEN) return;
     if (announcedIdRef.current === pendingRequest.id) return;
     announcedIdRef.current = pendingRequest.id;
     setDevMessage(null);
-    navigation.navigate('TripRequest');
-  }, [pendingRequest, isAvailable, onTrip, navigation]);
+    const alreadyOpen = navigation.getState().routes.some((r) => r.name === 'TripRequest');
+    if (!alreadyOpen) navigation.navigate('TripRequest');
+  }, [pendingRequest, isAvailable, onTrip, navigation, focused]);
 
   const hint = isAvailable ? (HINT_BY_LOCATION_STATUS[locationStatus] ?? labels.home.hintWaiting) : labels.home.hintOff;
   const noticeText = notice ? (NOTICE_TEXT[notice] ?? null) : null;

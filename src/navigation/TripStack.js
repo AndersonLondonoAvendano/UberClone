@@ -17,11 +17,15 @@ const SCREEN_OPTIONS = {
   contentStyle: { backgroundColor: color.bg },
 };
 
+// One TripRequest screen per request id: a hidden one for an old request is never reused.
+const getRequestId = ({ params }) => params?.requestId;
+
 export function TripStack() {
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={SCREEN_OPTIONS}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="TripRequest" component={TripRequestScreen} />
+      {/* AI-assisted: see docs/AI_LOG.md #48 */}
+      <Stack.Screen name="TripRequest" component={TripRequestScreen} getId={getRequestId} />
       <Stack.Screen name="TripActive" component={TripActiveScreen} />
       <Stack.Screen name="TripSummary" component={TripSummaryScreen} />
     </Stack.Navigator>
