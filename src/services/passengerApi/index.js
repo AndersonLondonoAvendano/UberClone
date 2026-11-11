@@ -1,0 +1,23 @@
+// AI-assisted: see docs/AI_LOG.md #42
+// Passenger API port. Screens and hooks import only from here, never from an adapter.
+// PASSENGER_API_MODE (a constant in src/config/passengerApi.js) picks the adapter once.
+
+import { PASSENGER_API_MODE } from '../../config/passengerApi';
+import { createHttpPassengerApi } from './httpPassengerApi';
+import { mockPassengerApi } from './mockPassengerApi';
+
+const adapter = PASSENGER_API_MODE === 'http' ? createHttpPassengerApi() : mockPassengerApi;
+
+export const subscribeToRequests = (onRequest, onError, options) =>
+  adapter.subscribeToRequests(onRequest, onError, options);
+export const acceptRequest = (requestId) => adapter.acceptRequest(requestId);
+export const rejectRequest = (requestId) => adapter.rejectRequest(requestId);
+export const reportTripStatus = (tripId, status) => adapter.reportTripStatus(tripId, status);
+export const cancelTrip = (tripId) => adapter.cancelTrip(tripId);
+export const reportDriverLocation = (tripId, location) => adapter.reportDriverLocation(tripId, location);
+
+// Dev helper behind SHOW_DEV_TOOLS: asks the adapter for a request now. Returns 'emitted',
+// 'not_subscribed', 'no_position', 'busy' or 'not_supported' (http).
+export const requestSimulatedTripNow = () => adapter.requestNow();
+
+export { PASSENGER_API_ERROR, TRIP_STATUS, isValidTripRequest } from './contract';

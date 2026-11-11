@@ -1,14 +1,17 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see docs/AI_LOG.md #42
 // Main drawer: Home (the trip stack, not listed in the panel) plus Profile, History, Earnings and
 // Settings. Back from any destination returns to Home. Each screen draws its own header, so the
 // navigator header is hidden.
 // MapTest is a development-only screen: it is registered only while SHOW_DEV_TOOLS is on, it is not
 // listed in the drawer panel, and its module (which loads the native map) is required lazily, so
 // with the flag off nothing of the map test is loaded or rendered.
+// AvailabilityProvider wraps the drawer so availability survives moving between its screens (T-42).
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { SHOW_DEV_TOOLS } from '../constants/devTools';
+import { AvailabilityProvider } from '../context/AvailabilityContext';
 import { EarningsScreen } from '../screens/main/EarningsScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
@@ -30,18 +33,20 @@ const renderDrawerContent = (props) => <AppDrawerContent {...props} />;
 
 export function MainDrawer() {
   return (
-    <Drawer.Navigator
-      initialRouteName="Home"
-      backBehavior="initialRoute"
-      screenOptions={SCREEN_OPTIONS}
-      drawerContent={renderDrawerContent}
-    >
-      <Drawer.Screen name="Home" component={TripStack} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="History" component={HistoryScreen} />
-      <Drawer.Screen name="Earnings" component={EarningsScreen} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} />
-      {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
-    </Drawer.Navigator>
+    <AvailabilityProvider>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        backBehavior="initialRoute"
+        screenOptions={SCREEN_OPTIONS}
+        drawerContent={renderDrawerContent}
+      >
+        <Drawer.Screen name="Home" component={TripStack} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="History" component={HistoryScreen} />
+        <Drawer.Screen name="Earnings" component={EarningsScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+        {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
+      </Drawer.Navigator>
+    </AvailabilityProvider>
   );
 }

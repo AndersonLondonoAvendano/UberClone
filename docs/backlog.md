@@ -643,7 +643,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio (cambio nativo; solo se confirma con el build de Anderson).
 - Diseño hecho cuando: —
 - Diseño: N/A (sin UI)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
 
 ### T-36 — Módulo de rutas aislado (OSRM, ruta de respaldo precargada y línea recta)
 - Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
@@ -657,7 +657,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: bajo (módulo aislado).
 - Diseño hecho cuando: —
 - Diseño: N/A (sin UI)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
 
 ### T-37 — Pantalla de prueba del mapa (solo con `SHOW_DEV_TOOLS`)
 - Spec: rebanada 0 de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompt #41; sin spec propia todavía)
@@ -671,7 +671,77 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio (API nativa nueva; solo se confirma en el celular).
 - Diseño hecho cuando: — (pantalla de desarrollo, no visible en la app entregada)
 - Diseño: N/A (pantalla solo de desarrollo)
-- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #41; checkpoint 0 en el celular pendiente)
+- Estado: Validada (en dispositivo por declaración de Anderson, 2026-11-10, prompt #42: permiso en español, calles y atribución, ruta en el color de acento, «Ver mi posición» en Medellín, permiso negado con aviso, modo avión con error o respaldo y recuperación, nada visible con `SHOW_DEV_TOOLS` en `false`)
+
+### T-38 — Parámetros de tarifa en `src/config/pricing.js` y comisión única del registro
+- Spec: rebanada A de `docs/plan-entrega-final.md` (plan aprobado por Anderson, prompts #41 y #42)
+- Requisitos: RF-21, RF-22, D-76
+- Depende de: —
+- Archivos: `src/config/pricing.js` (nuevo), `src/context/RegistrationFormContext.js`, `src/screens/registration/DocumentsScreen.js`, `src/constants/labels.js`
+- Hacer: parámetros de RF-21 en COP enteros y `COMMISSION_RATE = 0.20`. El registro lee la tasa de ahí, la muestra como «20 %» y envía `commissionRate: 0.2`; al precargar un documento antiguo, un valor mayor que 1 se interpreta como porcentaje (20 → 0,20). Se elimina `COMMISSION_RATE_PERCENT`. Las reglas solo exigen `commissionRate is number` (`docs/seguridad.md`), así que no cambian.
+- Hecho cuando: una sola definición de la tasa en `src/`; la casilla de términos dice «20 %»; el envío lleva `commissionRate: 0.2`.
+- Qué debe ver Anderson en el celular (checkpoint 1): «20 %» en Documentos; `commissionRate` 0.2 en Firestore tras un registro nuevo; precarga correcta, también con un documento antiguo con 20.
+- Validación: grep de la tasa; script temporal; verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: — (cambio de texto)
+- Diseño: N/A (solo cambia el número del texto)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+
+### T-39 — Función pura `calculateFare`
+- Spec: rebanada A de `docs/plan-entrega-final.md`
+- Requisitos: RF-20, RF-21, RF-22
+- Depende de: T-38
+- Archivos: `src/utils/fare.js` (nuevo)
+- Hacer: `calculateFare({ distanceKm, durationMin, category, tip })` → `{ fare, commission, driverEarnings }`, sin React, red ni efectos; tarifa mínima, redondeo a 100 COP antes de la comisión, comisión redondeada al peso, propina íntegra al conductor; entradas inválidas lanzan un error con código.
+- Hecho cuando: un script temporal reproduce RF-22 (Económico 19.200/3.840/15.360; XL 26.900/5.380/21.520) y los casos de borde.
+- Qué debe ver Anderson en el celular: nada (lógica pura); se ve en la tarjeta de T-43.
+- Validación: script temporal; verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+
+### T-40 — API del pasajero: contrato, selector, mock, esqueleto http y mappers
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-api-pasajero.md` (D-78)
+- Requisitos: RF-10, RF-11, RF-13, RNF-03, D-77, D-78
+- Depende de: T-39
+- Archivos: `src/config/passengerApi.js` (nuevo), `src/services/passengerApi/{index,contract,mockPassengerApi,httpPassengerApi,mappers}.js` (nuevos)
+- Hacer: las 6 operaciones del contrato con errores normalizados; `PASSENGER_API_MODE = 'mock'`; el mock genera solicitudes cerca de la posición del conductor. **Ajustes del prompt #42 sobre el documento de arquitectura:** recogida a 0,8–2 km (no 300–1500 m), destino a 2–6 km (no 2–8 km) y vencimiento de unos 30 s (no 15 s; la cuenta regresiva de 15 s de RF-11 se decide en T-43).
+- Hecho cuando: un script temporal comprueba solicitudes válidas cada 10–20 s, vencimiento, fin de emisión tras `unsubscribe` y los errores `EXPIRED`/`ALREADY_TAKEN`/estado inválido.
+- Qué debe ver Anderson en el celular (checkpoint 1): con `SHOW_DEV_TOOLS` en `true`, solicitudes generadas cerca de su posición.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+
+### T-41 — Fuente de posición intercambiable y hook `useDriverLocation`
+- Spec: rebanada B de `docs/plan-entrega-final.md`; `docs/arquitectura-mapa-recorrido.md` §3 y §7
+- Requisitos: RF-08, RF-12, RNF-02, RNF-06, D-82
+- Depende de: T-36
+- Archivos: `src/config/location.js` (nuevo), `src/services/location/*` (nuevos), `src/hooks/useDriverLocation.js` (nuevo), `src/constants/labels.js`
+- Hacer: interfaz común con dos fuentes elegidas por una constante: GPS real (`expo-location`, `watchPositionAsync`) y simulada (recorre una polilínea del módulo de rutas de T-36 a velocidad configurable); permisos con textos en español; limpieza al desmontar; regulador de 5 s / 20 m; pausa con `AppState`; sin ubicación en segundo plano.
+- Hecho cuando: la fuente simulada recorre una polilínea de extremo a extremo y termina; el regulador no deja pasar más de una posición cada 5 s; hay limpieza en `useEffect`.
+- Qué debe ver Anderson en el celular (checkpoint 1): el permiso se pide al ponerse Disponible.
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: —
+- Diseño: N/A (sin interfaz propia)
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
+
+### T-42 — Interruptor Disponible / No disponible en Inicio
+- Spec: rebanada B de `docs/plan-entrega-final.md`
+- Requisitos: RF-09, RF-10 (preparación), RNF-02, RNF-04
+- Depende de: T-40, T-41
+- Archivos: `src/context/AvailabilityContext.js` (nuevo), `src/hooks/useTripRequests.js` (nuevo), `src/components/AvailabilitySwitch.js` (nuevo), `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`
+- Hacer: interruptor accesible (área táctil ≥ 44, estado también en texto). Al activarlo pide el permiso si falta y se suscribe al mock; al desactivarlo cancela la suscripción y la fuente de posición. Estado en un contexto de la app. **Ajustes del prompt #42 sobre el plan:** sin escrituras nuevas en Firestore (`driverLocations` y su regla pasan a la segunda mitad) y sin mapa en Inicio en esta mitad; bajo `SHOW_DEV_TOOLS`, «Simular solicitud (provisional)» pide una solicitud al mock y una línea «Solicitud recibida: <id>» la muestra mientras no exista la tarjeta de T-43.
+- Hecho cuando: al pasar a No disponible se detienen la posición y la suscripción; no hay escrituras en Firestore; con `SHOW_DEV_TOOLS` en `false` no se ve nada provisional.
+- Qué debe ver Anderson en el celular (checkpoint 1): activar y desactivar Disponible con y sin permiso; con la bandera en `true`, la línea de depuración con una solicitud cercana.
+- Validación: revisión de código; verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: el interruptor usa solo tokens de DESIGN.md y comunica el estado con texto, no solo con color.
+- Diseño: Pendiente
+- Estado: Implementada y verificada en lo estático; pendiente de validación en dispositivo (verifier independiente, prompt #42; checkpoint 1 en el celular pendiente)
 
 ## Fase 3 — Implementar
 (vacío)

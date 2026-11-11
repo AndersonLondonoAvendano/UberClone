@@ -8,6 +8,7 @@
 // AI-assisted: see docs/AI_LOG.md #33
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see docs/AI_LOG.md #42
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -30,8 +31,24 @@ export const labels = {
     back: 'Atrás',
   },
   home: {
-    startTrip: 'Simular solicitud (provisional)', // provisional development entry, replaced when requests are simulated
-    availabilityHint: 'Aquí aparecerá tu disponibilidad y las solicitudes.',
+    startTrip: 'Simular solicitud (provisional)', // development entry (SHOW_DEV_TOOLS): asks the mock for a request now
+    availabilityLabel: 'Disponibilidad',
+    available: 'Disponible',
+    unavailable: 'No disponible',
+    turnOnHint: 'Activa para recibir solicitudes de viaje',
+    turnOffHint: 'Desactiva para dejar de recibir solicitudes',
+    hintOff: 'Activa Disponible para recibir solicitudes cerca de ti.',
+    hintWaiting: 'Obteniendo tu ubicación…',
+    hintActive: 'Buscando solicitudes cerca de ti.',
+    hintPaused: 'Ubicación en pausa mientras la app está en segundo plano.',
+    hintNoLocation: 'No pudimos obtener tu ubicación. Revisa que el GPS esté encendido.',
+    permissionDenied: 'Para estar disponible necesitas permitir la ubicación. Actívala en los ajustes del teléfono.',
+    permissionUnavailable: 'La ubicación no está disponible en este momento. Inténtalo de nuevo.',
+    debugRequest: 'Solicitud recibida: {id}', // development line (SHOW_DEV_TOOLS)
+    devNeedsAvailable: 'Activa Disponible para simular una solicitud.',
+    devNoPosition: 'Aún no hay ubicación; espera unos segundos.',
+    devBusy: 'Ya hay una solicitud o un viaje en curso.',
+    devNotSupported: 'La API real no permite simular solicitudes.',
   },
   trip: {
     requestTitle: 'Solicitud entrante',
@@ -175,7 +192,7 @@ export const labels = {
         mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
         termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
       },
-      termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent}% sobre cada viaje.',
+      termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent} % sobre cada viaje.',
       submit: 'Enviar registro',
       submitting: 'Enviando…',
       submitSuccess: 'Registro enviado. Tu cuenta está pendiente de aprobación.',
