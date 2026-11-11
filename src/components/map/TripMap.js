@@ -10,30 +10,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   CAMERA_ANIMATION_MS,
-  DRIVER_DOT_RADIUS,
-  DRIVER_DOT_STROKE_WIDTH,
   DRIVER_ZOOM,
   MAP_STYLE_URL,
   ROUTE_LINE_WIDTH,
 } from '../../config/map';
 import { labels } from '../../constants/labels';
-import { color, radius, space, type } from '../../theme/tokens';
+import { color, mapMarker, radius, space, type } from '../../theme/tokens';
 import { SecondaryButton } from '../SecondaryButton';
 
 const ROUTE_LAYOUT = { 'line-join': 'round', 'line-cap': 'round' };
 const ROUTE_PAINT = { 'line-color': color.primary, 'line-width': ROUTE_LINE_WIDTH };
 const ROUTE_APPROX_PAINT = { ...ROUTE_PAINT, 'line-dasharray': [2, 2] };
+// AI-assisted: see docs/AI_LOG.md #53
+// Driver: filled dot. Target: larger hollow ring. Shape tells them apart, not only colour.
 const DRIVER_PAINT = {
-  'circle-radius': DRIVER_DOT_RADIUS,
+  'circle-radius': mapMarker.driverRadius,
   'circle-color': color.primary,
-  'circle-stroke-width': DRIVER_DOT_STROKE_WIDTH,
+  'circle-stroke-width': mapMarker.driverStroke,
   'circle-stroke-color': color.surface,
 };
 const TARGET_PAINT = {
-  'circle-radius': DRIVER_DOT_RADIUS,
-  'circle-color': color.success,
-  'circle-stroke-width': DRIVER_DOT_STROKE_WIDTH,
-  'circle-stroke-color': color.surface,
+  'circle-radius': mapMarker.targetRadius,
+  'circle-color': color.surface,
+  'circle-stroke-width': mapMarker.targetStroke,
+  'circle-stroke-color': color.success,
 };
 
 const toLngLat = (point) => [point.lng, point.lat];

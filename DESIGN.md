@@ -62,7 +62,7 @@ Reglas de uso:
 - Sin hex sueltos en el código: todo color sale de estos tokens.
 
 ### Tipografía
-Familia: la del sistema (San Francisco en iOS, Roboto en Android); sin fuentes personalizadas, para no añadir dependencias.
+Familia: Inter (D-91) con cuatro pesos cargados como familias distintas (`fontFamily.regular` 400, `medium` 500, `semibold` 600, `bold` 700; en Android el peso se elige por familia, nunca con `fontWeight`). Carga con `useFonts` en `App.js` y salida segura: tras 3 s o ante un error la app sigue con la fuente del sistema. Los tokens `type.*` ya incluyen su familia.
 
 | Token | Tamaño / interlineado | Peso | Uso |
 |---|---|---|---|
@@ -76,6 +76,13 @@ Familia: la del sistema (San Francisco en iOS, Roboto en Android); sin fuentes p
 - Cifras tabulares (token `type.numeric`, `fontVariant: ['tabular-nums']`) en todo importe, tiempo y distancia, para que las cifras no salten al cambiar.
 - Ningún texto por debajo de 12. El cuerpo no baja de 16 en campos de entrada.
 - Tolerancia a la escala de texto: los textos usan los `type.*` con interlineado proporcional y los contenedores no tienen altura fija que corte el contenido; los controles crecen en alto (mínimo 48) y el texto puede pasar a dos líneas. Si hace falta limitar el crecimiento, se hace por pantalla y se anota, nunca desactivando el escalado en silencio.
+
+### Íconos (D-91)
+Un solo componente, `src/components/Icon.js`, sobre Ionicons de `@expo/vector-icons`. Siempre decorativo (oculto a accesibilidad) y junto a un texto o una etiqueta del control que lo contiene. Tamaños: `iconSize.sm` 16, `md` 20 (por defecto), `lg` 24. Contorno (`-outline`) en estado inactivo y relleno en estado activo. El color sale de un token y se pasa con `tint`.
+
+### Menú lateral y pestañas de registro (D-91)
+- Menú lateral (`AppDrawerContent`): cabecera `primaryDark` con forma decorativa, avatar con borde (`avatarSize.md` 64), nombre, marca y modelo, placa y píldora de disponibilidad con texto; cuatro entradas con ícono y texto; la activa es una píldora `primarySoft` con barra de acento (`accentWidth` 4) y relleno; pie con nombre de la app y versión.
+- Pestañas de registro (`AppTabBar`): ícono más etiqueta; la activa es una píldora `primarySoft` con ícono relleno, texto más pesado y subrayado, así que no depende solo del color. Alto mínimo 48.
 
 ### Espaciado
 Escala de 4: `space.1`=4, `space.2`=8, `space.3`=12, `space.4`=16, `space.5`=24, `space.6`=32. Margen lateral de pantalla: 16 (`space.4`).

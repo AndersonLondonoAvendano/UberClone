@@ -1,10 +1,12 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 export function CheckboxField({ testID, checked, onChange, label, errorTestID, errorMessage, disabled = false }) {
+  const hasError = Boolean(errorMessage);
   return (
     <View style={styles.field}>
       <Pressable
@@ -16,8 +18,8 @@ export function CheckboxField({ testID, checked, onChange, label, errorTestID, e
         disabled={disabled}
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed, disabled && styles.rowDisabled]}
       >
-        <View style={[styles.box, checked && styles.boxChecked]}>
-          {checked ? <Text style={styles.mark}>✓</Text> : null}
+        <View style={[styles.box, checked && styles.boxChecked, hasError && styles.boxError]}>
+          {checked ? <Icon name="checkmark" size={iconSize.md} tint={color.onPrimary} /> : null}
         </View>
         <Text style={styles.label}>{label}</Text>
       </Pressable>
@@ -30,11 +32,13 @@ const styles = StyleSheet.create({
   field: {
     gap: space[2],
   },
+  // AI-assisted: see docs/AI_LOG.md #53 (filled box with check icon; the row keeps the 44 touch area)
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: touch.min,
     gap: space[3],
+    paddingVertical: space[1],
   },
   rowPressed: {
     opacity: opacity.pressed,
@@ -43,10 +47,10 @@ const styles = StyleSheet.create({
     opacity: opacity.disabled,
   },
   box: {
-    width: touch.min,
-    height: touch.min,
+    width: space[5],
+    height: space[5],
     borderRadius: radius.sm,
-    borderWidth: borderWidth.thin,
+    borderWidth: borderWidth.thick,
     borderColor: color.border,
     backgroundColor: color.surface,
     alignItems: 'center',
@@ -54,10 +58,10 @@ const styles = StyleSheet.create({
   },
   boxChecked: {
     borderColor: color.primary,
+    backgroundColor: color.primary,
   },
-  mark: {
-    ...type.body,
-    color: color.primary,
+  boxError: {
+    borderColor: color.danger,
   },
   label: {
     ...type.body,

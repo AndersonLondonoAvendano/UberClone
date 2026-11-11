@@ -1,18 +1,23 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: status chip, origin/destination icons, DataRow amounts)
 // History (T-48): every saved trip, most recent first, PAGE_SIZE at a time ("Ver más"). Cancelled
 // trips say "Cancelado" in text (not only colour) and show "Sin cobro" instead of amounts.
 
 import { DrawerActions } from '@react-navigation/native';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Card } from '../../components/Card';
+import { Chip } from '../../components/Chip';
+import { DataRow } from '../../components/DataRow';
+import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { labels } from '../../constants/labels';
 import { TRIP_STATUS } from '../../constants/tripStatus';
 import { useTrips } from '../../hooks/useTrips';
-import { color, radius, space, touch, type } from '../../theme/tokens';
+import { color, iconSize, space, touch, type } from '../../theme/tokens';
 import { fillLabel, formatCop, formatDateTime } from '../../utils/format';
 
 const PAGE_SIZE = 20;
@@ -53,7 +58,6 @@ function TripItem({ trip }) {
   const cancelled = trip.status === TRIP_STATUS.CANCELLED;
   const statusText = cancelled ? labels.history.status.cancelled : labels.history.status.completed;
   const date = formatDateTime(trip.finishedAt);
-  const route = fillLabel(labels.history.route, { origin: trip.originLabel, destination: trip.destinationLabel });
   const a11y =
     fillLabel(labels.history.itemA11y, {
       status: statusText,
@@ -66,38 +70,43 @@ function TripItem({ trip }) {
       ? ` ${labels.history.cancelledAmounts}.`
       : fillLabel(labels.history.itemA11yAmounts, { fare: formatCop(trip.fare), net: formatCop(trip.driverEarnings) }));
 
+  // AI-assisted: see docs/AI_LOG.md #53
   return (
-    <View testID={`history-item-${trip.id}`} style={styles.item} accessible accessibilityLabel={a11y}>
+    <Card testID={`history-item-${trip.id}`} style={styles.item} accessible accessibilityLabel={a11y}>
       <View style={styles.head}>
         <Text style={styles.muted}>{date}</Text>
-        <Text style={cancelled ? styles.statusCancelled : styles.statusDone}>{statusText}</Text>
+        <Chip label={statusText} tone={cancelled ? 'danger' : 'success'} />
       </View>
       <Text style={styles.name}>{trip.passengerName}</Text>
-      <Text style={styles.body}>{route}</Text>
+      <View style={styles.route}>
+        <View style={styles.point}>
+          <Icon name="radio-button-on" size={iconSize.md} tint={color.primary} />
+          <Text style={styles.place}>{trip.originLabel}</Text>
+        </View>
+        <View style={styles.point}>
+          <Icon name="location" size={iconSize.md} tint={color.danger} />
+          <Text style={styles.place}>{trip.destinationLabel}</Text>
+        </View>
+      </View>
       {cancelled ? (
         <Text style={styles.muted}>{labels.history.cancelledAmounts}</Text>
       ) : (
-        <View style={styles.amounts}>
-          <Text style={styles.body}>
-            {labels.history.fare}: <Text style={type.numeric}>{formatCop(trip.fare)}</Text>
-          </Text>
-          <Text style={styles.body}>
-            {labels.history.net}: <Text style={type.numeric}>{formatCop(trip.driverEarnings)}</Text>
-          </Text>
+        <View>
+          <DataRow label={labels.history.fare} value={formatCop(trip.fare)} />
+          <DataRow label={labels.history.net} value={formatCop(trip.driverEarnings)} emphasis last />
         </View>
       )}
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
-  item: { gap: space[1], minHeight: touch.min, padding: space[4], backgroundColor: color.surface, borderRadius: radius.md },
+  item: { gap: space[2], minHeight: touch.min },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] },
-  amounts: { gap: space[1], marginTop: space[1] },
+  route: { gap: space[1] },
+  point: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2] },
+  place: { ...type.body, color: color.text, flex: 1 },
   name: { ...type.title, color: color.text },
-  body: { ...type.body, color: color.text },
-  muted: { ...type.caption, color: color.textMuted },
-  statusDone: { ...type.label, color: color.success },
-  statusCancelled: { ...type.label, color: color.danger },
+  muted: { ...type.caption, color: color.textMuted, flexShrink: 1 },
 });

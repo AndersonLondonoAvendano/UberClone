@@ -1,17 +1,48 @@
 // AI-assisted: see docs/AI_LOG.md #42
-// Availability switch (T-42, RF-08, DESIGN.md): the whole row is the touch target (>= touch.min)
-// and the state is always written («Disponible» in success, «No disponible» in textMuted), never
-// shown by color alone. accessibilityRole "switch" with the checked state for screen readers.
+// AI-assisted: see docs/AI_LOG.md #53
+// Availability switch (T-42, RF-08): the whole card is the touch target (>= touch.min) and the state
+// is always written in a chip («Disponible» / «No disponible») next to an icon, never shown by color
+// alone. accessibilityRole "switch" with the checked state for screen readers. The thumb slides with
+// a transform animation unless the system asks to reduce motion.
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../theme/tokens';
+import { badgeSize, borderWidth, color, elevation, iconSize, motion, opacity, radius, space, type } from '../theme/tokens';
+import { Chip } from './Chip';
+import { Icon } from './Icon';
 
-const TRACK_WIDTH = space[6] + space[5]; // 56
+const TRACK_PADDING = space[1];
 const THUMB_SIZE = space[5]; // 24
+const TRACK_WIDTH = space[6] + space[5]; // 56
+const THUMB_TRAVEL = TRACK_WIDTH - THUMB_SIZE - TRACK_PADDING * 2;
 
 export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
   const stateLabel = value ? labels.home.available : labels.home.unavailable;
+  const position = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    let cancelled = false;
+    let animation = null;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .catch(() => false)
+      .then((reduce) => {
+        if (cancelled) return;
+        if (reduce) {
+          position.setValue(value ? 1 : 0);
+          return;
+        }
+        animation = Animated.timing(position, { toValue: value ? 1 : 0, duration: motion.fast, useNativeDriver: true });
+        animation.start();
+      });
+    return () => {
+      cancelled = true;
+      if (animation) animation.stop();
+    };
+  }, [value, position]);
+
+  const translateX = position.interpolate({ inputRange: [0, 1], outputRange: [0, THUMB_TRAVEL] });
+
   return (
     <Pressable
       testID="home-availability-switch"
@@ -23,16 +54,24 @@ export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
       onPress={() => onValueChange(!value)}
       style={({ pressed }) => [
         styles.row,
+        value && styles.rowOn,
         pressed && { opacity: opacity.pressed },
         disabled && { opacity: opacity.disabled },
       ]}
     >
+      <View style={[styles.badge, value ? styles.badgeOn : styles.badgeOff]}>
+        <Icon
+          name={value ? 'radio' : 'power'}
+          size={iconSize.lg}
+          tint={value ? color.onSuccessSoft : color.textMuted}
+        />
+      </View>
       <View style={styles.texts}>
         <Text style={styles.label}>{labels.home.availabilityLabel}</Text>
-        <Text style={[styles.state, { color: value ? color.success : color.textMuted }]}>{stateLabel}</Text>
+        <Chip label={stateLabel} tone={value ? 'success' : 'neutral'} />
       </View>
       <View style={[styles.track, value ? styles.trackOn : styles.trackOff]}>
-        <View style={[styles.thumb, value ? styles.thumbOn : styles.thumbOff]} />
+        <Animated.View style={[styles.thumb, { transform: [{ translateX }] }]} />
       </View>
     </Pressable>
   );
@@ -40,34 +79,46 @@ export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: touch.min,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: space[4],
-    paddingVertical: space[3],
-    paddingHorizontal: space[4],
+    gap: space[3],
+    padding: space[4],
     backgroundColor: color.surface,
-    borderColor: color.border,
+    borderColor: color.borderSubtle,
     borderWidth: borderWidth.thin,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
+    ...elevation.card,
+  },
+  rowOn: {
+    borderColor: color.success,
+    borderWidth: borderWidth.thick,
+  },
+  badge: {
+    width: badgeSize,
+    height: badgeSize,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.full,
+  },
+  badgeOn: {
+    backgroundColor: color.successSoft,
+  },
+  badgeOff: {
+    backgroundColor: color.surfaceMuted,
   },
   texts: {
-    flexShrink: 1,
+    flex: 1,
     gap: space[1],
   },
   label: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.text,
-  },
-  state: {
-    ...type.title,
   },
   track: {
     width: TRACK_WIDTH,
-    height: THUMB_SIZE + space[1] * 2,
+    height: THUMB_SIZE + TRACK_PADDING * 2,
     borderRadius: radius.full,
-    padding: space[1],
+    padding: TRACK_PADDING,
     justifyContent: 'center',
   },
   trackOn: {
@@ -81,11 +132,5 @@ const styles = StyleSheet.create({
     height: THUMB_SIZE,
     borderRadius: radius.full,
     backgroundColor: color.surface,
-  },
-  thumbOn: {
-    alignSelf: 'flex-end',
-  },
-  thumbOff: {
-    alignSelf: 'flex-start',
   },
 });

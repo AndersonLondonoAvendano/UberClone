@@ -6,6 +6,7 @@
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #48 (import order)
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
@@ -19,7 +20,9 @@ import { DrawerActions, useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { AvailabilitySwitch } from '../../components/AvailabilitySwitch';
+import { Card } from '../../components/Card';
 import { DevAccountSwitch } from '../../components/DevAccountSwitch';
+import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
@@ -27,7 +30,7 @@ import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
-import { color, space, type } from '../../theme/tokens';
+import { color, iconSize, space, type } from '../../theme/tokens';
 
 const HINT_BY_LOCATION_STATUS = {
   waiting: labels.home.hintWaiting,
@@ -96,14 +99,19 @@ export function HomeScreen({ navigation }) {
       onLeadingPress={() => navigation.dispatch(DrawerActions.openDrawer())}
     >
       <View style={styles.stack}>
-        <AvailabilitySwitch value={isAvailable} onValueChange={setAvailable} disabled={isChanging} />
-        {noticeText ? (
-          <Text testID="home-availability-notice" style={styles.notice} accessibilityLiveRegion="polite">
-            {noticeText}
-          </Text>
-        ) : (
-          <Text style={styles.hint}>{hint}</Text>
-        )}
+        <View style={styles.group}>
+          <AvailabilitySwitch value={isAvailable} onValueChange={setAvailable} disabled={isChanging} />
+          {noticeText ? (
+            <Card variant="status" tone="danger" style={styles.noticeCard}>
+              <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
+              <Text testID="home-availability-notice" style={styles.notice} accessibilityLiveRegion="polite">
+                {noticeText}
+              </Text>
+            </Card>
+          ) : (
+            <Text style={styles.hint}>{hint}</Text>
+          )}
+        </View>
         {SHOW_DEV_TOOLS ? (
           <PrimaryButton testID="home-start-trip" label={labels.home.startTrip} onPress={onSimulate} />
         ) : null}
@@ -130,13 +138,23 @@ const styles = StyleSheet.create({
   stack: {
     gap: space[5],
   },
+  group: {
+    gap: space[3],
+  },
   hint: {
-    ...type.body,
+    ...type.small,
     color: color.textMuted,
+    paddingHorizontal: space[1],
+  },
+  noticeCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[3],
   },
   notice: {
+    flex: 1,
     ...type.body,
-    color: color.danger,
+    color: color.onDangerSoft,
   },
   debug: {
     ...type.caption,

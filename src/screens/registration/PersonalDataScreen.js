@@ -6,7 +6,9 @@
 // a fresh, untouched render.
 
 import { StyleSheet, Text, View } from 'react-native';
+import { Card } from '../../components/Card';
 import { DevAccountSwitch } from '../../components/DevAccountSwitch';
+import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { DateField } from '../../components/registration/DateField';
 import { PhotoField } from '../../components/registration/PhotoField';
@@ -17,7 +19,7 @@ import { labels } from '../../constants/labels';
 import { GENDER_OPTIONS, LANGUAGE_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
-import { borderWidth, color, radius, space, type } from '../../theme/tokens';
+import { color, iconSize, space, type } from '../../theme/tokens';
 import {
   isValidFullName,
   isValidDocumentNumber,
@@ -51,9 +53,13 @@ export function PersonalDataScreen() {
     <PlaceholderScreen name="personal-data" title={labels.tabs.personalData} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
-          <Text testID="personal-data-pending-notice" style={styles.pendingNotice}>
-            {labels.registration.pendingNotice}
-          </Text>
+          // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
+          <Card variant="status" tone="warning" style={styles.notice}>
+            <Icon name="time" size={iconSize.lg} tint={color.onWarningSoft} />
+            <Text testID="personal-data-pending-notice" style={styles.pendingNotice}>
+              {labels.registration.pendingNotice}
+            </Text>
+          </Card>
         ) : null}
 
         <PhotoField
@@ -169,13 +175,14 @@ export function PersonalDataScreen() {
 
 const styles = StyleSheet.create({
   // AI-assisted: see docs/AI_LOG.md #52 (soft warning banner, same style as the chips)
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   pendingNotice: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.onWarningSoft,
-    backgroundColor: color.warningSoft,
-    borderLeftWidth: borderWidth.thick * 2,
-    borderLeftColor: color.warning,
-    borderRadius: radius.md,
-    padding: space[3],
+    flex: 1,
+    flexShrink: 1,
   },
 });

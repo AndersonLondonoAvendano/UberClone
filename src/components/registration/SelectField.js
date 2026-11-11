@@ -4,7 +4,8 @@
 // marked the same way the navigation marks the active destination: weight and underline, no accent fill.
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 export function SelectField({ testID, label, options, value, onChange, errorTestID, errorMessage, disabled = false }) {
@@ -30,6 +31,7 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
         <Text style={selected ? styles.triggerValue : styles.triggerPlaceholder}>
           {selected ? selected.label : label}
         </Text>
+        <Icon name="chevron-down" size={iconSize.md} tint={color.textMuted} />
       </Pressable>
       <FieldError testID={errorTestID} message={errorMessage} />
 
@@ -55,6 +57,7 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
                     <Text style={[styles.optionText, active ? styles.optionTextActive : styles.optionTextInactive]}>
                       {item.label}
                     </Text>
+                    {active ? <Icon name="checkmark" size={iconSize.md} tint={color.primary} /> : null}
                   </Pressable>
                 );
               }}
@@ -74,11 +77,14 @@ const styles = StyleSheet.create({
     ...type.label,
     color: color.text,
   },
+  // AI-assisted: see docs/AI_LOG.md #53 (chevron affordance, thick danger border on error)
   trigger: {
     minHeight: touch.controlHeight,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
     backgroundColor: color.surface,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     borderWidth: borderWidth.thin,
     borderColor: color.border,
     paddingHorizontal: space[3],
@@ -88,17 +94,24 @@ const styles = StyleSheet.create({
   },
   triggerDisabled: {
     opacity: opacity.disabled,
+    backgroundColor: color.surfaceMuted,
   },
   triggerError: {
+    borderWidth: borderWidth.thick,
     borderColor: color.danger,
+    paddingHorizontal: space[3] - (borderWidth.thick - borderWidth.thin),
   },
   triggerValue: {
     ...type.body,
     color: color.text,
+    flex: 1,
+    flexShrink: 1,
   },
   triggerPlaceholder: {
     ...type.body,
     color: color.textMuted,
+    flex: 1,
+    flexShrink: 1,
   },
   // No overlay/scrim token exists in tokens.js today, and this task may not add a new one (plan §7:
   // no new tokens). A transparent backdrop keeps the tap-outside-to-close behavior without inventing
@@ -114,10 +127,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.lg,
     maxHeight: '70%',
     paddingVertical: space[3],
+    borderWidth: borderWidth.thin,
+    borderColor: color.borderSubtle,
+    ...elevation.raised,
   },
   option: {
     minHeight: touch.controlHeight,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
     paddingHorizontal: space[4],
   },
   optionPressed: {
@@ -125,6 +143,8 @@ const styles = StyleSheet.create({
   },
   optionText: {
     ...type.body,
+    flex: 1,
+    flexShrink: 1,
   },
   optionTextActive: {
     color: color.text,

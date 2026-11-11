@@ -15,9 +15,10 @@ import {
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { borderWidth, color, iconSize, opacity, photoPreviewHeight, radius, space, touch, type } from '../../theme/tokens';
 import { labels } from '../../constants/labels';
 import { uploadPhotoAsync } from '../../services/cloudinary';
+import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage, disabled = false }) {
@@ -61,27 +62,34 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
+      {/* AI-assisted: see docs/AI_LOG.md #53 (framed preview, icon states, visible remove button) */}
       <View style={[styles.preview, !value && styles.previewEmpty, combinedError && styles.previewError]}>
         {value ? (
           <Image source={{ uri: value }} style={styles.previewImage} />
         ) : uploadState === 'uploading' ? (
-          <ActivityIndicator accessibilityLabel={labels.registration.photo.uploading} />
+          <View style={styles.previewState}>
+            <ActivityIndicator accessibilityLabel={labels.registration.photo.uploading} color={color.primary} />
+            <Text style={styles.previewPlaceholder}>{labels.registration.photo.uploading}</Text>
+          </View>
         ) : (
-          <Text style={styles.previewPlaceholder}>{labels.registration.photo.instruction}</Text>
+          <View style={styles.previewState}>
+            <Icon name="camera-outline" size={iconSize.lg} tint={color.textMuted} />
+            <Text style={styles.previewPlaceholder}>{labels.registration.photo.instruction}</Text>
+          </View>
         )}
-        {canRemove ? (
-          <Pressable
-            testID={`${testID}-remove`}
-            accessibilityRole="button"
-            accessibilityLabel={labels.registration.photo.removePhoto}
-            onPress={() => onChange('')}
-            hitSlop={{ top: space[2], bottom: space[2], left: space[2], right: space[2] }}
-            style={({ pressed }) => [styles.removeButton, pressed && styles.removeButtonPressed]}
-          >
-            <Text style={styles.removeButtonIcon}>✕</Text>
-          </Pressable>
-        ) : null}
       </View>
+      {canRemove ? (
+        <Pressable
+          testID={`${testID}-remove`}
+          accessibilityRole="button"
+          accessibilityLabel={labels.registration.photo.removePhoto}
+          onPress={() => onChange('')}
+          style={({ pressed }) => [styles.removeButton, pressed && styles.removeButtonPressed]}
+        >
+          <Icon name="trash-outline" size={iconSize.md} tint={color.danger} />
+          <Text style={styles.removeButtonLabel}>{labels.registration.photo.removePhoto}</Text>
+        </Pressable>
+      ) : null}
       <View style={styles.actions}>
         <Pressable
           testID={`${testID}-camera`}
@@ -91,6 +99,7 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           disabled={disabled}
           style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed, disabled && styles.actionButtonDisabled]}
         >
+          <Icon name="camera-outline" size={iconSize.md} tint={color.text} />
           <Text style={styles.actionLabel}>{labels.registration.photo.camera}</Text>
         </Pressable>
         <Pressable
@@ -101,6 +110,7 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           disabled={disabled}
           style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed, disabled && styles.actionButtonDisabled]}
         >
+          <Icon name="images-outline" size={iconSize.md} tint={color.text} />
           <Text style={styles.actionLabel}>{labels.registration.photo.gallery}</Text>
         </Pressable>
       </View>
@@ -118,63 +128,66 @@ const styles = StyleSheet.create({
     color: color.text,
   },
   preview: {
-    minHeight: touch.controlHeight * 2,
-    borderRadius: radius.sm,
-    borderWidth: borderWidth.thin,
+    minHeight: photoPreviewHeight,
+    borderRadius: radius.md,
+    borderWidth: borderWidth.thick,
     borderColor: color.border,
     backgroundColor: color.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: space[3],
+    overflow: 'hidden',
   },
   previewEmpty: {
     borderStyle: 'dashed',
+    backgroundColor: color.surfaceMuted,
+    padding: space[4],
   },
   previewError: {
     borderColor: color.danger,
   },
   previewImage: {
     width: '100%',
-    height: touch.controlHeight * 2,
-    borderRadius: radius.sm,
+    height: photoPreviewHeight,
+  },
+  previewState: {
+    alignItems: 'center',
+    gap: space[2],
   },
   previewPlaceholder: {
-    ...type.caption,
+    ...type.small,
     color: color.textMuted,
     textAlign: 'center',
   },
-  // No semi-transparent overlay token exists in tokens.js (same gap already noted in
-  // SelectField.js's backdrop), so this reuses an existing solid token instead of inventing a new
-  // color: color.text is dark and gives white text full AA contrast without any new design value.
   removeButton: {
-    position: 'absolute',
-    top: space[2],
-    right: space[2],
-    width: space[6],
-    height: space[6],
-    borderRadius: radius.full,
-    backgroundColor: color.text,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: space[2],
+    minHeight: touch.min,
+    paddingHorizontal: space[3],
   },
   removeButtonPressed: {
     opacity: opacity.pressed,
   },
-  removeButtonIcon: {
+  removeButtonLabel: {
     ...type.label,
-    color: color.onPrimary,
+    color: color.danger,
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: touch.gap,
   },
   actionButton: {
     flex: 1,
-    minHeight: touch.min,
+    flexDirection: 'row',
+    gap: space[2],
+    minHeight: touch.controlHeight,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.sm,
-    borderWidth: borderWidth.thin,
+    paddingHorizontal: space[3],
+    borderRadius: radius.md,
+    borderWidth: borderWidth.thick,
     borderColor: color.border,
     backgroundColor: color.surface,
   },
@@ -185,7 +198,7 @@ const styles = StyleSheet.create({
     opacity: opacity.disabled,
   },
   actionLabel: {
-    ...type.label,
+    ...type.bodyStrong,
     color: color.text,
   },
 });

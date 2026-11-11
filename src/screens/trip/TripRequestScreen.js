@@ -3,6 +3,7 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #48
 // AI-assisted: see docs/AI_LOG.md #49
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: passenger header, route markers, data rows, status cards)
 // The drawer keeps this screen mounted when the driver switches tab, so it acts only while focused:
 // timers, the quiet reject, leaving and the accept navigation wait for focus. A request resolved
 // elsewhere is never rejected or left again from a hidden screen; it only closes itself, quietly,
@@ -27,6 +28,9 @@ import { useIsFocused } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card } from '../../components/Card';
+import { DataRow } from '../../components/DataRow';
+import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SecondaryButton } from '../../components/SecondaryButton';
@@ -40,7 +44,7 @@ import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../service
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
 import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
-import { color, radius, space, touch, type } from '../../theme/tokens';
+import { badgeSize, color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { fillLabel, formatCop, formatKm, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
 
@@ -253,6 +257,7 @@ export function TripRequestScreen({ navigation }) {
   } else if (expiredShown) {
     body = (
       <View testID="trip-request-expired" style={styles.centered} accessibilityLiveRegion="assertive">
+        <Icon name="time-outline" size={iconSize.lg} tint={color.textMuted} />
         <Text style={styles.title}>{labels.trip.expired}</Text>
         <Text style={styles.muted}>{labels.trip.backingHome}</Text>
       </View>
@@ -266,8 +271,11 @@ export function TripRequestScreen({ navigation }) {
     body = (
       <>
         <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.card}>
+          <Card style={styles.card}>
             <View style={styles.headerRow}>
+              <View style={styles.badge}>
+                <Icon name="person" size={iconSize.lg} tint={color.onPrimarySoft} />
+              </View>
               <View style={styles.flex}>
                 <Text style={styles.caption}>{labels.trip.passenger}</Text>
                 <Text testID="trip-request-passenger" style={styles.title}>
@@ -284,40 +292,48 @@ export function TripRequestScreen({ navigation }) {
               ) : null}
             </View>
 
-            <View style={styles.block}>
-              <Text style={styles.caption}>{labels.trip.pickup}</Text>
-              <Text style={styles.body}>{request.origin.address}</Text>
-              {toPickup ? <Text style={[styles.muted, type.numeric]}>{toPickup}</Text> : null}
+            <View style={styles.stop}>
+              <Icon name="radio-button-on" size={iconSize.lg} tint={color.primary} />
+              <View style={[styles.block, styles.flex]}>
+                <Text style={styles.caption}>{labels.trip.pickup}</Text>
+                <Text style={styles.body}>{request.origin.address}</Text>
+                {toPickup ? <Text style={[styles.muted, type.numeric]}>{toPickup}</Text> : null}
+              </View>
             </View>
 
-            <View style={styles.block}>
-              <Text style={styles.caption}>{labels.trip.destination}</Text>
-              <Text style={styles.body}>{request.destination.address}</Text>
-              <Text style={[styles.muted, type.numeric]}>
-                {fillLabel(labels.trip.tripLength, {
-                  km: formatKm(request.distanceKm),
-                  min: String(Math.max(1, Math.round(request.durationMin))),
-                })}
-              </Text>
+            <View style={styles.stop}>
+              <Icon name="location" size={iconSize.lg} tint={color.text} />
+              <View style={[styles.block, styles.flex]}>
+                <Text style={styles.caption}>{labels.trip.destination}</Text>
+                <Text style={styles.body}>{request.destination.address}</Text>
+                <Text style={[styles.muted, type.numeric]}>
+                  {fillLabel(labels.trip.tripLength, {
+                    km: formatKm(request.distanceKm),
+                    min: String(Math.max(1, Math.round(request.durationMin))),
+                  })}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.section}>
               <Row label={labels.trip.category} value={categoryLabel} />
-              <Row label={labels.trip.payment} value={paymentLabel} />
+              <Row label={labels.trip.payment} value={paymentLabel} last={!fare} />
               {fare ? (
                 <>
-                  <Row label={labels.trip.fare} value={formatCop(fare.fare)} numeric />
+                  <Row label={labels.trip.fare} value={formatCop(fare.fare)} />
                   <Row
                     label={fillLabel(labels.trip.commission, { pct: commissionPercent(COMMISSION_RATE) })}
                     value={`- ${formatCop(fare.commission)}`}
-                    numeric
+                    last
                   />
                 </>
               ) : null}
             </View>
 
             {fare ? (
-              <View
+              <Card
+                variant="status"
+                tone="brand"
                 testID="trip-request-net"
                 style={styles.earnings}
                 accessible
@@ -325,9 +341,9 @@ export function TripRequestScreen({ navigation }) {
               >
                 <Text style={styles.earningsLabel}>{labels.trip.net}</Text>
                 <Text style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
-              </View>
+              </Card>
             ) : null}
-          </View>
+          </Card>
         </ScrollView>
 
         <View style={styles.actions}>
@@ -350,9 +366,12 @@ export function TripRequestScreen({ navigation }) {
             </View>
           ) : null}
           {error ? (
-            <Text testID="trip-request-error" style={styles.error} accessibilityLiveRegion="polite">
-              {error.message}
-            </Text>
+            <Card variant="status" tone="danger" style={styles.errorCard}>
+              <Icon name="alert-circle" size={iconSize.md} tint={color.onDangerSoft} />
+              <Text testID="trip-request-error" style={styles.error} accessibilityLiveRegion="polite">
+                {error.message}
+              </Text>
+            </Card>
           ) : null}
           {working ? <Text style={styles.muted}>{labels.trip.working}</Text> : null}
           {error?.gone ? (
@@ -388,11 +407,10 @@ export function TripRequestScreen({ navigation }) {
   );
 }
 
-function Row({ label, value, numeric = false }) {
+function Row({ label, value, last = false }) {
   return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
-      <Text style={styles.body}>{label}</Text>
-      <Text style={[styles.body, numeric && type.numeric]}>{value}</Text>
+    <View accessible accessibilityLabel={`${label}: ${value}`}>
+      <DataRow label={label} value={value} last={last} />
     </View>
   );
 }
@@ -410,12 +428,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[4],
     paddingVertical: space[4],
   },
-  // AI-assisted: see docs/AI_LOG.md #44 (radius.md, no border, no dividers)
   card: {
+    gap: space[4],
+  },
+  badge: {
+    width: badgeSize,
+    height: badgeSize,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.full,
+    backgroundColor: color.primarySoft,
+  },
+  stop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: space[3],
-    padding: space[4],
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
+  },
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
+    padding: space[3],
   },
   headerRow: {
     flexDirection: 'row',
@@ -426,27 +459,19 @@ const styles = StyleSheet.create({
     gap: space[1],
   },
   section: {
-    marginTop: space[2],
+    marginTop: space[1],
   },
   earnings: {
-    marginTop: space[2],
     gap: space[1],
   },
   earningsLabel: {
     ...type.label,
-    color: color.textMuted,
+    color: color.onPrimarySoft,
   },
   earningsValue: {
     ...type.display,
     ...type.numeric,
-    color: color.primary,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: space[3],
-    minHeight: touch.min,
+    color: color.onPrimarySoft,
   },
   title: {
     ...type.title,
@@ -508,8 +533,9 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
   },
   error: {
+    flex: 1,
     ...type.body,
-    color: color.danger,
+    color: color.onDangerSoft,
   },
   centered: {
     flex: 1,

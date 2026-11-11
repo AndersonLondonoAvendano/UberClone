@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #43
@@ -19,6 +20,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card } from '../../components/Card';
+import { DataRow } from '../../components/DataRow';
+import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -29,7 +33,7 @@ import { useTrip } from '../../context/TripContext';
 import { classifySaveError, SAVE_ERROR } from '../../services/trip/saveRetry';
 import { buildTripRecord, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
 import { saveTrip } from '../../services/tripRepository';
-import { color, radius, space, touch, type } from '../../theme/tokens';
+import { color, iconSize, space, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { fillLabel, formatClock, formatCop, formatKm } from '../../utils/format';
 import { maskEmail } from '../../utils/mask';
@@ -125,8 +129,11 @@ export function TripSummaryScreen({ navigation }) {
             if (confirmingLeave) scrollRef.current?.scrollToEnd({ animated: true });
           }}
         >
+          {/* AI-assisted: see docs/AI_LOG.md #53 */}
           {fare ? (
-            <View
+            <Card
+              variant="status"
+              tone="brand"
               testID="trip-summary-net"
               style={styles.earnings}
               accessible
@@ -134,72 +141,86 @@ export function TripSummaryScreen({ navigation }) {
             >
               <Text style={styles.earningsLabel}>{labels.trip.net}</Text>
               <Text style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
-            </View>
+            </Card>
           ) : null}
-          <View style={styles.card}>
+          <Card style={styles.card}>
             <Row label={labels.trip.passenger} value={request.passenger?.name ?? ''} />
-            {shown.finishedAt ? <Row label={labels.trip.finishedAt} value={formatClock(shown.finishedAt)} numeric /> : null}
+            {shown.finishedAt ? <Row label={labels.trip.finishedAt} value={formatClock(shown.finishedAt)} /> : null}
             <Row
               label={labels.trip.distance}
               value={fillLabel(labels.trip.kmValue, { km: formatKm(request.distanceKm) })}
-              numeric
             />
             <Row
               label={labels.trip.duration}
               value={fillLabel(labels.trip.minValue, { min: Math.max(1, Math.round(request.durationMin)) })}
-              numeric
+              last={!fare}
             />
             {fare ? (
-              <View style={styles.totals}>
-                <Row label={labels.trip.fare} value={formatCop(fare.fare)} numeric />
+              <>
+                <Row label={labels.trip.fare} value={formatCop(fare.fare)} />
                 <Row
                   label={fillLabel(labels.trip.commission, { pct: commissionPercent(COMMISSION_RATE) })}
                   value={`- ${formatCop(fare.commission)}`}
-                  numeric
+                  last
                 />
-              </View>
+              </>
             ) : null}
-          </View>
-          <View style={styles.card} testID="trip-summary-payment">
+          </Card>
+          <Card testID="trip-summary-payment" style={styles.card}>
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {labels.trip.paymentTitle}
             </Text>
             <Text style={styles.body}>{paymentText}</Text>
-            <Text style={styles.muted}>{labels.trip.paymentSimulated}</Text>
+            <View style={styles.noteRow}>
+              <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
+              <Text style={[styles.muted, styles.flex]}>{labels.trip.paymentSimulated}</Text>
+            </View>
             {saving ? (
               <Text testID="trip-summary-saving" style={styles.body} accessibilityLiveRegion="polite">
                 {labels.trip.saving}
               </Text>
             ) : null}
             {saved ? (
-              <Text testID="trip-summary-saved" style={styles.success} accessibilityLiveRegion="polite">
-                {labels.trip.saved}
-              </Text>
+              <Card variant="status" tone="success" style={styles.statusCard}>
+                <Icon name="checkmark-circle" size={iconSize.lg} tint={color.onSuccessSoft} />
+                <Text testID="trip-summary-saved" style={styles.success} accessibilityLiveRegion="polite">
+                  {labels.trip.saved}
+                </Text>
+              </Card>
             ) : null}
             {!fare || !driverId ? (
-              <Text testID="trip-summary-unavailable" style={styles.error} accessibilityLiveRegion="assertive">
-                {labels.trip.saveUnavailable}
-              </Text>
+              <Card variant="status" tone="danger" style={styles.statusCard}>
+                <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
+                <Text testID="trip-summary-unavailable" style={styles.error} accessibilityLiveRegion="assertive">
+                  {labels.trip.saveUnavailable}
+                </Text>
+              </Card>
             ) : null}
             {save.state === SAVE.ERROR ? (
-              <Text testID="trip-summary-save-error" style={styles.error} accessibilityLiveRegion="assertive">
-                {labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric']}
-              </Text>
+              <Card variant="status" tone="danger" style={styles.statusCard}>
+                <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
+                <Text testID="trip-summary-save-error" style={styles.error} accessibilityLiveRegion="assertive">
+                  {labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric']}
+                </Text>
+              </Card>
             ) : null}
-          </View>
+          </Card>
           {confirmingLeave ? (
-            <View style={styles.card} testID="trip-summary-leave-confirm">
-              <Text style={styles.sectionTitle} accessibilityRole="header">
-                {labels.trip.leaveQuestion}
-              </Text>
-              <Text style={styles.body}>{labels.trip.leaveMessage}</Text>
+            <Card variant="status" tone="warning" testID="trip-summary-leave-confirm" style={styles.card}>
+              <View style={styles.noteRow}>
+                <Icon name="warning" size={iconSize.lg} tint={color.onWarningSoft} />
+                <Text style={[styles.sectionTitle, styles.flex, styles.onWarning]} accessibilityRole="header">
+                  {labels.trip.leaveQuestion}
+                </Text>
+              </View>
+              <Text style={[styles.body, styles.onWarning]}>{labels.trip.leaveMessage}</Text>
               <SecondaryButton testID="trip-summary-leave-yes" label={labels.trip.leaveConfirm} variant="danger" onPress={goHome} />
               <SecondaryButton
                 testID="trip-summary-leave-no"
                 label={labels.trip.leaveKeep}
                 onPress={() => setConfirmingLeave(false)}
               />
-            </View>
+            </Card>
           ) : null}
         </ScrollView>
       ) : (
@@ -233,11 +254,10 @@ export function TripSummaryScreen({ navigation }) {
   );
 }
 
-function Row({ label, value, numeric = false }) {
+function Row({ label, value, last = false }) {
   return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
-      <Text style={[styles.body, styles.rowLabel]}>{label}</Text>
-      <Text style={[styles.body, styles.rowValue, numeric && type.numeric]}>{value}</Text>
+    <View accessible accessibilityLabel={`${label}: ${value}`}>
+      <DataRow label={label} value={value} last={last} />
     </View>
   );
 }
@@ -252,57 +272,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[4],
     paddingVertical: space[4],
   },
-  // AI-assisted: see docs/AI_LOG.md #44
+  flex: {
+    flex: 1,
+  },
   earnings: {
     gap: space[1],
-    paddingVertical: space[3],
-    paddingHorizontal: space[4],
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
   },
   earningsLabel: {
     ...type.label,
-    color: color.textMuted,
+    color: color.onPrimarySoft,
   },
   earningsValue: {
     ...type.display,
     ...type.numeric,
-    color: color.primary,
+    color: color.onPrimarySoft,
   },
   card: {
     gap: space[2],
-    padding: space[4],
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
   },
-  totals: {
-    marginTop: space[4],
-    gap: space[2],
-  },
-  row: {
+  statusCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: space[3],
-    minHeight: touch.min,
+    alignItems: 'flex-start',
+    gap: space[2],
+    padding: space[3],
+  },
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
   },
   body: {
     ...type.body,
     color: color.text,
   },
-  rowLabel: { flexShrink: 1 },
-  rowValue: { flexShrink: 1, textAlign: 'right' },
   sectionTitle: {
     ...type.label,
     color: color.text,
   },
+  onWarning: {
+    color: color.onWarningSoft,
+  },
   success: {
+    flex: 1,
     ...type.body,
-    color: color.success,
+    color: color.onSuccessSoft,
   },
   error: {
+    flex: 1,
     ...type.body,
-    color: color.danger,
+    color: color.onDangerSoft,
   },
   muted: {
     ...type.caption,

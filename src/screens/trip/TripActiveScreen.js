@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #43
@@ -17,8 +18,11 @@
 
 import { usePreventRemove } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Card } from '../../components/Card';
+import { Chip } from '../../components/Chip';
+import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SecondaryButton } from '../../components/SecondaryButton';
@@ -27,10 +31,11 @@ import { labels } from '../../constants/labels';
 import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { useTrip } from '../../context/TripContext';
 import { TRIP_PHASE } from '../../services/trip/tripController';
-import { color, radius, space, type } from '../../theme/tokens';
+import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
 import { fillLabel, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
 
 const SAFE_EDGES = ['top', 'bottom'];
+const PANEL_MAX_SHARE = 0.65;
 const MOVING_PHASES = [TRIP_PHASE.TO_PICKUP, TRIP_PHASE.TO_DESTINATION];
 
 // AI-assisted: see docs/AI_LOG.md #44
@@ -45,6 +50,7 @@ export function TripActiveScreen({ navigation }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
   const [working, setWorking] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
   const leavingRef = useRef(false);
   const mountedRef = useRef(true);
   // AI-assisted: see docs/AI_LOG.md #44
@@ -160,9 +166,18 @@ export function TripActiveScreen({ navigation }) {
   let actions;
   if (confirmExit) {
     actions = (
-      <View testID="trip-active-exit-confirm" style={styles.group} accessibilityLiveRegion="assertive">
-        <Text style={styles.title}>{labels.trip.exitQuestion}</Text>
-        <Text style={styles.body}>{labels.trip.exitMessage}</Text>
+      <Card
+        variant="status"
+        tone="warning"
+        testID="trip-active-exit-confirm"
+        style={styles.confirm}
+        accessibilityLiveRegion="assertive"
+      >
+        <View style={styles.confirmHead}>
+          <Icon name="warning" size={iconSize.lg} tint={color.onWarningSoft} />
+          <Text style={[styles.title, styles.flex, styles.onWarning]}>{labels.trip.exitQuestion}</Text>
+        </View>
+        <Text style={[styles.body, styles.onWarning]}>{labels.trip.exitMessage}</Text>
         <SecondaryButton
           testID="trip-active-exit-confirm-yes"
           label={labels.trip.exitConfirm}
@@ -170,14 +185,28 @@ export function TripActiveScreen({ navigation }) {
           onPress={handleExit}
         />
         <PrimaryButton testID="trip-active-exit-keep" label={labels.trip.exitKeep} onPress={() => setConfirmExit(false)} />
-      </View>
+      </Card>
     );
   } else if (confirmCancel) {
     actions = (
-      <View testID="trip-active-cancel-confirm" style={styles.group} accessibilityLiveRegion="assertive">
-        <Text style={styles.title}>{labels.trip.cancelQuestion}</Text>
-        <Text style={styles.body}>{labels.trip.cancelMessage}</Text>
-        {trip.cancelError ? <Text style={[styles.body, styles.error]}>{labels.trip.cancelError}</Text> : null}
+      <Card
+        variant="status"
+        tone="warning"
+        testID="trip-active-cancel-confirm"
+        style={styles.confirm}
+        accessibilityLiveRegion="assertive"
+      >
+        <View style={styles.confirmHead}>
+          <Icon name="warning" size={iconSize.lg} tint={color.onWarningSoft} />
+          <Text style={[styles.title, styles.flex, styles.onWarning]}>{labels.trip.cancelQuestion}</Text>
+        </View>
+        <Text style={[styles.body, styles.onWarning]}>{labels.trip.cancelMessage}</Text>
+        {trip.cancelError ? (
+          <View style={styles.inlineError}>
+            <Icon name="alert-circle" size={iconSize.md} tint={color.onDangerSoft} />
+            <Text style={[styles.body, styles.flex, styles.onDanger]}>{labels.trip.cancelError}</Text>
+          </View>
+        ) : null}
         <SecondaryButton
           testID="trip-active-cancel-confirm-yes"
           label={labels.trip.cancelConfirm}
@@ -194,12 +223,15 @@ export function TripActiveScreen({ navigation }) {
         {trip.cancelError && !busy ? (
           <SecondaryButton testID="trip-active-cancel-exit" label={labels.trip.exitTrip} onPress={askExit} />
         ) : null}
-      </View>
+      </Card>
     );
   } else if (finishErrorText && !busy) {
     actions = (
       <View testID="trip-active-finish-error" style={styles.group} accessibilityLiveRegion="assertive">
-        <Text style={[styles.body, styles.error]}>{finishErrorText}</Text>
+        <Card variant="status" tone="danger" style={styles.notice}>
+          <Icon name="alert-circle" size={iconSize.md} tint={color.onDangerSoft} />
+          <Text style={[styles.body, styles.flex, styles.onDanger]}>{finishErrorText}</Text>
+        </Card>
         {trip.finishError !== FINISH_ERROR.REJECTED ? (
           <PrimaryButton testID="trip-active-finish-retry" label={labels.actions.retry} onPress={handleFinish} />
         ) : null}
@@ -260,23 +292,32 @@ export function TripActiveScreen({ navigation }) {
         />
       </View>
 
-      <View style={styles.panel}>
-        <View accessibilityLiveRegion="polite">
-          {/* AI-assisted: see docs/AI_LOG.md #44 */}
-          <Text testID="trip-active-phase" style={showRemaining ? styles.phaseCaption : styles.title}>
-            {phaseText}
-          </Text>
+      {/* AI-assisted: see docs/AI_LOG.md #53 */}
+      <View style={[styles.panel, { maxHeight: windowHeight * PANEL_MAX_SHARE }]}>
+        <ScrollView contentContainerStyle={styles.panelContent}>
+        <View style={styles.info} accessibilityLiveRegion="polite">
+          <Chip testID="trip-active-phase" label={phaseText} tone={atPickup || atDestination ? 'success' : 'brand'} />
           {showRemaining ? (
-            <Text testID="trip-active-remaining" style={styles.remaining}>
-              {fillLabel(labels.trip.remaining, {
-                km: formatKmFromMeters(trip.remainingM),
-                min: formatMinutesFromSeconds(trip.remainingS),
-              })}
-            </Text>
+            <View style={styles.remainingBlock}>
+              <Text testID="trip-active-remaining" style={styles.remaining}>
+                {fillLabel(labels.trip.remaining, {
+                  km: formatKmFromMeters(trip.remainingM),
+                  min: formatMinutesFromSeconds(trip.remainingS),
+                })}
+              </Text>
+              <Text style={styles.phaseCaption}>{labels.trip.remainingCaption}</Text>
+            </View>
           ) : null}
-          {showRemaining ? <Text style={styles.phaseCaption}>{labels.trip.remainingCaption}</Text> : null}
-          <Text style={styles.muted}>{trip.request.passenger?.name}</Text>
-          {trip.target?.address ? <Text style={styles.body}>{trip.target.address}</Text> : null}
+          <View style={styles.personRow}>
+            <Icon name="person" size={iconSize.md} tint={color.textMuted} />
+            <Text style={[styles.bodyStrong, styles.flex]}>{trip.request.passenger?.name}</Text>
+          </View>
+          {trip.target?.address ? (
+            <View style={styles.personRow}>
+              <Icon name={toDestinationSide ? 'location' : 'radio-button-on'} size={iconSize.md} tint={color.textMuted} />
+              <Text style={[styles.body, styles.flex]}>{trip.target.address}</Text>
+            </View>
+          ) : null}
           {trip.routeLoading ? <Text style={styles.muted}>{labels.trip.routeLoading}</Text> : null}
         </View>
 
@@ -291,6 +332,7 @@ export function TripActiveScreen({ navigation }) {
         ) : null}
 
         {actions}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -299,10 +341,17 @@ export function TripActiveScreen({ navigation }) {
 // AI-assisted: see docs/AI_LOG.md #44 (the warning tone is applied now)
 function Notice({ testID, text, onRetry, tone = 'danger' }) {
   return (
-    <View testID={testID} style={styles.notice} accessibilityLiveRegion="polite">
-      <Text style={[styles.body, styles.flex, tone === 'danger' ? styles.error : styles.warning]}>{text}</Text>
+    <Card variant="status" tone={tone} testID={testID} style={styles.noticeCard} accessibilityLiveRegion="polite">
+      <View style={styles.noticeRow}>
+        <Icon
+          name={tone === 'danger' ? 'alert-circle' : 'warning'}
+          size={iconSize.md}
+          tint={tone === 'danger' ? color.onDangerSoft : color.onWarningSoft}
+        />
+        <Text style={[styles.body, styles.flex, tone === 'danger' ? styles.onDanger : styles.onWarning]}>{text}</Text>
+      </View>
       <SecondaryButton testID={`${testID}-retry`} label={labels.actions.retry} onPress={onRetry} />
-    </View>
+    </Card>
   );
 }
 
@@ -328,19 +377,62 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
-    shadowColor: color.text,
-    shadowOpacity: 0.12,
-    shadowRadius: space[2],
-    shadowOffset: { width: 0, height: -space[1] },
-    elevation: 6,
+    ...elevation.raised,
+  },
+  panelContent: {
+    gap: space[3],
+  },
+  info: {
+    gap: space[2],
+  },
+  remainingBlock: {
+    gap: space[0],
+  },
+  personRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
+  },
+  bodyStrong: {
+    ...type.bodyStrong,
+    color: color.text,
+  },
+  confirm: {
+    gap: space[2],
+  },
+  confirmHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
+  },
+  inlineError: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
+  },
+  noticeCard: {
+    gap: space[2],
+    padding: space[3],
+  },
+  noticeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space[2],
+  },
+  onWarning: {
+    color: color.onWarningSoft,
+  },
+  onDanger: {
+    color: color.onDangerSoft,
   },
   group: {
     gap: space[2],
   },
   notice: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[3],
+    alignItems: 'flex-start',
+    gap: space[2],
+    padding: space[3],
   },
   title: {
     ...type.title,
