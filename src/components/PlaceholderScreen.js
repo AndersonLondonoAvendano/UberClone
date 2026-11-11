@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   optionTextSelected: {
     color: color.text,
-    fontWeight: type.title.fontWeight,
+    fontFamily: type.title.fontFamily,
     textDecorationLine: 'underline',
   },
   body: {

@@ -769,7 +769,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: alto.
 - Diseño hecho cuando: solo tokens de DESIGN.md; atribución del mapa visible; avisos con texto, no solo color.
 - Diseño: Pendiente (ronda 2 estática, 2026-11-10, prompt #44: hallazgos 2 y 3 de la ronda 1 resueltos; 1 hallazgo medio nuevo —restante en `type.body` y tres textos que no siguen D-83— en `docs/diseno/auditorias/ronda-2-viaje.md`; cámara y puntos del mapa en cola para el celular)
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (verifier #44, 2026-11-10: 91 comprobaciones, sin hallazgos críticos ni mayores; 3 menores abiertos: reintentos en vuelo tras `cancel()` o cierre tardío en el bucle de `pump`, y un temporizador residual tras `dispose`). Antes: **No validada** en el checkpoint 2 (a: `tripStatus` quedaba en `in_progress`; b: no se podía tomar otra solicitud) y **Rechazada** por el verifier del prompt #43. Corrección en D-83. No pasa a «Validada» sin la evidencia del celular. Ajustes de diseño de la ronda 2 aplicados; Diseño sigue Pendiente hasta capturas del celular.
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 - **Checkpoint 3 (Anderson, 2026-11-10, celular real, fuente simulada, prompt #45):** VALIDADO por declaración: `tripStatus` pasa a `completed` y luego a `idle` al volver a Inicio; `cancelled` se publica al cancelar; «Pasajero a bordo» visible en la recogida; la cuenta regresiva es más fuerte; sin diálogo de permiso al volver a la app; modo avión al finalizar funciona. NO VALIDADO, defecto nuevo (c): tras finalizar O cancelar un viaje, con Disponible activo, ubicación del sistema encendida y permiso concedido, el aviso de Inicio queda para siempre en «Obteniendo tu ubicación…»; «Simular solicitud (provisional)» responde «Activa Disponible para simular una solicitud.»; no llegan solicitudes; apagar y encender el interruptor NO lo recupera; reiniciar la app sí; antes del primer viaje todo funciona. Los pasos 2 y 3 de la lista no se pudieron probar. T-44 sigue sin validar; diagnóstico y corrección en el prompt #45 (D-84).
 - **Checkpoint 3, repetición (Anderson, 2026-11-10, celular real, fuente simulada, SHOW_DEV_TOOLS=true, prompt #46):** el defecto (c) queda **CORREGIDO y VALIDADO por declaración de Anderson**: con `popTo('Home')` en las tres pantallas del viaje y el ajuste de `pump`, Disponible → simular solicitud → aceptar → finalizar → Inicio → llega otra sola; cancelar a mitad → llega otra; apagar y encender Disponible tras un viaje; repetido varias veces. **T-44 queda VALIDADA por declaración de Anderson en dispositivo**; Diseño sigue Pendiente (cola de diseño). Instrumentación `[DIAG-LOC]` retirada (D-84).
 
@@ -824,7 +824,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Validación: script temporal fuera del proyecto (60 comprobaciones), `check-constitution`, verifier distinto, prueba en el celular.
 - Riesgo: medio (regla de seguridad que publica Anderson).
 - Diseño: Pendiente
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50, 2026-11-11). La regla NO está publicada; sin ella, «Confirmar cobro» muestra el error con «Reintentar».
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 
 ### T-47 — Ganancias (hoy / semana / mes)
 - Spec: rebanada C de `docs/plan-entrega-final.md`
@@ -837,7 +837,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Validación: script temporal (bordes de periodo, vacío, comisión), verifier distinto, prueba en el celular.
 - Riesgo: bajo.
 - Diseño: Pendiente
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 
 ### T-48 — Historial
 - Spec: rebanada C de `docs/plan-entrega-final.md`
@@ -850,7 +850,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Validación: revisión de código por un verifier distinto y prueba en el celular.
 - Riesgo: bajo.
 - Diseño: Pendiente
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 
 ### T-49 — Perfil y Configuración (solo lectura)
 - Spec: rebanada C de `docs/plan-entrega-final.md`
@@ -863,7 +863,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Validación: revisión de código por un verifier distinto y prueba en el celular.
 - Riesgo: bajo.
 - Diseño: Pendiente
-- Estado: **Implementada y verificada en lo estático; pendiente de validación en dispositivo** (prompt #50).
+- Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 
 ## Fase 3 — Implementar
 (vacío)

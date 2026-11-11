@@ -547,3 +547,14 @@ Justificación: sin errores de coma flotante y coherencia entre lo mostrado y lo
 Propuesta por el agente principal y aprobada por Anderson (2026-11-11, prompt #50).
 Decisión: no hay pasarela real (P-03). «Confirmar cobro» solo guarda el viaje; el método de pago (`transfer` para tarjeta, `cash`, `none` para cancelados) se registra pero no se cobra nada. Esto se dice en la pantalla de resumen, en Configuración y en el README.
 Justificación: honestidad con la persona usuaria y alcance del taller.
+
+### D-90 — Rediseño visual de toda la app · Vigente
+Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #51).
+Decisión: rediseño solo de estilos, layout y presentación, por áreas A–G, con tokens ampliados sin renombrar, componentes compartidos (Card, Chip, DataRow), sombras suaves en reposo, esqueletos de carga y movimiento sutil que respeta reducir movimiento. Sin cambios de lógica, textos, testID ni etiquetas de accesibilidad. Reemplaza en DESIGN.md la prohibición de sombras en reposo y de separadores con línea.
+Justificación: coherencia, jerarquía y legibilidad; la revisión visual final es en el celular.
+
+### D-91 — Íconos Ionicons y fuente Inter · Vigente
+Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #52).
+Decisión: se permiten solo tres paquetes para presentación: `@expo/vector-icons` (solo Ionicons, único componente `src/components/Icon.js`, siempre decorativo y junto a un texto), `@expo-google-fonts/inter` (pesos 400/500/600/700 como familias en los tokens de tipografía) y `expo-font`. La fuente se carga con `useFonts` en `App.js` con espera máxima de 3 s; si falla o tarda, la app sigue con la fuente del sistema y ningún estilo depende de ella. Es el único cambio no estético en el archivo raíz.
+Justificación: identidad visual y legibilidad con riesgo acotado.
+Plan de reversa: quitar los usos de `Icon` (volver a íconos dibujados con View), quitar `useInterReady` de `App.js` y los tres paquetes de `package.json`; las familias en los tokens son inofensivas sin la fuente (cae al sistema). Pendiente para Anderson: añadir los tres paquetes a `scripts/dependencies.json` (hoy C15 reporta 3 errores) y hacer el build nativo.

@@ -4,7 +4,8 @@
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #20
-import { StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,7 +13,29 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import { AppStateProvider } from './src/context/AppStateContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { useFonts } from 'expo-font';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { color } from './src/theme/tokens';
+
+// AI-assisted: see docs/AI_LOG.md #52 (Inter font, safe loading)
+// Waits for Inter at most FONT_WAIT_MS. If the font fails or is slow the app continues with the
+// system font; no style depends on the font being present.
+const FONT_WAIT_MS = 3000;
+
+function useInterReady() {
+  const [loaded, error] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), FONT_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+  return loaded || error != null || timedOut;
+}
 
 // Navigation theme built only from design tokens. The accent is not used in the navigation chrome,
 // so `primary` maps to the text color; fonts come from the library default (system fonts).
@@ -30,6 +53,10 @@ const NAVIGATION_THEME = {
 };
 
 export default function App() {
+  const fontsReady = useInterReady();
+  if (!fontsReady) {
+    return <View style={styles.boot} />;
+  }
   return (
     <GestureHandlerRootView style={styles.fill}>
       <SafeAreaProvider>
@@ -48,4 +75,5 @@ export default function App() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  boot: { flex: 1, backgroundColor: color.bg },
 });

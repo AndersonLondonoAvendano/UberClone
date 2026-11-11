@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   optionTextActive: {
     color: color.text,
-    fontWeight: type.title.fontWeight,
+    fontFamily: type.title.fontFamily,
     textDecorationLine: 'underline',
   },
   optionTextInactive: {
