@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
@@ -127,6 +128,9 @@ export function DocumentsScreen() {
             </Text>
           </Card>
         ) : null}
+
+        {/* AI-assisted: see docs/AI_LOG.md #54 */}
+        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

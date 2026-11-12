@@ -614,4 +614,16 @@ Alternativa: mostrarlo en Perfil (posible; lo decide Anderson).
 Decisión: correo recortado (sin espacios al inicio y al fin), con el mismo patrón `algo@dominio.algo` de D-62; contraseña de mínimo 8 caracteres, sin máximo propio, sin recortar ni normalizar, con confirmación; el correo de la cuenta es independiente del correo personal del registro (no se precarga ni se sincroniza).
 Alternativa: precargar el correo del registro con el de la cuenta (descartada: cambia la spec 001 sin necesidad).
 
+### D-104 — Cerrar sesión en el registro y espera de guardado de viaje · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: (1) un componente único `AccountActions` ofrece la sección Cuenta de Configuración (correo enmascarado, «Cerrar sesión», «Cambiar de cuenta») y, en las tres pestañas de registro y el aviso de cuenta pendiente, solo «Cerrar sesión» como botón secundario con confirmación en pantalla que avisa que lo no enviado se pierde; ambos usan el mismo `resetSession`. (2) Antes de `signOut`, `resetSession` espera hasta 8 s (`TRIP_SAVE_DRAIN_TIMEOUT_MS`) a que termine el guardado de viaje en curso (cola `services/trip/saveQueue.js`); si no termina devuelve `trip-save-pending` sin cerrar sesión, y la pantalla ofrece «Reintentar» o «Cerrar sesión de todos modos» (con confirmación; opción `skipTripSaveWait`). Un viaje en curso sigue bloqueando siempre.
+Alternativa: cerrar sesión sin esperar el guardado (descartada: puede perder el último viaje).
+
+### D-105 — Botón «Cerrar sesión» en la pantalla de error de estado de cuenta · Propuesta (decidida por Anderson en T-72; pendiente de que Anderson la marque Vigente)
+Decisión: la variante `error` de `StartupScreen` (ruta ERROR del gate) añade un botón secundario «Cerrar sesión» reutilizando `AccountActions` con `variant="registration"` (confirmación en pantalla, sin `Alert`, mismo `useSessionReset`; testIDs `auth-*`). No aparece en la variante de carga. Evita que el conductor quede sin salida cuando falla la lectura del estado de cuenta.
+Alternativa: solo «Reintentar» (descartada: sin salida si el error persiste).
+
+### D-106 — Guardado fallido del resumen del viaje: pendiente de la rebanada de pagos · Propuesta
+Decisión: el guardado fallido del resumen del viaje (`SAVE.ERROR`) que no entra en la cola de guardado se deja PENDIENTE y enlazado a la rebanada de pagos, que redefine cuándo se guarda el viaje (se creará al completarlo, con estado de pago pendiente). No se implementa ahora (T-72 no lo toca).
+Alternativa: encolar ya el guardado fallido (descartada: se rediseña con pagos).
+
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

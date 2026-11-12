@@ -32,6 +32,7 @@ import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
 import { classifySaveError, SAVE_ERROR } from '../../services/trip/saveRetry';
 import { buildTripRecord, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
+import { trackTripSave } from '../../services/trip/saveQueue';
 import { saveTrip } from '../../services/tripRepository';
 import { color, iconSize, space, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
@@ -100,7 +101,8 @@ export function TripSummaryScreen({ navigation }) {
         startedAt: shown.startedAt,
         finishedAt: shown.finishedAt ?? Date.now(),
       });
-      await saveTrip(driverId, shown.tripId, record);
+      // AI-assisted: see docs/AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
+      await trackTripSave(() => saveTrip(driverId, shown.tripId, record));
       if (mounted.current) setSave({ state: SAVE.SAVED, kind: null });
     } catch (error) {
       if (mounted.current) setSave({ state: SAVE.ERROR, kind: classifySaveError(error) });

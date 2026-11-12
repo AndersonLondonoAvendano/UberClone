@@ -207,7 +207,8 @@ export const labels = {
     version: 'Versión',
     paymentNote: 'El cobro es simulado: no hay pasarela de pago real ni se mueve dinero.',
     mapsNote: 'Las rutas usan OSRM y los mapas son de OpenStreetMap y OpenFreeMap.',
-    authNote: 'Tu sesión es anónima en este teléfono: no hay inicio ni cierre de sesión.',
+    accountTitle: 'Cuenta',
+    accountEmail: 'Correo de la cuenta',
   },
   states: {
     loading: {
@@ -249,13 +250,6 @@ export const labels = {
     content: 'Contenido',
     loading: 'Cargando',
     empty: 'Vacío',
-    error: 'Error',
-  },
-  devAccount: {
-    title: 'Simulador de cuenta (provisional)',
-    loading: 'Cargando',
-    pending: 'Pendiente de aprobación',
-    approved: 'Aprobado',
     error: 'Error',
   },
   mapTest: {
@@ -340,6 +334,13 @@ export const labels = {
       cancel: 'Cancelar',
       error: 'No pudimos cerrar la sesión. Inténtalo de nuevo.',
       retry: 'Reintentar',
+      processing: 'Cerrando sesión…',
+      dismiss: 'Entendido',
+      registrationWarning: 'Dejarás de tener sesión y lo que no hayas enviado se perderá.',
+      tripSavePending: 'No se pudo guardar tu último viaje. Reintentar o cerrar sesión de todos modos',
+      forceSignOut: 'Cerrar sesión de todos modos',
+      forceConfirmTitle: '¿Cerrar sesión sin guardar el viaje?',
+      forceConfirmBody: 'Si cierras sesión ahora, tu último viaje podría no quedar en el historial.',
     },
     a11y: {
       showPassword: 'Mostrar contraseña',

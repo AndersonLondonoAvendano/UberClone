@@ -6,8 +6,8 @@
 // a fresh, untouched render.
 
 import { StyleSheet, Text, View } from 'react-native';
+import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
-import { DevAccountSwitch } from '../../components/DevAccountSwitch';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { DateField } from '../../components/registration/DateField';
@@ -167,7 +167,8 @@ export function PersonalDataScreen() {
           disabled={isLocked}
         />
 
-        <DevAccountSwitch />
+        {/* AI-assisted: see docs/AI_LOG.md #54 */}
+        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

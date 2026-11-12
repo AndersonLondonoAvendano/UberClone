@@ -2,8 +2,8 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #54
-// Shared app state (useContext): auth session (email/password), real account status (Firestore) with
-// a local override, and the demo value. The drivers/{uid} subscription opens only with a session and
+// Shared app state (useContext): auth session (email/password), real account status (Firestore)
+// and the demo value. The drivers/{uid} subscription opens only with a session and
 // is released when the user changes or is lost.
 
 import {
@@ -21,7 +21,6 @@ import { listenToAuthState, signOutLegacyAnonymous } from '../services/authServi
 import { listenToDriverAccount } from '../services/driverRepository';
 
 const INITIAL_DEMO_VALUE = '';
-const VALID_STATUSES = Object.values(ACCOUNT_STATUS);
 const INITIAL_AUTH = { authStatus: AUTH_STATUS.LOADING, authUser: null };
 const SIGNED_OUT_AUTH = { authStatus: AUTH_STATUS.SIGNED_OUT, authUser: null };
 // Account data is stored with the uid it belongs to, so data of a previous user is never shown.
@@ -32,7 +31,6 @@ const AppStateContext = createContext(null);
 export function AppStateProvider({ children }) {
   const [auth, setAuth] = useState(INITIAL_AUTH);
   const [account, setAccount] = useState(EMPTY_ACCOUNT);
-  const [simulatedStatus, setSimulatedStatus] = useState(null); // local override, set by simulateAccountStatus
   const [resolveToken, setResolveToken] = useState(0);
   const [demoValue, setDemoValue] = useState(INITIAL_DEMO_VALUE);
 
@@ -68,8 +66,6 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     if (!driverId) {
       setAccount(EMPTY_ACCOUNT);
-      // The local status override belongs to the user that is gone.
-      setSimulatedStatus(null);
       return undefined;
     }
     let cancelled = false;
@@ -92,28 +88,19 @@ export function AppStateProvider({ children }) {
   }, [driverId, resolveToken]);
 
   const retryAccountStatus = useCallback(() => {
-    setSimulatedStatus(null);
     setResolveToken((token) => token + 1);
   }, []);
 
-  // An invalid value is ignored: state is unchanged.
-  const simulateAccountStatus = useCallback((value) => {
-    if (!VALID_STATUSES.includes(value)) return;
-    setSimulatedStatus(value);
-  }, []);
-
-  // Session reset: clears the local override and the demo value. The driver document data is NOT
+  // Session reset: clears the demo value. The driver document data is NOT
   // touched here (that would send the gate to loading before signOut runs): it is cleared by the
   // effect above the moment the uid is lost, and `current` below never shows another uid's data.
   const reset = useCallback(() => {
-    setSimulatedStatus(null);
     setDemoValue(INITIAL_DEMO_VALUE);
   }, []);
 
   const current = account.uid === driverId ? account : EMPTY_ACCOUNT;
   const driverProfile = current.profile;
-  const accountStatus = simulatedStatus
-    ?? (current.error ? ACCOUNT_STATUS.ERROR : (current.resolved ? current.status : ACCOUNT_STATUS.LOADING));
+  const accountStatus = current.error ? ACCOUNT_STATUS.ERROR : (current.resolved ? current.status : ACCOUNT_STATUS.LOADING);
 
   const value = useMemo(
     () => ({
@@ -123,12 +110,11 @@ export function AppStateProvider({ children }) {
       driverProfile,
       accountStatus,
       retryAccountStatus,
-      simulateAccountStatus,
       demoValue,
       setDemoValue,
       reset,
     }),
-    [driverId, authStatus, authUser, driverProfile, accountStatus, retryAccountStatus, simulateAccountStatus, demoValue, reset],
+    [driverId, authStatus, authUser, driverProfile, accountStatus, retryAccountStatus, demoValue, reset],
   );
 
   return createElement(AppStateContext.Provider, { value }, children);

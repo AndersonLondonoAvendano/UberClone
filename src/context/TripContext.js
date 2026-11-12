@@ -25,6 +25,7 @@ import { getRoute } from '../services/routing';
 import { buildStraightLineRoute } from '../services/routing/straightLine';
 import { createTripController } from '../services/trip/tripController';
 import { saveTrip } from '../services/tripRepository';
+import { trackTripSave } from '../services/trip/saveQueue';
 import { saveWithRetry } from '../services/trip/saveRetry';
 import { buildTripRecord, SAVED_STATUS } from '../services/trip/tripRecord';
 import { useAppState } from './AppStateContext';
@@ -100,7 +101,8 @@ export function TripProvider({ children }) {
     quietly(() => releaseTrip(final.tripId));
     // AI-assisted: see docs/AI_LOG.md #50 (cancelled trips are saved silently, bounded retry, never blocking)
     if (driverId && final.finished === TRIP_STATUS.CANCELLED) {
-      quietly(async () => {
+      // AI-assisted: see docs/AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
+      trackTripSave(async () => {
         const record = buildTripRecord({
           driverId,
           tripId: final.tripId,
@@ -110,7 +112,7 @@ export function TripProvider({ children }) {
           finishedAt: final.finishedAt,
         });
         await saveWithRetry(() => saveTrip(driverId, final.tripId, record));
-      });
+      }).catch(() => {});
     }
     quietly(() => publishDriverTripStatus(DRIVER_LOCATION_IDLE_STATUS, final.position));
     setTrip(null);

@@ -9,13 +9,20 @@
 // deps (a missing step counts as skipped):
 //   hasTripInProgress(), discardPendingRequest(), setUnavailableAndPublishFinal(),
 //   stopLocation(), releaseSubscriptions(), clearContexts(), clearOwnStorage(), signOut(),
-//   finalPublishTimeoutMs (default 5000), setTimeoutFn / clearTimeoutFn (injectable timers).
+//   waitForTripSaveQueue() (optional): resolves when no trip save is in flight; awaited right before
+//   signOut for at most tripSaveDrainTimeoutMs, otherwise nothing is signed out (trip-save-pending).
+//   finalPublishTimeoutMs (default 5000), tripSaveDrainTimeoutMs (default 8000),
+//   setTimeoutFn / clearTimeoutFn (injectable timers).
+// options: { skipTripSaveWait: true } skips the save wait (explicit "sign out anyway"). A trip in
+//   progress still blocks.
 
 export const FINAL_PUBLISH_TIMEOUT_MS = 5000;
+export const TRIP_SAVE_DRAIN_TIMEOUT_MS = 8000;
 
 export const SESSION_RESET_REASON = {
   TRIP_IN_PROGRESS: 'trip-in-progress',
   SIGN_OUT_FAILED: 'sign-out-failed',
+  TRIP_SAVE_PENDING: 'trip-save-pending',
 };
 
 export const STEP_STATUS = {
@@ -47,9 +54,10 @@ async function runBounded(fn, timeoutMs, setTimeoutFn, clearTimeoutFn) {
   return status;
 }
 
-export async function resetSession(deps = {}) {
+export async function resetSession(deps = {}, options = {}) {
   const {
     finalPublishTimeoutMs = FINAL_PUBLISH_TIMEOUT_MS,
+    tripSaveDrainTimeoutMs = TRIP_SAVE_DRAIN_TIMEOUT_MS,
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
   } = deps;
@@ -76,6 +84,20 @@ export async function resetSession(deps = {}) {
   steps.releaseSubscriptions = await runStep(deps.releaseSubscriptions);
   steps.clearContexts = await runStep(deps.clearContexts);
   steps.clearOwnStorage = await runStep(deps.clearOwnStorage);
+
+  // 5b. Wait (bounded) for pending trip saves: signing out first would make them fail for good.
+  if (!(options && options.skipTripSaveWait)) {
+    steps.tripSaveQueue = await runBounded(
+      deps.waitForTripSaveQueue,
+      tripSaveDrainTimeoutMs,
+      setTimeoutFn,
+      clearTimeoutFn,
+    );
+    if (steps.tripSaveQueue === STEP_STATUS.TIMEOUT) {
+      return { ok: false, reason: SESSION_RESET_REASON.TRIP_SAVE_PENDING, steps };
+    }
+  }
+
   steps.signOut = await runStep(deps.signOut);
 
   if (steps.signOut === STEP_STATUS.FAILED) {
@@ -86,5 +108,5 @@ export async function resetSession(deps = {}) {
 
 // Plan DP-11 shape: bind the dependencies once and get the zero-argument procedure.
 export function createSessionReset(deps) {
-  return () => resetSession(deps);
+  return (options) => resetSession(deps, options);
 }

@@ -7,10 +7,11 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #48 (import order)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
+// AI-assisted: see docs/AI_LOG.md #54
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
-// line shows the id of the last request received, and the map test entry and account simulator.
+// line shows the id of the last request received, and the map test entry.
 // The drawer button dispatches the open-drawer action; the stack does not handle it, so it reaches
 // the parent drawer navigator.
 // T-43: each new incoming request (one at a time) opens the request card once; the phone location
@@ -21,7 +22,6 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { AvailabilitySwitch } from '../../components/AvailabilitySwitch';
 import { Card } from '../../components/Card';
-import { DevAccountSwitch } from '../../components/DevAccountSwitch';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { PrimaryButton } from '../../components/PrimaryButton';
@@ -128,7 +128,6 @@ export function HomeScreen({ navigation }) {
             onPress={() => navigation.navigate('MapTest')}
           />
         ) : null}
-        <DevAccountSwitch />
       </View>
     </PlaceholderScreen>
   );

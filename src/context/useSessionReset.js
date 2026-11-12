@@ -5,12 +5,14 @@
 // in the registration branch), so the hook can be used from either branch without changing the
 // strict useAvailability / useTrip / useRegistrationForm contracts. Contexts are read through a ref
 // that is refreshed after every render, so the procedure always sees the latest values.
-// Concurrent calls share the call in flight.
+// Concurrent calls share the call in flight. resetSession({ skipTripSaveWait: true }) signs out
+// without waiting for the pending trip saves (explicit user choice).
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { DRIVER_LOCATION_IDLE_STATUS } from '../constants/tripStatus';
 import { signOutUser } from '../services/authService';
 import { publishDriverTripStatus } from '../services/driverLocationPublisher';
+import { waitForTripSaveQueue } from '../services/trip/saveQueue';
 import { buildSessionResetDeps } from '../services/session/buildSessionResetDeps';
 import { createSessionReset } from '../services/session/resetSession';
 import { useAppState } from './AppStateContext';
@@ -40,15 +42,16 @@ export function useSessionReset() {
           getAppState: () => latestRef.current.appState,
           getRegistration: () => latestRef.current.registration,
           publishIdleStatus: (position) => publishDriverTripStatus(DRIVER_LOCATION_IDLE_STATUS, position),
+          waitForTripSaveQueue,
           signOut: signOutUser,
         }),
       ),
     [],
   );
 
-  return useCallback(() => {
+  return useCallback((options) => {
     if (inFlightRef.current) return inFlightRef.current;
-    const pending = runReset().finally(() => {
+    const pending = runReset(options).finally(() => {
       inFlightRef.current = null;
     });
     inFlightRef.current = pending;

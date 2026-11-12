@@ -1120,7 +1120,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: alto.
 - Diseño hecho cuando: solo tokens; íconos Ionicons junto a texto; confirmación visible con 200 % de fuente.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
 
 ### T-72 — R4c: retiro de paneles de desarrollo anónimos y de `ensureAnonymousUser`
 - Spec: `specs/002-funcionalidad-final/spec.md` (R4c, RF-38, D-53, D-93)
@@ -1135,7 +1135,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: medio.
 - Diseño hecho cuando: sin huecos visuales donde estaban los paneles.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
 
 ### T-73 — R4d: texto de las reglas de seguridad y orden de publicación
 - Spec: `specs/002-funcionalidad-final/spec.md` (R4d, D-99; plan DP-17)

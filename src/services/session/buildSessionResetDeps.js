@@ -7,6 +7,7 @@
 // publishIdleStatus(position): publishes the idle driver status through the existing writer queue.
 // clearOwnStorage(): optional. The app has no own AsyncStorage keys (only Firebase Auth persistence
 //   uses it and it must survive until signOut), so the default is an explicit no-op.
+// waitForTripSaveQueue(): resolves when no trip save is in flight (see services/trip/saveQueue.js).
 // signOut(): REQUIRED. resetSession counts a missing signOut as ok, so it is enforced here.
 
 const noop = async () => {};
@@ -31,6 +32,7 @@ export function buildSessionResetDeps({
   getRegistration,
   publishIdleStatus,
   clearOwnStorage = noop,
+  waitForTripSaveQueue,
   signOut,
 }) {
   if (typeof signOut !== 'function') {
@@ -93,6 +95,7 @@ export function buildSessionResetDeps({
     },
 
     clearOwnStorage,
+    waitForTripSaveQueue,
     signOut,
   };
 }
