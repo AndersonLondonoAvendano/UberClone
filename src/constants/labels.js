@@ -10,6 +10,7 @@
 // AI-assisted: see docs/AI_LOG.md #41
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #54
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -51,6 +52,12 @@ export const labels = {
     devBusy: 'Ya hay una solicitud o un viaje en curso.',
     devNotSupported: 'La API real no permite simular solicitudes.',
     servicesOff: 'Activa la ubicación del teléfono para estar disponible.',
+    // AI-assisted: see docs/AI_LOG.md #55 (F1b: Home map)
+    hintLocalOnly: 'Solo tú ves tu posición. Activa Disponible para recibir solicitudes.',
+    permissionNeeded: 'Necesitamos tu ubicación para mostrarte en el mapa y recibir solicitudes.',
+    grantPermission: 'Permitir ubicación',
+    mapLabel: 'Mapa con tu posición',
+    noSignal: 'Aún sin señal de ubicación.',
   },
   trip: {
     requestTitle: 'Solicitud entrante',
@@ -66,7 +73,7 @@ export const labels = {
     tripLength: 'Viaje de {km} km · {min} min',
     category: 'Categoría',
     payment: 'Pago',
-    paymentMethod: { card: 'Tarjeta', cash: 'Efectivo' },
+    paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', stripe: 'Stripe', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
     net: 'Tu ganancia',
@@ -130,10 +137,12 @@ export const labels = {
     minValue: '{min} min',
     // AI-assisted: see docs/AI_LOG.md #50 (simulated payment and saving, T-46)
     paymentTitle: 'Cobro',
-    paymentSimulated: 'Cobro simulado: no se mueve dinero real.',
+    paymentSimulated: 'Pago de prueba: no se mueve dinero real.',
     paymentCash: 'Efectivo: recibe el pago del pasajero en mano.',
-    paymentTransfer: 'Transferencia a tu cuenta de Mercado Pago ({email}).',
-    paymentTransferNoEmail: 'Transferencia a tu cuenta de Mercado Pago registrada.',
+    paymentTransfer: 'Transferencia a tu correo de cobros ({email}).',
+    paymentTransferNoEmail: 'Transferencia a tu correo de cobros registrado.',
+    paymentCardGeneric: 'El pago se cobra con tarjeta.',
+    paymentCardChosen: { mercadopago: 'El pago se cobra con tarjeta (Mercado Pago).', stripe: 'El pago se cobra con tarjeta (Stripe).' },
     confirmCharge: 'Confirmar cobro',
     confirmChargeHint: 'Guarda este viaje en tu historial',
     saving: 'Guardando el viaje…',
@@ -149,6 +158,84 @@ export const labels = {
     leaveConfirm: 'Sí, volver sin guardar',
     leaveKeep: 'Seguir en el resumen',
     noTrip: 'No hay un viaje para mostrar.',
+    // AI-assisted: see docs/AI_LOG.md #55 (charge state and actions, T-94)
+    paymentChip: {
+      approved: 'Aprobado',
+      pending: 'Pendiente',
+      rejected: 'Rechazado',
+      cash: 'Efectivo',
+      unavailable: 'No disponible',
+    },
+    // AI-assisted: see docs/AI_LOG.md #55 (charge state screen states, T-96)
+    paymentStateTitle: 'Estado del cobro',
+    paymentLoading: 'Consultando el estado del cobro',
+    paymentOffline: {
+      title: 'Sin conexión',
+      message: 'No podemos consultar el estado del cobro sin internet. Tu viaje está guardado; puedes volver a Inicio y revisarlo después.',
+    },
+    paymentBackendUnavailable: {
+      title: 'Servicio de cobro no disponible',
+      message: 'No pudimos contactar el servicio de cobro. Tu viaje está guardado; puedes volver a Inicio y cobrar más tarde.',
+    },
+    paymentError: {
+      title: 'No pudimos consultar el cobro',
+      message: 'Algo falló al traer el estado del cobro. Tu viaje está guardado; vuelve a Inicio e inténtalo más tarde.',
+    },
+    paymentAction: {
+      charge: 'Cobrar con Mercado Pago',
+      retry: 'Reintentar pago',
+      reloadProviders: 'Reintentar',
+      verify: 'Verificar pago',
+      confirmCash: 'Confirmar efectivo recibido',
+    },
+    // AI-assisted: see docs/AI_LOG.md #58 (T-147: one charge button per configured gateway; Stripe is test mode)
+    chargeProvider: {
+      mercadopago: 'Cobrar con Mercado Pago',
+      stripe: 'Cobrar con Stripe (tarjeta de prueba)',
+    },
+    // With two gateways the retry button names the gateway; the single-gateway label stays paymentAction.retry.
+    retryProvider: {
+      mercadopago: 'Reintentar pago con Mercado Pago',
+      stripe: 'Reintentar pago con Stripe (tarjeta de prueba)',
+    },
+    // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
+    // AI-assisted: see docs/AI_LOG.md #55 (single charge panel message, T-118)
+    chargePanel: {
+      cashPending: 'Falta confirmar que recibiste el efectivo.',
+      cashCollected: 'Efectivo recibido. El viaje quedó guardado en tu historial.',
+      cardApproved: 'Pago aprobado. El viaje quedó guardado en tu historial.',
+      cardRejected: 'Pago rechazado. Toca “Reintentar pago”.',
+      cardRejectedChoose: 'Pago rechazado. Elige una opción de reintento.',
+      savedOnly: 'Viaje guardado en tu historial.',
+      noGateway: 'No hay una pasarela de pago configurada',
+      providersFailed: 'No pudimos consultar las pasarelas de pago. Revisa tu conexión y que el servicio esté encendido.',
+      cardPendingGeneric: 'Viaje guardado. Falta el pago con tarjeta.',
+      serviceError: 'No pudimos completar la acción con el servicio de cobro. Inténtalo de nuevo.',
+    },
+    paymentActionsTitle: 'Acciones de cobro',
+    paymentActionBusy: 'Procesando…',
+    paymentCardNote: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando Mercado Pago lo confirma; esta pantalla no lo marca.',
+    paymentCardNoteGeneric: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando la pasarela lo confirma; esta pantalla no lo marca.',
+    paymentCashCollected: 'Efectivo cobrado.',
+    // AI-assisted: see docs/AI_LOG.md #57 (T-126: one message per payments service error class, no URL/token)
+    paymentServiceError: {
+      notConfigured: { title: 'Servicio de cobro sin configurar', message: 'El servicio de cobro no está configurado en esta app. Avisa a soporte o revisa la configuración de la app.' },
+      offline: { title: 'Sin conexión con el cobro', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      timeout: { title: 'El cobro tardó demasiado', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      serverError: { title: 'Servicio de cobro con problemas', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      sessionExpired: { title: 'Sesión expirada', message: 'Tu sesión expiró; vuelve a iniciar sesión.' },
+      notFound: { title: 'No encontramos el cobro', message: 'El servicio de cobro no encontró este viaje. Actualiza la pantalla o inténtalo más tarde.' },
+      invalidResponse: { title: 'Respuesta inesperada', message: 'El servicio de cobro respondió algo que no entendemos. Inténtalo de nuevo en unos minutos.' },
+      providerError: { title: 'La pasarela no respondió', message: 'La pasarela de pago no pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.' },
+      providerNotConfigured: { title: 'Pasarela no configurada', message: 'Esa pasarela de pago no está configurada en el servicio. Elige otra o avisa a soporte.' },
+    },
+    paymentActionError: {
+      offline: { title: 'Sin conexión', message: 'No pudimos completar la acción sin internet. Inténtalo de nuevo cuando vuelvas a tener conexión.' },
+      backendUnavailable: { title: 'Servicio de cobro no disponible', message: 'No pudimos contactar el servicio de cobro. Inténtalo de nuevo en unos minutos.' },
+      failed: { title: 'No pudimos completar la acción', message: 'Algo falló con el cobro. Inténtalo de nuevo.' },
+      openFailed: { title: 'No pudimos abrir el pago', message: 'No se pudo abrir el navegador con el enlace de pago. Inténtalo de nuevo.' },
+      cashFailed: { title: 'No pudimos confirmar el efectivo', message: 'No se guardó la confirmación. Revisa tu conexión e inténtalo de nuevo.' },
+    },
   },
   // AI-assisted: see docs/AI_LOG.md #50 (earnings, history, profile and settings: T-47 to T-49)
   earnings: {
@@ -163,12 +250,23 @@ export const labels = {
     emptyMessage: 'Cuando completes un viaje y confirmes el cobro, aparece aquí.',
     errorMessage: 'No pudimos traer tus ganancias. Revisa tu conexión e inténtalo de nuevo.',
     tripLine: '{passenger} · {time}',
+    // AI-assisted: see docs/AI_LOG.md #55 (RF-40: neutral text when a trip has no valid date)
+    timeUnknown: 'Hora no disponible',
+    // AI-assisted: see docs/AI_LOG.md #55 (T-100: balance with the platform)
+    balance: 'Saldo con la plataforma',
+    balanceCredit: 'Saldo a favor de la plataforma',
+    balanceHint: 'La plataforma te debe esta cantidad por los cobros con tarjeta.',
+    // AI-assisted: see docs/AI_LOG.md #56 (T-108: six metrics)
+    gross: 'Total facturado',
+    tips: 'Propinas',
+    average: 'Promedio por viaje',
+    metricsTitle: 'Resumen del periodo',
+    balanceCreditHint: 'Debes esta cantidad a la plataforma por la comisión de los viajes en efectivo.',
   },
   history: {
     emptyTitle: 'Todavía no tienes viajes',
     emptyMessage: 'Tus viajes completados y cancelados aparecen aquí cuando termines uno.',
     errorMessage: 'No pudimos traer tu historial. Revisa tu conexión e inténtalo de nuevo.',
-    route: '{origin} → {destination}',
     status: { completed: 'Completado', cancelled: 'Cancelado' },
     cancelledAmounts: 'Sin cobro',
     fare: 'Tarifa',
@@ -177,6 +275,63 @@ export const labels = {
     showMoreHint: 'Muestra más viajes anteriores',
     itemA11y: '{status}. {date}. {passenger}. De {origin} a {destination}.',
     itemA11yAmounts: ' Tarifa {fare}. Tu ganancia {net}.',
+    dateUnknown: 'Fecha no disponible',
+    // AI-assisted: see docs/AI_LOG.md #56 (Rango validation messages, T-101)
+    rangeMissing: 'Elige la fecha de inicio y la fecha de fin.',
+    rangeOrder: 'La fecha de inicio no puede ser posterior a la fecha de fin.',
+    rangeTooLong: 'El rango no puede superar 366 días.',
+    weekdaysShort: ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'],
+    // AI-assisted: see docs/AI_LOG.md #56 (T-104 to T-106: filters, chart, paginated list)
+    periodsA11y: 'Periodo del historial',
+    periods: { day: 'Hoy', week: 'Semana', month: 'Mes', range: 'Rango' },
+    methodsA11y: 'Método de pago',
+    methods: { all: 'Todos', mercadopago: 'Tarjeta', cash: 'Efectivo' },
+    rangeStart: 'Desde',
+    rangeEnd: 'Hasta',
+    rangeHint: 'Elige las fechas para ver tus viajes.',
+    loadMore: 'Cargar más',
+    loadMoreHint: 'Trae los siguientes 20 viajes',
+    loadingMore: 'Cargando más viajes',
+    loadMoreError: 'No pudimos traer más viajes. Inténtalo de nuevo.',
+    paymentStatus: { pending: 'Pago pendiente', approved: 'Pago aprobado', rejected: 'Pago rechazado', paid: 'Pagado' },
+    paymentUnknown: 'Pago sin estado',
+    legacyPayment: 'Cobro simulado',
+    itemPayment: ' {payment}.',
+    itemCategory: ' Categoría {category}.',
+    chartTitle: 'Ganancia neta',
+    chartEmpty: 'Sin ganancias en este periodo',
+    chartSummary: 'Gráfica de ganancia neta. Total {total}.',
+    chartTop: ' Mayor ganancia: {label}, {value}.',
+    chartBar: '{label}: {value}',
+    chartTotalLine: 'Total {total}',
+    chartTopLine: 'Mayor: {label} · {value}',
+    chartNote: 'La gráfica suma los viajes cargados.',
+    // AI-assisted: see docs/AI_LOG.md #57 (T-109)
+    detail: {
+      title: 'Detalle del viaje',
+      duration: 'Duración',
+      distance: 'Distancia',
+      commission: 'Comisión',
+      tip: 'Propina',
+      noTip: 'Sin propina',
+      method: 'Método de pago',
+      status: 'Estado',
+      rating: 'Calificación',
+      ratingValue: '★ {rating}',
+      ratingA11y: 'Calificación {rating} de 5',
+      durationValue: '{minutes} min',
+      distanceValue: '{km} km',
+      // AI-assisted: see docs/AI_LOG.md #58 (T-150: the gateway name is shown)
+      methods: { card: 'Tarjeta', mercadopago: 'Tarjeta (Mercado Pago)', stripe: 'Tarjeta (Stripe)', cash: 'Efectivo' },
+      methodUnknown: 'No disponible',
+      routeUnavailable: 'Ruta no disponible',
+      routeA11y: 'Ruta del viaje',
+      back: 'Volver al historial',
+      // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+      openHint: 'Abre el detalle del viaje',
+      emptyTitle: 'No encontramos este viaje',
+      emptyMessage: 'Vuelve al historial y elige otro viaje.',
+    },
   },
   profile: {
     photoA11y: 'Foto de perfil',
@@ -191,14 +346,31 @@ export const labels = {
     color: 'Color',
     category: 'Categoría',
     payments: 'Cobros',
-    mercadoPago: 'Correo de Mercado Pago',
+    payoutEmail: 'Correo de cobros',
+    payoutEmailHelp: 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.',
     account: 'Estado de la cuenta',
     accountStatus: { pending: 'Pendiente de aprobación', approved: 'Aprobada' },
     missing: 'Sin dato',
     emptyTitle: 'Aún no hay datos de tu perfil',
     emptyMessage: 'Completa tu registro para ver aquí tu perfil.',
     errorMessage: 'No pudimos traer tu perfil. Revisa tu conexión e inténtalo de nuevo.',
-    readOnly: 'Por ahora solo puedes ver estos datos.',
+    readOnly: 'Para cambiar estos datos contacta a soporte.',
+    // R13 (T-157): edit mode texts. Inline field errors (profile.errors) are linked below the object.
+    edit: {
+      edit: 'Editar',
+      save: 'Guardar',
+      cancel: 'Cancelar',
+      retry: 'Reintentar',
+      editHint: 'Abre la edición de nombre, celular, color del vehículo y correo de cobros.',
+      saveHint: 'Guarda los cambios de tu perfil.',
+      cancelHint: 'Descarta los cambios y vuelve a ver tu perfil.',
+      retryHint: 'Vuelve a intentar guardar los cambios.',
+    },
+    status: {
+      saving: 'Guardando…',
+      saved: 'Cambios guardados.',
+      networkError: 'No pudimos guardar. Revisa tu conexión e inténtalo de nuevo. Lo que escribiste se conserva.',
+    },
   },
   settings: {
     appTitle: 'Información de la app',
@@ -207,7 +379,8 @@ export const labels = {
     version: 'Versión',
     paymentNote: 'El cobro es simulado: no hay pasarela de pago real ni se mueve dinero.',
     mapsNote: 'Las rutas usan OSRM y los mapas son de OpenStreetMap y OpenFreeMap.',
-    authNote: 'Tu sesión es anónima en este teléfono: no hay inicio ni cierre de sesión.',
+    accountTitle: 'Cuenta',
+    accountEmail: 'Correo de la cuenta',
   },
   states: {
     loading: {
@@ -228,6 +401,7 @@ export const labels = {
   },
   a11y: {
     openDrawer: 'Abrir menú',
+    myLocation: 'Mi ubicación',
     back: 'Volver a la pantalla anterior',
     drawerItems: {
       profile: 'Ir a Perfil',
@@ -251,13 +425,6 @@ export const labels = {
     empty: 'Vacío',
     error: 'Error',
   },
-  devAccount: {
-    title: 'Simulador de cuenta (provisional)',
-    loading: 'Cargando',
-    pending: 'Pendiente de aprobación',
-    approved: 'Aprobado',
-    error: 'Error',
-  },
   mapTest: {
     title: 'Prueba del mapa',
     openFromHome: 'Probar mapa y ruta (provisional)', // development-only entry, gated by SHOW_DEV_TOOLS
@@ -278,6 +445,83 @@ export const labels = {
     sharedFieldLabel: 'Valor de prueba compartido',
     sharedValueLabel: 'Valor escrito en Datos personales',
     sharedValueEmpty: 'Todavía no escribiste nada',
+  },
+  auth: {
+    login: {
+      title: 'Iniciar sesión',
+      submit: 'Iniciar sesión',
+      submitting: 'Entrando…',
+      forgotLink: 'Recuperar contraseña',
+      signUpLink: 'Crear cuenta',
+    },
+    signUp: {
+      title: 'Crear cuenta',
+      submit: 'Crear cuenta',
+      submitting: 'Creando cuenta…',
+      loginLink: 'Ya tengo cuenta',
+    },
+    reset: {
+      title: 'Recuperar contraseña',
+      submit: 'Enviar instrucciones',
+      submitting: 'Enviando…',
+      neutral: 'Si el correo tiene una cuenta, te enviamos instrucciones para restablecer tu contraseña.',
+      intro: 'Escribe el correo de tu cuenta y te enviaremos instrucciones para restablecer tu contraseña.',
+      backLink: 'Volver a iniciar sesión',
+    },
+    fields: {
+      email: { label: 'Correo electrónico', placeholder: 'nombre@correo.com' },
+      password: { label: 'Contraseña' },
+      confirmation: { label: 'Confirmar contraseña' },
+    },
+    fieldErrors: {
+      emailRequired: 'Escribe tu correo.',
+      emailInvalid: 'Escribe un correo válido, con @ y dominio.',
+      passwordRequired: 'Escribe tu contraseña.',
+      passwordTooShort: 'La contraseña debe tener al menos 8 caracteres.',
+      confirmationRequired: 'Confirma tu contraseña.',
+      confirmationMismatch: 'Las contraseñas no coinciden.',
+    },
+    passwordHelp: {
+      title: 'Tu contraseña debe tener:',
+      minLength: 'Al menos 8 caracteres',
+      met: 'Cumple',
+      unmet: 'Pendiente',
+    },
+    errors: {
+      invalidCredentials: 'Correo o contraseña incorrectos.',
+      network: 'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
+      tooManyRequests: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+      emailInUse: 'Ese correo ya tiene una cuenta. Inicia sesión o usa otro correo.',
+      weakPassword: 'La contraseña es muy débil. Usa al menos 8 caracteres.',
+      invalidEmail: 'Escribe un correo válido, con @ y dominio.',
+      generic: 'No se pudo completar la acción. Inténtalo de nuevo.',
+    },
+    signOut: {
+      blockedByTrip: 'Termina o cancela el viaje antes de cerrar sesión',
+      confirmTitle: '¿Cerrar sesión?',
+      confirmBody: 'Dejarás de estar disponible y tendrás que iniciar sesión de nuevo.',
+      confirmSwitchTitle: '¿Cambiar de cuenta?',
+      confirmSwitchBody: 'Cerraremos la sesión actual para que inicies con otra cuenta.',
+      confirm: 'Cerrar sesión',
+      confirmSwitch: 'Cambiar de cuenta',
+      cancel: 'Cancelar',
+      error: 'No pudimos cerrar la sesión. Inténtalo de nuevo.',
+      retry: 'Reintentar',
+      processing: 'Cerrando sesión…',
+      dismiss: 'Entendido',
+      registrationWarning: 'Dejarás de tener sesión y lo que no hayas enviado se perderá.',
+      tripSavePending: 'No se pudo guardar tu último viaje. Reintentar o cerrar sesión de todos modos',
+      forceSignOut: 'Cerrar sesión de todos modos',
+      forceConfirmTitle: '¿Cerrar sesión sin guardar el viaje?',
+      forceConfirmBody: 'Si cierras sesión ahora, tu último viaje podría no quedar en el historial.',
+    },
+    a11y: {
+      showPassword: 'Mostrar contraseña',
+      hidePassword: 'Ocultar contraseña',
+      passwordShown: 'La contraseña está visible',
+      passwordHidden: 'La contraseña está oculta',
+      submitting: 'Enviando, espera un momento',
+    },
   },
   registration: {
     pendingNotice: 'Pendiente de aprobación. Mientras tu cuenta se revisa, no puedes editar ni reenviar tu registro.',
@@ -307,6 +551,7 @@ export const labels = {
       amarillo: 'Amarillo',
       otro: 'Otro',
     },
+    unselected: 'sin seleccionar',
     photo: {
       instruction: 'Elige una foto con la cámara o la galería.',
       camera: 'Cámara',
@@ -341,8 +586,32 @@ export const labels = {
     },
     documents: {
       fields: {
-        mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
+        mercadoPagoEmail: {
+          label: 'Correo de cobros',
+          help: 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.',
+          error: 'Escribe un correo válido, con @ y dominio.',
+        },
         termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
+        // AI-assisted: see docs/AI_LOG.md #55
+        licenseNumber: { label: 'Número de licencia de conducción', error: 'Escribe un número de licencia válido (5 a 20 letras o números).' },
+        licensePhotoUrl: { label: 'Foto de la licencia de conducción', error: 'Elige una foto de tu licencia con la cámara o la galería.' },
+        licenseExpiresAt: { label: 'Vencimiento de la licencia', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+        soatPhotoUrl: { label: 'Foto del SOAT', error: 'Elige una foto de tu SOAT con la cámara o la galería.' },
+        soatExpiresAt: { label: 'Vencimiento del SOAT', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+        technicalReviewPhotoUrl: { label: 'Foto de la revisión técnico-mecánica', error: 'Elige una foto de tu revisión técnico-mecánica con la cámara o la galería.' },
+        technicalReviewExpiresAt: { label: 'Vencimiento de la revisión técnico-mecánica', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+      },
+      // AI-assisted: see docs/AI_LOG.md #55
+      sections: {
+        license: 'Licencia de conducción',
+        soat: 'SOAT',
+        technicalReview: 'Revisión técnico-mecánica',
+        payments: 'Pagos y términos',
+      },
+      validation: {
+        expiryInvalid: 'Elige una fecha de vencimiento posterior a hoy.',
+        licenseNumberInvalid: 'Escribe un número de licencia válido (5 a 20 letras o números).',
+        technicalReviewNotRequired: 'No se exige: tu vehículo tiene menos de 5 años.',
       },
       termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent} % sobre cada viaje.',
       submit: 'Enviar registro',
@@ -357,6 +626,14 @@ export const labels = {
       },
     },
   },
+};
+
+// R13 (T-157): profile inline errors point at the registration messages (same text, no copies).
+labels.profile.errors = {
+  fullName: labels.registration.personalData.fields.fullName.error,
+  phone: labels.registration.personalData.fields.phone.error,
+  vehicleColor: labels.registration.vehicle.fields.color.error,
+  payoutEmail: labels.registration.documents.fields.mercadoPagoEmail.error,
 };
 
 export function getSubmitErrorMessage(code) {

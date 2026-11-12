@@ -27,6 +27,7 @@ import { EarningsScreen } from '../screens/main/EarningsScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
 import { SettingsScreen } from '../screens/main/SettingsScreen';
+import { TripDetailScreen } from '../screens/main/TripDetailScreen';
 import { color } from '../theme/tokens';
 import { AppDrawerContent } from './AppDrawerContent';
 import { TripStack } from './TripStack';
@@ -76,6 +77,8 @@ function DrawerBody() {
         <Drawer.Screen name="Home" component={TripStack} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
         <Drawer.Screen name="History" component={HistoryScreen} />
+        {/* AI-assisted: see docs/AI_LOG.md #57 (T-110): opened from History, not listed in the panel */}
+        <Drawer.Screen name="TripDetail" component={TripDetailScreen} />
         <Drawer.Screen name="Earnings" component={EarningsScreen} />
         <Drawer.Screen name="Settings" component={SettingsScreen} />
         {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}

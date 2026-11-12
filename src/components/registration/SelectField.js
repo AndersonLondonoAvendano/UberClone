@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
 // Dropdown built with Modal + FlatList: no native picker dependency. The selected option is
@@ -5,6 +6,7 @@
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { labels } from '../../constants/labels';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
@@ -18,7 +20,8 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
       <Pressable
         testID={testID}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityState={{ disabled: Boolean(disabled) }}
+        accessibilityLabel={`${label}: ${selected ? selected.label : labels.registration.unselected}`}
         onPress={() => setIsOpen(true)}
         disabled={disabled}
         style={({ pressed }) => [
@@ -113,9 +116,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
   },
-  // No overlay/scrim token exists in tokens.js today, and this task may not add a new one (plan §7:
-  // no new tokens). A transparent backdrop keeps the tap-outside-to-close behavior without inventing
-  // a color; dimming the background would need its own token decision first.
+  // No overlay/scrim token exists in tokens.js today. A transparent backdrop keeps the
+  // tap-outside-to-close behavior without inventing a color; dimming the background would need its
+  // own token decision first.
   backdrop: {
     flex: 1,
     backgroundColor: 'transparent',

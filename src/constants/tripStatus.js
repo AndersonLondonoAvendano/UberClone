@@ -11,12 +11,26 @@ export const TRIP_STATUS = {
   IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
+  // AI-assisted: see docs/AI_LOG.md #55
+  // The charge was confirmed (gateway approved, or the driver confirmed cash): written only after
+  // the trip is saved as completed. Not a passenger API state.
+  PAID: 'paid',
 };
 
 // AI-assisted: see docs/AI_LOG.md #44
 // Neutral value written to Firestore driverLocations/{uid}.tripStatus once the trip is over and the
 // driver is back on Home (after the final completed or cancelled write). It is not a trip state:
 // it never enters TRIP_STATUS, the trip machine or the passenger API.
+// AI-assisted: see docs/AI_LOG.md #55
+// Charge state saved in the trip document (paymentStatus). 'paid' is the cash confirmation. Only the
+// backend writes approved and rejected.
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  PAID: 'paid',
+};
+
 export const DRIVER_LOCATION_IDLE_STATUS = 'idle';
 
 // AI-assisted: see docs/AI_LOG.md #44

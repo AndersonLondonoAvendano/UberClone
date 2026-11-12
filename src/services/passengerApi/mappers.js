@@ -38,6 +38,13 @@ const STATUS_FROM_API = {
   canceled: TRIP_STATUS.CANCELLED,
 };
 
+// AI-assisted: see docs/AI_LOG.md #55
+function toPaymentMethod(value) {
+  const method = String(value ?? '').toLowerCase();
+  // #59: the contract speaks 'card' | 'cash'; the legacy 'mercadopago' is read as 'card' (gateway still undefined).
+  return method === 'mercadopago' ? 'card' : method;
+}
+
 export function toTripRequest(raw = {}) {
   const passenger = raw.passenger ?? {};
   const createdAt = toTime(raw.createdAt ?? raw.created_at);
@@ -52,7 +59,8 @@ export function toTripRequest(raw = {}) {
     distanceKm: toNumber(raw.distanceKm ?? raw.distance_km),
     durationMin: toNumber(raw.durationMin ?? raw.duration_min),
     category: String(raw.category ?? '').toLowerCase(),
-    paymentMethod: String(raw.paymentMethod ?? raw.payment_method ?? '').toLowerCase(),
+    // AI-assisted: see docs/AI_LOG.md #55 (legacy "card" is the same as "mercadopago")
+    paymentMethod: toPaymentMethod(raw.paymentMethod ?? raw.payment_method),
     createdAt,
     expiresAt: toTime(raw.expiresAt ?? raw.expires_at),
   };

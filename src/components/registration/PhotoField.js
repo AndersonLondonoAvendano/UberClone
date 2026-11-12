@@ -1,4 +1,6 @@
+// AI-assisted: see docs/AI_LOG.md #54 (one accessible description of the upload indicator)
 // AI-assisted: see docs/AI_LOG.md #26
+// AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region)
 // AI-assisted: see docs/AI_LOG.md #29
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #38
@@ -21,7 +23,7 @@ import { uploadPhotoAsync } from '../../services/cloudinary';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
-export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage, disabled = false }) {
+export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage, disabled = false, announceError = false }) {
   const [uploadState, setUploadState] = useState('idle'); // 'idle' | 'uploading'
   const [permissionError, setPermissionError] = useState(null);
   const [uploadErrorMessage, setUploadErrorMessage] = useState(null);
@@ -68,7 +70,7 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           <Image source={{ uri: value }} style={styles.previewImage} />
         ) : uploadState === 'uploading' ? (
           <View style={styles.previewState}>
-            <ActivityIndicator accessibilityLabel={labels.registration.photo.uploading} color={color.primary} />
+            <ActivityIndicator importantForAccessibility="no" accessibilityElementsHidden color={color.primary} />
             <Text style={styles.previewPlaceholder}>{labels.registration.photo.uploading}</Text>
           </View>
         ) : (
@@ -114,7 +116,7 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           <Text style={styles.actionLabel}>{labels.registration.photo.gallery}</Text>
         </Pressable>
       </View>
-      <FieldError testID={errorTestID} message={combinedError} />
+      <FieldError testID={errorTestID} message={combinedError} liveRegion={announceError ? 'polite' : undefined} />
     </View>
   );
 }

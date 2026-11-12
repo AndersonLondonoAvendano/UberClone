@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { labels } from '../constants/labels';
+import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { useTrip } from '../context/TripContext';
@@ -29,7 +30,7 @@ import {
 } from '../services/trip/requestPresentation';
 import { badgeSize, borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 import { calculateFare } from '../utils/fare';
-import { fillLabel, formatCop, formatKmFromMeters, formatMinutesFromSeconds } from '../utils/format';
+import { countdownAnnouncement, fillLabel, formatCop, formatKmFromMeters, formatMinutesFromSeconds } from '../utils/format';
 import { Card } from './Card';
 import { Icon } from './Icon';
 import { PrimaryButton } from './PrimaryButton';
@@ -238,6 +239,8 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const progress = Math.min(1, secondsLeft / requestTotalSeconds(request));
   const name = request.passenger?.name ?? '';
   const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
+  // #59: "Tarjeta" until a gateway is chosen (a request never has a paymentId).
+  const paymentLabel = request.paymentMethod ? (labels.trip.paymentMethod[paymentLabelKey({ method: request.paymentMethod })] ?? null) : null;
   const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [ENTRANCE_OFFSET, 0] });
 
   return (
@@ -267,6 +270,25 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
           </View>
         </View>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+          {/* AI-assisted: see docs/AI_LOG.md #54 (price first: earnings largest, fare compact beside it) */}
+          {fare ? (
+            <Card
+              variant="status"
+              tone="brand"
+              style={styles.money}
+              accessible
+              accessibilityLabel={`${labels.trip.net}: ${formatCop(fare.driverEarnings)}. ${labels.trip.fare}: ${formatCop(fare.fare)}`}
+            >
+              <View style={styles.flex}>
+                <Text style={styles.caption}>{labels.trip.net}</Text>
+                <Text style={styles.net}>{formatCop(fare.driverEarnings)}</Text>
+              </View>
+              <View style={styles.fareColumn}>
+                <Text style={styles.caption}>{labels.trip.fare}</Text>
+                <Text style={styles.fareValue}>{formatCop(fare.fare)}</Text>
+              </View>
+            </Card>
+          ) : null}
           <View style={styles.passengerRow}>
             <View style={styles.badge}>
               <Icon name="person" size={iconSize.lg} tint={color.onPrimarySoft} />
@@ -286,23 +308,12 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
               <Text style={[styles.muted, styles.flex, type.numeric]}>{toPickup}</Text>
             </View>
           ) : null}
-          {fare ? (
-            <Card
-              variant="status"
-              tone="brand"
-              style={styles.money}
-              accessible
-              accessibilityLabel={`${labels.trip.fare}: ${formatCop(fare.fare)}. ${labels.trip.net}: ${formatCop(fare.driverEarnings)}`}
-            >
-              <View style={styles.flex}>
-                <Text style={styles.caption}>{labels.trip.fare}</Text>
-                <Text style={[styles.body, type.numeric]}>{formatCop(fare.fare)}</Text>
-              </View>
-              <View style={styles.flex}>
-                <Text style={styles.caption}>{labels.trip.net}</Text>
-                <Text style={styles.net}>{formatCop(fare.driverEarnings)}</Text>
-              </View>
-            </Card>
+          {/* AI-assisted: see docs/AI_LOG.md #55 (T-98: payment method visible before accepting) */}
+          {paymentLabel ? (
+            <View style={styles.pickupRow}>
+              <Text style={styles.muted}>{labels.trip.payment}:</Text>
+              <Text testID="incoming-request-payment" style={[styles.body, styles.flex]}>{paymentLabel}</Text>
+            </View>
           ) : null}
         </ScrollView>
         <View style={styles.footer}>
@@ -317,6 +328,9 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
               <View style={[styles.fill, { flex: progress }]} />
               <View style={{ flex: 1 - progress }} />
             </View>
+          </View>
+          <View style={styles.announcer} accessibilityLiveRegion="polite">
+            <Text>{countdownAnnouncement(secondsLeft, labels.trip.countdownA11y)}</Text>
           </View>
           {error ? (
             <Card variant="status" tone="danger" style={styles.errorCard}>
@@ -440,18 +454,37 @@ const styles = StyleSheet.create({
   },
   money: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: space[3],
+    padding: space[3],
   },
-  net: {
-    ...type.title,
+  fareColumn: {
+    alignItems: 'flex-end',
+    flexShrink: 1,
+  },
+  fareValue: {
+    ...type.body,
     ...type.numeric,
     color: color.onPrimarySoft,
+  },
+  net: {
+    ...type.display,
+    ...type.numeric,
+    color: color.primary,
   },
   errorCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: space[2],
     padding: space[3],
+  },
+  // Visually hidden live region: the screen reader hears the countdown only at 10, 5 and 0 s.
+  announcer: {
+    position: 'absolute',
+    width: borderWidth.thin,
+    height: borderWidth.thin,
+    overflow: 'hidden',
+    opacity: 0,
   },
   countdown: {
     gap: space[2],

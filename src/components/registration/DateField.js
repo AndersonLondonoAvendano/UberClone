@@ -1,4 +1,6 @@
+// AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
 // AI-assisted: see docs/AI_LOG.md #26
+// AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region, and minimumDate)
 // AI-assisted: see docs/AI_LOG.md #36
 // Opens the native Android date dialog (DateTimePickerAndroid.open), verified against
 // node_modules/@react-native-community/datetimepicker/src/index.d.ts (v9.1.0): the imperative
@@ -7,6 +9,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { labels } from '../../constants/labels';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
@@ -16,12 +19,13 @@ function formatDate(date) {
   return `${day}/${month}/${date.getFullYear()}`;
 }
 
-export function DateField({ testID, label, value, onChange, errorTestID, errorMessage, maximumDate, disabled = false }) {
+export function DateField({ testID, label, value, onChange, errorTestID, errorMessage, maximumDate, minimumDate, disabled = false, announceError = false }) {
   const openPicker = () => {
     DateTimePickerAndroid.open({
-      value: value ?? maximumDate ?? new Date(),
+      value: value ?? maximumDate ?? minimumDate ?? new Date(),
       mode: 'date',
       maximumDate,
+      minimumDate,
       onValueChange: (_event, selectedDate) => {
         onChange(selectedDate);
       },
@@ -34,7 +38,7 @@ export function DateField({ testID, label, value, onChange, errorTestID, errorMe
       <Pressable
         testID={testID}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={`${label}: ${value ? formatDate(value) : labels.registration.unselected}`}
         onPress={openPicker}
         disabled={disabled}
         style={({ pressed }) => [
@@ -49,7 +53,7 @@ export function DateField({ testID, label, value, onChange, errorTestID, errorMe
         </Text>
         <Icon name="calendar-outline" size={iconSize.md} tint={color.textMuted} />
       </Pressable>
-      <FieldError testID={errorTestID} message={errorMessage} />
+      <FieldError testID={errorTestID} message={errorMessage} liveRegion={announceError ? 'polite' : undefined} />
     </View>
   );
 }

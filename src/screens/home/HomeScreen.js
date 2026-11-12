@@ -7,10 +7,14 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #48 (import order)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
+// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see docs/AI_LOG.md #57 (H-1: map centers once, "My location" button)
+// AI-assisted: see docs/AI_LOG.md #55 (F1b: full-screen map, floating card, local position without publishing)
+// AI-assisted: see docs/AI_LOG.md #60 (R13: the live profile colour reaches the map marker)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
-// line shows the id of the last request received, and the map test entry and account simulator.
+// line shows the id of the last request received, and the map test entry.
 // The drawer button dispatches the open-drawer action; the stack does not handle it, so it reaches
 // the parent drawer navigator.
 // T-43: each new incoming request (one at a time) opens the request card once; the phone location
@@ -18,19 +22,20 @@
 
 import { DrawerActions, useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { AvailabilitySwitch } from '../../components/AvailabilitySwitch';
-import { Card } from '../../components/Card';
-import { DevAccountSwitch } from '../../components/DevAccountSwitch';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HomeFloatingCard } from '../../components/home/HomeFloatingCard';
 import { Icon } from '../../components/Icon';
-import { PlaceholderScreen } from '../../components/PlaceholderScreen';
+import { MyLocationButton } from '../../components/map/MyLocationButton';
+import { TripMap } from '../../components/map/TripMap';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
+import { useAppState } from '../../context/AppStateContext';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
-import { color, iconSize, space, type } from '../../theme/tokens';
+import { color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 
 const HINT_BY_LOCATION_STATUS = {
   waiting: labels.home.hintWaiting,
@@ -53,6 +58,9 @@ const NOTICE_TEXT = {
 };
 
 export function HomeScreen({ navigation }) {
+  // Live profile from AppStateContext (refreshed by the profile snapshot after saving); the same source as
+  // the active trip. CarMarker maps the raw value to its token (unknown or 'otro' -> brand colour).
+  const { driverProfile } = useAppState();
   const {
     isAvailable,
     isChanging,
@@ -63,10 +71,22 @@ export function HomeScreen({ navigation }) {
     pendingRequest,
     lastRequest,
     requestSimulatedTrip,
+    position,
+    permissionGranted,
+    requestLocationPermission,
+    setHomeFocused,
   } = useAvailability();
   const [devMessage, setDevMessage] = useState(null);
+  const [recenterSignal, setRecenterSignal] = useState(0);
+  const insets = useSafeAreaInsets();
   const announcedIdRef = useRef(null);
   const focused = useIsFocused(); // AI-assisted: see docs/AI_LOG.md #47 (Home stays mounted under the other drawer screens)
+
+  // Tells the context Home is in front: the position is tracked locally (not published) meanwhile.
+  useEffect(() => {
+    setHomeFocused(focused);
+    return () => setHomeFocused(false);
+  }, [focused, setHomeFocused]);
 
   // Opens the card once per request id, only while available and without a trip.
   useEffect(() => {
@@ -83,7 +103,11 @@ export function HomeScreen({ navigation }) {
     if (!alreadyOpen) navigation.navigate('TripRequest');
   }, [pendingRequest, isAvailable, onTrip, navigation, focused]);
 
-  const hint = isAvailable ? (HINT_BY_LOCATION_STATUS[locationStatus] ?? labels.home.hintWaiting) : labels.home.hintOff;
+  const hint = isAvailable
+    ? (HINT_BY_LOCATION_STATUS[locationStatus] ?? labels.home.hintWaiting)
+    : permissionGranted
+      ? labels.home.hintLocalOnly
+      : labels.home.hintOff;
   const noticeText = notice ? (NOTICE_TEXT[notice] ?? null) : null;
 
   const onSimulate = () => {
@@ -92,69 +116,92 @@ export function HomeScreen({ navigation }) {
   };
 
   return (
-    <PlaceholderScreen
-      name="home"
-      title={labels.drawer.home}
-      leading="drawer"
-      onLeadingPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-    >
-      <View style={styles.stack}>
-        <View style={styles.group}>
-          <AvailabilitySwitch value={isAvailable} onValueChange={setAvailable} disabled={isChanging} />
-          {noticeText ? (
-            <Card variant="status" tone="danger" style={styles.noticeCard}>
-              <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
-              <Text testID="home-availability-notice" style={styles.notice} accessibilityLiveRegion="polite">
-                {noticeText}
-              </Text>
-            </Card>
-          ) : (
-            <Text style={styles.hint}>{hint}</Text>
-          )}
-        </View>
-        {SHOW_DEV_TOOLS ? (
+    <View style={styles.screen} testID="home-screen">
+      <View style={styles.map} accessible accessibilityLabel={labels.home.mapLabel}>
+        <TripMap testID="home-map" position={position} follow={false} centerOnce recenterSignal={recenterSignal} vehicleColorValue={driverProfile?.vehicle?.color} attributionAtBottom attributionInsetRight={ATTRIBUTION_INSET_RIGHT} attributionInsetBottom={insets.bottom} />
+      </View>
+      <HomeFloatingCard
+        isAvailable={isAvailable}
+        isChanging={isChanging}
+        onToggle={setAvailable}
+        hint={hint}
+        noticeText={noticeText}
+        needsPermission={!permissionGranted && !noticeText}
+        onGrantPermission={requestLocationPermission}
+        leading={
+          <Pressable
+            testID="nav-open-drawer"
+            accessibilityRole="button"
+            accessibilityLabel={labels.a11y.openDrawer}
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            style={styles.drawerButton}
+          >
+            <Icon name="menu" size={iconSize.lg} tint={color.text} />
+          </Pressable>
+        }
+      />
+      <MyLocationButton
+        onPress={() => setRecenterSignal((n) => n + 1)}
+        style={[styles.myLocation, { bottom: insets.bottom + space[4] }]}
+      />
+      {SHOW_DEV_TOOLS ? (
+        <View style={styles.devPanel}>
           <PrimaryButton testID="home-start-trip" label={labels.home.startTrip} onPress={onSimulate} />
-        ) : null}
-        {SHOW_DEV_TOOLS && devMessage ? <Text style={styles.hint}>{devMessage}</Text> : null}
-        {SHOW_DEV_TOOLS && lastRequest ? (
-          <Text testID="home-debug-request" style={styles.debug}>
-            {labels.home.debugRequest.replace('{id}', lastRequest.id)}
-          </Text>
-        ) : null}
-        {SHOW_DEV_TOOLS ? (
+          {devMessage ? <Text style={styles.hint}>{devMessage}</Text> : null}
+          {lastRequest ? (
+            <Text testID="home-debug-request" style={styles.debug}>
+              {labels.home.debugRequest.replace('{id}', lastRequest.id)}
+            </Text>
+          ) : null}
           <PrimaryButton
             testID="home-map-test"
             label={labels.mapTest.openFromHome}
             onPress={() => navigation.navigate('MapTest')}
           />
-        ) : null}
-        <DevAccountSwitch />
-      </View>
-    </PlaceholderScreen>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
+// AI-assisted: see docs/AI_LOG.md #57 (design round 1: H2)
+// Room the attribution leaves on the right for the "My location" button (its margin plus width plus a gap).
+const ATTRIBUTION_INSET_RIGHT = space[3] + touch.min + space[2];
+
 const styles = StyleSheet.create({
-  stack: {
-    gap: space[5],
+  screen: {
+    flex: 1,
+    backgroundColor: color.bg,
   },
-  group: {
+  map: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  drawerButton: {
+    minWidth: touch.min,
+    minHeight: touch.min,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myLocation: {
+    position: 'absolute',
+    right: space[3],
+  },
+  devPanel: {
+    position: 'absolute',
+    left: space[3],
+    right: space[3],
+    bottom: space[4],
     gap: space[3],
   },
   hint: {
     ...type.small,
     color: color.textMuted,
     paddingHorizontal: space[1],
-  },
-  noticeCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: space[3],
-  },
-  notice: {
-    flex: 1,
-    ...type.body,
-    color: color.onDangerSoft,
   },
   debug: {
     ...type.caption,

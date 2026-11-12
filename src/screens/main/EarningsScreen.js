@@ -6,7 +6,7 @@
 // Monday). Cancelled trips are not summed. Tokens only.
 
 import { DrawerActions } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
@@ -14,9 +14,10 @@ import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
+import { useEarnings } from '../../hooks/useEarnings';
 import { useTrips } from '../../hooks/useTrips';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
-import { computePeriodTotals, PERIOD } from '../../utils/earnings';
+import { PERIOD } from '../../utils/earnings';
 import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/format';
 
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
@@ -24,7 +25,10 @@ const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 export function EarningsScreen({ navigation }) {
   const { status, trips, retry } = useTrips();
   const [period, setPeriod] = useState(PERIOD.DAY);
-  const totals = useMemo(() => computePeriodTotals(trips, period, Date.now()), [trips, period]);
+  // AI-assisted: see docs/AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
+  const earnings = useEarnings(trips);
+  const totals = earnings[period];
+  const balance = earnings.balance;
 
   return (
     <PlaceholderScreen
@@ -75,8 +79,11 @@ export function EarningsScreen({ navigation }) {
               <Text style={styles.netValue}>{formatCop(totals.net)}</Text>
             </Card>
             <Card style={styles.card}>
+              <Line label={labels.earnings.count} value={String(totals.count)} />
+              <Line label={labels.earnings.gross} value={formatCop(totals.gross)} />
               <Line label={labels.earnings.commission} value={`- ${formatCop(totals.commission)}`} />
-              <Line label={labels.earnings.count} value={String(totals.count)} last />
+              <Line label={labels.earnings.tips} value={formatCop(totals.tips)} />
+              <Line label={labels.earnings.average} value={formatCop(totals.average)} last />
             </Card>
             <Text style={styles.section} accessibilityRole="header">
               {labels.earnings.tripsTitle}
@@ -87,7 +94,7 @@ export function EarningsScreen({ navigation }) {
                   key={trip.id}
                   style={styles.trip}
                   accessible
-                  accessibilityLabel={`${trip.passengerName}, ${formatDateTime(trip.finishedAt)}, ${formatCop(trip.driverEarnings)}`}
+                  accessibilityLabel={`${trip.passengerName}, ${formatDateTime(trip.finishedAt) || labels.earnings.timeUnknown}, ${formatCop(trip.driverEarnings)}`}
                 >
                   <View style={styles.badge}>
                     <Icon name="person" size={iconSize.md} tint={color.onPrimarySoft} />
@@ -95,7 +102,7 @@ export function EarningsScreen({ navigation }) {
                   <Text style={styles.body}>
                     {fillLabel(labels.earnings.tripLine, {
                       passenger: trip.passengerName,
-                      time: period === PERIOD.DAY ? formatClock(trip.finishedAt) : formatDateTime(trip.finishedAt),
+                      time: (period === PERIOD.DAY ? formatClock(trip.finishedAt) : formatDateTime(trip.finishedAt)) || labels.earnings.timeUnknown,
                     })}
                   </Text>
                   <Text style={styles.amount}>{formatCop(trip.driverEarnings)}</Text>
@@ -103,6 +110,20 @@ export function EarningsScreen({ navigation }) {
               ))}
             </View>
           </>
+        ) : null}
+        {/* AI-assisted: see docs/AI_LOG.md #55 (T-100) */}
+        {status === 'ready' && trips.length > 0 ? (
+          <Card style={styles.card} testID="earnings-balance">
+            <Line
+              label={balance < 0 ? labels.earnings.balanceCredit : labels.earnings.balance}
+              value={formatCop(Math.abs(balance))}
+              last
+            />
+            <View style={styles.hintRow}>
+              <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
+              <Text style={styles.hintText}>{balance < 0 ? labels.earnings.balanceCreditHint : labels.earnings.balanceHint}</Text>
+            </View>
+          </Card>
         ) : null}
       </View>
     </PlaceholderScreen>
@@ -119,6 +140,10 @@ function Line({ label, value, last = false }) {
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
+  // AI-assisted: see docs/AI_LOG.md #57 (T-124): the hint wraps to several lines at 200 % font; no fixed
+  // width or height and no numberOfLines, so the card grows with the text.
+  hintRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2], paddingTop: space[2] },
+  hintText: { ...type.caption, color: color.textMuted, flex: 1, flexShrink: 1 },
   periods: { flexDirection: 'row', gap: space[2] },
   period: {
     flex: 1,

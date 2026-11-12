@@ -13,7 +13,8 @@ import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch,
 // leading: 'drawer' | 'back' | null.
 // onLeadingPress is optional so the header does not depend on navigation: without it the button is
 // still drawn (testID, size and text stay checkable) and pressing it does nothing.
-export function ScreenHeader({ title, leading, onLeadingPress }) {
+// AI-assisted: see docs/AI_LOG.md #57 (T-110): optional leadingA11yLabel names the destination of the button.
+export function ScreenHeader({ title, leading, onLeadingPress, leadingA11yLabel }) {
   const isDrawer = leading === 'drawer';
   const isBack = leading === 'back';
 
@@ -23,7 +24,7 @@ export function ScreenHeader({ title, leading, onLeadingPress }) {
         <Pressable
           testID={isDrawer ? 'nav-open-drawer' : 'nav-back'}
           accessibilityRole="button"
-          accessibilityLabel={isDrawer ? labels.a11y.openDrawer : labels.a11y.back}
+          accessibilityLabel={leadingA11yLabel ?? (isDrawer ? labels.a11y.openDrawer : labels.a11y.back)}
           onPress={onLeadingPress}
           hitSlop={space[1]}
           style={({ pressed }) => [styles.leading, pressed && styles.leadingPressed]}

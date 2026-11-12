@@ -3,6 +3,8 @@
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalRegistrationForm)
+// AI-assisted: see docs/AI_LOG.md #55 (license, SOAT and technical review fields, RF-41)
 // Registration form state (useContext): the 17 fields across the three tabs, per-field "touched"
 // flags and per-tab "visited" flags (DP-08), aggregate validity per tab and overall (RF-02), and
 // the submit flow (RF-04). The plate is normalized to uppercase on every change, so the field
@@ -36,6 +38,7 @@ import {
   isNonEmptyUrl,
   isTermsAccepted,
 } from '../utils/validators';
+import { INITIAL_DOCUMENT_FIELDS, buildDocumentsPayload, documentsFromStored, validateDocumentFields } from '../utils/documentsMapping';
 import { useAppState } from './AppStateContext';
 import { getDriverRegistration, submitDriverRegistration } from '../services/driverRepository';
 import { labels, getSubmitErrorMessage } from '../constants/labels';
@@ -70,6 +73,7 @@ const INITIAL_VEHICLE = {
 const INITIAL_DOCUMENTS = {
   mercadoPagoEmail: '',
   termsAccepted: false,
+  ...INITIAL_DOCUMENT_FIELDS,
 };
 const INITIAL_VISITED_TABS = { personalData: false, vehicle: false, documents: false };
 
@@ -139,11 +143,10 @@ export function RegistrationFormProvider({ children }) {
         }));
       }
       if (stored.documents) {
-        // commissionRate is not part of INITIAL_DOCUMENTS; drop it so the spread never adds a
-        // field the rest of the form state does not expect.
-        // eslint-disable-next-line no-unused-vars
-        const { commissionRate: ignoredStoredRate, ...restDocuments } = stored.documents;
-        setDocumentsState((current) => ({ ...current, ...restDocuments }));
+        // AI-assisted: see docs/AI_LOG.md #55
+        // documentsFromStored maps the nested stored structure (license, soat, technicalReview) to
+        // the flat form fields and ignores commissionRate, so nothing unexpected enters the state.
+        setDocumentsState((current) => ({ ...current, ...documentsFromStored(stored.documents) }));
       }
     });
 
@@ -177,6 +180,21 @@ export function RegistrationFormProvider({ children }) {
     setVisitedTabs((current) => ({ ...current, [tab]: true }));
   }, []);
 
+  // AI-assisted: see docs/AI_LOG.md #54
+  // Session reset: empties the form and lets the next uid preload its own saved registration.
+  const reset = useCallback(() => {
+    hasPreloadedRef.current = false;
+    setPersonalDataState(INITIAL_PERSONAL_DATA);
+    setPersonalDataTouched(emptyTouched(INITIAL_PERSONAL_DATA));
+    setVehicleState(INITIAL_VEHICLE);
+    setVehicleTouched(emptyTouched(INITIAL_VEHICLE));
+    setDocumentsState(INITIAL_DOCUMENTS);
+    setDocumentsTouched(emptyTouched(INITIAL_DOCUMENTS));
+    setVisitedTabs(INITIAL_VISITED_TABS);
+    setSubmitState('idle');
+    setSubmitErrorMessage(null);
+  }, []);
+
   const isPersonalDataValid = useMemo(
     () =>
       isValidFullName(personalData.fullName) &&
@@ -204,9 +222,14 @@ export function RegistrationFormProvider({ children }) {
     [vehicle],
   );
 
+  // AI-assisted: see docs/AI_LOG.md #55
+  // Tab 3 is valid with the email, the terms and the new document fields; the technical review is
+  // only checked when the vehicle year requires it (the vehicle year comes from tab 2).
+  const documentFields = useMemo(() => validateDocumentFields(documents, vehicle.year), [documents, vehicle.year]);
   const isDocumentsValid = useMemo(
-    () => isValidEmail(documents.mercadoPagoEmail) && isTermsAccepted(documents.termsAccepted),
-    [documents],
+    () =>
+      isValidEmail(documents.mercadoPagoEmail) && isTermsAccepted(documents.termsAccepted) && documentFields.isValid,
+    [documents, documentFields],
   );
 
   const isRegistrationValid = isPersonalDataValid && isVehicleValid && isDocumentsValid;
@@ -249,11 +272,16 @@ export function RegistrationFormProvider({ children }) {
       brand: vehicle.brand.trim(),
       model: vehicle.model.trim(),
     };
-    const documentsPayload = {
-      ...documents,
-      mercadoPagoEmail: documents.mercadoPagoEmail.trim(),
-      commissionRate,
-    };
+    // AI-assisted: see docs/AI_LOG.md #55
+    // Revalidate the dates with a fresh clock (they may have expired since the form was filled)
+    // and build the nested documents structure; the technical review goes out as null when the
+    // vehicle year does not require it.
+    if (!validateDocumentFields(documents, vehicleYear).isValid) {
+      setSubmitState('error');
+      setSubmitErrorMessage(labels.registration.documents.submitError);
+      return;
+    }
+    const documentsPayload = buildDocumentsPayload(documents, vehicleYear, { commissionRate });
 
     try {
       await submitDriverRegistration(driverId, {
@@ -284,6 +312,7 @@ export function RegistrationFormProvider({ children }) {
       setDocumentsField,
       touchDocumentsField,
       isDocumentsValid,
+      documentFields,
       commissionRate,
 
       visitedTabs,
@@ -294,6 +323,7 @@ export function RegistrationFormProvider({ children }) {
       submitErrorMessage,
       submitRegistration,
       isLocked,
+      reset,
     }),
     [
       personalData,
@@ -311,6 +341,7 @@ export function RegistrationFormProvider({ children }) {
       setDocumentsField,
       touchDocumentsField,
       isDocumentsValid,
+      documentFields,
       commissionRate,
       visitedTabs,
       markTabVisited,
@@ -319,6 +350,7 @@ export function RegistrationFormProvider({ children }) {
       submitErrorMessage,
       submitRegistration,
       isLocked,
+      reset,
     ],
   );
 
@@ -331,4 +363,11 @@ export function useRegistrationForm() {
     throw new Error('useRegistrationForm must be used inside a RegistrationFormProvider');
   }
   return context;
+}
+
+// AI-assisted: see docs/AI_LOG.md #54
+// Tolerant read for code that may run outside the provider (useSessionReset): null when absent
+// (the main branch does not mount the registration form).
+export function useOptionalRegistrationForm() {
+  return useContext(RegistrationFormContext);
 }

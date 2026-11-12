@@ -5,6 +5,7 @@
 // RegistrationFormContext. Same error-display rule as Datos personales (DP-08).
 
 import { StyleSheet, Text, View } from 'react-native';
+import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
@@ -150,6 +151,9 @@ export function VehicleScreen() {
           errorMessage={errorFor('photoUrl', isNonEmptyUrl(vehicle.photoUrl))}
           disabled={isLocked}
         />
+
+        {/* AI-assisted: see docs/AI_LOG.md #54 */}
+        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

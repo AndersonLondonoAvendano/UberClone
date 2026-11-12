@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (orphan comment removed)
 // AI-assisted: see docs/AI_LOG.md #13
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #51 (redesign: skeleton loading, framed empty and error cards)
@@ -176,5 +177,4 @@ const styles = StyleSheet.create({
     color: color.onPrimary,
     textAlign: 'center',
   },
-  // AI-assisted: see docs/AI_LOG.md #53 (icons on the empty and error states)
 });

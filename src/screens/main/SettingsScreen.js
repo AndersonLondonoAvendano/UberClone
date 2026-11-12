@@ -2,14 +2,14 @@
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: Cards, DataRow, note icons)
 // Settings (T-49, read-only): app info (name, version), the simulated-payment note and the map credits.
-// The provisional panels (shared demo value and account simulator) only render under SHOW_DEV_TOOLS.
+// The provisional shared demo value panel only renders under SHOW_DEV_TOOLS.
 
 import { DrawerActions } from '@react-navigation/native';
 import { StyleSheet, Text, View } from 'react-native';
 import appConfig from '../../../app.json';
+import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
-import { DevAccountSwitch } from '../../components/DevAccountSwitch';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
@@ -18,7 +18,7 @@ import { useAppState } from '../../context/AppStateContext';
 import { color, iconSize, space, type } from '../../theme/tokens';
 
 export function SettingsScreen({ navigation }) {
-  const { demoValue } = useAppState();
+  const { demoValue, authUser } = useAppState();
   const hasValue = demoValue !== '';
 
   return (
@@ -42,18 +42,21 @@ export function SettingsScreen({ navigation }) {
         <Card style={styles.group}>
           <Note icon="card" text={labels.settings.paymentNote} />
           <Note icon="map" text={labels.settings.mapsNote} />
-          <Note icon="information-circle" text={labels.settings.authNote} muted />
+        </Card>
+        {/* AI-assisted: see docs/AI_LOG.md #54 */}
+        <Card style={styles.group}>
+          <Text style={styles.section} accessibilityRole="header">
+            {labels.settings.accountTitle}
+          </Text>
+          <AccountActions variant="settings" email={authUser?.email} />
         </Card>
         {SHOW_DEV_TOOLS ? (
-          <>
-            <Card style={styles.group}>
-              <Text style={styles.muted}>{labels.demo.sharedValueLabel}</Text>
-              <Text testID="settings-shared-value" style={hasValue ? styles.body : styles.muted}>
-                {hasValue ? demoValue : labels.demo.sharedValueEmpty}
-              </Text>
-            </Card>
-            <DevAccountSwitch />
-          </>
+          <Card style={styles.group}>
+            <Text style={styles.muted}>{labels.demo.sharedValueLabel}</Text>
+            <Text testID="settings-shared-value" style={hasValue ? styles.body : styles.muted}>
+              {hasValue ? demoValue : labels.demo.sharedValueEmpty}
+            </Text>
+          </Card>
         ) : null}
       </View>
     </PlaceholderScreen>

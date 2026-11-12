@@ -38,15 +38,16 @@ import { SIMULATED_SPEED_KMH } from '../../config/location';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { EXPIRED_NOTICE_MS } from '../../config/trip';
 import { labels } from '../../constants/labels';
+import { paymentLabelKey } from '../../services/trip/paymentGateway';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { useTrip } from '../../context/TripContext';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../services/passengerApi';
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
 import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
-import { badgeSize, color, iconSize, radius, space, touch, type } from '../../theme/tokens';
+import { badgeSize, borderWidth, color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
-import { fillLabel, formatCop, formatKm, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
+import { countdownAnnouncement, fillLabel, formatCop, formatKm, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
 
 const SAFE_EDGES = ['top', 'bottom'];
 const TICK_MS = 1000;
@@ -265,12 +266,35 @@ export function TripRequestScreen({ navigation }) {
   } else {
     const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
     const categoryLabel = labels.registration.vehicleCategory[request.category] ?? request.category;
-    const paymentLabel = labels.trip.paymentMethod[request.paymentMethod] ?? request.paymentMethod;
+    const paymentLabel = labels.trip.paymentMethod[paymentLabelKey({ method: request.paymentMethod })] ?? request.paymentMethod;
     const urgent = secondsLeft <= URGENT_SECONDS;
     const progress = Math.min(1, secondsLeft / totalSeconds);
     body = (
       <>
         <ScrollView contentContainerStyle={styles.content}>
+          {/* AI-assisted: see docs/AI_LOG.md #54 (price first: earnings is the largest figure, fare and commission compact below it) */}
+          {fare ? (
+            <View style={styles.price}>
+              <Card
+                variant="status"
+                tone="brand"
+                testID="trip-request-net"
+                style={styles.earnings}
+                accessible
+                accessibilityLabel={`${labels.trip.net}: ${formatCop(fare.driverEarnings)}`}
+              >
+                <Text style={styles.earningsLabel}>{labels.trip.net}</Text>
+                <Text style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
+              </Card>
+              <View style={styles.fareRow}>
+                <FareFigure label={labels.trip.fare} value={formatCop(fare.fare)} />
+                <FareFigure
+                  label={fillLabel(labels.trip.commission, { pct: commissionPercent(COMMISSION_RATE) })}
+                  value={`- ${formatCop(fare.commission)}`}
+                />
+              </View>
+            </View>
+          ) : null}
           <Card style={styles.card}>
             <View style={styles.headerRow}>
               <View style={styles.badge}>
@@ -315,46 +339,22 @@ export function TripRequestScreen({ navigation }) {
               </View>
             </View>
 
-            <View style={styles.section}>
+            <View>
               <Row label={labels.trip.category} value={categoryLabel} />
-              <Row label={labels.trip.payment} value={paymentLabel} last={!fare} />
-              {fare ? (
-                <>
-                  <Row label={labels.trip.fare} value={formatCop(fare.fare)} />
-                  <Row
-                    label={fillLabel(labels.trip.commission, { pct: commissionPercent(COMMISSION_RATE) })}
-                    value={`- ${formatCop(fare.commission)}`}
-                    last
-                  />
-                </>
-              ) : null}
+              <Row label={labels.trip.payment} value={paymentLabel} last />
             </View>
-
-            {fare ? (
-              <Card
-                variant="status"
-                tone="brand"
-                testID="trip-request-net"
-                style={styles.earnings}
-                accessible
-                accessibilityLabel={`${labels.trip.net}: ${formatCop(fare.driverEarnings)}`}
-              >
-                <Text style={styles.earningsLabel}>{labels.trip.net}</Text>
-                <Text style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
-              </Card>
-            ) : null}
           </Card>
         </ScrollView>
 
         <View style={styles.actions}>
           {/* AI-assisted: see docs/AI_LOG.md #44 */}
           {!error?.gone ? (
+            <>
             <View
               testID="trip-request-countdown"
               style={[styles.countdown, urgent && styles.countdownUrgent]}
               accessible
               accessibilityLabel={fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
-              accessibilityLiveRegion={urgent ? 'assertive' : 'none'}
             >
               <Text style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
                 {fillLabel(labels.trip.countdown, { s: secondsLeft })}
@@ -364,6 +364,10 @@ export function TripRequestScreen({ navigation }) {
                 <View style={{ flex: 1 - progress }} />
               </View>
             </View>
+            <View style={styles.announcer} accessibilityLiveRegion="polite">
+              <Text>{countdownAnnouncement(secondsLeft, labels.trip.countdownA11y)}</Text>
+            </View>
+            </>
           ) : null}
           {error ? (
             <Card variant="status" tone="danger" style={styles.errorCard}>
@@ -407,6 +411,17 @@ export function TripRequestScreen({ navigation }) {
   );
 }
 
+// AI-assisted: see docs/AI_LOG.md #54
+// Compact secondary figure (fare, commission) shown under the earnings figure.
+function FareFigure({ label, value }) {
+  return (
+    <View style={styles.flex} accessible accessibilityLabel={`${label}: ${value}`}>
+      <Text style={styles.caption}>{label}</Text>
+      <Text style={[styles.body, type.numeric]}>{value}</Text>
+    </View>
+  );
+}
+
 function Row({ label, value, last = false }) {
   return (
     <View accessible accessibilityLabel={`${label}: ${value}`}>
@@ -423,13 +438,23 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  // AI-assisted: see docs/AI_LOG.md #54 (compact paddings so the price block fits above the fold at 130 % font)
   content: {
-    gap: space[4],
+    gap: space[3],
     paddingHorizontal: space[4],
-    paddingVertical: space[4],
+    paddingVertical: space[3],
+  },
+  price: {
+    gap: space[2],
+  },
+  fareRow: {
+    flexDirection: 'row',
+    gap: space[3],
+    paddingHorizontal: space[1],
   },
   card: {
-    gap: space[4],
+    gap: space[3],
+    padding: space[3],
   },
   badge: {
     width: badgeSize,
@@ -458,11 +483,9 @@ const styles = StyleSheet.create({
   block: {
     gap: space[1],
   },
-  section: {
-    marginTop: space[1],
-  },
   earnings: {
     gap: space[1],
+    padding: space[3],
   },
   earningsLabel: {
     ...type.label,
@@ -471,7 +494,7 @@ const styles = StyleSheet.create({
   earningsValue: {
     ...type.display,
     ...type.numeric,
-    color: color.onPrimarySoft,
+    color: color.primary,
   },
   title: {
     ...type.title,
@@ -488,6 +511,14 @@ const styles = StyleSheet.create({
   muted: {
     ...type.body,
     color: color.textMuted,
+  },
+  // Visually hidden live region: the screen reader hears the countdown only at 10, 5 and 0 s.
+  announcer: {
+    position: 'absolute',
+    width: borderWidth.thin,
+    height: borderWidth.thin,
+    overflow: 'hidden',
+    opacity: 0,
   },
   // The countdown lives in the action bar; in the last 10 s the block fills with color.primary.
   countdown: {

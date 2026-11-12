@@ -564,3 +564,163 @@ Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #5
 Decisión: las áreas B a E del rediseño (Inicio, viaje, ganancias/historial/perfil/configuración, registro) y el pase del menú lateral y las pestañas de registro se auditan solo en lo estático, por lectura de código y contraste calculado. El campo Diseño de las tareas con interfaz que estaba en «Pendiente» pasa a «Auditado en lo estático; pendiente de revisión visual en el celular». No equivale a «Aprobado».
 Justificación: no hay dispositivo en esta sesión; la puerta visual la sigue cerrando Anderson en el celular.
 Plan de reversa: devolver el campo a «Pendiente»; el informe queda en docs/diseno/auditoria-estatica-53.md.
+
+### D-93 — Firebase Auth con correo y contraseña reemplaza el acceso anónimo · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: D-53 usa sesión anónima; reinstalar pierde la cuenta y RF-29 (F1 §3) pide cierre de sesión.
+Decisión: proveedor correo/contraseña de Firebase Auth; `uid` sigue siendo `driverId`; D-53 queda Reemplazada. Requiere que Anderson habilite el proveedor en la consola (paso manual).
+Alternativa: mantener el acceso anónimo (descartada: sin cuentas recuperables ni cierre de sesión significativo).
+Impacto: CA-001-22 y CA-001-23 de la spec 001, la política 1 de `docs/seguridad.md` y la nota de Configuración quedan desactualizadas (no las edita esta spec).
+
+### D-94 — «Varias sesiones» = varias cuentas en el mismo teléfono, una activa a la vez · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: el SDK JS de Firebase Auth mantiene un solo usuario activo por instancia.
+Decisión: se entiende «varias sesiones» como varias cuentas de conductor que se turnan en el mismo dispositivo; «Cambiar de cuenta» = `resetSession` + volver a Iniciar sesión; no se guardan credenciales de otras cuentas. Se documenta en README y arquitectura.
+Alternativa: varias instancias de Auth o tokens guardados para cambio instantáneo (descartada: complejidad y riesgo con credenciales).
+
+### D-95 — Sin verificación de correo (riesgo aceptado) · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: verificar el correo añade pantallas, estados y dependencia del buzón; hay una entrega con fecha límite.
+Decisión: no se exige verificación; cualquiera puede crear una cuenta con un correo ajeno. El riesgo se mitiga porque la cuenta no opera hasta la aprobación manual (RF-04). Se documenta en README y `docs/seguridad.md`.
+Alternativa: exigir verificación antes del registro (descartada por alcance).
+
+### D-96 — Mensajes de autenticación que no revelan si un correo existe · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: (a) iniciar sesión: credenciales erróneas, correo sin cuenta y credencial inválida → «Correo o contraseña incorrectos»; (b) mensajes específicos solo para red caída, demasiados intentos y, al crear, correo ya en uso (esta última revela la existencia por diseño, es lo que se pidió); (c) recuperar contraseña: respuesta neutra siempre que el envío no falle por red o límite; (d) cualquier otro código → mensaje genérico de «no se pudo, inténtalo de nuevo»; (e) el código crudo de Firebase nunca se muestra. La configuración «protección contra enumeración de correos» de la consola de Firebase cambia qué códigos llegan; el mapeo cubre ambas variantes.
+Alternativa: mostrar el mensaje exacto de Firebase (descartada: filtra información).
+
+### D-97 — Cuentas anónimas heredadas: cerrar sesión, sin migración · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: al detectar un usuario anónimo se cierra su sesión y se muestra Iniciar sesión; los datos de `drivers/{uid-anónimo}` quedan inaccesibles (como al reinstalar, D-53). Solo hay datos de prueba.
+Alternativa: vincular el usuario anónimo a correo/contraseña (descartada: alcance y datos solo de prueba).
+
+### D-98 — Un solo procedimiento de reinicio de sesión (`resetSession`) · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: seis pasos en el orden del requisito RF-37, con bloqueo si hay viaje en curso, espera máxima de 5 s para publicar el estado final y `signOut` siempre al final. Por qué ese orden: la publicación y las suscripciones necesitan la sesión viva (las reglas exigen autenticación); si `signOut` fuera antes, los listeners fallarían con permiso denegado y la publicación final se perdería.
+Alternativa: limpiar por separado en cada pantalla (descartada: se olvidan pasos y se filtran datos entre cuentas).
+
+### D-99 — Reglas exigen proveedor `password` y se publican después de validar la app · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: `drivers`, `driverLocations` y `trips` exigen `request.auth != null` y proveedor `password`; orden: (1) validar la app en el celular con las reglas actuales, (2) publicar reglas, (3) repetir la prueba. El proveedor anónimo se deja habilitado hasta terminar las pruebas de denegación (CA-002-35) y luego Anderson decide si lo apaga.
+Alternativa: publicar primero (descartada: un fallo de la app se confundiría con un fallo de reglas).
+
+### D-100 — Marcador de auto: glifo teñido con el color registrado, insignia blanca, tokens y función pura · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: glifo Ionicons de auto vía `Icon.js`, tintado con el token del color del vehículo, dentro de una insignia circular `color.surface` con borde `color.border`; un token por valor de color; `otro`/desconocido → `color.primary`; el contraste de la silueta contra la insignia debe ser de al menos 3:1 para los nueve valores (los colores claros —blanco, plata, amarillo— usan el tono visible más cercano que cumpla, y los hex de los tokens y sus razones se calculan y documentan en la guía de estilo al implementar). Sin dependencias ni consultas nuevas.
+Alternativa: imagen PNG del auto por color (descartada: activos nuevos); punto con color (descartada: no comunica «auto»).
+Pregunta abierta para Anderson: cómo se representa «Blanco» (hoy propuesto: gris muy oscuro suficiente para 3:1, por lo que Blanco y Plata podrían parecerse); alternativa: cambiar el fondo de la insignia para los claros.
+
+### D-101 — La cuenta regresiva anuncia solo umbrales (10, 5 y 0 s) en `polite` · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: la región viva se conserva; el texto anunciado solo cambia al llegar a esos tres valores. El tiempo restante sigue legible como texto en pantalla.
+Alternativa: quitar la región viva (descartada: se pierde el aviso de vencimiento).
+
+### D-102 — Correo de la cuenta en Configuración; «Cambiar de cuenta» usa el mismo procedimiento · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: el correo de la cuenta (enmascarado) se muestra en Configuración, sección «Cuenta», junto a las dos acciones (no en Perfil, para no mezclarlo con el correo personal y el de Mercado Pago). «Cerrar sesión» y «Cambiar de cuenta» ejecutan `resetSession`; solo cambian el texto de la confirmación y el aviso inicial de Iniciar sesión.
+Alternativa: mostrarlo en Perfil (posible; lo decide Anderson).
+
+### D-103 — Reglas de los campos de la cuenta · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: correo recortado (sin espacios al inicio y al fin), con el mismo patrón `algo@dominio.algo` de D-62; contraseña de mínimo 8 caracteres, sin máximo propio, sin recortar ni normalizar, con confirmación; el correo de la cuenta es independiente del correo personal del registro (no se precarga ni se sincroniza).
+Alternativa: precargar el correo del registro con el de la cuenta (descartada: cambia la spec 001 sin necesidad).
+
+### D-104 — Cerrar sesión en el registro y espera de guardado de viaje · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: (1) un componente único `AccountActions` ofrece la sección Cuenta de Configuración (correo enmascarado, «Cerrar sesión», «Cambiar de cuenta») y, en las tres pestañas de registro y el aviso de cuenta pendiente, solo «Cerrar sesión» como botón secundario con confirmación en pantalla que avisa que lo no enviado se pierde; ambos usan el mismo `resetSession`. (2) Antes de `signOut`, `resetSession` espera hasta 8 s (`TRIP_SAVE_DRAIN_TIMEOUT_MS`) a que termine el guardado de viaje en curso (cola `services/trip/saveQueue.js`); si no termina devuelve `trip-save-pending` sin cerrar sesión, y la pantalla ofrece «Reintentar» o «Cerrar sesión de todos modos» (con confirmación; opción `skipTripSaveWait`). Un viaje en curso sigue bloqueando siempre.
+Alternativa: cerrar sesión sin esperar el guardado (descartada: puede perder el último viaje).
+
+### D-105 — Botón «Cerrar sesión» en la pantalla de error de estado de cuenta · Vigente (Anderson, 2026-11-11)
+Decisión: la variante `error` de `StartupScreen` (ruta ERROR del gate) añade un botón secundario «Cerrar sesión» reutilizando `AccountActions` con `variant="registration"` (confirmación en pantalla, sin `Alert`, mismo `useSessionReset`; testIDs `auth-*`). No aparece en la variante de carga. Evita que el conductor quede sin salida cuando falla la lectura del estado de cuenta.
+Alternativa: solo «Reintentar» (descartada: sin salida si el error persiste).
+
+### D-106 — Guardado fallido del resumen del viaje: pendiente de la rebanada de pagos · Vigente (Anderson, 2026-11-11; enlazada a la rebanada de pagos)
+Decisión: el guardado fallido del resumen del viaje (`SAVE.ERROR`) que no entra en la cola de guardado se deja PENDIENTE y enlazado a la rebanada de pagos, que redefine cuándo se guarda el viaje (se creará al completarlo, con estado de pago pendiente). No se implementa ahora (T-72 no lo toca).
+Alternativa: encolar ya el guardado fallido (descartada: se rediseña con pagos).
+
+### D-107 — Pago de prueba real con Mercado Pago Checkout Pro reemplaza el cobro simulado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-89 declaraba el cobro SIMULADO y D-58 dejaba el backend sin cambios; el enunciado (§4) pide preferencia con llave secreta en el backend, confirmación por webhook o sincronización y escucha en tiempo real.
+Decisión: Checkout Pro en modo de prueba (credenciales y tarjetas de prueba, nunca dinero real) con backend Express y firebase-admin. D-89 queda Reemplazada y D-58 queda Modificada (el backend deja de estar intacto solo para esta rebanada). Tarjeta: solo el backend escribe el resultado; efectivo: el conductor, con la regla estrecha de D-108. La pantalla y el README dicen que es pago de prueba. `firebase-admin` se añade a la lista `backend` de `scripts/dependencies.json` (aprobado por el prompt #55). El valor `transfer` de `paymentMethod` pasa a `mercadopago` (datos antiguos de prueba, sin migración). CA-002-39 vale solo para R1 a R4.
+Alternativa: mantener el cobro simulado (descartada: incumple §4 del enunciado).
+
+### D-108 — Modelo de estados y escritores del viaje; regla estrecha de efectivo · Vigente (por encargo, prompt #55; Anderson ratifica)
+Decisión: el viaje nace al completar con `status: 'completed'`, `paymentStatus: 'pending'` y `paymentMethod` `'mercadopago'` o `'cash'`; `paymentStatus` toma `approved`, `pending` o `rejected`; `status` toma `completed`, `paid` o `cancelled`. Escritores: tarjeta, solo el backend; efectivo, el conductor dueño aprobado, únicamente `paymentMethod`, `paymentStatus` y `status`, de `pending`/`completed` a `paid`, y solo si ya era `cash`. Sin otras ediciones ni borrados. Por qué: el conductor no debe poder declararse pagado un viaje de tarjeta.
+Alternativa: que la app marque todo (descartada: falsificable).
+Impacto: reglas nuevas en `docs/seguridad.md`; Anderson las publica tras validar (D-99).
+
+### D-109 — El backend toma el monto del documento del viaje; límite aceptado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: el enunciado dice enviar `tripId` y monto al backend. El monto sale de una tarifa calculada por la app y el pasajero es simulado.
+Decisión: el backend lee el monto del documento del viaje del `uid` autenticado y exige monto positivo y menor que un tope. Límite aceptado y documentado: un conductor modificado podría escribir un monto distinto al crear el viaje; no se resuelve sin un servidor de tarifas y un pasajero real, fuera de alcance.
+Alternativa: recalcular la tarifa en el backend (descartada: requeriría ruta y reglas de tarifa en servidor).
+
+### D-110 — Ruta planeada simplificada guardada en el viaje · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-87 prohíbe coordenadas y por eso el historial no dibuja la ruta; el enunciado pide ruta dibujada en el detalle.
+Decisión: se guarda una ruta planeada (no el recorrido real) de máximo 40 puntos con 4 decimales (unos 11 m), solo en `route` del documento del viaje; no se guarda posición real alguna. D-87 queda Modificada solo en ese punto; origen y destino siguen como texto.
+Alternativa: no guardar nada (descartada: incumple §6); recorrido real (descartada: privacidad).
+Impacto: la regla de viajes admite `route` con validación de tamaño y tipo.
+
+### D-111 — Política de viajes antiguos: «Cobro simulado» · Propuesta (Anderson aprueba; R11, RF-54)
+Situación: los viajes guardados antes de los pagos reales no tienen `paymentMethod` ni `paymentStatus` y se mostraban como «Pago sin estado».
+Decisión: un viaje sin método Y sin estado de pago se presenta como «Cobro simulado» (chip neutro). Las métricas de Ganancias los incluyen (por `status` completed o paid); `computeBalance` los excluye, porque no hay efectivo cobrado que descontar; el filtro de método los muestra solo en «Todos», no en Tarjeta ni Efectivo.
+Alternativa: contarlos como efectivo o tarjeta (descartada: inventa un método de pago); ocultarlos (descartada: pierde ganancias históricas).
+Impacto: `src/services/trip/legacyTrip.js`, `earnings`, `balance` e `historyQuery`; pruebas en `scripts/tests/`. CA-002-94, CA-002-95 y CA-002-106.
+
+### D-112 — Regla única del panel de cobro · Propuesta (Anderson aprueba; R11, RF-56)
+Situación: «Cobro y resumen» podía mostrar varios mensajes a la vez (guardado, servicio, estado del pago) y mensajes del servicio en viajes en efectivo.
+Decisión: una función pura (`chargePanel`) devuelve una sola salida (un mensaje, tono, chip y botones) con la prioridad error de guardado > error del servicio > informativo > éxito. El error del servicio solo se muestra tras una acción del usuario; el efectivo nunca llama al backend de pagos; el tono de éxito solo con pago aprobado o efectivo cobrado. La pantalla pinta solo lo que la función devuelve.
+Alternativa: mensajes independientes por fuente (descartada: se contradicen).
+Impacto: `src/services/trip/chargePanel.js` y `TripSummaryScreen`. CA-002-96 a CA-002-100.
+
+### D-113 — Clasificación de errores del cliente de pagos en ocho clases · Propuesta (Anderson aprueba; R11, RF-57)
+Decisión: `paymentsClient` clasifica cada fallo en `notConfigured`, `offline`, `timeout`, `sessionExpired` (401 o 403), `notFound` (404), `serverError` (5xx), `invalidResponse` o `providerError`. Cada clase tiene un mensaje propio en `labels.js` que nunca incluye la URL ni el token.
+Alternativa: un solo mensaje genérico de error (descartada: no ayuda a corregir la causa).
+Impacto: `src/services/trip/paymentsClient.js`, `paymentActions` y `labels.js`. CA-002-101 y CA-002-102.
+
+### D-114 — Mapa de solo lectura en el detalle del viaje · Propuesta (Anderson aprueba; R9, RF-49)
+Decisión: el detalle de viaje usa `TripMap` con `interactive=false`: dibuja la ruta simplificada guardada (D-110) sin gestos de mapa, para no competir con el desplazamiento de la pantalla. Sin `route`, muestra «Ruta no disponible» en lugar del mapa. Sin propina ni calificación en los datos: «Sin propina» y se omite la calificación.
+Alternativa: mapa interactivo (descartada: atrapa el desplazamiento y no aporta al historial).
+Impacto: `TripMap`, `TripDetailScreen` y `tripDetailView`. CA-002-106.
+
+### D-115 — Texto ampliado del pago rechazado · Propuesta (pendiente de confirmación de spec-author y Anderson)
+Situación: CA-002-98 fija el mensaje del pago rechazado; en pantalla se muestra con una indicación para actuar.
+Decisión: el mensaje del estado rechazado se amplía a «Pago rechazado. Toca “Reintentar pago”.», lo que amplía el texto de CA-002-98. Hasta que se confirme, la spec no cambia.
+Alternativa: dejar solo «Pago rechazado.» (descartada por ahora: no dice qué hacer).
+Impacto: `labels.js` y `chargePanel`; si Anderson lo aprueba, P5 sobre CA-002-98.
+
+### D-116 — Stripe Checkout Sessions alojado en el navegador como segunda pasarela de prueba · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: Mercado Pago no permite a Anderson crear cuentas de prueba, así que el cobro con tarjeta (D-107) no se puede validar de punta a punta.
+Decisión: se añade Stripe Checkout Sessions (página de pago alojada por Stripe, abierta en el navegador del teléfono) en modo de prueba. La Checkout Session crea internamente el PaymentIntent; el backend no lo crea por separado. Mercado Pago queda sin cambios.
+Alternativa: PaymentSheet de Stripe (descartada: requiere un módulo nativo, dependencia nueva y una build nativa nueva, que hace el humano y no hay tiempo); PaymentIntent propio con formulario en la app (descartada: la app tocaría datos de tarjeta).
+Consecuencia: el flujo de la app sigue siendo «abrir URL, volver, verificar», igual que con Mercado Pago. Impacto: `backend/` (módulo de Stripe y rutas), `paymentsClient`, `chargePanel`. CA-002-109 a CA-002-129.
+
+### D-117 — Pasarelas como proveedores intercambiables tras una interfaz · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61, RF-62)
+Situación: con dos pasarelas, el código no debe duplicar la lógica de viaje, estado y seguridad.
+Decisión: cada pasarela implementa la misma interfaz (crear cobro, consultar estado, validar que el pago corresponde al viaje). El backend informa cuáles están configuradas con `GET /payments/providers` (solo booleanos, exige ID token) y la app muestra un botón por cada una configurada. `POST /payments/checkout` y `/payments/sync` reciben el proveedor y delegan.
+Alternativa: rutas y pantallas separadas por pasarela (descartada: duplica defensas y pruebas); elegir la pasarela por variable de entorno única (descartada: no permite tener las dos para comparar).
+Impacto: `backend/src/routes/payments.js`, módulos por proveedor, `paymentsClient`. CA-002-109, CA-002-110, CA-002-122.
+
+### D-118 — El pasajero decide «tarjeta» o «efectivo»; el conductor elige la pasarela al cobrar · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: D-108 fija los escritores del viaje y el método `mercadopago` se escribe al crear el viaje. Con dos pasarelas, la pasarela real se conoce al cobrar.
+Decisión: el pasajero simulado sigue decidiendo solo «tarjeta» o «efectivo». Al crear el viaje con tarjeta, la app escribe el valor que ya escribe hoy (`mercadopago`; las reglas de Firestore no cambian al crear). El conductor elige la pasarela al pulsar cobrar; el backend escribe `paymentMethod` como `mercadopago` o `stripe` con firebase-admin, solo mientras el pago no esté aprobado; con pago aprobado el método no cambia nunca. Efectivo nunca llama al backend de pagos.
+Alternativa: que la app escriba `stripe` (descartada: obliga a republicar reglas antes de validar y deja al cliente decidir un campo de pago); método genérico `card` más campo `provider` (descartada: rompe Historial, saldo y reglas ya validados).
+Impacto: `docs/seguridad.md` y `firestore.rules` local admiten `stripe`; publicar reglas solo cuando el backend cambie el método. CA-002-110, CA-002-114, CA-002-129.
+
+### D-119 — Solo credenciales de prueba de Stripe: el backend rechaza claves live · Vigente (ratificada por Anderson 2026-11-12; R12, RNF-20)
+Situación: el taller es de prueba; una clave de producción cargada por error cobraría dinero real.
+Decisión: si la clave secreta empieza por `sk_live_` o `rk_live_`, el backend la trata como no configurada (Stripe queda desactivada, con aviso sin imprimir la clave) y `npm run doctor` lo reporta como ERROR. Solo se aceptan `sk_test_` y `rk_test_`.
+Alternativa: aceptar cualquier clave (descartada: riesgo de cobro real); detener el arranque (descartada: Mercado Pago debe seguir funcionando).
+Impacto: configuración del backend y doctor. CA-002-120, CA-002-121.
+
+### D-120 — Webhook de Stripe opcional; camino principal «Verificar pago» · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: el webhook exige URL pública y registrar un endpoint en Stripe, lo que Anderson puede no tener a tiempo.
+Decisión: el camino principal es «Verificar pago» y la verificación automática al volver a primer plano, que reconsultan la Checkout Session a Stripe. El webhook `/webhooks/stripe` existe, pero es opcional: sin `STRIPE_WEBHOOK_SECRET` responde error genérico y no aplica nada. Si está, verifica la firma y reconsulta la sesión; nunca confía en el cuerpo.
+Alternativa: webhook obligatorio (descartada: bloquea la validación sin URL pública); sin webhook (descartada: pierde la confirmación si la app no vuelve a primer plano).
+Impacto: `backend/src/routes/webhooks.js`. CA-002-115, CA-002-116.
+
+### D-121 — Convención del método de pago: «card» del contrato se guarda como 'mercadopago' («tarjeta, pasarela por definir») · Vigente (Anderson, orden #59, 2026-11-12; R12, RF-62)
+Situación: la solicitud simulada llegaba con 'mercadopago', así que la app nombraba una pasarela antes de elegirla y mostraba el botón de Mercado Pago aunque solo Stripe estuviera configurada.
+Decisión: (1) el contrato del pasajero simulado emite 'card' o 'cash' (mappers.js es el único que conoce la forma de la API; lee 'mercadopago' heredado como 'card'). (2) Al crear el registro del viaje, 'card' se guarda como 'mercadopago' (valor que aceptan las reglas publicadas) y significa «tarjeta, pasarela por definir». (3) Una pasarela está elegida solo cuando el viaje tiene `paymentId`; entonces el backend cambia `paymentMethod` al proveedor elegido (firebase-admin). (4) Los botones de cobro salen solo de GET /payments/providers y el proveedor enviado a POST /payments/checkout es el del botón pulsado. (5) Las etiquetas dicen «Tarjeta» mientras no haya pasarela elegida (función pura `paymentGateway.js`).
+Alternativa: guardar 'card' (descartada: las reglas publicadas no lo aceptan y no se republican); derivar el botón de trip.paymentMethod (descartada: causó el hallazgo).
+Consecuencia: filtros del Historial, saldo, ganancias y recibos usan el valor guardado y no cambian. Impacto: `src/services/passengerApi/*`, `tripRecord`, `paymentGateway`, `chargePanel`, backend `/payments/checkout`, `firestore.rules` local (create solo 'cash' y 'mercadopago').
+
+### D-122 — Perfil editable acotado: solo nombre, celular, color del vehículo y correo de cobros · Vigente (Anderson, orden #60, 2026-11-12; RF-66)
+Situación: el Perfil era de solo lectura; el conductor necesita corregir datos de contacto y el color de su auto sin pasar por soporte.
+Decisión: son EDITABLES nombre, celular, color del vehículo y correo de cobros. Son SOLO LECTURA placa, marca y modelo, año, categoría, estado de la cuenta y los documentos, con el texto visible «Para cambiar estos datos contacta a soporte.». Motivo: placa, categoría y documentos fueron la base de la aprobación manual y la categoría afecta la tarifa; cambiarlos exigiría una nueva aprobación (fuera de alcance).
+Alternativa: editar todo (descartada: obliga a re-aprobar); no editar nada (descartada: contacto desactualizado).
+Impacto: `ProfileScreen`, `driverRepository.updateDriverProfile` (solo cuatro rutas con punto), regla de Firestore de actualización acotada en `docs/seguridad.md` (la publica Anderson a mano, D-80). RF-63 a RF-66.
+
+### D-123 — «Correo de cobros» neutro: solo cambian etiqueta y ayuda, no el campo de Firestore · Vigente (Anderson, orden #60, 2026-11-12; RF-66)
+Situación: el campo se llama «Correo de Mercado Pago» pero el cobro real con Stripe no lo usa; el nombre promete algo que no ocurre.
+Decisión: etiqueta «Correo de cobros» y ayuda «Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.» en registro, Perfil y Configuración. NO se renombra `documents.mercadoPagoEmail` (sin migración ni cambio de reglas). Sin «Stripe» en la etiqueta. Los textos visibles de «Mercado Pago» que hablan de la pasarela real no se tocan; solo los que hablan del correo.
+Alternativa: renombrar el campo (descartada: migración y reglas); nombrar «Stripe» (descartada: el correo no se usa en su checkout).
+Impacto: `labels.js`, `DocumentsScreen`, Perfil. RF-66.
+
+Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

@@ -12,7 +12,7 @@
 //   distanceKm: number,
 //   durationMin: number,
 //   category: 'economico' | 'xl' | 'premium',
-//   paymentMethod: 'card' | 'cash',
+//   paymentMethod: 'card' | 'cash',  (#59: 'card' = tarjeta, pasarela por definir; legacy 'mercadopago' is still accepted)
 //   createdAt: number,
 //   expiresAt: number,
 // }} TripRequest
@@ -61,7 +61,9 @@ export const isTripFinished = (status) => status === TRIP_STATUS.COMPLETED || st
 
 // Same values as the registration's vehicle category (RF-06) and pricing.js.
 export const TRIP_CATEGORIES = ['economico', 'xl', 'premium'];
+// AI-assisted: see docs/AI_LOG.md #55 (card payments go through Mercado Pago)
 export const PAYMENT_METHODS = ['card', 'cash'];
+export const LEGACY_PAYMENT_METHODS = ['mercadopago'];
 
 export function createPassengerApiError(code, message, cause) {
   const error = new Error(message);
@@ -98,7 +100,7 @@ export function isValidTripRequest(request) {
     isFiniteNumber(request.durationMin) &&
     request.durationMin >= 0 &&
     TRIP_CATEGORIES.includes(request.category) &&
-    PAYMENT_METHODS.includes(request.paymentMethod) &&
+    (PAYMENT_METHODS.includes(request.paymentMethod) || LEGACY_PAYMENT_METHODS.includes(request.paymentMethod)) &&
     isFiniteNumber(request.createdAt) &&
     isFiniteNumber(request.expiresAt) &&
     request.expiresAt > request.createdAt

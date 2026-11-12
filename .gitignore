@@ -59,3 +59,7 @@ coverage/
 
 # reglas de Firestore (se publican a mano en la consola)
 firestore.rules
+
+# backend secrets (explicit)
+backend/.env
+backend/secrets/

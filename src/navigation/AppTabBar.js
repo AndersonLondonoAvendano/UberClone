@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (tabs stack at large font scales so the names are never cut)
 // AI-assisted: see docs/AI_LOG.md #16
 // AI-assisted: see docs/AI_LOG.md #52 (icon per tab, soft brand pill when active)
 // Custom bottom tab bar for the registration tabs. It lives in the layout flow below the scenes and
@@ -8,10 +9,13 @@
 import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
 import { CommonActions } from '@react-navigation/native';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Icon } from '../components/Icon';
 import { color, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 
+// From this font scale on the tabs stack vertically: three names no longer fit side by side.
+// AI-assisted: see docs/AI_LOG.md #54 (1.3 so "Documentos" is never split mid-word)
+const STACK_FONT_SCALE = 1.3;
 const TAB_ICONS = { PersonalData: 'person', Vehicle: 'car', Documents: 'document-text' };
 
 // Same keyboard events the library uses for its hide-on-keyboard option.
@@ -46,6 +50,8 @@ function tabText(options, route) {
 export function AppTabBar({ state, descriptors, navigation, insets }) {
   const keyboardVisible = useKeyboardVisible();
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
+  const { fontScale } = useWindowDimensions();
+  const stacked = fontScale >= STACK_FONT_SCALE;
 
   useEffect(() => {
     if (keyboardVisible && onHeightChange) {
@@ -69,6 +75,7 @@ export function AppTabBar({ state, descriptors, navigation, insets }) {
 
   const containerStyle = [
     styles.container,
+    stacked && styles.containerStacked,
     { paddingBottom: insets.bottom, paddingHorizontal: Math.max(insets.left, insets.right) },
   ];
 
@@ -106,9 +113,9 @@ export function AppTabBar({ state, descriptors, navigation, insets }) {
             accessibilityLabel={options.tabBarAccessibilityLabel}
             onPress={handlePress}
             onLongPress={handleLongPress}
-            style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
+            style={({ pressed }) => [styles.tab, stacked && styles.tabStacked, pressed && styles.tabPressed]}
           >
-            <View style={[styles.pill, focused && styles.pillActive]}>
+            <View style={[styles.pill, stacked && styles.pillStacked, focused && styles.pillActive]}>
               <Icon
                 name={focused ? iconName : `${iconName}-outline`}
                 size={iconSize.lg}
@@ -116,7 +123,6 @@ export function AppTabBar({ state, descriptors, navigation, insets }) {
               />
               <Text
                 allowFontScaling
-                numberOfLines={1}
                 style={[styles.label, focused ? styles.labelActive : styles.labelInactive]}
               >
                 {tabText(options, route)}
@@ -142,6 +148,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  containerStacked: {
+    flexDirection: 'column',
+  },
+  tabStacked: {
+    flex: 0,
+  },
   tabPressed: {
     opacity: opacity.pressed,
   },
@@ -153,11 +165,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[2],
     borderRadius: radius.lg,
   },
+  pillStacked: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: space[2],
+  },
   pillActive: {
     backgroundColor: color.primarySoft,
   },
   label: {
     ...type.label,
+    flexShrink: 1,
     textAlign: 'center',
   },
   labelActive: {

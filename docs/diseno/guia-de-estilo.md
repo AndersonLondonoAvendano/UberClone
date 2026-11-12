@@ -76,3 +76,20 @@ ScreenHeader (barra elevada, botón píldora con `Icon` y texto), PrimaryButton,
 4. Solo animaciones de opacidad/transform con `useNativeDriver`; con reducir movimiento activo, sin animar.
 5. Objetivos táctiles ≥ 44 px; texto sin altura fija que lo corte al escalar la fuente.
 6. Una acción principal por pantalla.
+
+## Marcador de auto del conductor (R3, RF-32, prompt #54)
+Glifo `car` de Ionicons (vía `Icon.js`) teñido con `vehicleColor.<valor>` dentro de una insignia circular con anillo `carMarker.ring` (`color.primaryDark`), `borderWidth.thick` y sombra `elevation.card` (`carMarker` en tokens). La insignia es blanca (`carMarker.badgeLight` = `color.surface`) y pasa a oscura (`carMarker.badgeDark` = `color.primaryDark`, #00383E) cuando el glifo queda bajo 3:1 contra la blanca (`vehicleBadgeToken`: blanco, plata y amarillo). `otro`, vacío o desconocido usa `color.primary` sobre insignia blanca. Contraste de cada glifo contra SU insignia, script fuera del proyecto, mínimo 3:1:
+
+| Valor | Token | Insignia | Contraste |
+|---|---|---|---|
+| blanco | `vehicleColor.blanco` #F5F5F5 | oscura #00383E | 11.78:1 |
+| negro | `vehicleColor.negro` #14201C | blanca | 16.76:1 |
+| gris | `vehicleColor.gris` #5A6360 | blanca | 6.20:1 |
+| plata | `vehicleColor.plata` #C0C4C8 | oscura #00383E | 7.32:1 |
+| rojo | `vehicleColor.rojo` #C62828 | blanca | 5.62:1 |
+| azul | `vehicleColor.azul` #1565C0 | blanca | 5.75:1 |
+| verde | `vehicleColor.verde` #2E7D32 | blanca | 5.13:1 |
+| amarillo | `vehicleColor.amarillo` #F2C200 | oscura #00383E | 7.64:1 |
+| otro | `color.primary` #006D77 | blanca | 6.08:1 |
+
+Blanco y plata se distinguen por tono (#F5F5F5 casi blanco frente a #C0C4C8 gris claro, ambos sobre insignia oscura). Anillo contra el mapa (que es claro): `color.primaryDark` contra tierra #F2EFE9 11.19:1, fondo #EEF2F1 11.38:1, gris #E8E8E8 10.48:1, agua #AAD3DF 8.01:1 y blanco 12.84:1, todos sobre 3:1; el anillo `color.border` anterior daba 2.43:1 sobre el agua. El anillo contra la insignia blanca da 12.84:1 y la sombra separa el conjunto del mapa.
