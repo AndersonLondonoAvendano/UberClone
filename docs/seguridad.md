@@ -1,7 +1,7 @@
 # Seguridad — UberClone Conductor
 
 <!-- AI-assisted: see docs/AI_LOG.md #56 (T-73, reglas consolidadas) -->
-Estado: **un solo texto final de reglas** para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
+Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60), pendiente de publicar a mano por Anderson**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
 
 ## Dónde viven las reglas de Firestore
 - Las reglas **efectivas** son las publicadas en la consola de Firebase (Firestore → Reglas). Anderson las publica a mano.

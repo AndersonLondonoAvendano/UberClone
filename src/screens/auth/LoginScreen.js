@@ -1,20 +1,22 @@
 // AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text links)
 // Sign-in screen (RF-34). Email and password live only in this component's state and are cleared
 // when the screen loses focus and after a successful sign-in. Nothing is logged. The same generic
 // message is shown for every credential failure (mapAuthError).
 
 import { useCallback, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { AuthField } from '../../components/auth/AuthField';
 import { AuthFormError } from '../../components/auth/AuthFormError';
+import { AuthLink } from '../../components/auth/AuthLink';
 import { AuthScreenLayout } from '../../components/auth/AuthScreenLayout';
 import { PasswordField } from '../../components/auth/PasswordField';
 import { Card } from '../../components/Card';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { SecondaryButton } from '../../components/SecondaryButton';
-import { TextField } from '../../components/registration/TextField';
 import { labels } from '../../constants/labels';
 import { signInWithEmail } from '../../services/authService';
+import { color, space, type } from '../../theme/tokens';
 import { mapAuthError } from '../../utils/authErrors';
 import { firstInvalidField, validateLogin } from '../../utils/authValidators';
 
@@ -75,20 +77,21 @@ export function LoginScreen({ navigation }) {
   }, [email, password]);
 
   return (
-    <AuthScreenLayout testID="screen-login" title={TEXT.login.title}>
+    <AuthScreenLayout testID="screen-login">
       <Card style={styles.card}>
+        <Text style={styles.title}>{TEXT.login.title}</Text>
         <AuthFormError testID="login-error-form" message={formError} />
-        <TextField
+        <AuthField
           testID="login-field-email"
           errorTestID="login-error-email"
           label={TEXT.fields.email.label}
+          icon="mail"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           errorMessage={fieldErrors.email}
           disabled={submitting}
           inputRef={emailRef}
-          announceError
           inputProps={{
             autoCapitalize: 'none',
             autoCorrect: false,
@@ -114,6 +117,13 @@ export function LoginScreen({ navigation }) {
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
         />
+        <AuthLink
+          testID="login-link-forgot"
+          label={TEXT.login.forgotLink}
+          onPress={() => navigation.navigate('ForgotPassword')}
+          disabled={submitting}
+          style={styles.forgot}
+        />
         <PrimaryButton
           testID="login-submit"
           label={submitting ? TEXT.login.submitting : TEXT.login.submit}
@@ -122,13 +132,8 @@ export function LoginScreen({ navigation }) {
           accessibilityHint={submitting ? TEXT.a11y.submitting : undefined}
         />
       </Card>
-      <SecondaryButton
-        testID="login-link-forgot"
-        label={TEXT.login.forgotLink}
-        onPress={() => navigation.navigate('ForgotPassword')}
-        disabled={submitting}
-      />
-      <SecondaryButton
+      <Text style={styles.prompt}>{TEXT.login.signUpPrompt}</Text>
+      <AuthLink
         testID="login-link-signup"
         label={TEXT.login.signUpLink}
         onPress={() => navigation.navigate('SignUp')}
@@ -141,5 +146,24 @@ export function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   card: {
     alignSelf: 'stretch',
+    padding: space[5],
+    gap: space[4],
+  },
+  title: {
+    ...type.display,
+    color: color.text,
+  },
+  // Pulled up under the password field so it reads as part of it.
+  forgot: {
+    alignSelf: 'flex-end',
+    marginTop: -space[3],
+    // Cancels the horizontal touch padding of the link so its text ends at the field edge.
+    marginRight: -space[3],
+  },
+  prompt: {
+    ...type.small,
+    color: color.textMuted,
+    textAlign: 'center',
+    marginTop: space[2],
   },
 });

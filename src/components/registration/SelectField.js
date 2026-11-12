@@ -1,14 +1,17 @@
 // AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
-// Dropdown built with Modal + FlatList: no native picker dependency. The selected option is
-// marked the same way the navigation marks the active destination: weight and underline, no accent fill.
+// Inline dropdown (like an HTML select): the options open right under the field, pushing the content
+// below down, and close on pick or on tapping the field again. No Modal, no native picker dependency.
+// The selected option keeps the weight + underline marking (no accent fill).
 import { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { labels } from '../../constants/labels';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
+
+const VISIBLE_OPTIONS = 5; // taller lists scroll inside the dropdown
 
 export function SelectField({ testID, label, options, value, onChange, errorTestID, errorMessage, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,54 +23,52 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
       <Pressable
         testID={testID}
         accessibilityRole="button"
-        accessibilityState={{ disabled: Boolean(disabled) }}
+        accessibilityState={{ disabled: Boolean(disabled), expanded: isOpen }}
         accessibilityLabel={`${label}: ${selected ? selected.label : labels.registration.unselected}`}
-        onPress={() => setIsOpen(true)}
+        onPress={() => setIsOpen((open) => !open)}
         disabled={disabled}
         style={({ pressed }) => [
           styles.trigger,
           pressed && styles.triggerPressed,
           disabled && styles.triggerDisabled,
           errorMessage && styles.triggerError,
+          isOpen && styles.triggerOpen,
         ]}
       >
         <Text style={selected ? styles.triggerValue : styles.triggerPlaceholder}>
           {selected ? selected.label : label}
         </Text>
-        <Icon name="chevron-down" size={iconSize.md} tint={color.textMuted} />
+        <Icon name={isOpen ? 'chevron-up' : 'chevron-down'} size={iconSize.md} tint={color.textMuted} />
       </Pressable>
-      <FieldError testID={errorTestID} message={errorMessage} />
 
-      <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setIsOpen(false)} accessibilityLabel={label}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <FlatList
-              data={options}
-              keyExtractor={(option) => option.value}
-              renderItem={({ item }) => {
-                const active = item.value === value;
-                return (
-                  <Pressable
-                    testID={`${testID}-option-${item.value}`}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    onPress={() => {
-                      onChange(item.value);
-                      setIsOpen(false);
-                    }}
-                    style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
-                  >
-                    <Text style={[styles.optionText, active ? styles.optionTextActive : styles.optionTextInactive]}>
-                      {item.label}
-                    </Text>
-                    {active ? <Icon name="checkmark" size={iconSize.md} tint={color.primary} /> : null}
-                  </Pressable>
-                );
-              }}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
+      {isOpen ? (
+        <View style={styles.list}>
+          <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={styles.listScroll}>
+            {options.map((item) => {
+              const active = item.value === value;
+              return (
+                <Pressable
+                  key={item.value}
+                  testID={`${testID}-option-${item.value}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => {
+                    onChange(item.value);
+                    setIsOpen(false);
+                  }}
+                  style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+                >
+                  <Text style={[styles.optionText, active ? styles.optionTextActive : styles.optionTextInactive]}>
+                    {item.label}
+                  </Text>
+                  {active ? <Icon name="checkmark" size={iconSize.md} tint={color.primary} /> : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : null}
+      <FieldError testID={errorTestID} message={errorMessage} />
     </View>
   );
 }
@@ -116,23 +117,19 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
   },
-  // No overlay/scrim token exists in tokens.js today. A transparent backdrop keeps the
-  // tap-outside-to-close behavior without inventing a color; dimming the background would need its
-  // own token decision first.
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'flex-end',
+  triggerOpen: {
+    borderColor: color.primary,
   },
-  sheet: {
+  list: {
     backgroundColor: color.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    maxHeight: '70%',
-    paddingVertical: space[3],
+    borderRadius: radius.md,
     borderWidth: borderWidth.thin,
-    borderColor: color.borderSubtle,
-    ...elevation.raised,
+    borderColor: color.border,
+    overflow: 'hidden',
+    ...elevation.card,
+  },
+  listScroll: {
+    maxHeight: touch.controlHeight * VISIBLE_OPTIONS,
   },
   option: {
     minHeight: touch.controlHeight,
