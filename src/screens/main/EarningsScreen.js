@@ -6,7 +6,7 @@
 // Monday). Cancelled trips are not summed. Tokens only.
 
 import { DrawerActions } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
@@ -14,9 +14,10 @@ import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
+import { useEarnings } from '../../hooks/useEarnings';
 import { useTrips } from '../../hooks/useTrips';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
-import { computeBalance, computePeriodTotals, PERIOD } from '../../utils/earnings';
+import { PERIOD } from '../../utils/earnings';
 import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/format';
 
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
@@ -24,9 +25,10 @@ const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 export function EarningsScreen({ navigation }) {
   const { status, trips, retry } = useTrips();
   const [period, setPeriod] = useState(PERIOD.DAY);
-  const totals = useMemo(() => computePeriodTotals(trips, period, Date.now()), [trips, period]);
-  // AI-assisted: see docs/AI_LOG.md #55 (T-100: balance with the platform over all saved trips)
-  const balance = useMemo(() => computeBalance(trips), [trips]);
+  // AI-assisted: see docs/AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
+  const earnings = useEarnings(trips);
+  const totals = earnings[period];
+  const balance = earnings.balance;
 
   return (
     <PlaceholderScreen
@@ -77,8 +79,11 @@ export function EarningsScreen({ navigation }) {
               <Text style={styles.netValue}>{formatCop(totals.net)}</Text>
             </Card>
             <Card style={styles.card}>
+              <Line label={labels.earnings.count} value={String(totals.count)} />
+              <Line label={labels.earnings.gross} value={formatCop(totals.gross)} />
               <Line label={labels.earnings.commission} value={`- ${formatCop(totals.commission)}`} />
-              <Line label={labels.earnings.count} value={String(totals.count)} last />
+              <Line label={labels.earnings.tips} value={formatCop(totals.tips)} />
+              <Line label={labels.earnings.average} value={formatCop(totals.average)} last />
             </Card>
             <Text style={styles.section} accessibilityRole="header">
               {labels.earnings.tripsTitle}

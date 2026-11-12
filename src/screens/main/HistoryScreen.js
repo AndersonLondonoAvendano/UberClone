@@ -1,112 +1,127 @@
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: status chip, origin/destination icons, DataRow amounts)
-// History (T-48): every saved trip, most recent first, PAGE_SIZE at a time ("Ver más"). Cancelled
-// trips say "Cancelado" in text (not only colour) and show "Sin cobro" instead of amounts.
+// AI-assisted: see docs/AI_LOG.md #56
+// History (T-106, RF-47, RF-48): its own FlatList (never inside a ScrollView) with the filters and the
+// net-earnings chart as the list header. Most recent first, 20 per load, "Cargar más" button (no
+// infinite scroll). Loading, empty and error states; an invalid Rango queries nothing and shows its
+// error text. The chart sums the trips already loaded (and the chosen payment method).
 
 import { DrawerActions } from '@react-navigation/native';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Card } from '../../components/Card';
-import { Chip } from '../../components/Chip';
-import { DataRow } from '../../components/DataRow';
-import { Icon } from '../../components/Icon';
-import { PlaceholderScreen } from '../../components/PlaceholderScreen';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { BarChart } from '../../components/BarChart';
+import { HistoryFilters } from '../../components/HistoryFilters';
+import { FieldError } from '../../components/registration/FieldError';
+import { ScreenHeader } from '../../components/ScreenHeader';
 import { ScreenState } from '../../components/ScreenState';
 import { SecondaryButton } from '../../components/SecondaryButton';
+import { TripListItem } from '../../components/TripListItem';
 import { labels } from '../../constants/labels';
-import { TRIP_STATUS } from '../../constants/tripStatus';
-import { useTrips } from '../../hooks/useTrips';
-import { color, iconSize, space, touch, type } from '../../theme/tokens';
-import { fillLabel, formatCop, formatDateTime } from '../../utils/format';
+import { useTripHistory } from '../../hooks/useTripHistory';
+import { color, space } from '../../theme/tokens';
+import { groupNetEarnings } from '../../utils/chartData';
+import { HISTORY_PERIOD, resolveHistoryQuery } from '../../utils/historyFilters';
+import { HISTORY_METHOD } from '../../utils/historyQuery';
 
-const PAGE_SIZE = 20;
+const keyExtractor = (trip) => trip.id;
 
 export function HistoryScreen({ navigation }) {
-  const { status, trips, retry } = useTrips();
-  const [visible, setVisible] = useState(PAGE_SIZE);
-  const shown = trips.slice(0, visible);
+  const [period, setPeriod] = useState(HISTORY_PERIOD.DAY);
+  const [method, setMethod] = useState(HISTORY_METHOD.ALL);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
+  // The clock is read when the period changes, so the query and the chart share the same limits.
+  const [now, setNow] = useState(() => Date.now());
+  const changePeriod = useCallback((next) => {
+    setNow(Date.now());
+    setPeriod(next);
+  }, []);
+  const query = useMemo(() => resolveHistoryQuery(period, startDate, endDate, now), [period, startDate, endDate, now]);
+  const { trips, status, loadingMore, hasMore, error, loadMore, retry } = useTripHistory({ start: query.start, end: query.end, method });
+  const groups = useMemo(
+    () => groupNetEarnings(trips, period, period === HISTORY_PERIOD.RANGE ? { start: query.start, end: query.end } : null, now),
+    [trips, period, query.start, query.end, now],
+  );
+
+  const renderItem = useCallback(({ item }) => <TripListItem trip={item} />, []);
+  const openDrawer = useCallback(() => navigation.dispatch(DrawerActions.openDrawer()), [navigation]);
+
+  const header = (
+    <View style={styles.header}>
+      <HistoryFilters
+        period={period}
+        onPeriodChange={changePeriod}
+        method={method}
+        onMethodChange={setMethod}
+        startDate={startDate}
+        endDate={endDate}
+        onStartChange={setStartDate}
+        onEndChange={setEndDate}
+        rangeError={query.error}
+      />
+      {status === 'ready' ? <BarChart groups={groups} /> : null}
+    </View>
+  );
+
+  let empty = null;
+  if (status === 'loading') empty = <ScreenState kind="loading" />;
+  else if (status === 'error') empty = <ScreenState kind="error" message={labels.history.errorMessage} onRetry={retry} />;
+  else if (status === 'ready') empty = <ScreenState kind="empty" title={labels.history.emptyTitle} message={labels.history.emptyMessage} />;
+
+  let footer = null;
+  if (status === 'ready' && trips.length > 0) {
+    if (loadingMore) footer = <ScreenState kind="loading" title={labels.history.loadingMore} />;
+    else if (hasMore && error) {
+      // Loading more failed: text + icon in a polite region, and a retry that asks for the same page.
+      footer = (
+        <View style={styles.footer}>
+          <FieldError testID="history-load-more-error" message={labels.history.loadMoreError} liveRegion="polite" />
+          <SecondaryButton testID="history-load-more-retry" label={labels.actions.retry} onPress={loadMore} style={styles.footer} />
+        </View>
+      );
+    } else if (hasMore) {
+      footer = (
+        <SecondaryButton
+          testID="history-load-more"
+          label={labels.history.loadMore}
+          accessibilityHint={labels.history.loadMoreHint}
+          onPress={loadMore}
+          style={styles.footer}
+        />
+      );
+    }
+  }
 
   return (
-    <PlaceholderScreen
-      name="history"
-      title={labels.drawer.history}
-      leading="drawer"
-      onLeadingPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-    >
-      <View style={styles.stack}>
-        {status === 'loading' ? <ScreenState kind="loading" /> : null}
-        {status === 'error' ? <ScreenState kind="error" message={labels.history.errorMessage} onRetry={retry} /> : null}
-        {status === 'ready' && trips.length === 0 ? (
-          <ScreenState kind="empty" title={labels.history.emptyTitle} message={labels.history.emptyMessage} />
-        ) : null}
-        {status === 'ready' ? shown.map((trip) => <TripItem key={trip.id} trip={trip} />) : null}
-        {status === 'ready' && trips.length > visible ? (
-          <SecondaryButton
-            testID="history-show-more"
-            label={labels.history.showMore}
-            accessibilityHint={labels.history.showMoreHint}
-            onPress={() => setVisible((n) => n + PAGE_SIZE)}
-          />
-        ) : null}
-      </View>
-    </PlaceholderScreen>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
+      <ScreenHeader title={labels.drawer.history} leading="drawer" onLeadingPress={openDrawer} />
+      <FlatList
+        testID="history-list"
+        data={status === 'ready' ? trips : []}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        ListHeaderComponent={header}
+        ListEmptyComponent={empty}
+        ListFooterComponent={footer}
+        contentContainerStyle={styles.content}
+        ItemSeparatorComponent={Separator}
+        keyboardShouldPersistTaps="handled"
+      />
+    </SafeAreaView>
   );
 }
 
-function TripItem({ trip }) {
-  const cancelled = trip.status === TRIP_STATUS.CANCELLED;
-  const statusText = cancelled ? labels.history.status.cancelled : labels.history.status.completed;
-  const date = formatDateTime(trip.finishedAt) || labels.history.dateUnknown;
-  const a11y =
-    fillLabel(labels.history.itemA11y, {
-      status: statusText,
-      date,
-      passenger: trip.passengerName,
-      origin: trip.originLabel,
-      destination: trip.destinationLabel,
-    }) +
-    (cancelled
-      ? ` ${labels.history.cancelledAmounts}.`
-      : fillLabel(labels.history.itemA11yAmounts, { fare: formatCop(trip.fare), net: formatCop(trip.driverEarnings) }));
-
-  // AI-assisted: see docs/AI_LOG.md #53
-  return (
-    <Card testID={`history-item-${trip.id}`} style={styles.item} accessible accessibilityLabel={a11y}>
-      <View style={styles.head}>
-        <Text style={styles.muted}>{date}</Text>
-        <Chip label={statusText} tone={cancelled ? 'danger' : 'success'} />
-      </View>
-      <Text style={styles.name}>{trip.passengerName}</Text>
-      <View style={styles.route}>
-        <View style={styles.point}>
-          <Icon name="radio-button-on" size={iconSize.md} tint={color.primary} />
-          <Text style={styles.place}>{trip.originLabel}</Text>
-        </View>
-        <View style={styles.point}>
-          <Icon name="location" size={iconSize.md} tint={color.danger} />
-          <Text style={styles.place}>{trip.destinationLabel}</Text>
-        </View>
-      </View>
-      {cancelled ? (
-        <Text style={styles.muted}>{labels.history.cancelledAmounts}</Text>
-      ) : (
-        <View>
-          <DataRow label={labels.history.fare} value={formatCop(trip.fare)} />
-          <DataRow label={labels.history.net} value={formatCop(trip.driverEarnings)} emphasis last />
-        </View>
-      )}
-    </Card>
-  );
+function Separator() {
+  return <View style={styles.separator} />;
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: space[3] },
-  item: { gap: space[2], minHeight: touch.min },
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3] },
-  route: { gap: space[1] },
-  point: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2] },
-  place: { ...type.body, color: color.text, flex: 1 },
-  name: { ...type.title, color: color.text },
-  muted: { ...type.caption, color: color.textMuted, flexShrink: 1 },
+  screen: { flex: 1, backgroundColor: color.bg },
+  content: { padding: space[4], paddingBottom: space[6] },
+  header: { gap: space[4], paddingBottom: space[4] },
+  separator: { height: space[3] },
+  footer: { marginTop: space[3] },
 });

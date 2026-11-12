@@ -5,13 +5,14 @@
 // No coordinates are stored (see buildTripRecord). Offline, a Firestore write waits forever for the
 // network; every save is raced against a clock so the UI never hangs.
 
-import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { Timestamp, collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, startAfter, updateDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
 import { PAYMENT_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { withTimeout } from './trip/saveRetry';
 
 export const SAVE_TIMEOUT_MS = 8000;
 export const TRIPS_LIMIT = 200;
+export const TRIPS_PAGE_SIZE = 20;
 
 export async function saveTrip(uid, tripId, record, { timeoutMs = SAVE_TIMEOUT_MS } = {}) {
   const ref = doc(db, 'drivers', uid, 'trips', tripId);
@@ -49,4 +50,37 @@ export function listenToTrips(uid, { onData, onError, max = TRIPS_LIMIT }) {
     (snapshot) => onData(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))),
     (error) => onError(error),
   );
+}
+
+// AI-assisted: see docs/AI_LOG.md #56
+// One page of the history (T-102): createdAt descending, range only on createdAt (a single field, so no
+// composite index), pageSize documents, continuing after the cursor (the last document of the previous
+// page). The query is built with injected Firestore functions so a test can inspect the arguments.
+export function buildTripsPageQuery(fns, tripsCollection, { start, end, pageSize = TRIPS_PAGE_SIZE, cursor = null }) {
+  const constraints = [
+    fns.orderBy('createdAt', 'desc'),
+    fns.where('createdAt', '>=', fns.Timestamp.fromMillis(start)),
+    fns.where('createdAt', '<', fns.Timestamp.fromMillis(end)),
+    fns.limit(pageSize),
+  ];
+  if (cursor) constraints.push(fns.startAfter(cursor));
+  return fns.query(tripsCollection, ...constraints);
+}
+
+// Runs one page with injected functions. hasMore is true when the page came back full.
+export async function fetchTripsPageWith(fns, tripsCollection, { start, end, pageSize = TRIPS_PAGE_SIZE, cursor = null }) {
+  const snapshot = await fns.getDocs(buildTripsPageQuery(fns, tripsCollection, { start, end, pageSize, cursor }));
+  const docs = snapshot.docs;
+  return {
+    trips: docs.map((item) => ({ id: item.id, ...item.data() })),
+    cursor: docs.length > 0 ? docs[docs.length - 1] : null,
+    hasMore: docs.length === pageSize,
+  };
+}
+
+const FIRESTORE_FNS = { Timestamp, getDocs, limit, orderBy, query, startAfter, where };
+
+// start and end are epoch ms ([start, end)); returns { trips, cursor, hasMore }.
+export function fetchTripsPage(uid, { start, end, pageSize = TRIPS_PAGE_SIZE, cursor = null }) {
+  return fetchTripsPageWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { start, end, pageSize, cursor });
 }

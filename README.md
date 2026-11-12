@@ -2,7 +2,7 @@
 
 App móvil del conductor (React Native + Expo, development build, iOS y Android) con backend Node/Express y Firestore. Taller "Taller: Uber - clone". Metodología Spec-Driven Development; ver [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md).
 
-**Estado actual de la entrega (parcial, 2026-11-05):** registro del conductor en 3 pestañas (datos personales, vehículo, documentos), envío a Firestore, estado de cuenta en vivo (pending/approved) y precarga de los datos ya guardados mientras la cuenta está pendiente. Las demás specs (disponibilidad y ubicación, solicitudes de viaje, tarifa, cobro y pagos, ganancias, historial, perfil) todavía no están implementadas. Detalle en [docs/progress.md](docs/progress.md) y [docs/backlog.md](docs/backlog.md).
+**Estado actual (2026-11-11, pendiente de validar en el celular):** inicio de sesión con correo y contraseña y cierre de sesión (ver [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md)), registro con documentos, Inicio con mapa y solicitudes, viaje, cobro con Mercado Pago (prueba) y efectivo, Ganancias (6 métricas y saldo) e Historial con filtros y paginación. **Nada de esto está «Validado»: falta la evidencia en el celular** (lista en [docs/checklist-dispositivo-sesiones.md](docs/checklist-dispositivo-sesiones.md)). Omisiones y límites en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md); detalle en [docs/progress.md](docs/progress.md) y [docs/backlog.md](docs/backlog.md).
 
 ## Requisitos
 - Node.js y npm (ver `expo-doctor` para la versión exacta recomendada por el SDK de Expo instalado).
@@ -33,6 +33,9 @@ Las reglas efectivas se publican a mano en la consola de Firebase (Firestore →
 
 El backend (`backend/`) expone `GET /health`, `POST /payments/checkout`, `POST /payments/sync` y `POST /webhooks/mercadopago`. Sus secretos viven únicamente en `backend/.env` (ignorado por Git); copia `backend/.env.example` (solo nombres, sin valores) a `backend/.env` y complétalo a mano. La app lleva solo `EXPO_PUBLIC_BACKEND_URL`, una URL pública sin secreto. Diseño y prueba manual en [docs/pagos.md](docs/pagos.md).
 
+## Sesión con correo y contraseña
+Habilita el proveedor **Correo/contraseña** en la consola de Firebase (Authentication → Método de acceso) antes de probar. Una cuenta activa a la vez por teléfono (D-94) y sin verificación de correo (D-95). Las reglas de Firestore se publican **después** de validar la app en el celular (D-99). Flujo, cierre de sesión y orden de publicación en [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md).
+
 ## Cómo correr la app (development build) y el backend
 En una terminal, backend:
 ```powershell
@@ -47,6 +50,9 @@ Esto abre Metro con `expo start --dev-client`. Conecta el development build al s
 
 ## Cobro: Mercado Pago Checkout Pro (modo de prueba) y efectivo
 El cobro con tarjeta usa **Mercado Pago Checkout Pro en modo de prueba**: el backend crea la preferencia con el importe leído del viaje en Firestore y la app abre el enlace; el resultado llega por webhook o por `/payments/sync` al volver a la app. No se cobra dinero real. El pago en efectivo lo confirma el conductor con «Confirmar efectivo recibido». El viaje se guarda en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros). Ganancias e Historial leen esos viajes y Ganancias muestra el saldo con la plataforma. Detalles, límites y prueba manual en [docs/pagos.md](docs/pagos.md). La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
+
+## Omisiones y límites
+Lo que la entrega no hace, o hace con otra herramienta, con su razón técnica e impacto: [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).
 
 ## Estructura del proyecto
 - `src/screens/` — pantallas por flujo (`registration/`, `home/`, `main/`, `trip/`, `startup/`).

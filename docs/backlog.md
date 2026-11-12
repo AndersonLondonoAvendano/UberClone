@@ -1167,7 +1167,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Nota de orden (planner, 2026-11-11): se ejecuta en el cierre F6, después de T-73 y antes de T-115; el README y la arquitectura incluyen también los pagos de prueba (`docs/pagos.md`) y el modelo del viaje de D-108; el resto del contenido no cambia.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11), revisada por un verifier distinto (APROBADA en lo estático, 2026-11-11); no verificado en dispositivo
 
 ### T-75 — Auditoría de diseño: solicitud, accesibilidad y marcador (R1, R2, R3)
 - Spec: `specs/002-funcionalidad-final/spec.md` (RNF-17; plan §5)
@@ -1234,7 +1234,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada de hecho (el ayudante `scripts/tests/helpers` y las pruebas puras existen y pasan, 2026-11-11); falta revisión de un verifier distinto para cerrarla
 
 ### T-79 — R5: política de publicación (solo Disponible) y seguimiento local enfocado
 - Spec: `specs/002-funcionalidad-final/spec.md` (R5, RF-39)
@@ -1581,7 +1581,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio (las zonas horarias son fuente de errores).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-102 — F3a: consulta paginada de viajes (20 por página, sin índice compuesto)
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47)
@@ -1596,7 +1596,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo; el hook nuevo es useTripHistory (useTrips se conserva para Ganancias)
 
 ### T-103 — F3a: agrupación pura de la ganancia neta para la gráfica
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-48)
@@ -1611,7 +1611,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-104 — F3a: componente de gráfica de barras con `View`
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-48, RNF-19)
@@ -1626,7 +1626,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: rúbrica completa en la auditoría T-114.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-105 — F3a: filtros del Historial (periodo, Rango y método)
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47)
@@ -1641,7 +1641,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: rúbrica completa en la auditoría T-114.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-106 — F3a: Historial con lista paginada, `Chip` de estado y gráfica
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47, RF-48)
@@ -1656,7 +1656,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: rúbrica completa en la auditoría T-114.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-107 — F3b: métricas puras de Ganancias y ejemplo del enunciado
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-50)
@@ -1671,7 +1671,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-108 — F3b: hook `useEarnings` y Ganancias con las seis métricas
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-50, RNF-03)
@@ -1686,7 +1686,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: medio.
 - Diseño hecho cuando: rúbrica completa en la auditoría T-114.
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); no verificado en dispositivo
 
 ### T-109 — F3c: presentación pura del detalle del viaje
 - Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-49, D-110)
@@ -1732,7 +1732,7 @@ Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.te
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada (2026-11-11); el verifier la rechazó (H3, H4) y se corrigió el mismo día; nueva revisión por un verifier distinto: APROBADA con hallazgos menores atendidos; no verificado en dispositivo
 
 ### T-112 — Auditoría de diseño: Inicio, «NaN» y documentos (R5, R6, R7)
 - Spec: `specs/002-funcionalidad-final/spec.md` (RNF-19; plan §5)
