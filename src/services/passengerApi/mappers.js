@@ -41,7 +41,8 @@ const STATUS_FROM_API = {
 // AI-assisted: see docs/AI_LOG.md #55
 function toPaymentMethod(value) {
   const method = String(value ?? '').toLowerCase();
-  return method === 'card' ? 'mercadopago' : method;
+  // #59: the contract speaks 'card' | 'cash'; the legacy 'mercadopago' is read as 'card' (gateway still undefined).
+  return method === 'mercadopago' ? 'card' : method;
 }
 
 export function toTripRequest(raw = {}) {

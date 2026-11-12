@@ -46,7 +46,9 @@ export function HistoryScreen({ navigation }) {
     [trips, period, query.start, query.end, now],
   );
 
-  const renderItem = useCallback(({ item }) => <TripListItem trip={item} />, []);
+  // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+  const openTrip = useCallback((trip) => navigation.navigate('TripDetail', { trip }), [navigation]);
+  const renderItem = useCallback(({ item }) => <TripListItem trip={item} onOpen={openTrip} />, [openTrip]);
   const openDrawer = useCallback(() => navigation.dispatch(DrawerActions.openDrawer()), [navigation]);
 
   const header = (

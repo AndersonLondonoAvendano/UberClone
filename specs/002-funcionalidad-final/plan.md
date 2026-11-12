@@ -256,3 +256,200 @@ Tareas visuales: T-80, T-83, T-96, T-97, T-98, T-100, T-104, T-105, T-106, T-108
 - **Brechas de documentación.** RF-39 a RF-52 y RNF-18/19 no figuran aún en `docs/requisitos.md` (solo en la spec); la matriz ya los traza.
 - **T-77** ya tiene un cambio sin confirmar en `src/utils/format.js`; se revisa, no se duplica.
 - **Ejemplo del enunciado.** Si `calculateFare` no da 15.360 / 21.520 netos, T-107 se detiene y reporta.
+
+## 9. Lote de cierre nocturno R11 (T-118 a T-133, más T-109 y T-110 ajustadas)
+Origen: ENCARGO del prompt #57. La spec sigue en Borrador y R11 en Propuesta: este plan se escribe bajo el encargo y no sustituye la aprobación de Anderson. Todas las tareas quedan «Pendiente». Ninguna instala dependencias.
+
+### 9.1 Rebanadas y orden de ejecución
+| Rebanada | Tareas | Requisitos |
+|---|---|---|
+| G1a módulo puro del panel de cobro | T-118 | RF-56 |
+| G1b pantalla de cobro con el módulo | T-119 | RF-56, RNF-19 |
+| G1c mapa de Inicio (H-1) | T-120, T-121 | RF-53, RNF-19 |
+| G1d viajes antiguos (H-2) y pista del saldo (H-3) | T-122, T-123, T-124 | RF-54, RF-55, RNF-19 |
+| G2a clasificación de errores de pago | T-125, T-126 | RF-57 |
+| G2b diagnóstico del backend | T-127, T-128 | RF-58, RNF-18 |
+| G2c guía rápida de pagos | T-129 | RF-59 |
+| G3a/G3b detalle del viaje con ruta guardada | T-109, T-110 (existentes, ajustadas) | RF-49, RF-54 |
+| Auditoría de diseño | T-130 | RNF-19 |
+| G4a/G4b/G4c cierre | T-131, T-132, T-133 | RF-60, RNF-17 |
+
+Orden: T-118, T-119, T-120, T-121, T-122, T-123, T-124, T-125, T-126, T-127, T-128, T-129, T-109, T-110, T-130, T-131, T-132, T-133. T-109 y T-110 conservan su número pero dependen de T-122 y T-123 (números mayores): se ejecutan después de T-129, no en su posición numérica original.
+
+### 9.2 Decisiones técnicas
+- **DP-28.** `chargePanel` es una función pura `(método, estado de pago, error de guardado, error del servicio, acción del usuario) -> mensaje único`; la pantalla solo pinta. Prioridad: guardado > servicio > informativo > éxito.
+- **DP-29.** El error del servicio solo se muestra tras una acción del usuario (Cobrar, Verificar, Reintentar); la verificación silenciosa al montar no lo activa. En efectivo no hay backend ni mensajes del servicio.
+- **DP-30.** El tono de éxito solo con `approved` o efectivo cobrado; «viaje guardado» nunca es éxito.
+- **DP-31.** Constantes del mapa (zoom de barrio, encuadre de Colombia) solo en `src/config/map.js`; la decisión de cámara vive en `cameraPolicy` puro. `TripMap` recibe un modo `centerOnce` para Inicio; `follow` del viaje no cambia.
+- **DP-32.** «Reducir movimiento» se lee con `AccessibilityInfo.isReduceMotionEnabled` (ya incluido en React Native), sin dependencias.
+- **DP-33.** «Viaje antiguo» = faltan `paymentMethod` y `paymentStatus` a la vez; con uno solo no lo es. Chip neutro «Cobro simulado». Política: métricas lo incluyen, saldo lo excluye, filtro de método no lo muestra (solo «Todos»).
+- **DP-34.** `PAYMENTS_ERROR` pasa a ocho clases (`notConfigured`, `offline`, `timeout`, `sessionExpired`, `notFound`, `serverError`, `invalidResponse`, `providerError`); el cliente sigue sin lanzar. T-125 mantiene el comportamiento visible; los mensajes por clase llegan en T-126. Ningún mensaje incluye URL, token ni cabeceras.
+- **DP-35.** `doctor` recibe `env`, `fs`, `loadAdmin`, `fetchFn`, `nodeVersion` y `log` inyectados: no lee `.env` ni `backend/secrets/` en las pruebas, imprime nombres de variables y nunca valores, y sin red los pasos de red salen ERROR sin detener los demás.
+- **DP-36.** La guía rápida y el checklist no contienen secretos; remiten a `docs/pagos.md` para los pasos de red.
+
+### 9.3 Archivos → responsabilidad → requisitos
+| Archivo | Responsabilidad | Requisitos | Tarea |
+|---|---|---|---|
+| `src/services/trip/chargePanel.js` | tabla de estados y mensaje único | RF-56 | T-118, T-126 |
+| `scripts/tests/chargePanel.test.mjs` | pruebas del módulo | RF-56 | T-118, T-126 |
+| `src/screens/trip/TripSummaryScreen.js` | pinta `chargePanel` | RF-56, RNF-19 | T-119 |
+| `src/config/map.js` | constantes de zoom y Colombia | RF-53 | T-120 |
+| `src/services/map/cameraPolicy.js` y su prueba | decisión de centrado y recentrado | RF-53 | T-120 |
+| `src/components/map/TripMap.js` | centra una vez | RF-53 | T-121 |
+| `src/components/map/MyLocationButton.js` | botón 44 x 44 | RF-53, RNF-19 | T-121 |
+| `src/screens/home/HomeScreen.js` | monta el botón | RF-53 | T-121 |
+| `src/services/trip/legacyTrip.js` y pruebas | viaje antiguo y chip | RF-54 | T-122 |
+| `src/components/TripListItem.js` | chip en la lista | RF-54 | T-123 |
+| `src/screens/main/EarningsScreen.js` | pista del saldo a varias líneas | RF-55 | T-124 |
+| `src/services/trip/paymentsClient.js` y su prueba | ocho clases de error | RF-57 | T-125 |
+| `src/constants/labels.js` | textos del lote | RF-53 a RF-57 | T-118, T-120, T-122, T-126 |
+| `backend/scripts/doctor.mjs`, `backend/package.json`, `scripts/tests/doctor.test.mjs` | diagnóstico | RF-58, RNF-18 | T-127, T-128 |
+| `docs/pagos-guia-rapida.md` | guía de pagos | RF-59 | T-129 |
+| `src/services/trip/tripDetailView.js`, `TripDetailScreen.js` | detalle con ruta guardada o «Ruta no disponible» | RF-49, RF-54 | T-109, T-110 |
+| `docs/checklist-manana-jueves.md`, `docs/guion-video.md`, `README.md` | cierre | RF-60 | T-131, T-132, T-133 |
+
+### 9.4 Contratos
+- `chargePanel({ method, paymentStatus, saveError, serviceError, userActed }) -> { message, tone, chip, actions, live }`
+- `shouldCenterOnFirstFix({ alreadyCentered, position }) -> boolean`; `recenterAction({ position, reduceMotion }) -> { center, zoom, duration } | null`
+- `isLegacySimulatedTrip(trip) -> boolean`; `legacyPaymentChip(trip) -> { label, tone } | null`
+- `createPaymentsClient(...)` sin cambios de firma; resultado `{ ok: false, error: PAYMENTS_ERROR.* }`
+- `runDoctor({ env, fs, loadAdmin, fetchFn, nodeVersion, log }) -> { results }`
+
+### 9.5 Diseño
+Tareas visuales: T-119, T-121, T-123, T-124, T-126 (auditadas en T-130) y T-110 (en T-114). Reglas: tokens, `Icon`, `Chip`, 44 x 44, 200 % de fuente, una región `polite`, sin `Alert`, textos en `labels.js`, reducir movimiento.
+
+### 9.6 Mapa CA → implementación
+| CA | Tareas |
+|---|---|
+| CA-002-91, 92, 93 | T-120, T-121 |
+| CA-002-94 | T-122, T-123, T-109, T-110 |
+| CA-002-95 | T-122 |
+| CA-002-96 a 100 | T-118, T-119 |
+| CA-002-101 | T-125 |
+| CA-002-102 | T-126 |
+| CA-002-103, 104 | T-127, T-128 |
+| CA-002-105 | T-129 |
+| CA-002-106 | T-109, T-110 |
+| CA-002-107 | T-131, T-133 |
+| CA-002-108 | T-132, T-133 |
+| CA-002-D11 | T-121, T-130 |
+| CA-002-D12 | T-124, T-130 |
+
+### 9.7 Riesgos y puntos abiertos
+- Spec Borrador y R11 Propuesta: sin aprobación propia de Anderson.
+- T-109/T-110 con dependencia hacia un número mayor (orden en §9.1).
+- T-121, T-110 y otras tareas de pantalla quedan «No verificado en dispositivo» hasta que Anderson confirme.
+- `progress.md` y `decisiones.md` no los escribe el planner (T-133 los asigna a otros).
+- `docs/omisiones-y-limites.md` no se leyó completo al planificar.
+
+## 10. Stripe como segunda pasarela de prueba (R12; T-134 a T-156)
+Origen: P5 sobre la adición R12 (ENCARGO; RF-61, RF-62, RNF-20; D-116 a D-120; CA-002-109 a CA-002-129). La spec y R12 siguen en Propuesta y D-116 a D-120 en Propuesta: este plan se escribe bajo el encargo y no sustituye la aprobación de Anderson; ninguna tarea se ejecuta sin ella. Todas las tareas quedan «Pendiente». Ninguna instala dependencias: Stripe se consume con `fetch` nativo y `node:crypto` (CA-002-128). Aviso P5: los planes y tareas de R8 y R11 (T-85 a T-97, T-118 a T-130) quedan parcialmente desactualizados en lo que tocan (`chargePanel`, `paymentActions`, `paymentsClient`, `TripSummaryScreen`, `backend/src/*`).
+Decisión de Anderson implícita en el encargo: al crear el viaje con tarjeta la app sigue escribiendo `paymentMethod = 'mercadopago'` (D-118, lectura conservadora); el backend lo sobrescribe a `stripe` al crear el cobro de Stripe y solo mientras el pago no esté aprobado. El mensaje pendiente con dos pasarelas (CA-002-124) es propuesta por confirmar.
+
+### 10.1 Rebanadas y orden de ejecución
+| Rebanada | Tareas | Requisitos |
+|---|---|---|
+| Inventario previo de `testID`, accesibilidad y `labels.js` | T-134 | RNF-19, RF-62 |
+| S1 backend: interfaz de proveedor, registro, monto, estado, cliente y firma de Stripe | T-135, T-136, T-137 | RF-61, RNF-20 |
+| S2 backend: configuración, almacén, rutas, webhook, página de retorno | T-138, T-139, T-140, T-141, T-142 | RF-61, RNF-20 |
+| S3 diagnóstico | T-143 | RNF-20 (RF-58) |
+| S4 app: cliente, vista y panel de cobro, acciones, pantalla, verificación | T-144, T-145, T-146, T-147, T-148 | RF-62, RNF-19 |
+| S5 app: Historial, detalle y saldo | T-149, T-150 | RF-62 |
+| S6 reglas | T-151 | RF-61 |
+| S7 documentos | T-152, T-153, T-154 | RF-61, RF-62, RNF-20 |
+| S8 verificación estática, inventario posterior y auditoría de diseño | T-155, T-156 | RNF-19, RF-62, RNF-20 |
+
+Orden: T-134 a T-156 en orden numérico. Cada tarea deja el proyecto arrancando y las pruebas existentes de R8 y R11 sin cambiar aserciones (CA-002-126). Corte mínimo si falta tiempo: T-134 a T-142 y T-144 a T-148 (cobro de Stripe de punta a punta), después T-156; T-143, T-149 a T-155 pueden esperar.
+
+### 10.2 Decisiones técnicas (DP-37 en adelante; no sustituyen `docs/decisiones.md`)
+- **DP-37 Interfaz de proveedor (D-117).** Un proveedor es `{ id, createCheckout({ tripId, uid, trip, currency, publicBaseUrl }) -> { url }, getPaymentState({ tripId, uid, trip, currency }) -> { status: 'approved'|'pending'|'rejected', id } | null }`; `null` significa «no hay pago que corresponda a este viaje». El registro (`providers/registry.js`) expone `get(id)`, `isConfigured(id)` y `flags()` (`{ mercadopago: boolean, stripe: boolean }`). El adaptador de Mercado Pago envuelve `createMercadoPagoClient` sin modificar `backend/src/mercadopago.js`.
+- **DP-38 Monto de Stripe.** Según https://docs.stripe.com/currencies las monedas son de dos decimales salvo ISK, HUF, TWD y UGX; COP no está en las excepciones, así que `unit_amount = pesos × 100` (10 000 COP = 1 000 000; **inferido, no hay fila explícita de COP en la página**) y el mínimo listado es 0.50 COP (50 unidades), que `fare` entero ≥ 1 cumple. Tope: el de `config.maxAmountCop`. Función pura `toStripeUnitAmount(fareCop, { currency, copPerUsd }) -> { amount, currency } | null` (null para no enteros, 0, negativos, sobre el tope o configuración inválida). Respaldo no activo por defecto: `STRIPE_CURRENCY=usd` con `STRIPE_COP_PER_USD` (número positivo obligatorio con usd, si falta Stripe queda no configurada): `amount = round(fare × 100 / copPerUsd)`, mínimo 50 centavos. Que la cuenta de Anderson soporte COP **no está confirmado**.
+- **DP-39 Transporte.** `fetch` nativo, tiempo de espera 10 s, `Authorization: Basic base64(<clave>:)` (la forma documentada; `Bearer` no está confirmado en la página leída), `Content-Type: application/x-www-form-urlencoded` con notación de corchetes (`line_items[0][price_data][unit_amount]`), un `encodeForm` puro. Errores: `StripeError(status)` sin mensaje, URL ni cabeceras (como `MercadoPagoError`).
+- **DP-40 Sesión de cobro.** `POST /v1/checkout/sessions` con `mode=payment`, un `line_items` (moneda en minúsculas, nombre «Viaje UberClone (pago de prueba)», cantidad 1), `client_reference_id=<tripId>`, `metadata[tripId]` y `metadata[uid]`, `success_url` y `cancel_url` = `<PUBLIC_BASE_URL>/payments/return`, `expires_at` a 30 minutos (mínimo permitido). No se depende de `payment_intent_data[metadata]` (no confirmado). `Idempotency-Key` = `uc-<tripId>-<cubeta de 60 s>`: un doble toque no crea dos sesiones y un reintento posterior sí (la misma clave con parámetros distintos da error y se conserva 24 h).
+- **DP-41 Estado de la sesión.** `GET /v1/checkout/sessions/{id}?expand[]=payment_intent` (la expansión sigue la convención general de la API; **no confirmada en la página leída**). Función pura `mapStripeSession(session, { tripId, expectedAmount, expectedCurrency }) -> { status, id, matches }`: `payment_status === 'paid'` → approved; `status === 'expired'` → rejected; `payment_intent.last_payment_error` presente sin pago → rejected; resto → pending. `matches` exige `client_reference_id === tripId`, `amount_total === expectedAmount` y `currency === expectedCurrency`; si no coincide el adaptador devuelve `null`. Con Checkout el pagador reintenta dentro de la misma página, así que un rechazo con tarjeta de prueba suele verse como `pending`: no es un fallo (documentarlo en la guía).
+- **DP-42 Sincronización por proveedor.** `sync` ignora cualquier `provider` del cuerpo: reconsulta con el proveedor que indica `trip.paymentMethod` (CA-002-123). `checkout` toma `provider` del cuerpo; si falta usa `mercadopago` (compatibilidad con las pruebas de R8); valores no configurados o desconocidos devuelven `ERRORS.invalid` sin detalle.
+- **DP-43 Método de pago del viaje.** `store.setPaymentMethod(uid, tripId, method)` en transacción: solo `mercadopago|stripe`, solo si el viaje está `completed` y sin `approved`/`paid`; se invoca después de crear la sesión con éxito (si Stripe falla no se cambia el método). `store.applyPayment` gana un cuarto argumento opcional `provider` (por defecto `mercadopago`) y exige `trip.paymentMethod === provider`: un webhook de una pasarela nunca aprueba un viaje de la otra.
+- **DP-44 Configuración.** `loadConfig(env, { allowNoProvider = false })`: por defecto conserva el error si falta `MP_ACCESS_TOKEN` (pruebas de R8 intactas); `server.js` pasa `allowNoProvider: true`. Se añade `config.providers = { mercadopago: { accessToken, webhookSecret } | null, stripe: { secretKey, webhookSecret, currency, copPerUsd } | null }`, sin quitar `mpAccessToken` ni `webhookSecret`. Variables nuevas (solo nombres): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CURRENCY`, `STRIPE_COP_PER_USD`. Claves que empiezan por `sk_live_` o `rk_live_`, o que no empiezan por `sk_test_`/`rk_test_`, dejan Stripe en `null` con un aviso fijo que no contiene la clave (D-119). `FIREBASE_SERVICE_ACCOUNT_PATH` y `PUBLIC_BASE_URL` siguen obligatorios.
+- **DP-45 Webhook de Stripe (D-120).** `app.use('/webhooks/stripe', express.raw({ type: () => true, limit: BODY_LIMIT }))` registrado antes de `express.json`; el manejador recibe `Buffer`. Verificación: `t=` y `v1=` de `Stripe-Signature` (varias `v1` válidas, `v0` ignorada), carga `<t>.<cuerpo crudo>`, HMAC-SHA256 con `whsec_…`, `timingSafeEqual`, tolerancia 300 s (`SIGNATURE_TOLERANCE_SEC`). Sin secreto, sin cabecera o firma mala: `ERRORS.unauthorized`. Con firma válida solo se toma de `data.object.id` el identificador `cs_…` (patrón estricto) de eventos `checkout.session.*`, se reconsulta la sesión y se aplica como `sync`; otros tipos de evento, viaje inexistente o método distinto de `stripe` responden `{ received: true }` sin aplicar.
+- **DP-46 Página de retorno (CA-002-117).** `GET /payments/return` devuelve HTML fijo (constante, sin interpolación, `Cache-Control: no-store`, `Content-Type: text/html; charset=utf-8`) que dice que se puede volver a la app; sin `tripId`, monto ni parámetros. Pasa por el límite de IP. Que Stripe acepte una `success_url` `http` de túnel local **no está confirmado**: con `PUBLIC_BASE_URL` https no hay problema.
+- **DP-47 Contrato de `chargePanel` ampliado.** Entra `providers` (`{ mercadopago, stripe }` booleanos, o `undefined` si aún no se conoce) y `method` acepta `stripe` como tarjeta. Sale lo mismo más `chargeProviders: string[]` (pasarelas con botón «Cobrar») y `noGateway: boolean`. Con `providers` indefinido el resultado es idéntico al actual (pruebas de R11 intactas). Mensaje único (H-4, D-112): sin ninguna pasarela y viaje con tarjeta pendiente o rechazado → «No hay una pasarela de pago configurada» (tono informativo, sin botones de cobro ni reintento; «Verificar pago» se conserva); solo Mercado Pago → literal de CA-002-98; Stripe configurada (sola o con Mercado Pago) y pendiente → «Viaje guardado. Falta el pago con tarjeta.» (por confirmar). Aprobado, rechazado y errores no cambian.
+- **DP-48 Acciones en la app.** `paymentActions.run(action, { uid, tripId, provider })`: `CHARGE`/`RETRY` envían `provider` (obligatorio, si falta es error `failed`); `VERIFY` envía `provider` = `paymentMethod` del documento del viaje, no el último botón. `paymentsClient`: `getProviders() -> { ok, providers: { mercadopago, stripe } }` (GET con ID token, solo booleanos), `requestCheckoutUrl(tripId, provider)`, `syncPayment(tripId, provider)`. La carga de pasarelas no genera mensaje propio: si falla, `providers` queda indefinido y el panel actúa como hoy (CA-002-124). La URL de Stripe debe empezar por `https://` como la de Mercado Pago.
+- **DP-49 Nombre de pasarela en detalle.** `labels.history.detail.methods` pasa a `{ mercadopago: 'Tarjeta (Mercado Pago)', stripe: 'Tarjeta (Stripe)', cash: 'Efectivo' }`; el filtro «Tarjeta» (`HISTORY_METHOD.CARD`, valor `mercadopago`) incluye ambos en `filterByMethod`. `computeBalance` y `earnings` tratan `stripe` igual que `mercadopago`. La lista (`TripListItem`) no muestra método hoy; no se añade. Cambia el texto esperado de una aserción de `tripDetailView.test.mjs` para `mercadopago` (consecuencia de CA-002-125, a confirmar por Anderson).
+- **DP-50 Diagnóstico.** `runDoctor` suma una línea por pasarela: Stripe llama `GET https://api.stripe.com/v1/balance` con la clave (401 = clave inválida; 403 = permisos). Línea de Mercado Pago pasa de FALTA a AVISO si Stripe sí está configurada; es ERROR/FALTA solo si ninguna lo está. Clave `sk_live_`/`rk_live_`: ERROR sin llamar a la red. `STRIPE_WEBHOOK_SECRET` ausente: AVISO (opcional). Nunca imprime valores.
+
+### 10.3 Archivos → responsabilidad → requisitos
+| Archivo | Responsabilidad | Requisitos | Tarea |
+|---|---|---|---|
+| `docs/diseno/auditorias/stripe-inventario.md` (nuevo) | inventario de `testID`, roles, etiquetas y `labels.js` antes y después | RNF-19 | T-134, T-155 |
+| `backend/src/providers/registry.js`, `backend/src/providers/mercadopago.js` | interfaz, registro y adaptador de Mercado Pago | RF-61 | T-135 |
+| `backend/src/stripe.js` (monto, estado, firma, cliente) | lógica de Stripe | RF-61, RNF-20 | T-136, T-137 |
+| `backend/src/providers/stripe.js` | adaptador de Stripe | RF-61 | T-137 |
+| `scripts/tests/stripeCore.test.mjs`, `scripts/tests/backendProviders.test.mjs` | pruebas con fakes | RF-61, RNF-20 | T-135 a T-137 |
+| `backend/src/config.js`, `backend/src/server.js`, `backend/.env.example` | proveedores opcionales, claves live rechazadas, arranque sin pasarelas | RF-61, RNF-20 | T-138 |
+| `backend/src/firestore.js` | `setPaymentMethod`, `applyPayment` por proveedor | RF-61 | T-139 |
+| `backend/src/routes/payments.js` | `GET /payments/providers`, `checkout` y `sync` por proveedor | RF-61 | T-140 |
+| `backend/src/routes/webhooks.js`, `backend/src/app.js` | `/webhooks/stripe` con cuerpo crudo | RF-61, RNF-20 | T-141 |
+| `backend/src/routes/return.js` (nuevo), `backend/src/app.js` | página estática de retorno | RF-61 | T-142 |
+| `backend/scripts/doctor.mjs`, `scripts/tests/doctor.test.mjs` | línea por pasarela | RNF-20 | T-143 |
+| `src/services/trip/paymentsClient.js`, `src/services/paymentsService.js` | `getProviders`, proveedor en checkout y sync | RF-62 | T-144 |
+| `src/services/trip/tripRecord.js`, `paymentView.js`, `chargePanel.js`, `src/constants/labels.js` | `stripe` como tarjeta, mensaje y botones por pasarela | RF-62 | T-145 |
+| `src/services/trip/paymentActions.js`, `src/hooks/useChargeProviders.js` (nuevo) | proveedor en acciones; carga silenciosa de pasarelas | RF-62 | T-146 |
+| `src/screens/trip/TripSummaryScreen.js`, `src/constants/labels.js` | botones «Cobrar con …» y mensaje sin pasarela | RF-62, RNF-19 | T-147 |
+| `src/screens/trip/TripSummaryScreen.js` | verificación con el proveedor del viaje | RF-62 | T-148 |
+| `src/utils/historyQuery.js`, `src/utils/earnings.js` | filtro «Tarjeta» y saldo con `stripe` | RF-62 | T-149 |
+| `src/services/trip/tripDetailView.js`, `src/constants/labels.js` | nombre de la pasarela en el detalle | RF-62 | T-150 |
+| `docs/seguridad.md`, `firestore.rules` | `stripe` permitido; backend único escritor del método | RF-61 | T-151 |
+| `docs/pagos-stripe-guia.md`, `docs/pagos-guia-rapida.md`, `docs/checklist-manana-jueves.md`, `docs/guion-video.md`, `docs/omisiones-y-limites.md`, `README.md` | documentos | RF-61, RF-62, RNF-20 | T-152 a T-154 |
+
+### 10.4 Contratos (firmas)
+- `createProviderRegistry({ mercadopago, stripe }) -> { get(id), isConfigured(id), flags() }`
+- `toStripeUnitAmount(fareCop, { currency = 'cop', copPerUsd } = {}) -> { amount, currency } | null`
+- `mapStripeSession(session, { tripId, expectedAmount, expectedCurrency }) -> { status, id, matches }`
+- `verifyStripeSignature({ rawBody, header, secret, now = Date.now(), toleranceSec = 300 }) -> boolean`
+- `encodeForm(object) -> string`
+- `createStripeClient({ secretKey, fetch }) -> { createCheckoutSession({ tripId, uid, amount, currency, successUrl, cancelUrl, idempotencyKey }) -> { id, url }, getCheckoutSession(id) -> object }`
+- `createTripStore(db).setPaymentMethod(uid, tripId, method) -> { applied, paymentMethod }`; `applyPayment(uid, tripId, payment, provider = 'mercadopago')`
+- `GET /payments/providers -> { mercadopago: boolean, stripe: boolean }`; `POST /payments/checkout { tripId, provider } -> { url }`; `POST /payments/sync { tripId } -> { paymentStatus }`; `POST /webhooks/stripe` (cuerpo crudo) `-> { received: true }`; `GET /payments/return -> HTML estático`
+- `paymentsClient.getProviders() -> { ok: true, providers } | { ok: false, error }`; `requestCheckoutUrl(tripId, provider)`; `syncPayment(tripId, provider)`
+- `chargePanel({ method, paymentStatus, saveError, serviceError, writeError, userActed, providers }) -> { message, tone, chip, actions, live, chargeProviders, noGateway }`
+- `createPaymentActions(...).run(action, { uid, tripId, provider })`
+
+### 10.5 Diseño
+Tareas visuales: T-147 (botones y mensaje del panel) y T-148 (sin cambio visual, comportamiento), T-150 (texto del detalle). Auditoría en T-156 con el `design-auditor`: dos botones de cobro (48 dp, rol y nombre), rótulo largo «Cobrar con Stripe (tarjeta de prueba)» a 200 % en varias líneas sin corte, una sola región `polite` (sin mensajes extra por los botones), tokens y `labels.js`, sin `Alert`. `SecondaryButton` ya tiene rol `button` y nombre; si su altura mínima no llega a 48 dp o no admite varias líneas, T-147 lo señala al `implementer` en vez de modificarlo en silencio. El inventario de `testID`/`accessibility*`/`labels` se toma antes (T-134) y después (T-155) y se compara: ningún `testID` ni etiqueta existente desaparece o cambia (salvo la excepción de DP-49).
+
+### 10.6 Mapa CA → implementación
+| CA | Tareas |
+|---|---|
+| CA-002-109 | T-135, T-138, T-140 |
+| CA-002-110 | T-139, T-140 |
+| CA-002-111 | T-137, T-140 |
+| CA-002-112 | T-136 |
+| CA-002-113 | T-136, T-137 |
+| CA-002-114 | T-139, T-140, T-141 |
+| CA-002-115 | T-137, T-141 |
+| CA-002-116 | T-141 |
+| CA-002-117 | T-142 |
+| CA-002-118 | T-140, T-141, T-142 |
+| CA-002-119 | T-138, T-142 |
+| CA-002-120 | T-138, T-143 |
+| CA-002-121 | T-143 |
+| CA-002-122 | T-145, T-147 |
+| CA-002-123 | T-144, T-146, T-148 |
+| CA-002-124 | T-145, T-147 |
+| CA-002-125 | T-149, T-150 |
+| CA-002-126 | T-135, T-139, T-140, T-155 |
+| CA-002-127 | T-134, T-147, T-155, T-156 |
+| CA-002-128 | T-137, T-155 |
+| CA-002-129 | T-139, T-151 |
+
+### 10.7 Riesgos y puntos abiertos
+- Spec, R12 y D-116 a D-120 en Propuesta: sin aprobación de Anderson.
+- COP con dos decimales es una inferencia de la página de monedas, y que la cuenta de Anderson acepte COP no está confirmado: `STRIPE_CURRENCY=usd` + `STRIPE_COP_PER_USD` es el respaldo (solo prueba; la conversión es la tasa que Anderson escribe, no una cotización).
+- La expansión `expand[]=payment_intent`, `payment_intent_data[metadata]` y `Authorization: Bearer` no están confirmados en las páginas leídas: el plan usa Basic, no depende de `payment_intent_data` y trata la expansión como mejora (sin ella un rechazo se ve como pendiente).
+- `loadConfig` por defecto sigue exigiendo `MP_ACCESS_TOKEN` para no tocar las pruebas de R8; el arranque sin pasarelas se activa solo desde `server.js` (DP-44).
+- CA-002-125 cambia el texto de una aserción de `tripDetailView.test.mjs` (DP-49).
+- Mensaje pendiente con dos pasarelas por confirmar (CA-002-124).
+- `firestore.rules` y publicación: el backend usa firebase-admin, que ignora las reglas; publicar solo si Anderson quiere que la regla admita `stripe` (paso manual, T-151).
+- Un webhook requiere URL pública y registrar el endpoint en Stripe (CLI `stripe listen` para pruebas); es opcional (D-120).
+- Las tareas de pantalla (T-147, T-148, T-150) quedan «No verificado en dispositivo» hasta que Anderson confirme; el cobro real de Stripe en el navegador también.
+- ~60 minutos es ajustado para 23 tareas: estimación honesta de 5 a 10 minutos por tarea de backend o de lógica y 10 a 15 por tarea de pantalla (2 a 3 horas en total); el corte mínimo está en §10.1.

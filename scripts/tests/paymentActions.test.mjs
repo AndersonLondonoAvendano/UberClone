@@ -19,7 +19,8 @@ function make(over = {}) {
   });
   return { actions, calls };
 }
-const ctx = { uid: 'u1', tripId: 't1' };
+// T-146: charge and retry now need the gateway of the pressed button (input only; assertions unchanged).
+const ctx = { uid: 'u1', tripId: 't1', provider: 'mercadopago' };
 
 // Charge and retry request the link and open it; nothing is written.
 for (const action of [PAYMENT_ACTION.CHARGE, PAYMENT_ACTION.RETRY]) {
@@ -96,6 +97,66 @@ for (const error of ['offline', 'backendUnavailable', 'failed']) {
   assert.ok(/Linking\.openURL/.test(screen));
   assert.ok(!/status:\s*(TRIP_STATUS|PAYMENT_STATUS)\.(PAID|APPROVED)/.test(screen + runner));
   assert.ok(!/updateDoc|setDoc/.test(screen + runner));
+}
+
+// T-119 (CA-002-97): a cash trip never reaches the payments service; only the cash write runs.
+{
+  const { actions, calls } = make();
+  assert.deepEqual(await actions.run(PAYMENT_ACTION.CONFIRM_CASH, ctx), { ok: true });
+  assert.deepEqual(calls, [['cash', 'u1', 't1']]);
+  assert.equal(calls.some(([name]) => name === 'checkout' || name === 'sync' || name === 'open'), false);
+}
+
+// T-119: the screen decides through chargePanel and arms userActed only for charge, verify and retry.
+{
+  const screen = readFileSync(new URL('../../src/screens/trip/TripSummaryScreen.js', import.meta.url), 'utf8');
+  assert.ok(screen.includes('chargePanel({'));
+  assert.ok(!screen.includes('paymentView('));
+  assert.ok(!screen.includes('BACKEND_URL'));
+  assert.ok(screen.includes('name !== PAYMENT_ACTION.CONFIRM_CASH) setUserActed(true)'));
+  assert.ok(screen.includes('canSyncRef.current = isCard &&'));
+  assert.equal(screen.split('setUserActed(true)').length - 1, 1);
+}
+
+// AI-assisted: see docs/AI_LOG.md #58
+// T-146 (RF-62, CA-002-123): the provider reaches the client; verify uses the trip's gateway; no provider is failed.
+{
+  const calls = [];
+  const spy = make({
+    requestCheckoutUrl: async (id, provider) => { calls.push(['checkout', id, provider]); return { ok: true, url: 'https://stripe.test/pay' }; },
+    syncPayment: async (id, provider) => { calls.push(['sync', id, provider]); return { ok: true, paymentStatus: 'pending' }; },
+    openUrl: async (url) => { calls.push(['open', url]); },
+  });
+  assert.deepEqual(await spy.actions.run(PAYMENT_ACTION.CHARGE, { uid: 'u1', tripId: 't1', provider: 'stripe' }), { ok: true });
+  assert.deepEqual(await spy.actions.run(PAYMENT_ACTION.RETRY, { uid: 'u1', tripId: 't1', provider: 'mercadopago' }), { ok: true });
+  assert.deepEqual(await spy.actions.run(PAYMENT_ACTION.VERIFY, { uid: 'u1', tripId: 't1', provider: 'stripe' }), { ok: true });
+  assert.deepEqual(calls, [
+    ['checkout', 't1', 'stripe'], ['open', 'https://stripe.test/pay'],
+    ['checkout', 't1', 'mercadopago'], ['open', 'https://stripe.test/pay'],
+    ['sync', 't1', 'stripe'],
+  ]);
+
+  // Missing, empty or non-string provider on charge and retry: failed, nothing called, lock released.
+  for (const provider of [undefined, null, '', 7]) {
+    for (const action of [PAYMENT_ACTION.CHARGE, PAYMENT_ACTION.RETRY]) {
+      const none = make();
+      assert.deepEqual(await none.actions.run(action, { uid: 'u1', tripId: 't1', provider }), { ok: false, error: ACTION_ERROR.FAILED });
+      assert.equal(none.calls.length, 0);
+      assert.equal(none.actions.isBusy(), false);
+    }
+  }
+  // Verify without a provider still syncs (legacy body); cash ignores the provider.
+  const legacy = make();
+  assert.deepEqual(await legacy.actions.run(PAYMENT_ACTION.VERIFY, { uid: 'u1', tripId: 't1' }), { ok: true });
+  assert.deepEqual(legacy.calls, [['sync', 't1']]);
+}
+
+// T-147/T-148: the screen sends the pressed button's gateway on charge/retry and the trip's gateway on verify,
+// and never shows an Alert.
+{
+  const screen = readFileSync(new URL('../../src/screens/trip/TripSummaryScreen.js', import.meta.url), 'utf8');
+  assert.ok(screen.includes('provider: tripGatewayRef.current'));
+  assert.ok(screen.includes('useChargeProviders('));
 }
 
 console.log('paymentActions tests passed');

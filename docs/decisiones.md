@@ -647,4 +647,68 @@ Decisión: se guarda una ruta planeada (no el recorrido real) de máximo 40 punt
 Alternativa: no guardar nada (descartada: incumple §6); recorrido real (descartada: privacidad).
 Impacto: la regla de viajes admite `route` con validación de tamaño y tipo.
 
+### D-111 — Política de viajes antiguos: «Cobro simulado» · Propuesta (Anderson aprueba; R11, RF-54)
+Situación: los viajes guardados antes de los pagos reales no tienen `paymentMethod` ni `paymentStatus` y se mostraban como «Pago sin estado».
+Decisión: un viaje sin método Y sin estado de pago se presenta como «Cobro simulado» (chip neutro). Las métricas de Ganancias los incluyen (por `status` completed o paid); `computeBalance` los excluye, porque no hay efectivo cobrado que descontar; el filtro de método los muestra solo en «Todos», no en Tarjeta ni Efectivo.
+Alternativa: contarlos como efectivo o tarjeta (descartada: inventa un método de pago); ocultarlos (descartada: pierde ganancias históricas).
+Impacto: `src/services/trip/legacyTrip.js`, `earnings`, `balance` e `historyQuery`; pruebas en `scripts/tests/`. CA-002-94, CA-002-95 y CA-002-106.
+
+### D-112 — Regla única del panel de cobro · Propuesta (Anderson aprueba; R11, RF-56)
+Situación: «Cobro y resumen» podía mostrar varios mensajes a la vez (guardado, servicio, estado del pago) y mensajes del servicio en viajes en efectivo.
+Decisión: una función pura (`chargePanel`) devuelve una sola salida (un mensaje, tono, chip y botones) con la prioridad error de guardado > error del servicio > informativo > éxito. El error del servicio solo se muestra tras una acción del usuario; el efectivo nunca llama al backend de pagos; el tono de éxito solo con pago aprobado o efectivo cobrado. La pantalla pinta solo lo que la función devuelve.
+Alternativa: mensajes independientes por fuente (descartada: se contradicen).
+Impacto: `src/services/trip/chargePanel.js` y `TripSummaryScreen`. CA-002-96 a CA-002-100.
+
+### D-113 — Clasificación de errores del cliente de pagos en ocho clases · Propuesta (Anderson aprueba; R11, RF-57)
+Decisión: `paymentsClient` clasifica cada fallo en `notConfigured`, `offline`, `timeout`, `sessionExpired` (401 o 403), `notFound` (404), `serverError` (5xx), `invalidResponse` o `providerError`. Cada clase tiene un mensaje propio en `labels.js` que nunca incluye la URL ni el token.
+Alternativa: un solo mensaje genérico de error (descartada: no ayuda a corregir la causa).
+Impacto: `src/services/trip/paymentsClient.js`, `paymentActions` y `labels.js`. CA-002-101 y CA-002-102.
+
+### D-114 — Mapa de solo lectura en el detalle del viaje · Propuesta (Anderson aprueba; R9, RF-49)
+Decisión: el detalle de viaje usa `TripMap` con `interactive=false`: dibuja la ruta simplificada guardada (D-110) sin gestos de mapa, para no competir con el desplazamiento de la pantalla. Sin `route`, muestra «Ruta no disponible» en lugar del mapa. Sin propina ni calificación en los datos: «Sin propina» y se omite la calificación.
+Alternativa: mapa interactivo (descartada: atrapa el desplazamiento y no aporta al historial).
+Impacto: `TripMap`, `TripDetailScreen` y `tripDetailView`. CA-002-106.
+
+### D-115 — Texto ampliado del pago rechazado · Propuesta (pendiente de confirmación de spec-author y Anderson)
+Situación: CA-002-98 fija el mensaje del pago rechazado; en pantalla se muestra con una indicación para actuar.
+Decisión: el mensaje del estado rechazado se amplía a «Pago rechazado. Toca “Reintentar pago”.», lo que amplía el texto de CA-002-98. Hasta que se confirme, la spec no cambia.
+Alternativa: dejar solo «Pago rechazado.» (descartada por ahora: no dice qué hacer).
+Impacto: `labels.js` y `chargePanel`; si Anderson lo aprueba, P5 sobre CA-002-98.
+
+### D-116 — Stripe Checkout Sessions alojado en el navegador como segunda pasarela de prueba · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: Mercado Pago no permite a Anderson crear cuentas de prueba, así que el cobro con tarjeta (D-107) no se puede validar de punta a punta.
+Decisión: se añade Stripe Checkout Sessions (página de pago alojada por Stripe, abierta en el navegador del teléfono) en modo de prueba. La Checkout Session crea internamente el PaymentIntent; el backend no lo crea por separado. Mercado Pago queda sin cambios.
+Alternativa: PaymentSheet de Stripe (descartada: requiere un módulo nativo, dependencia nueva y una build nativa nueva, que hace el humano y no hay tiempo); PaymentIntent propio con formulario en la app (descartada: la app tocaría datos de tarjeta).
+Consecuencia: el flujo de la app sigue siendo «abrir URL, volver, verificar», igual que con Mercado Pago. Impacto: `backend/` (módulo de Stripe y rutas), `paymentsClient`, `chargePanel`. CA-002-109 a CA-002-129.
+
+### D-117 — Pasarelas como proveedores intercambiables tras una interfaz · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61, RF-62)
+Situación: con dos pasarelas, el código no debe duplicar la lógica de viaje, estado y seguridad.
+Decisión: cada pasarela implementa la misma interfaz (crear cobro, consultar estado, validar que el pago corresponde al viaje). El backend informa cuáles están configuradas con `GET /payments/providers` (solo booleanos, exige ID token) y la app muestra un botón por cada una configurada. `POST /payments/checkout` y `/payments/sync` reciben el proveedor y delegan.
+Alternativa: rutas y pantallas separadas por pasarela (descartada: duplica defensas y pruebas); elegir la pasarela por variable de entorno única (descartada: no permite tener las dos para comparar).
+Impacto: `backend/src/routes/payments.js`, módulos por proveedor, `paymentsClient`. CA-002-109, CA-002-110, CA-002-122.
+
+### D-118 — El pasajero decide «tarjeta» o «efectivo»; el conductor elige la pasarela al cobrar · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: D-108 fija los escritores del viaje y el método `mercadopago` se escribe al crear el viaje. Con dos pasarelas, la pasarela real se conoce al cobrar.
+Decisión: el pasajero simulado sigue decidiendo solo «tarjeta» o «efectivo». Al crear el viaje con tarjeta, la app escribe el valor que ya escribe hoy (`mercadopago`; las reglas de Firestore no cambian al crear). El conductor elige la pasarela al pulsar cobrar; el backend escribe `paymentMethod` como `mercadopago` o `stripe` con firebase-admin, solo mientras el pago no esté aprobado; con pago aprobado el método no cambia nunca. Efectivo nunca llama al backend de pagos.
+Alternativa: que la app escriba `stripe` (descartada: obliga a republicar reglas antes de validar y deja al cliente decidir un campo de pago); método genérico `card` más campo `provider` (descartada: rompe Historial, saldo y reglas ya validados).
+Impacto: `docs/seguridad.md` y `firestore.rules` local admiten `stripe`; publicar reglas solo cuando el backend cambie el método. CA-002-110, CA-002-114, CA-002-129.
+
+### D-119 — Solo credenciales de prueba de Stripe: el backend rechaza claves live · Vigente (ratificada por Anderson 2026-11-12; R12, RNF-20)
+Situación: el taller es de prueba; una clave de producción cargada por error cobraría dinero real.
+Decisión: si la clave secreta empieza por `sk_live_` o `rk_live_`, el backend la trata como no configurada (Stripe queda desactivada, con aviso sin imprimir la clave) y `npm run doctor` lo reporta como ERROR. Solo se aceptan `sk_test_` y `rk_test_`.
+Alternativa: aceptar cualquier clave (descartada: riesgo de cobro real); detener el arranque (descartada: Mercado Pago debe seguir funcionando).
+Impacto: configuración del backend y doctor. CA-002-120, CA-002-121.
+
+### D-120 — Webhook de Stripe opcional; camino principal «Verificar pago» · Vigente (ratificada por Anderson 2026-11-12; R12, RF-61)
+Situación: el webhook exige URL pública y registrar un endpoint en Stripe, lo que Anderson puede no tener a tiempo.
+Decisión: el camino principal es «Verificar pago» y la verificación automática al volver a primer plano, que reconsultan la Checkout Session a Stripe. El webhook `/webhooks/stripe` existe, pero es opcional: sin `STRIPE_WEBHOOK_SECRET` responde error genérico y no aplica nada. Si está, verifica la firma y reconsulta la sesión; nunca confía en el cuerpo.
+Alternativa: webhook obligatorio (descartada: bloquea la validación sin URL pública); sin webhook (descartada: pierde la confirmación si la app no vuelve a primer plano).
+Impacto: `backend/src/routes/webhooks.js`. CA-002-115, CA-002-116.
+
+### D-121 — Convención del método de pago: «card» del contrato se guarda como 'mercadopago' («tarjeta, pasarela por definir») · Vigente (Anderson, orden #59, 2026-11-12; R12, RF-62)
+Situación: la solicitud simulada llegaba con 'mercadopago', así que la app nombraba una pasarela antes de elegirla y mostraba el botón de Mercado Pago aunque solo Stripe estuviera configurada.
+Decisión: (1) el contrato del pasajero simulado emite 'card' o 'cash' (mappers.js es el único que conoce la forma de la API; lee 'mercadopago' heredado como 'card'). (2) Al crear el registro del viaje, 'card' se guarda como 'mercadopago' (valor que aceptan las reglas publicadas) y significa «tarjeta, pasarela por definir». (3) Una pasarela está elegida solo cuando el viaje tiene `paymentId`; entonces el backend cambia `paymentMethod` al proveedor elegido (firebase-admin). (4) Los botones de cobro salen solo de GET /payments/providers y el proveedor enviado a POST /payments/checkout es el del botón pulsado. (5) Las etiquetas dicen «Tarjeta» mientras no haya pasarela elegida (función pura `paymentGateway.js`).
+Alternativa: guardar 'card' (descartada: las reglas publicadas no lo aceptan y no se republican); derivar el botón de trip.paymentMethod (descartada: causó el hallazgo).
+Consecuencia: filtros del Historial, saldo, ganancias y recibos usan el valor guardado y no cambian. Impacto: `src/services/passengerApi/*`, `tripRecord`, `paymentGateway`, `chargePanel`, backend `/payments/checkout`, `firestore.rules` local (create solo 'cash' y 'mercadopago').
+
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

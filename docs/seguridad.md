@@ -41,7 +41,7 @@ Estado: **un solo texto final de reglas** para `drivers` (con `documents`), `dri
 1. **Solo el dueño lee.** Crea el dueño con la cuenta aprobada (se consulta `drivers/{uid}` con `get()`).
 2. **Forma cerrada:** `driverId` (igual al `uid`), `status` (`completed` o `cancelled` al crear), `paymentStatus` (siempre `pending` al crear), `commissionRate` (0 a 1), `category`, `passengerName` (hasta 80), `originLabel` y `destinationLabel` (hasta 200), `distanceKm` (0 a 500), `durationMin` (0 a 1440), `fare`, `commission` y `driverEarnings` enteros no negativos (COP enteros, `commission + driverEarnings == fare`), `paymentMethod` (`cash` o `mercadopago`), `startedAt` (fecha o nulo), `finishedAt` (fecha), `createdAt` (hora del servidor) y `route` opcional (hasta 40 puntos `{lat, lng}`; las reglas no iteran, así que se comprueban el tamaño, el primero y el último punto, D-110).
 3. **Sin coordenadas en vivo:** direcciones en texto (D-87) y, opcionalmente, la ruta planificada.
-4. **Pagos (D-107 a D-110).** En viajes `mercadopago`, `paymentStatus`, `paymentId` y `status: 'paid'` los escribe **solo el backend** con firebase-admin, que no pasa por estas reglas. En viajes `cash` hay una regla de `update` estrecha: pasar `paymentStatus` de `pending` a `paid` y `status` de `completed` a `paid`, y solo esas dos claves cambian (`paymentMethod` sigue `cash`). Casos denegados (CA-002-59): otro uid, cuenta no aprobada, viaje `mercadopago`, cambiar `fare` u otro campo, volver de `paid` a `pending`, agregar `paymentId`, borrar.
+4. **Pagos (D-107 a D-110).** En viajes `mercadopago` o `stripe` (D-118, D-121: `create` solo admite `paymentMethod` `cash` o `mercadopago`; `mercadopago` sin `paymentId` significa «tarjeta, pasarela por definir» y el contrato simulado `card` se guarda así. `stripe` lo escribe solo el backend con firebase-admin al cobrar, que no pasa por las reglas; no hace falta republicar), `paymentStatus`, `paymentId` y `status: 'paid'` los escribe **solo el backend** con firebase-admin, que no pasa por estas reglas. En viajes `cash` hay una regla de `update` estrecha: pasar `paymentStatus` de `pending` a `paid` y `status` de `completed` a `paid`, y solo esas dos claves cambian (`paymentMethod` sigue `cash`). Casos denegados (CA-002-59): otro uid, cuenta no aprobada, viaje `mercadopago`, cambiar `fare` u otro campo, volver de `paid` a `pending`, agregar `paymentId`, borrar.
 5. **Sin borrado.** Guardar es idempotente leyendo antes: si el documento ya existe, no se escribe de nuevo.
 6. **Backend detrás de un túnel o proxy.** El backend no activa `trust proxy`: tras ngrok o un hosting, `req.ip` es la IP del proxy y todos los clientes comparten el límite de 120 por minuto. Para la prueba real alcanza; al desplegar, añadir `app.set('trust proxy', 1)` mediante una variable de entorno.
 
@@ -196,6 +196,9 @@ service cloud.firestore {
           && data.commission is int && data.commission >= 0 && data.commission <= data.fare
           && data.driverEarnings is int && data.driverEarnings >= 0 && data.driverEarnings <= data.fare
           && data.commission + data.driverEarnings == data.fare
+          // AI-assisted: see docs/AI_LOG.md #58 (T-151, CA-002-129)
+          // Only 'cash' or 'mercadopago' (card, gateway still to be chosen) are created by the app; 'stripe' is written
+          // only by the backend (firebase-admin) at checkout (D-121).
           && data.paymentMethod in ['cash', 'mercadopago']
           && (data.startedAt == null || data.startedAt is timestamp)
           && data.finishedAt is timestamp

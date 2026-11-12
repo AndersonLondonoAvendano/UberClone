@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #58 (T-147, T-148: one "Cobrar con ..." button per configured gateway; verify uses the trip's gateway)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
@@ -28,24 +29,26 @@ import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { BACKEND_URL } from '../../config/backend';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { labels } from '../../constants/labels';
+import { PAYMENT_STATUS, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
+import { useChargeProviders } from '../../hooks/useChargeProviders';
 import { useTripPayment } from '../../hooks/useTripPayment';
 import { requestCheckoutUrl, syncPayment } from '../../services/paymentsService';
 import { createPaymentActions } from '../../services/trip/paymentActions';
-import { PAYMENT_ACTION, PAYMENT_CHIP, paymentView } from '../../services/trip/paymentView';
+import { hasChosenGateway } from '../../services/trip/paymentGateway';
+import { CHARGE_TONE, chargeButtons, chargePanel, RELOAD_PROVIDERS, serviceErrorText } from '../../services/trip/chargePanel';
+import { PAYMENT_ACTION, PAYMENT_CHIP } from '../../services/trip/paymentView';
 import { TRIP_PAYMENT_ERROR } from '../../services/trip/tripPaymentSubscription';
 import { classifySaveError, SAVE_ERROR } from '../../services/trip/saveRetry';
-import { buildTripRecord, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
+import { buildTripRecord, isCardMethod, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
 import { trackTripSave } from '../../services/trip/saveQueue';
 import { confirmCashPayment, saveTrip } from '../../services/tripRepository';
 import { color, iconSize, space, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { fillLabel, formatClock, formatCop, formatKm } from '../../utils/format';
-import { maskEmail } from '../../utils/mask';
 
 const SAFE_EDGES = ['top', 'bottom'];
 
@@ -66,6 +69,13 @@ const CHIP_LOOK = {
   [PAYMENT_CHIP.UNAVAILABLE]: { tone: 'neutral', icon: 'help-circle' },
 };
 
+// Look of the single charge message by tone. Success (green) only comes from chargePanel for approved or cash collected.
+const MESSAGE_LOOK = {
+  [CHARGE_TONE.SUCCESS]: { card: 'success', icon: 'checkmark-circle', tint: color.onSuccessSoft, text: 'success' },
+  [CHARGE_TONE.ERROR]: { card: 'danger', icon: 'alert-circle', tint: color.onDangerSoft, text: 'error' },
+  [CHARGE_TONE.WARNING]: { card: 'warning', icon: 'alert-circle', tint: color.onWarningSoft, text: 'warning' },
+};
+
 function fareOf(request) {
   try {
     return calculateFare({ distanceKm: request.distanceKm, durationMin: request.durationMin, category: request.category });
@@ -76,7 +86,7 @@ function fareOf(request) {
 
 export function TripSummaryScreen({ navigation }) {
   const { trip, endTrip } = useTrip();
-  const { driverId, driverProfile } = useAppState();
+  const { driverId } = useAppState();
   // AI-assisted: see docs/AI_LOG.md #44 (keeps the last trip while leaving)
   const shownRef = useRef(null);
   if (trip?.request) shownRef.current = {
@@ -130,29 +140,65 @@ export function TripSummaryScreen({ navigation }) {
   }, [shown, fare, driverId, save.state]);
 
   const payment = request ? paymentMethodOf(request) : SAVED_PAYMENT.NONE;
-  const maskedEmail = maskEmail(driverProfile?.documents?.mercadoPagoEmail);
-  const paymentText =
-    payment === SAVED_PAYMENT.CASH
-      ? labels.trip.paymentCash
-      : maskedEmail
-        ? fillLabel(labels.trip.paymentTransfer, { email: maskedEmail })
-        : labels.trip.paymentTransferNoEmail;
   const saved = save.state === SAVE.SAVED;
   const saving = save.state === SAVE.SAVING;
 
   // AI-assisted: see docs/AI_LOG.md #55
   // The charge state exists only once the trip is saved; before that there is nothing to listen to.
   const { trip: savedTrip, loading: paymentLoading, error: paymentError } = useTripPayment(saved ? shown?.tripId : null);
-  const view = paymentView(savedTrip);
-  const chipLook = CHIP_LOOK[view.chip] ?? CHIP_LOOK[PAYMENT_CHIP.UNAVAILABLE];
-  const needsBackend = view.actions.length > 0;
-  const paymentIssue = paymentError
+  // AI-assisted: see docs/AI_LOG.md #57 (T-119: the screen paints only what chargePanel decides)
+  // A save failure or a stored-state read failure (listener error) blocks the panel: error tone, no chip, no
+  // buttons. A service error only counts after a real user action (Cobrar, Verificar, Reintentar), never on mount.
+  const [userActed, setUserActed] = useState(false);
+  const [action, setAction] = useState({ busy: null, error: null, name: null });
+  const actionError = action.error ? labels.trip.paymentActionError[action.error] : null;
+  const listenerIssue = paymentError
     ? paymentError === TRIP_PAYMENT_ERROR.OFFLINE
       ? labels.trip.paymentOffline
       : labels.trip.paymentError
-    : needsBackend && !BACKEND_URL
-      ? labels.trip.paymentBackendUnavailable
-      : null;
+    : null;
+  const saveFailure = save.state === SAVE.ERROR ? labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric'] : null;
+  const blockingIssue = saveFailure ?? (listenerIssue ? `${listenerIssue.title}. ${listenerIssue.message}` : null);
+  const cancelled = savedTrip?.status === TRIP_STATUS.CANCELLED;
+  const method = cancelled ? null : savedTrip?.paymentMethod ?? payment;
+  const isCard = isCardMethod(method);
+  // AI-assisted: see docs/AI_LOG.md #58 (undefined until the backend answers or if it fails: the panel acts as before Stripe)
+  const { providers, failed: providersFailed, reload: reloadProviders } = useChargeProviders();
+  const panel = chargePanel({
+    method,
+    providers,
+    providersFailed,
+    paymentId: savedTrip?.paymentId,
+    paymentStatus: savedTrip?.status === TRIP_STATUS.PAID ? PAYMENT_STATUS.PAID : savedTrip?.paymentStatus,
+    saveError: blockingIssue,
+    serviceError: action.error ? serviceErrorText(action.error) : null,
+    // A failed cash confirmation is a write error, not the charge service (cash never reaches it).
+    writeError: actionError && action.name === PAYMENT_ACTION.CONFIRM_CASH ? `${actionError.title}. ${actionError.message}` : null,
+    userActed,
+  });
+  const buttons = chargeButtons(panel);
+  // #59: "Tarjeta" until a gateway is chosen (with paymentId); then the chosen gateway is named.
+  const chosenGateway = isCard && hasChosenGateway({ method, paymentId: savedTrip?.paymentId }) ? method : null;
+  const shownPaymentText =
+    method === SAVED_PAYMENT.CASH
+      ? labels.trip.paymentCash
+      : chosenGateway
+        ? labels.trip.paymentCardChosen[chosenGateway]
+        : labels.trip.paymentCardGeneric;
+  const chipLook = CHIP_LOOK[panel.chip] ?? CHIP_LOOK[PAYMENT_CHIP.UNAVAILABLE];
+  // A legacy trip (no known method) has no charge message: it only says the trip was saved.
+  const panelMessage = panel.message ?? labels.trip.chargePanel.savedOnly;
+  const messageLook = MESSAGE_LOOK[panel.tone] ?? null;
+  const showMessage = saveFailure !== null || (saved && !paymentLoading);
+  const messageTestID = saveFailure
+    ? 'trip-summary-save-error'
+    : listenerIssue
+      ? 'trip-summary-payment-issue'
+      : panel.tone === CHARGE_TONE.ERROR
+        ? 'trip-summary-action-error'
+        : panel.tone === CHARGE_TONE.SUCCESS && !isCard
+          ? 'trip-summary-cash-collected'
+          : 'trip-summary-saved';
 
   // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
   // One runner per screen: it keeps a single request in flight. The card state is never set here: it only
@@ -161,22 +207,34 @@ export function TripSummaryScreen({ navigation }) {
     () => createPaymentActions({ requestCheckoutUrl, syncPayment, confirmCashPayment, openUrl: (url) => Linking.openURL(url) }),
     [],
   );
-  const [action, setAction] = useState({ busy: null, error: null });
   const tripIdRef = useRef(null);
   const canSyncRef = useRef(false);
+  // The gateway recorded in the trip document: "Verificar pago" and the foreground check use it, never the last button.
+  const tripGatewayRef = useRef(undefined);
   const savedTripId = saved ? shown?.tripId ?? null : null;
   tripIdRef.current = savedTripId;
-  canSyncRef.current = view.actions.includes(PAYMENT_ACTION.VERIFY);
+  // Cash never reaches the payments service: the silent check only exists for card trips.
+  canSyncRef.current = isCard && panel.actions.includes(PAYMENT_ACTION.VERIFY);
+  tripGatewayRef.current = isCard ? method : undefined;
 
   const runAction = useCallback(
-    async (name) => {
+    async (name, provider, key = name) => {
+      if (name === RELOAD_PROVIDERS) {
+        reloadProviders();
+        return;
+      }
       if (!tripIdRef.current || runner.isBusy()) return;
-      setAction({ busy: name, error: null });
-      const result = await runner.run(name, { uid: driverId, tripId: tripIdRef.current });
+      if (name !== PAYMENT_ACTION.CONFIRM_CASH) setUserActed(true);
+      setAction({ busy: key, error: null, name });
+      const result = await runner.run(name, {
+        uid: driverId,
+        tripId: tripIdRef.current,
+        provider: name === PAYMENT_ACTION.VERIFY ? tripGatewayRef.current : provider,
+      });
       if (!mounted.current || result.skipped) return;
-      setAction({ busy: null, error: result.ok ? null : result.error });
+      setAction({ busy: null, error: result.ok ? null : result.error, name });
     },
-    [runner, driverId],
+    [runner, driverId, reloadProviders],
   );
 
   // Back from the browser: ask the backend to sync. The result is ignored on purpose (errors are silent and
@@ -185,15 +243,13 @@ export function TripSummaryScreen({ navigation }) {
     if (!savedTripId) return undefined;
     const subscription = AppState.addEventListener('change', (next) => {
       if (next === 'active' && canSyncRef.current && tripIdRef.current) {
-        runner.run(PAYMENT_ACTION.VERIFY, { uid: driverId, tripId: tripIdRef.current });
+        runner.run(PAYMENT_ACTION.VERIFY, { uid: driverId, tripId: tripIdRef.current, provider: tripGatewayRef.current });
       }
     });
     return () => subscription.remove();
   }, [savedTripId, runner, driverId]);
 
   const actionBusy = action.busy !== null;
-  const actionError = action.error ? labels.trip.paymentActionError[action.error] : null;
-  const cashCollected = savedTrip?.paymentMethod === 'cash' && view.actions.length === 0 && !paymentError;
 
   return (
     <SafeAreaView testID="screen-trip-summary" edges={SAFE_EDGES} style={styles.screen}>
@@ -247,7 +303,7 @@ export function TripSummaryScreen({ navigation }) {
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {labels.trip.paymentTitle}
             </Text>
-            <Text style={styles.body}>{paymentText}</Text>
+            <Text style={styles.body}>{shownPaymentText}</Text>
             <View style={styles.noteRow}>
               <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
               <Text style={[styles.muted, styles.flex]}>{labels.trip.paymentSimulated}</Text>
@@ -269,71 +325,30 @@ export function TripSummaryScreen({ navigation }) {
                 ) : paymentError ? null : (
                   <Chip
                     testID="trip-summary-payment-chip"
-                    label={labels.trip.paymentChip[view.chip]}
+                    label={labels.trip.paymentChip[panel.chip]}
                     tone={chipLook.tone}
                     icon={chipLook.icon}
                   />
                 )}
-                {paymentIssue ? (
-                  <Card variant="status" tone={paymentError ? 'danger' : 'warning'} style={styles.statusCard}>
-                    <Icon
-                      name={paymentError === TRIP_PAYMENT_ERROR.OFFLINE ? 'cloud-offline' : 'alert-circle'}
-                      size={iconSize.lg}
-                      tint={paymentError ? color.onDangerSoft : color.onWarningSoft}
-                    />
-                    <View style={styles.flex}>
-                      <Text
-                        testID="trip-summary-payment-issue"
-                        style={[styles.sectionTitle, paymentError ? styles.onDanger : styles.onWarning]}
-                        accessibilityRole="header"
-                        accessibilityLiveRegion="polite"
-                      >
-                        {paymentIssue.title}
-                      </Text>
-                      <Text style={[styles.body, paymentError ? styles.onDanger : styles.onWarning]}>
-                        {paymentIssue.message}
-                      </Text>
-                    </View>
-                  </Card>
-                ) : null}
                 {/* AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97) */}
-                {!paymentLoading && !paymentError && view.actions.length > 0 ? (
+                {!paymentLoading && !paymentError && panel.actions.length > 0 ? (
                   <View testID="trip-summary-payment-actions" style={styles.paymentState}>
-                    {savedTrip?.paymentMethod === 'mercadopago' ? (
-                      <Text style={styles.muted}>{labels.trip.paymentCardNote}</Text>
+                    {isCard && !panel.noGateway ? (
+                      <Text style={styles.muted}>
+                        {labels.trip.paymentCardNoteGeneric}
+                      </Text>
                     ) : null}
-                    {view.actions.map((name) => (
+                    {buttons.map(({ key, action: name, provider, label }) => (
                       <SecondaryButton
-                        key={name}
-                        testID={`trip-summary-action-${name}`}
-                        label={action.busy === name ? labels.trip.paymentActionBusy : labels.trip.paymentAction[name]}
-                        onPress={() => runAction(name)}
+                        key={key}
+                        testID={`trip-summary-action-${key}`}
+                        label={action.busy === key ? labels.trip.paymentActionBusy : label}
+                        onPress={() => runAction(name, provider, key)}
                         disabled={actionBusy}
-                        accessibilityHint={action.busy === name ? labels.trip.paymentActionBusy : undefined}
+                        accessibilityHint={action.busy === key ? labels.trip.paymentActionBusy : undefined}
                       />
                     ))}
                   </View>
-                ) : null}
-                {cashCollected ? (
-                  <Text testID="trip-summary-cash-collected" style={styles.body} accessibilityLiveRegion="polite">
-                    {labels.trip.paymentCashCollected}
-                  </Text>
-                ) : null}
-                {actionError ? (
-                  <Card variant="status" tone="danger" style={styles.statusCard}>
-                    <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
-                    <View style={styles.flex}>
-                      <Text
-                        testID="trip-summary-action-error"
-                        style={[styles.sectionTitle, styles.onDanger]}
-                        accessibilityRole="header"
-                        accessibilityLiveRegion="polite"
-                      >
-                        {actionError.title}
-                      </Text>
-                      <Text style={[styles.body, styles.onDanger]}>{actionError.message}</Text>
-                    </View>
-                  </Card>
                 ) : null}
               </View>
             ) : null}
@@ -342,29 +357,28 @@ export function TripSummaryScreen({ navigation }) {
                 {labels.trip.saving}
               </Text>
             ) : null}
-            {saved ? (
-              <Card variant="status" tone="success" style={styles.statusCard}>
-                <Icon name="checkmark-circle" size={iconSize.lg} tint={color.onSuccessSoft} />
-                <Text testID="trip-summary-saved" style={styles.success} accessibilityLiveRegion="polite">
-                  {labels.trip.saved}
-                </Text>
-              </Card>
-            ) : null}
-            {!fare || !driverId ? (
+            {!saved && (!fare || !driverId) ? (
               <Card variant="status" tone="danger" style={styles.statusCard}>
                 <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
-                <Text testID="trip-summary-unavailable" style={styles.error} accessibilityLiveRegion="assertive">
+                <Text testID="trip-summary-unavailable" style={styles.error} accessibilityLiveRegion="polite">
                   {labels.trip.saveUnavailable}
                 </Text>
               </Card>
             ) : null}
-            {save.state === SAVE.ERROR ? (
-              <Card variant="status" tone="danger" style={styles.statusCard}>
-                <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
-                <Text testID="trip-summary-save-error" style={styles.error} accessibilityLiveRegion="assertive">
-                  {labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric']}
+            {/* The one message of the panel (RF-56): one polite live region, tone decided by chargePanel */}
+            {showMessage ? (
+              messageLook ? (
+                <Card variant="status" tone={messageLook.card} style={styles.statusCard}>
+                  <Icon name={messageLook.icon} size={iconSize.lg} tint={messageLook.tint} />
+                  <Text testID={messageTestID} style={styles[messageLook.text]} accessibilityLiveRegion={panel.live}>
+                    {panelMessage}
+                  </Text>
+                </Card>
+              ) : (
+                <Text testID={messageTestID} style={styles.body} accessibilityLiveRegion={panel.live}>
+                  {panelMessage}
                 </Text>
-              </Card>
+              )
             ) : null}
           </Card>
           {confirmingLeave ? (
@@ -484,6 +498,11 @@ const styles = StyleSheet.create({
     flex: 1,
     ...type.body,
     color: color.onSuccessSoft,
+  },
+  warning: {
+    flex: 1,
+    ...type.body,
+    color: color.onWarningSoft,
   },
   error: {
     flex: 1,

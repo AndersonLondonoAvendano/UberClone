@@ -9,7 +9,7 @@
 // Missing or legacy method ('transfer', 'none'), a cancelled trip or no trip -> 'unavailable', no actions.
 
 import { PAYMENT_STATUS, TRIP_STATUS } from '../../constants/tripStatus';
-import { SAVED_PAYMENT } from './tripRecord';
+import { isCardMethod, SAVED_PAYMENT } from './tripRecord';
 
 export const PAYMENT_CHIP = {
   APPROVED: PAYMENT_STATUS.APPROVED,
@@ -35,7 +35,8 @@ export function paymentView(trip) {
     const collected = paid || trip.paymentStatus === PAYMENT_STATUS.PAID;
     return { chip: PAYMENT_CHIP.CASH, actions: collected ? [] : [PAYMENT_ACTION.CONFIRM_CASH] };
   }
-  if (trip.paymentMethod === SAVED_PAYMENT.MERCADOPAGO) {
+  // AI-assisted: see docs/AI_LOG.md #58 (T-145: a Stripe trip is a card trip like Mercado Pago)
+  if (isCardMethod(trip.paymentMethod)) {
     if (paid || trip.paymentStatus === PAYMENT_STATUS.APPROVED) return { chip: PAYMENT_CHIP.APPROVED, actions: [] };
     if (trip.paymentStatus === PAYMENT_STATUS.REJECTED) {
       return { chip: PAYMENT_CHIP.REJECTED, actions: [PAYMENT_ACTION.RETRY, PAYMENT_ACTION.VERIFY] };

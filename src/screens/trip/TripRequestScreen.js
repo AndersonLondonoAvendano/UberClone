@@ -38,6 +38,7 @@ import { SIMULATED_SPEED_KMH } from '../../config/location';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { EXPIRED_NOTICE_MS } from '../../config/trip';
 import { labels } from '../../constants/labels';
+import { paymentLabelKey } from '../../services/trip/paymentGateway';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { useTrip } from '../../context/TripContext';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../services/passengerApi';
@@ -265,7 +266,7 @@ export function TripRequestScreen({ navigation }) {
   } else {
     const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
     const categoryLabel = labels.registration.vehicleCategory[request.category] ?? request.category;
-    const paymentLabel = labels.trip.paymentMethod[request.paymentMethod] ?? request.paymentMethod;
+    const paymentLabel = labels.trip.paymentMethod[paymentLabelKey({ method: request.paymentMethod })] ?? request.paymentMethod;
     const urgent = secondsLeft <= URGENT_SECONDS;
     const progress = Math.min(1, secondsLeft / totalSeconds);
     body = (

@@ -5,15 +5,18 @@
 // invalid dates. Tokens only; texts come from labels.js.
 
 import { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
 import { PAYMENT_STATUS, TRIP_STATUS } from '../constants/tripStatus';
-import { color, iconSize, space, touch, type } from '../theme/tokens';
+import { color, iconSize, opacity, space, touch, type } from '../theme/tokens';
+import { legacyPaymentChip } from '../services/trip/legacyTrip';
 import { fillLabel, formatCop, formatDateTime } from '../utils/format';
 import { Card } from './Card';
 import { Chip } from './Chip';
 import { DataRow } from './DataRow';
 import { Icon } from './Icon';
+
+const HIDDEN_FROM_A11Y = { importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true };
 
 const PAYMENT_CHIP = {
   [PAYMENT_STATUS.PENDING]: { tone: 'warning', icon: 'time-outline' },
@@ -22,13 +25,17 @@ const PAYMENT_CHIP = {
   [PAYMENT_STATUS.PAID]: { tone: 'success', icon: 'checkmark-circle' },
 };
 
-function TripListItemBase({ trip }) {
+function TripListItemBase({ trip, onOpen }) {
   const cancelled = trip.status === TRIP_STATUS.CANCELLED;
   const paymentStatus = trip.paymentStatus ?? (trip.status === TRIP_STATUS.PAID ? PAYMENT_STATUS.PAID : undefined);
   const chipStyle = PAYMENT_CHIP[paymentStatus];
+  // AI-assisted: see docs/AI_LOG.md #57 (T-123, RF-54)
+  // A legacy trip (no paymentMethod and no paymentStatus) gets the neutral chip with the TEXT
+  // "Cobro simulado" instead of "Pago sin estado"; every other trip keeps its real state.
+  const legacyChip = cancelled ? null : legacyPaymentChip(trip);
   const statusText = cancelled
     ? labels.history.status.cancelled
-    : (labels.history.paymentStatus[paymentStatus] ?? labels.history.paymentUnknown);
+    : (legacyChip?.label ?? labels.history.paymentStatus[paymentStatus] ?? labels.history.paymentUnknown);
   const date = formatDateTime(trip.createdAt ?? trip.finishedAt) || labels.history.dateUnknown;
   const category = labels.registration.vehicleCategory[trip.category];
   const origin = trip.originLabel;
@@ -41,14 +48,20 @@ function TripListItemBase({ trip }) {
       ? ` ${labels.history.cancelledAmounts}.`
       : fillLabel(labels.history.itemA11yAmounts, { fare: formatCop(trip.fare), net: formatCop(trip.driverEarnings) }));
 
-  return (
-    <Card testID={`history-item-${trip.id}`} style={styles.item} accessible accessibilityLabel={a11y}>
+  const card = (
+    <Card
+      testID={`history-item-${trip.id}`}
+      style={styles.item}
+      accessible
+      accessibilityLabel={a11y}
+      {...(onOpen ? HIDDEN_FROM_A11Y : null)}
+    >
       <View style={styles.head}>
         <Text style={styles.muted}>{date}</Text>
         <Chip
           label={statusText}
-          tone={cancelled ? 'danger' : (chipStyle?.tone ?? 'neutral')}
-          icon={cancelled ? 'close-circle' : chipStyle?.icon}
+          tone={cancelled ? 'danger' : (legacyChip?.tone ?? chipStyle?.tone ?? 'neutral')}
+          icon={cancelled ? 'close-circle' : (legacyChip?.icon ?? chipStyle?.icon)}
         />
       </View>
       <View style={styles.route}>
@@ -72,11 +85,30 @@ function TripListItemBase({ trip }) {
       )}
     </Card>
   );
+
+  // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+  // With onOpen the whole row is one button that opens the trip detail; the Card keeps its testID and
+  // label but hides from the accessibility tree so the screen reader focuses the button once.
+  if (!onOpen) return card;
+  return (
+    <Pressable
+      testID={`history-item-open-${trip.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      accessibilityHint={labels.history.detail.openHint}
+      onPress={() => onOpen(trip)}
+      style={({ pressed }) => [styles.open, pressed && styles.pressed]}
+    >
+      {card}
+    </Pressable>
+  );
 }
 
 export const TripListItem = memo(TripListItemBase);
 
 const styles = StyleSheet.create({
+  open: { minHeight: touch.min },
+  pressed: { opacity: opacity.pressed },
   item: { gap: space[2], minHeight: touch.min },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space[3], flexWrap: 'wrap' },
   route: { gap: space[1] },

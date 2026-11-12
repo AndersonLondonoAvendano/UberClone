@@ -17,7 +17,11 @@ import { simplifyRoute } from './simplifyRoute';
 
 export const SAVED_STATUS = { COMPLETED: TRIP_STATUS.COMPLETED, CANCELLED: TRIP_STATUS.CANCELLED };
 // 'transfer' and 'none' are legacy values: they are only READ (shown as "No disponible"), never written.
-export const SAVED_PAYMENT = { CASH: 'cash', MERCADOPAGO: 'mercadopago', TRANSFER: 'transfer', NONE: 'none' };
+// AI-assisted: see docs/AI_LOG.md #58 (T-145: 'stripe' is READ from the backend write, never written by the app)
+export const SAVED_PAYMENT = { CASH: 'cash', MERCADOPAGO: 'mercadopago', STRIPE: 'stripe', TRANSFER: 'transfer', NONE: 'none' };
+
+// A card trip is charged through a gateway: Mercado Pago or Stripe.
+export const isCardMethod = (method) => method === SAVED_PAYMENT.MERCADOPAGO || method === SAVED_PAYMENT.STRIPE;
 export const SAVED_PAYMENT_STATUS = { PENDING: PAYMENT_STATUS.PENDING };
 
 // Keys of the saved document (createdAt included; route is optional). The Firestore rule uses the same list.
@@ -52,7 +56,7 @@ const round = (value, decimals) => {
 };
 const toDate = (value) => (value == null ? null : new Date(value));
 
-// The request asks for 'mercadopago' (legacy 'card') or 'cash'. The saved method is one of
+// The request asks for 'card' (legacy 'mercadopago') or 'cash'. 'card' is saved as 'mercadopago' (= tarjeta, pasarela por definir, #59). The saved method is one of
 // 'mercadopago' | 'cash' (the Firestore rule accepts only those two).
 export function paymentMethodOf(request) {
   return request?.paymentMethod === 'cash' ? SAVED_PAYMENT.CASH : SAVED_PAYMENT.MERCADOPAGO;

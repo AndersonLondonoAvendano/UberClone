@@ -121,7 +121,7 @@ export function EarningsScreen({ navigation }) {
             />
             <View style={styles.hintRow}>
               <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
-              <Text style={styles.muted}>{balance < 0 ? labels.earnings.balanceCreditHint : labels.earnings.balanceHint}</Text>
+              <Text style={styles.hintText}>{balance < 0 ? labels.earnings.balanceCreditHint : labels.earnings.balanceHint}</Text>
             </View>
           </Card>
         ) : null}
@@ -140,7 +140,10 @@ function Line({ label, value, last = false }) {
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
-  hintRow: { flexDirection: 'row', alignItems: 'center', gap: space[2], paddingTop: space[2] },
+  // AI-assisted: see docs/AI_LOG.md #57 (T-124): the hint wraps to several lines at 200 % font; no fixed
+  // width or height and no numberOfLines, so the card grows with the text.
+  hintRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2], paddingTop: space[2] },
+  hintText: { ...type.caption, color: color.textMuted, flex: 1, flexShrink: 1 },
   periods: { flexDirection: 'row', gap: space[2] },
   period: {
     flex: 1,

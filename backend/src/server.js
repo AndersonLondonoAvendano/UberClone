@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see docs/AI_LOG.md #58
 // Builds the real dependencies and starts listening. Never prints configuration values.
 import { fileURLToPath } from 'node:url';
 import { initAdmin } from './admin.js';
@@ -7,6 +7,10 @@ import { createAuth } from './auth.js';
 import { ConfigError, loadConfig } from './config.js';
 import { createTripStore } from './firestore.js';
 import { createMercadoPagoClient } from './mercadopago.js';
+import { createMercadoPagoProvider } from './providers/mercadopago.js';
+import { createProviderRegistry } from './providers/registry.js';
+import { createStripeProvider } from './providers/stripe.js';
+import { createStripeClient } from './stripe.js';
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)));
@@ -15,13 +19,31 @@ try {
 }
 
 async function main() {
-  const config = loadConfig();
+  // The server may start with no gateway at all: /health works and checkout answers a generic error.
+  const config = loadConfig(undefined, { allowNoProvider: true });
+  for (const warning of config.warnings) console.warn(warning);
   const { adminAuth, db } = await initAdmin(config);
+  const { mercadopago, stripe } = config.providers;
+  const mp = mercadopago ? createMercadoPagoClient({ accessToken: mercadopago.accessToken }) : null;
+  const registry = createProviderRegistry({
+    mercadopago: mp ? createMercadoPagoProvider({ client: mp }) : null,
+    stripe: stripe
+      ? createStripeProvider({
+          client: createStripeClient({ secretKey: stripe.secretKey }),
+          currency: stripe.currency,
+          copPerUsd: stripe.copPerUsd ?? undefined,
+          maxAmountCop: config.maxAmountCop,
+        })
+      : null,
+  });
+  if (!mercadopago && !stripe) console.warn('No hay ninguna pasarela de pago configurada: el cobro con tarjeta no estara disponible.');
   const app = createApp({
     auth: createAuth(adminAuth),
     store: createTripStore(db),
-    mp: createMercadoPagoClient({ accessToken: config.mpAccessToken }),
+    mp,
     config,
+    registry,
+    log: (line) => console.log(line),
   });
 
   const server = app.listen(config.port, () => {

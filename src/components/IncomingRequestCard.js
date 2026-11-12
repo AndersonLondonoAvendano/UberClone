@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { labels } from '../constants/labels';
+import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { useTrip } from '../context/TripContext';
@@ -238,7 +239,8 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const progress = Math.min(1, secondsLeft / requestTotalSeconds(request));
   const name = request.passenger?.name ?? '';
   const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
-  const paymentLabel = request.paymentMethod ? (labels.trip.paymentMethod[request.paymentMethod] ?? null) : null;
+  // #59: "Tarjeta" until a gateway is chosen (a request never has a paymentId).
+  const paymentLabel = request.paymentMethod ? (labels.trip.paymentMethod[paymentLabelKey({ method: request.paymentMethod })] ?? null) : null;
   const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [ENTRANCE_OFFSET, 0] });
 
   return (

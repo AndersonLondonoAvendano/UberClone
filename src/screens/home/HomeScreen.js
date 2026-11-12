@@ -8,6 +8,7 @@
 // AI-assisted: see docs/AI_LOG.md #48 (import order)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
 // AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see docs/AI_LOG.md #57 (H-1: map centers once, "My location" button)
 // AI-assisted: see docs/AI_LOG.md #55 (F1b: full-screen map, floating card, local position without publishing)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
@@ -21,8 +22,10 @@
 import { DrawerActions, useIsFocused } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeFloatingCard } from '../../components/home/HomeFloatingCard';
 import { Icon } from '../../components/Icon';
+import { MyLocationButton } from '../../components/map/MyLocationButton';
 import { TripMap } from '../../components/map/TripMap';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
@@ -69,6 +72,8 @@ export function HomeScreen({ navigation }) {
     setHomeFocused,
   } = useAvailability();
   const [devMessage, setDevMessage] = useState(null);
+  const [recenterSignal, setRecenterSignal] = useState(0);
+  const insets = useSafeAreaInsets();
   const announcedIdRef = useRef(null);
   const focused = useIsFocused(); // AI-assisted: see docs/AI_LOG.md #47 (Home stays mounted under the other drawer screens)
 
@@ -108,7 +113,7 @@ export function HomeScreen({ navigation }) {
   return (
     <View style={styles.screen} testID="home-screen">
       <View style={styles.map} accessible accessibilityLabel={labels.home.mapLabel}>
-        <TripMap testID="home-map" position={position} follow attributionAtBottom />
+        <TripMap testID="home-map" position={position} follow={false} centerOnce recenterSignal={recenterSignal} attributionAtBottom attributionInsetRight={ATTRIBUTION_INSET_RIGHT} attributionInsetBottom={insets.bottom} />
       </View>
       <HomeFloatingCard
         isAvailable={isAvailable}
@@ -130,6 +135,10 @@ export function HomeScreen({ navigation }) {
           </Pressable>
         }
       />
+      <MyLocationButton
+        onPress={() => setRecenterSignal((n) => n + 1)}
+        style={[styles.myLocation, { bottom: insets.bottom + space[4] }]}
+      />
       {SHOW_DEV_TOOLS ? (
         <View style={styles.devPanel}>
           <PrimaryButton testID="home-start-trip" label={labels.home.startTrip} onPress={onSimulate} />
@@ -150,6 +159,10 @@ export function HomeScreen({ navigation }) {
   );
 }
 
+// AI-assisted: see docs/AI_LOG.md #57 (design round 1: H2)
+// Room the attribution leaves on the right for the "My location" button (its margin plus width plus a gap).
+const ATTRIBUTION_INSET_RIGHT = space[3] + touch.min + space[2];
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -168,6 +181,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  myLocation: {
+    position: 'absolute',
+    right: space[3],
   },
   devPanel: {
     position: 'absolute',

@@ -2,7 +2,15 @@
 
 App móvil del conductor (React Native + Expo, development build, iOS y Android) con backend Node/Express y Firestore. Taller "Taller: Uber - clone". Metodología Spec-Driven Development; ver [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md).
 
-**Estado actual (2026-11-11, pendiente de validar en el celular):** inicio de sesión con correo y contraseña y cierre de sesión (ver [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md)), registro con documentos, Inicio con mapa y solicitudes, viaje, cobro con Mercado Pago (prueba) y efectivo, Ganancias (6 métricas y saldo) e Historial con filtros y paginación. **Nada de esto está «Validado»: falta la evidencia en el celular** (lista en [docs/checklist-dispositivo-sesiones.md](docs/checklist-dispositivo-sesiones.md)). Omisiones y límites en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md); detalle en [docs/progress.md](docs/progress.md) y [docs/backlog.md](docs/backlog.md).
+**Estado actual (2026-11-12, pendiente de validar en el celular):** inicio de sesión con correo y contraseña y cierre de sesión (ver [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md)), registro con documentos, Inicio con mapa y solicitudes, viaje, cobro con tarjeta con Stripe o Mercado Pago (ambos en modo de prueba, ninguno validado en el celular), efectivo y saldo, Ganancias (6 métricas y saldo) e Historial con filtros, paginación y detalle de viaje con mapa de solo lectura (ruta simplificada guardada; sin propina ni calificación). Las auditorías de diseño (rondas 1 y 2) y las verificaciones funcionales son estáticas. **Nada de esto está «Validado»: falta la evidencia en el celular.**
+
+Documentos para la entrega:
+- [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md): guía paso a paso del cobro con Stripe en modo de prueba (cuenta, clave, tarjetas de prueba, verificación y tabla de fallos).
+- [docs/pagos-guia-rapida.md](docs/pagos-guia-rapida.md): guía rápida de pagos (elección de pasarela, red, Mercado Pago de prueba, efectivo y saldo).
+- [docs/checklist-manana-jueves.md](docs/checklist-manana-jueves.md): lista de pasos y pruebas en el celular, en orden.
+- [docs/guion-video.md](docs/guion-video.md): guion del video de máximo 5 minutos.
+- [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md): cobertura del enunciado, omisiones y límites.
+- Detalle de tareas y criterios: [docs/progress.md](docs/progress.md) y [docs/backlog.md](docs/backlog.md); pruebas de sesión en [docs/checklist-dispositivo-sesiones.md](docs/checklist-dispositivo-sesiones.md).
 
 ## Requisitos
 - Node.js y npm (ver `expo-doctor` para la versión exacta recomendada por el SDK de Expo instalado).
@@ -31,7 +39,7 @@ El mapa (MapLibre con teselas de OpenFreeMap) y las rutas (OSRM) no necesitan cl
 ## Reglas de seguridad de Firestore
 Las reglas efectivas se publican a mano en la consola de Firebase (Firestore → Reglas). El archivo `firestore.rules` de la raíz es una copia local de trabajo que Git ignora, así que no viene al clonar. La política vigente está descrita en [docs/seguridad.md](docs/seguridad.md) (D-80).
 
-El backend (`backend/`) expone `GET /health`, `POST /payments/checkout`, `POST /payments/sync` y `POST /webhooks/mercadopago`. Sus secretos viven únicamente en `backend/.env` (ignorado por Git); copia `backend/.env.example` (solo nombres, sin valores) a `backend/.env` y complétalo a mano. La app lleva solo `EXPO_PUBLIC_BACKEND_URL`, una URL pública sin secreto. Diseño y prueba manual en [docs/pagos.md](docs/pagos.md).
+El backend (`backend/`) expone `GET /health`, `POST /payments/checkout`, `POST /payments/sync`, `GET /payments/providers`, `GET /payments/return`, `POST /webhooks/mercadopago` y `POST /webhooks/stripe` (opcional). Sus secretos viven únicamente en `backend/.env` (ignorado por Git); copia `backend/.env.example` (solo nombres, sin valores) a `backend/.env` y complétalo a mano. La app lleva solo `EXPO_PUBLIC_BACKEND_URL`, una URL pública sin secreto. Diseño y prueba manual en [docs/pagos.md](docs/pagos.md).
 
 ## Sesión con correo y contraseña
 Habilita el proveedor **Correo/contraseña** en la consola de Firebase (Authentication → Método de acceso) antes de probar. Una cuenta activa a la vez por teléfono (D-94) y sin verificación de correo (D-95). Las reglas de Firestore se publican **después** de validar la app en el celular (D-99). Flujo, cierre de sesión y orden de publicación en [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md).
@@ -40,16 +48,20 @@ Habilita el proveedor **Correo/contraseña** en la consola de Firebase (Authenti
 En una terminal, backend:
 ```powershell
 cd backend
+npm run doctor
 npm start
 ```
+`npm run doctor` revisa la configuración del backend (nombres de variables presentes, sin mostrar valores) antes de arrancar; corrige lo que reporte y luego usa `npm start`. Guía de pagos: [docs/pagos-guia-rapida.md](docs/pagos-guia-rapida.md).
 En otra terminal, la app (requiere un development build ya instalado en el dispositivo/emulador — `expo run:android` o `expo run:ios`, a cargo de una persona):
 ```powershell
 npm start
 ```
 Esto abre Metro con `expo start --dev-client`. Conecta el development build al servidor que aparece en la terminal.
 
-## Cobro: Mercado Pago Checkout Pro (modo de prueba) y efectivo
-El cobro con tarjeta usa **Mercado Pago Checkout Pro en modo de prueba**: el backend crea la preferencia con el importe leído del viaje en Firestore y la app abre el enlace; el resultado llega por webhook o por `/payments/sync` al volver a la app. No se cobra dinero real. El pago en efectivo lo confirma el conductor con «Confirmar efectivo recibido». El viaje se guarda en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros). Ganancias e Historial leen esos viajes y Ganancias muestra el saldo con la plataforma. Detalles, límites y prueba manual en [docs/pagos.md](docs/pagos.md). La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
+## Cobro: Stripe o Mercado Pago (modo de prueba) y efectivo
+El backend admite **dos pasarelas de prueba** y la app ofrece un botón por cada una que esté configurada; si ninguna lo está, la app lo dice. Stripe usa Checkout Sessions con `STRIPE_SECRET_KEY` (solo clave de prueba) en `backend/.env`; sigue [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md). Mercado Pago no pudo probarse (no se pudieron crear cuentas de prueba): está implementado y **No verificado en dispositivo**. Ninguna pasarela está validada en el celular, y el backend aún no se ha ejecutado por HTTP real (falta `npm install` en `backend/`). El efectivo no usa pasarela.
+
+El cobro con tarjeta con Mercado Pago usa **Checkout Pro en modo de prueba**: el backend crea la preferencia con el importe leído del viaje en Firestore y la app abre el enlace; el resultado llega por webhook o por `/payments/sync` al volver a la app. No se cobra dinero real. El pago en efectivo lo confirma el conductor con «Confirmar efectivo recibido». El viaje se guarda en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros). Ganancias e Historial leen esos viajes y Ganancias muestra el saldo con la plataforma. Detalles, límites y prueba manual en [docs/pagos.md](docs/pagos.md). La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
 
 ## Omisiones y límites
 Lo que la entrega no hace, o hace con otra herramienta, con su razón técnica e impacto: [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).

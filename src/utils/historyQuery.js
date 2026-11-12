@@ -1,6 +1,9 @@
 // AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see docs/AI_LOG.md #58 (T-149: the Card filter includes Stripe)
 // Pure helpers of the paginated history (T-102): merge pages without duplicates and filter by
 // payment method on the client (the query itself only ranges over createdAt).
+
+import { isCardMethod } from '../services/trip/tripRecord';
 
 export const HISTORY_METHOD = { ALL: 'all', CARD: 'mercadopago', CASH: 'cash' };
 
@@ -21,10 +24,11 @@ export function mergeTrips(current, incoming) {
   return merged;
 }
 
-// 'all' (or an unknown value) keeps every trip; 'mercadopago' and 'cash' match paymentMethod.
+// 'all' (or an unknown value) keeps every trip; CARD keeps 'mercadopago' and 'stripe'; 'cash' matches cash.
 export function filterByMethod(trips, method) {
   const list = Array.isArray(trips) ? trips : [];
   if (method !== HISTORY_METHOD.CARD && method !== HISTORY_METHOD.CASH) return list;
+  if (method === HISTORY_METHOD.CARD) return list.filter((trip) => isCardMethod(trip?.paymentMethod));
   return list.filter((trip) => trip?.paymentMethod === method);
 }
 

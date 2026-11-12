@@ -13,5 +13,7 @@ const client = createPaymentsClient({
   timeoutMs: BACKEND_TIMEOUT_MS,
 });
 
-export const requestCheckoutUrl = (tripId) => client.requestCheckoutUrl(tripId);
-export const syncPayment = (tripId) => client.syncPayment(tripId);
+// AI-assisted: see docs/AI_LOG.md #58 (T-144: provider in checkout and sync, configured gateways)
+export const getProviders = () => client.getProviders();
+export const requestCheckoutUrl = (tripId, provider) => client.requestCheckoutUrl(tripId, provider);
+export const syncPayment = (tripId, provider) => client.syncPayment(tripId, provider);

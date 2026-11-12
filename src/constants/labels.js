@@ -73,7 +73,7 @@ export const labels = {
     tripLength: 'Viaje de {km} km · {min} min',
     category: 'Categoría',
     payment: 'Pago',
-    paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', cash: 'Efectivo' },
+    paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', stripe: 'Stripe', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
     net: 'Tu ganancia',
@@ -141,6 +141,8 @@ export const labels = {
     paymentCash: 'Efectivo: recibe el pago del pasajero en mano.',
     paymentTransfer: 'Transferencia a tu cuenta de Mercado Pago ({email}).',
     paymentTransferNoEmail: 'Transferencia a tu cuenta de Mercado Pago registrada.',
+    paymentCardGeneric: 'El pago se cobra con tarjeta.',
+    paymentCardChosen: { mercadopago: 'El pago se cobra con tarjeta (Mercado Pago).', stripe: 'El pago se cobra con tarjeta (Stripe).' },
     confirmCharge: 'Confirmar cobro',
     confirmChargeHint: 'Guarda este viaje en tu historial',
     saving: 'Guardando el viaje…',
@@ -182,14 +184,51 @@ export const labels = {
     paymentAction: {
       charge: 'Cobrar con Mercado Pago',
       retry: 'Reintentar pago',
+      reloadProviders: 'Reintentar',
       verify: 'Verificar pago',
       confirmCash: 'Confirmar efectivo recibido',
     },
+    // AI-assisted: see docs/AI_LOG.md #58 (T-147: one charge button per configured gateway; Stripe is test mode)
+    chargeProvider: {
+      mercadopago: 'Cobrar con Mercado Pago',
+      stripe: 'Cobrar con Stripe (tarjeta de prueba)',
+    },
+    // With two gateways the retry button names the gateway; the single-gateway label stays paymentAction.retry.
+    retryProvider: {
+      mercadopago: 'Reintentar pago con Mercado Pago',
+      stripe: 'Reintentar pago con Stripe (tarjeta de prueba)',
+    },
     // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
+    // AI-assisted: see docs/AI_LOG.md #55 (single charge panel message, T-118)
+    chargePanel: {
+      cashPending: 'Falta confirmar que recibiste el efectivo.',
+      cashCollected: 'Efectivo recibido. El viaje quedó guardado en tu historial.',
+      cardApproved: 'Pago aprobado. El viaje quedó guardado en tu historial.',
+      cardRejected: 'Pago rechazado. Toca “Reintentar pago”.',
+      cardRejectedChoose: 'Pago rechazado. Elige una opción de reintento.',
+      savedOnly: 'Viaje guardado en tu historial.',
+      noGateway: 'No hay una pasarela de pago configurada',
+      providersFailed: 'No pudimos consultar las pasarelas de pago. Revisa tu conexión y que el servicio esté encendido.',
+      cardPendingGeneric: 'Viaje guardado. Falta el pago con tarjeta.',
+      serviceError: 'No pudimos completar la acción con el servicio de cobro. Inténtalo de nuevo.',
+    },
     paymentActionsTitle: 'Acciones de cobro',
     paymentActionBusy: 'Procesando…',
     paymentCardNote: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando Mercado Pago lo confirma; esta pantalla no lo marca.',
+    paymentCardNoteGeneric: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando la pasarela lo confirma; esta pantalla no lo marca.',
     paymentCashCollected: 'Efectivo cobrado.',
+    // AI-assisted: see docs/AI_LOG.md #57 (T-126: one message per payments service error class, no URL/token)
+    paymentServiceError: {
+      notConfigured: { title: 'Servicio de cobro sin configurar', message: 'El servicio de cobro no está configurado en esta app. Avisa a soporte o revisa la configuración de la app.' },
+      offline: { title: 'Sin conexión con el cobro', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      timeout: { title: 'El cobro tardó demasiado', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      serverError: { title: 'Servicio de cobro con problemas', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
+      sessionExpired: { title: 'Sesión expirada', message: 'Tu sesión expiró; vuelve a iniciar sesión.' },
+      notFound: { title: 'No encontramos el cobro', message: 'El servicio de cobro no encontró este viaje. Actualiza la pantalla o inténtalo más tarde.' },
+      invalidResponse: { title: 'Respuesta inesperada', message: 'El servicio de cobro respondió algo que no entendemos. Inténtalo de nuevo en unos minutos.' },
+      providerError: { title: 'La pasarela no respondió', message: 'La pasarela de pago no pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.' },
+      providerNotConfigured: { title: 'Pasarela no configurada', message: 'Esa pasarela de pago no está configurada en el servicio. Elige otra o avisa a soporte.' },
+    },
     paymentActionError: {
       offline: { title: 'Sin conexión', message: 'No pudimos completar la acción sin internet. Inténtalo de nuevo cuando vuelvas a tener conexión.' },
       backendUnavailable: { title: 'Servicio de cobro no disponible', message: 'No pudimos contactar el servicio de cobro. Inténtalo de nuevo en unos minutos.' },
@@ -256,6 +295,7 @@ export const labels = {
     loadMoreError: 'No pudimos traer más viajes. Inténtalo de nuevo.',
     paymentStatus: { pending: 'Pago pendiente', approved: 'Pago aprobado', rejected: 'Pago rechazado', paid: 'Pagado' },
     paymentUnknown: 'Pago sin estado',
+    legacyPayment: 'Cobro simulado',
     itemPayment: ' {payment}.',
     itemCategory: ' Categoría {category}.',
     chartTitle: 'Ganancia neta',
@@ -266,6 +306,32 @@ export const labels = {
     chartTotalLine: 'Total {total}',
     chartTopLine: 'Mayor: {label} · {value}',
     chartNote: 'La gráfica suma los viajes cargados.',
+    // AI-assisted: see docs/AI_LOG.md #57 (T-109)
+    detail: {
+      title: 'Detalle del viaje',
+      duration: 'Duración',
+      distance: 'Distancia',
+      commission: 'Comisión',
+      tip: 'Propina',
+      noTip: 'Sin propina',
+      method: 'Método de pago',
+      status: 'Estado',
+      rating: 'Calificación',
+      ratingValue: '★ {rating}',
+      ratingA11y: 'Calificación {rating} de 5',
+      durationValue: '{minutes} min',
+      distanceValue: '{km} km',
+      // AI-assisted: see docs/AI_LOG.md #58 (T-150: the gateway name is shown)
+      methods: { card: 'Tarjeta', mercadopago: 'Tarjeta (Mercado Pago)', stripe: 'Tarjeta (Stripe)', cash: 'Efectivo' },
+      methodUnknown: 'No disponible',
+      routeUnavailable: 'Ruta no disponible',
+      routeA11y: 'Ruta del viaje',
+      back: 'Volver al historial',
+      // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+      openHint: 'Abre el detalle del viaje',
+      emptyTitle: 'No encontramos este viaje',
+      emptyMessage: 'Vuelve al historial y elige otro viaje.',
+    },
   },
   profile: {
     photoA11y: 'Foto de perfil',
@@ -318,6 +384,7 @@ export const labels = {
   },
   a11y: {
     openDrawer: 'Abrir menú',
+    myLocation: 'Mi ubicación',
     back: 'Volver a la pantalla anterior',
     drawerItems: {
       profile: 'Ir a Perfil',

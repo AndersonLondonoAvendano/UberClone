@@ -2,6 +2,7 @@
 
 Estado: Borrador (pendiente de aprobación de Anderson; el spec-author no aprueba su propio trabajo). Las decisiones D-93 a D-103 citadas aquí están en estado "Propuesta" y solo viven en esta spec: el agente principal las registra en `docs/decisiones.md`.
 **Adición del lote final (2026-11-11, prompt #55, autorizado por Anderson):** esta spec se amplía con los bloques R5 a R10 (§2, §4, §8), las decisiones D-107 a D-110 (Propuesta) y los requisitos RF-39 a RF-52, RNF-18 y RNF-19. R1 a R4 no cambian. El spec-author no añade esos IDs a `docs/requisitos.md` ni las D-xx a `docs/decisiones.md`: lo hace el agente principal. Fuente de los bloques: ENCARGO (prompt #55) y `docs/analisis-brechas-2026-11-11.md` §5 (R0b, filas «Rebanada» F1a a F6), que cita el enunciado del taller (§2 a §9). Estado de la adición: Pendiente de aprobación (puerta autorizada por Anderson para este lote; las D-107 a D-110 siguen «Propuesta»).
+**Adición R12 (Stripe como segunda pasarela de prueba, P5):** se añade el bloque R12 (RF-61, RF-62, RNF-20), las decisiones D-116 a D-120 (Propuesta) y los criterios CA-002-109 a CA-002-129. Fuente: ENCARGO (Mercado Pago no permite crear cuentas de prueba). Estado: Propuesta, pendiente de aprobación de Anderson. Aviso P5: los planes, el tema y las tareas de R8 y R11 pueden quedar desactualizados; CA-002-98 (texto del mensaje pendiente) se matiza en CA-002-124.
 Requisitos cubiertos: RF-31 a RF-38, RNF-14 a RNF-17 (nuevos, añadidos a `docs/requisitos.md`). Extiende RF-04, RF-10, RF-11, RF-29 y RNF-04. Fuentes: F1 §2, §3 (vía `docs/requisitos.md`) y ENCARGO (encargo al spec-author del 2026-11-11, cuatro bloques R1 a R4).
 Aviso de numeración: `specs/README.md` y la matriz de `docs/requisitos.md` reservan «002» para `002-disponibilidad-ubicacion`; esta spec usa la carpeta `002-funcionalidad-final` por el encargo. Anderson decide si renumera.
 
@@ -206,7 +207,26 @@ Fuente: enunciado §3, §7 (R0b, F5).
 ### Requisito transversal del lote (RNF-19)
 - [RNF-19] Las pantallas y componentes de R5 a R9 deberán usar solo tokens, `Card`, `Chip`, `DataRow`, `ScreenHeader`, `Icon`, `SkeletonBlock` y la fuente Inter, sin valores de color, tamaño ni texto escritos a mano; respetar área segura, objetivos de 48 dp, 200 % de texto sin recorte, «reducir movimiento» y no usar `Alert`; y no pedir dependencias nuevas en la app.
 
+### R11 — Lote de cierre nocturno (RF-53 a RF-60)
+Estado: Propuesta, pendiente de Anderson. Fuente: ENCARGO (prompt #57, `docs/AI_LOG.md`), hallazgos de la prueba en celular de Anderson (G1 a G4). No cambia R1 a R10; precisa y corrige lo observado en R5, R8 y R9.
+- [RF-53] Cuando Inicio reciba la primera posición, el sistema deberá centrar la cámara con un zoom de barrio (constante en `src/config/map.js`) y no recentrar en las actualizaciones siguientes; el mapa de Inicio deberá ofrecer un botón «Mi ubicación» que recentra, sin animación con «reducir movimiento»; mientras no haya ubicación, deberá mostrar un encuadre de Colombia. No aplica al mapa del viaje (modo seguir) y no añade llamadas de red.
+- [RF-54] Cuando un viaje no tenga `paymentMethod` ni `paymentStatus` (guardado antes de esos campos), el sistema deberá mostrar el chip neutro con texto «Cobro simulado» en Historial y detalle; los totales y métricas de Ganancias lo incluyen, el saldo lo excluye y el filtro de método lo muestra solo en «Todos».
+- [RF-55] La tarjeta del saldo en Ganancias deberá ajustar su pista a varias líneas sin cortarse ni salirse de la tarjeta, también con texto al 200 %.
+- [RF-56] El panel de cobro de «Cobro y resumen» deberá decidirse con una sola regla de render (tabla de estados, función pura): un solo mensaje a la vez con prioridad error de guardado > error del servicio > informativo > éxito; el efectivo nunca llama al backend; el error del servicio aparece solo tras una acción real del usuario; «viaje guardado» y «cobro confirmado» son conceptos distintos.
+- [RF-57] El cliente de pagos deberá clasificar sus errores (sin configurar, red, tiempo agotado, sesión vencida, no encontrado, error del servidor, respuesta inválida, error del proveedor) con un mensaje específico y seguro en pantalla.
+- [RF-58] El backend deberá incluir `npm run doctor`, que diagnostica entorno, variables por nombre, llave de Firebase, Firestore, token de Mercado Pago y `PUBLIC_BASE_URL`, sin imprimir secretos.
+- [RF-59] El proyecto deberá entregar `docs/pagos-guia-rapida.md` con las dos vías de red, la prueba de pago y la tabla síntoma → causa → solución.
+- [RF-60] El proyecto deberá entregar `docs/checklist-manana-jueves.md` y `docs/guion-video.md` (de 5 minutos como máximo).
+
+### R12 — Stripe Checkout como segunda pasarela de prueba (RF-61, RF-62, RNF-20)
+Estado: Propuesta, pendiente de Anderson. Fuente: ENCARGO (adición R12): Mercado Pago no permite a Anderson crear cuentas de prueba, así que se añade Stripe en modo de prueba conservando Mercado Pago. Porqué: sin una pasarela con tarjeta de prueba validable no se puede demostrar el cobro de punta a punta (RF-43).
+- [RF-61] El backend deberá ofrecer Stripe Checkout Sessions como proveedor de pago intercambiable con Mercado Pago (D-116, D-117): `GET /payments/providers` informa cuáles están configuradas; `POST /payments/checkout {tripId, provider}` crea el cobro con el monto del documento del viaje; `POST /payments/sync` reconsulta el estado; `/webhooks/stripe` es opcional (D-120); el método del viaje lo escribe solo el backend mientras el pago no esté aprobado (D-118).
+- [RF-62] Cuando haya al menos una pasarela configurada, la app deberá mostrar un botón de cobro por cada una («Cobrar con Mercado Pago», «Cobrar con Stripe (tarjeta de prueba)»); si ninguna, el mensaje «No hay una pasarela de pago configurada»; «Verificar pago» y la verificación al volver a primer plano usan el proveedor del viaje; `stripe` se trata como tarjeta en Historial, detalle y saldo.
+- [RNF-20] El sistema deberá usar solo credenciales de prueba (D-119), verificar la firma del webhook, aplicar a Stripe las mismas defensas que a Mercado Pago, no registrar ni imprimir secretos y no añadir dependencias fuera de `scripts/dependencies.json`.
+
 ## 3. Decisiones relacionadas
+D-116 a D-120 (Propuesta, R12): Stripe Checkout, proveedores intercambiables, método de pago por pasarela, rechazo de claves live y webhook opcional.
+
 Ya Vigentes que esta spec usa sin cambiar: D-11 (navegación por estado de cuenta), D-60 (sin documento = no registrado), D-71 (recorte de espacios al guardar), D-74 (campos bloqueados), D-80 (reglas publicadas a mano; documento en palabras), D-83 (cuenta regresiva, estado final y reposo), D-85 (tarjeta inferior), D-90/D-91 (rediseño, Ionicons).
 
 Decisión Vigente que esta spec propone reemplazar: **D-53** (Firebase Auth anónimo, `uid` = `driverId`) → D-93.
@@ -660,6 +680,164 @@ CA-002-90 [RF-51]
 Dado `docs/omisiones-y-limites.md`, Cuando se revisa, Entonces trata FCM, perfil editable frente a «aprobada, sin edición», idioma ES/EN, OSRM y MapLibre frente a Google (D-82), iOS no verificado, `DateField` solo Android, y propinas y calificación, cada uno con qué pide el enunciado, qué se hizo y por qué.
 Cómo se verifica: revisión del documento.
 
+### R11 — Lote de cierre nocturno (Propuesta, pendiente de Anderson)
+CA-002-91 [RF-53]
+Dado el mapa de Inicio, Cuando llega la primera posición, Entonces la cámara se centra en ella con el zoom de barrio definido en una constante de `src/config/map.js`; las actualizaciones siguientes no mueven la cámara (el usuario puede desplazar el mapa).
+Cómo se verifica: script contra la función pura que decide si centrar (primera posición, posiciones posteriores, posición nula) y revisión de código (la constante vive en `map.js`). Comportamiento visual: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-92 [RF-53]
+Dado el botón «Mi ubicación», Cuando se toca con ubicación disponible, Entonces la cámara se recentra en la posición actual con el zoom de barrio; con «reducir movimiento» activo salta sin animación; sin ubicación disponible no hace nada y no falla.
+Cómo se verifica: revisión de código, script contra la función pura de decisión (con y sin ubicación, con y sin reducir movimiento) y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-93 [RF-53]
+Dado el mapa de Inicio sin ubicación aún, Cuando se abre, Entonces se ve un encuadre razonable de Colombia (no el mundo); el cambio no añade llamadas de red y no altera el mapa del viaje, que sigue en modo seguir.
+Cómo se verifica: revisión de código (región inicial en `map.js`, sin `fetch` nuevos) y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-94 [RF-54]
+Dado un viaje sin `paymentMethod` ni `paymentStatus`, Cuando la función pura de presentación del estado de pago lo evalúa, Entonces devuelve el chip neutro con el texto «Cobro simulado» (no «Pago sin estado»), y la pantalla lo usa en Historial y detalle.
+Cómo se verifica: pruebas puras (sin ambos campos, con solo uno, con ambos) y revisión de código; el texto está en `labels.js`.
+
+CA-002-95 [RF-54]
+Dado una lista con viajes antiguos (sin campos de pago) y recientes, Cuando se calculan las métricas de Ganancias, el saldo y el filtro de método, Entonces las métricas los incluyen (por `status` completed o paid), `computeBalance` los excluye y el filtro Tarjeta/Efectivo no los muestra (solo «Todos»); la política queda escrita en `docs/omisiones-y-limites.md` o en el código documentado.
+Cómo se verifica: pruebas puras contra `useEarnings` (función de métricas), `computeBalance` y el filtro, y revisión del texto de la política.
+
+CA-002-96 [RF-56]
+Dado la función pura de decisión del panel de cobro, Cuando recibe método (efectivo o tarjeta), estado de pago, error de guardado, error del servicio y si hubo acción del usuario, Entonces devuelve una sola salida (mensaje, tono, chip y botones) con la prioridad error de guardado > error del servicio > informativo > éxito, y cubre la tabla completa de estados.
+Cómo se verifica: pruebas puras exhaustivas sobre la tabla (todas las combinaciones de método × estado × errores) y revisión de código de que la pantalla solo pinta lo que la función devuelve.
+
+CA-002-97 [RF-56]
+Dado un viaje en efectivo, Cuando se abre «Cobro y resumen», Entonces no se llama al backend de pagos ni aparece ningún mensaje del servicio de cobro (tampoco «Servicio de cobro no disponible»); con estado pending muestra el botón «Confirmar efectivo recibido»; cobrado muestra el chip «Efectivo», el mensaje «Efectivo recibido. El viaje quedó guardado en tu historial.» y ningún botón de cobro.
+Cómo se verifica: pruebas puras de la tabla y script con fake del cliente de pagos que verifica cero llamadas; paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-98 [RF-56]
+Dado un viaje con tarjeta, Cuando está pending, Entonces muestra «Viaje guardado. Falta el pago con Mercado Pago.» con los botones «Cobrar con Mercado Pago» y «Verificar pago»; approved muestra «Pago aprobado. El viaje quedó guardado en tu historial.» sin botones de cobro; rejected muestra «Pago rechazado» con «Reintentar pago».
+Cómo se verifica: pruebas puras de la tabla y paso manual con Mercado Pago de prueba. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-99 [RF-56]
+Dado un viaje con tarjeta, Cuando se monta la pantalla o se hace la verificación silenciosa al volver al primer plano y el servicio falla, Entonces no se muestra error del servicio; tras una acción real del usuario («Cobrar», «Verificar», «Reintentar») que falla, aparece el error del servicio y reemplaza al mensaje informativo.
+Cómo se verifica: pruebas puras (error con y sin acción del usuario) y paso manual con el backend apagado. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-100 [RF-56, RNF-19]
+Dado el panel de cobro, Cuando se revisa, Entonces el tono de éxito (verde) solo aparece con pago approved o efectivo cobrado (nunca con solo «viaje guardado»), el mensaje vive en una región viva `polite`, no hay `Alert` y todos los textos nuevos están en `labels.js`.
+Cómo se verifica: pruebas puras (tono por estado), revisión de código, búsqueda de `Alert` en `src/` y `node scripts/check-constitution.mjs`; lector de pantalla **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-101 [RF-57]
+Dado el cliente de pagos, Cuando falla una petición, Entonces clasifica el error en `notConfigured` (sin URL), `offline` (red), `timeout`, `sessionExpired` (401 o 403), `notFound` (404), `serverError` (5xx), `invalidResponse` (cuerpo no interpretable) o `providerError`, y nunca lanza sin clasificar.
+Cómo se verifica: script con fakes de `fetch` (sin URL, rechazo de red, demora más allá del tiempo máximo, 401, 403, 404, 500, 503, JSON inválido, error del proveedor).
+
+CA-002-102 [RF-57]
+Dado cada clase de error de pagos, Cuando se muestra en pantalla, Entonces tiene un mensaje específico en `labels.js` (por ejemplo «El servicio de cobro no está configurado en esta app», «No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido», «Tu sesión expiró; vuelve a iniciar sesión») y ningún mensaje contiene URLs, tokens ni cabeceras.
+Cómo se verifica: pruebas con fakes de `fetch` que incluyen URL y token en el error simulado y comprueban que no aparecen en el mensaje; revisión de `labels.js`.
+
+CA-002-103 [RF-58]
+Dado `npm run doctor` en `backend/`, Cuando se ejecuta, Entonces comprueba la versión de Node, las variables de entorno por nombre (sin leer su valor en la salida), que la ruta de la llave de Firebase sea legible y con JSON válido, que `firebase-admin` cargue y lea trivialmente Firestore, que el token de Mercado Pago sea válido (solo OK o código HTTP) y avisa si `PUBLIC_BASE_URL` falta o no es https; cada línea sale como OK, FALTA o ERROR con qué hacer.
+Cómo se verifica: prueba con fakes (sistema de archivos, Firestore, `fetch`) en cada rama OK, FALTA y ERROR; la ejecución real contra credenciales la hace Anderson (paso manual, no se leen `.env` ni `backend/secrets/`).
+
+CA-002-104 [RF-58, RNF-18]
+Dado la salida y los registros de `npm run doctor`, Cuando se inspeccionan con valores secretos conocidos en el entorno simulado, Entonces ningún token, llave ni contenido del `.env` aparece, y no se añade ninguna dependencia fuera de `scripts/dependencies.json`.
+Cómo se verifica: prueba con fakes que busca los valores secretos en la salida capturada y revisión de `backend/package.json`.
+
+CA-002-105 [RF-59]
+Dado `docs/pagos-guia-rapida.md`, Cuando se revisa, Entonces existe y cubre las dos vías de red para que el teléfono alcance el backend, los pasos de la prueba de pago y una tabla síntoma → causa → solución, según el prompt #57.
+Cómo se verifica: revisión del documento.
+
+CA-002-106 [RF-49, RF-54]
+Dado el detalle de un viaje antiguo (sin `route`, sin campos de pago), Cuando se abre, Entonces muestra «Ruta no disponible» en lugar del mapa y el chip «Cobro simulado», sin fallar (refuerza CA-002-86 y CA-002-94; cubre T-109 y T-110).
+Cómo se verifica: script contra la función pura de presentación del detalle y paso manual. **No verificado en dispositivo** (paso manual).
+
+CA-002-107 [RF-60]
+Dado `docs/checklist-manana-jueves.md`, Cuando se revisa, Entonces existe y lista, en pasos comprobables, lo que Anderson debe hacer o verificar el jueves.
+Cómo se verifica: revisión del documento.
+
+CA-002-108 [RF-60]
+Dado `docs/guion-video.md`, Cuando se revisa, Entonces existe y su guion dura 5 minutos o menos (suma de tiempos por escena).
+Cómo se verifica: revisión del documento y suma de los tiempos indicados.
+
+### R12 — Stripe Checkout (Propuesta, pendiente de Anderson)
+CA-002-109 [RF-61]
+Dado `GET /payments/providers`, Cuando se llama sin ID token válido, Entonces responde 401 sin cuerpo útil; con token válido responde solo booleanos por proveedor (por ejemplo `{mercadopago: true, stripe: false}`), sin claves, URLs ni nombres de variables.
+Cómo se verifica: pruebas con fakes de configuración y del guard de autenticación; búsqueda de valores secretos conocidos en la respuesta.
+
+CA-002-110 [RF-61, D-118]
+Dado `POST /payments/checkout {tripId, provider}`, Cuando se evalúa, Entonces valida el ID token, que el viaje sea del `uid`, `status` completed, método tarjeta (no efectivo), `paymentStatus` distinto de approved y proveedor configurado; cada caso incumplido devuelve un error genérico sin detalle. Con éxito devuelve solo la URL de pago y escribe `paymentMethod` como `mercadopago` o `stripe` mediante firebase-admin; con pago aprobado nunca cambia el método.
+Cómo se verifica: pruebas con fakes de Firestore y de las pasarelas, una por cada condición, incluido el método tras elegir cada proveedor y el intento con pago ya aprobado.
+
+CA-002-111 [RF-61, D-109]
+Dado el cuerpo de `checkout` con `amount`, `currency` u otros campos añadidos, Cuando se procesa, Entonces el monto enviado a la pasarela sale SIEMPRE de `fare` del documento del viaje (entero positivo y bajo el tope) y el resto del cuerpo se ignora.
+Cómo se verifica: prueba con fake que captura lo enviado a Stripe y a Mercado Pago con cuerpos hostiles.
+
+CA-002-112 [RF-61]
+Dado la función pura que convierte el monto del viaje (COP) a la unidad mínima de Stripe, Cuando recibe montos enteros típicos, el mínimo y el tope, Entonces devuelve la unidad correcta para COP y rechaza montos no enteros, cero, negativos o sobre el tope. El número de decimales de COP en Stripe lo fija el plan tras verificarlo en la documentación oficial de Stripe (esta spec no lo afirma).
+Cómo se verifica: pruebas puras con tabla de entradas; la cifra del plan cita la página oficial consultada.
+
+CA-002-113 [RF-61]
+Dado la función pura de estado de una Checkout Session de Stripe, Cuando se evalúa, Entonces: pago `paid` → approved; `last_payment_error` sin pago → rejected; sesión abierta sin error → pending; sesión expirada → rejected; el resultado depende solo de la sesión y de si coincide con el viaje (referencia al `tripId`, monto y moneda).
+Cómo se verifica: pruebas puras exhaustivas sobre la tabla y sobre sesiones que no coinciden.
+
+CA-002-114 [RF-61]
+Dado `POST /payments/sync` y el webhook, Cuando se aplica un estado, Entonces se hace en una transacción, rejected → approved se permite, nunca se retrocede desde approved, repetir el mismo resultado no cambia nada (idempotente), y al aprobar se guardan `paymentId`, `paymentStatus` approved y `status` paid.
+Cómo se verifica: pruebas con fake de transacciones: rejected→approved, approved→rejected (sin efecto), doble aplicación, dos aplicaciones concurrentes.
+
+CA-002-115 [RF-61, RNF-20, D-120]
+Dado `/webhooks/stripe`, Cuando llega una petición, Entonces usa el cuerpo crudo (no el JSON ya interpretado) y valida la cabecera `Stripe-Signature` con HMAC-SHA256 y tolerancia de 5 minutos; firma ausente, inválida, vencida o `STRIPE_WEBHOOK_SECRET` sin configurar devuelve error genérico y no aplica nada; la comparación es de tiempo constante.
+Cómo se verifica: pruebas con firmas generadas en el test (válida, alterada, 6 minutos antiguas, sin secreto, sin cabecera).
+
+CA-002-116 [RF-61, RNF-20]
+Dado un webhook de Stripe con firma válida, Cuando se procesa, Entonces no confía en el cuerpo: toma solo el identificador de la sesión, la reconsulta a Stripe y aplica el estado como en `sync`; un evento de un viaje inexistente se responde correcto sin aplicar.
+Cómo se verifica: prueba con fake de Stripe cuyo cuerpo del evento miente (dice pagado y la sesión dice abierta).
+
+CA-002-117 [RF-61]
+Dado la página de retorno del pago de Stripe, Cuando se abre, Entonces es una página estática que dice que se puede volver a la app, sin datos del viaje, monto, `tripId` ni parámetros reflejados.
+Cómo se verifica: prueba de la respuesta con parámetros hostiles en la URL y revisión de que no se interpolan. Que el navegador vuelva a la app: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-118 [RNF-20]
+Dado las rutas de Stripe, Cuando se revisan, Entonces tienen las mismas defensas que las de Mercado Pago: límite de peticiones, tamaño máximo de cuerpo, errores genéricos sin traza y ningún secreto, firma o cabecera de autorización en los registros.
+Cómo se verifica: pruebas contra el límite y el tamaño, y búsqueda de valores secretos conocidos en los registros capturados.
+
+CA-002-119 [RF-61]
+Dado que ninguna pasarela está configurada, Cuando arranca el backend, Entonces arranca con normalidad, `/health` responde, `GET /payments/providers` devuelve ambas en falso y `checkout` responde error genérico.
+Cómo se verifica: prueba de arranque con configuración vacía.
+
+CA-002-120 [RNF-20, D-119]
+Dado una clave de Stripe que empieza por `sk_live_` o `rk_live_`, Cuando carga la configuración, Entonces Stripe queda como no configurada (los demás proveedores siguen) y ningún registro contiene la clave; `sk_test_` y `rk_test_` se aceptan.
+Cómo se verifica: pruebas con claves ficticias de cada prefijo y de formato inválido.
+
+CA-002-121 [RF-58, RNF-20]
+Dado `npm run doctor`, Cuando se ejecuta, Entonces reporta una línea por cada pasarela (OK, FALTA o ERROR con qué hacer); es ERROR solo si ninguna está configurada, rechaza claves live con ERROR y nunca imprime secretos.
+Cómo se verifica: pruebas con fakes: solo Mercado Pago, solo Stripe, ambas, ninguna, clave live; búsqueda de secretos en la salida. La ejecución real la hace Anderson (no se leen `.env` ni `backend/secrets/`).
+
+CA-002-122 [RF-62, D-117]
+Dado la pantalla «Cobro y resumen» con viaje con tarjeta pendiente o rechazado, Cuando el servicio informa pasarelas configuradas, Entonces muestra el botón «Cobrar con Mercado Pago» y/o «Cobrar con Stripe (tarjeta de prueba)» según corresponda; si ninguna está configurada, muestra el mensaje «No hay una pasarela de pago configurada» sin botones de cobro.
+Cómo se verifica: pruebas puras sobre `chargePanel` (0, 1 y 2 pasarelas) y revisión de que los textos están en `labels.js`. En pantalla: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-123 [RF-62]
+Dado un viaje con pago iniciado, Cuando el conductor pulsa «Verificar pago» o la app vuelve a primer plano, Entonces la verificación usa el proveedor del viaje (`paymentMethod`), no el último botón pulsado; la verificación silenciosa sigue sin mostrar error del servicio (CA-002-99).
+Cómo se verifica: pruebas con fake del cliente de pagos que verifica el proveedor enviado; paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-124 [RF-62, RF-56]
+Dado el panel de cobro con dos pasarelas, Cuando se decide qué mostrar, Entonces se mantiene la regla de un solo mensaje (H-4, D-112): una sola salida con la misma prioridad; los botones de pasarela no generan mensajes adicionales. Con una sola pasarela (Mercado Pago) el mensaje pendiente es el literal de CA-002-98; con Stripe configurada y mientras no se haya elegido pasarela, el mensaje pendiente es «Viaje guardado. Falta el pago con tarjeta.» (lectura conservadora, por confirmar).
+Cómo se verifica: pruebas puras exhaustivas de la tabla ampliada; paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-125 [RF-62]
+Dado un viaje con `paymentMethod` `stripe`, Cuando se calcula Historial, detalle, Ganancias y saldo, Entonces se trata como tarjeta (no como efectivo ni «Cobro simulado»), el chip muestra el nombre de la pasarela («Mercado Pago» o «Stripe») y el filtro «Tarjeta» incluye ambas.
+Cómo se verifica: pruebas puras de `historyQuery`, `computeBalance`, `earnings` y la presentación del detalle con viajes de cada método.
+
+CA-002-126 [RF-61]
+Dado el flujo de Mercado Pago, Cuando se ejecutan las pruebas existentes de R8 y R11, Entonces pasan sin modificar su comportamiento esperado (preferencia, webhook, sync, estados y textos).
+Cómo se verifica: ejecución de las pruebas existentes de pagos sin cambios en sus aserciones.
+
+CA-002-127 [RF-62, RNF-19]
+Dado el botón y los textos nuevos, Cuando se revisan, Entonces cumplen el etiquetado accesible con rol y nombre, objetivo de 48 dp, tokens y `labels.js`, y a 200 % de texto el rótulo largo «Cobrar con Stripe (tarjeta de prueba)» no se corta (se ajusta a varias líneas).
+Cómo se verifica: revisión estática de componentes y estilos. A 200 % y con lector de pantalla: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-128 [RNF-20]
+Dado el cambio completo, Cuando se revisan `package.json` de la app y del backend, Entonces no aparece ninguna dependencia fuera de `scripts/dependencies.json` (Stripe se consume sin SDK nuevo).
+Cómo se verifica: revisión de ambos `package.json` y `node scripts/check-constitution.mjs`.
+
+CA-002-129 [RF-61, D-118]
+Dado `docs/seguridad.md` y `firestore.rules` local, Cuando se revisan, Entonces `stripe` figura entre los valores permitidos de `paymentMethod` y se documenta que el backend escribe `mercadopago` o `stripe` solo sin pago aprobado; las reglas se publican en Firebase solo cuando el backend cambie el método a `stripe` (paso manual de Anderson).
+Cómo se verifica: revisión de ambos archivos. Publicación: **No verificado en dispositivo** (paso manual, tarea por asignar).
+
 ### Criterios de diseño
 CA-002-D1 [RNF-17]
 Dado Iniciar sesión, Crear cuenta, Recuperar contraseña y la confirmación de Configuración, Cuando se revisa el código, Entonces colores, tipografía, espaciados, radios y bordes salen solo de los tokens, los componentes compartidos (`TextField`, `PrimaryButton`, `SecondaryButton`, `Card`, `ScreenState`) se reutilizan y los íconos son Ionicons vía `Icon.js` junto a texto.
@@ -701,6 +879,14 @@ CA-002-D10 [RNF-19, RF-48]
 Dado la gráfica de barras en escala de grises y con el texto al 200 %, Cuando se ve, Entonces cada barra se distingue por su etiqueta de texto y su altura, y las etiquetas no se solapan (se rotan o se muestran de forma alternada si hace falta).
 Cómo se verifica: paso manual con captura en escala de grises. **No verificado en dispositivo** (tarea por asignar).
 
+CA-002-D11 [RNF-19, RF-53]
+Dado el botón «Mi ubicación» del mapa de Inicio, Cuando se revisa y se mide, Entonces usa `Icon` y tokens, mide 44 × 44 px (`touch.min`), tiene `accessibilityLabel` (texto de `labels.js`) y `testID` propios, y queda separado de la tarjeta flotante sin taparla con texto al 200 %.
+Cómo se verifica: revisión de código y paso manual de medidas. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-D12 [RNF-19, RF-55]
+Dado la tarjeta del saldo en Ganancias con el texto al 200 %, Cuando se muestra la pista con ícono, Entonces el texto se ajusta a varias líneas, no se corta ni sale de la tarjeta y la tarjeta crece en alto.
+Cómo se verifica: revisión de código (sin altura fija ni `numberOfLines` que corte) y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
 ## 5. Casos límite
 - **Tabla de mapeo de errores de Firebase** (función pura, D-96): iniciar sesión — `auth/invalid-credential`, `auth/wrong-password`, `auth/user-not-found`, `auth/invalid-email` → credenciales; `auth/network-request-failed` → red; `auth/too-many-requests` → demasiados intentos; resto → genérico. Crear — `auth/email-already-in-use` → ya en uso; `auth/weak-password` → ayuda de contraseña (el cliente ya valida los 8 caracteres); `auth/invalid-email` → error de formato bajo el campo; red y límite como arriba; resto → genérico. Recuperar — éxito y `auth/user-not-found` → neutro; red y límite → específicos; `auth/invalid-email` → error de formato; resto → genérico.
 - Con la «protección contra enumeración de correos» activa en Firebase, el inicio de sesión devuelve el mismo código para correo inexistente y contraseña errónea; con ella apagada, devuelve dos códigos distintos. El mensaje del usuario es el mismo en ambos casos.
@@ -738,7 +924,24 @@ Cómo se verifica: paso manual con captura en escala de grises. **No verificado 
 - Detalle: viaje sin `route`, con un solo punto o con coordenadas inválidas: se dice con texto «Ruta no disponible» sin fallar.
 - Propina y calificación: no hay origen de datos con pasajero simulado; el detalle muestra propina 0 o «sin propina» y omite la calificación si no existe.
 
+**Lote de cierre nocturno (R11, Propuesta)**
+- Mapa de Inicio: si el conductor pierde y recupera la posición, no se recentra solo; solo «Mi ubicación» lo hace. Al volver a enfocar Inicio se considera una primera posición nueva (lectura conservadora, por confirmar).
+- Viaje con `paymentMethod` pero sin `paymentStatus` (o al revés): no es «Cobro simulado»; se trata con la lógica de pago existente (lectura conservadora: solo ambos ausentes cuentan como antiguo).
+- Panel de cobro: error de guardado y error del servicio a la vez → se muestra solo el de guardado; efectivo con error de servicio residual → se ignora.
+- `npm run doctor` sin red: los pasos de Firestore y Mercado Pago salen ERROR con la acción «revisa tu conexión» y los demás pasos siguen corriendo.
+
+**Stripe (R12, Propuesta)**
+- El conductor vuelve del navegador sin pagar: queda «Pendiente» y puede reintentar o verificar; una sesión expirada es rejected y permite reintentar con una sesión nueva.
+- Cambio de pasarela tras un rechazo: permitido mientras no haya pago aprobado; si ya hubo un aprobado en otra pasarela, un segundo cobro se bloquea (CA-002-110) y el caso se señala para revisión manual (fuera de alcance).
+- Clave live cargada por error: Stripe queda desactivada, Mercado Pago sigue (CA-002-120).
+- Webhook sin URL pública: no impide el cobro; «Verificar pago» lo cubre (D-120).
+- Viaje en efectivo: nunca llama a ninguna pasarela ni a `GET /payments/providers` por esa vía.
+- Falla de `GET /payments/providers` (sin red): se clasifica como en D-113 y solo se muestra tras una acción del usuario.
+- Pasajero simulado: el monto sigue sin confirmarlo nadie del lado del pasajero (D-109).
+
 ## 6. No encontrado
+- Cuántos decimales usa Stripe para COP: no se afirma aquí; el plan lo verifica en la documentación oficial de Stripe.
+- Texto del mensaje pendiente con dos pasarelas: propuesto en CA-002-124, por confirmar.
 - Cuántas cuentas por teléfono admite F1: F1 no menciona sesiones múltiples; D-94 propone la lectura conservadora.
 - Si el cierre de sesión de RF-29 («cierre de sesión» en F1 §3) exige confirmación: F1 no lo dice; se pide por buena práctica (ENCARGO).
 - Aspecto exacto de «Blanco» como color de silueta (D-100, pregunta abierta para Anderson).
@@ -756,6 +959,7 @@ Cómo se verifica: paso manual con captura en escala de grises. **No verificado 
 - Aprobar D-107 (**reemplaza** D-89 y **modifica** D-58) y D-110 (**modifica** D-87 solo en la ruta planeada): dejan desactualizados CA-002-39 para R8, el texto de «cobro simulado» en la pantalla de resumen, Configuración y README, y D-87 en el punto de coordenadas.
 - La dependencia `firebase-admin` en el backend (no está en la lista `backend` de `scripts/dependencies.json`): Anderson decide si la añade; sin ella R8 no puede cumplirse. `express-rate-limit` y `cors` no se piden: límite y CORS se resuelven con código propio.
 - Pasos manuales suyos: credenciales de prueba y cuentas de prueba de Mercado Pago, URL pública (`PUBLIC_BASE_URL`) para el webhook, cuenta de servicio de Firebase fuera de Git, publicar las reglas de documentos y de viajes tras validar, y las pruebas en el celular.
+- Adición R12: RF-61, RF-62, RNF-20 y las decisiones D-116 a D-120 (Propuesta). Pasos manuales suyos: clave de prueba de Stripe (`sk_test_`/`rk_test_`) en `backend/.env`, y opcionalmente webhook y su secreto; publicar reglas solo si el backend escribe `stripe`. Aprobar R12 deja desactualizados los planes y tareas de R8/R11 (T-85 a T-97, T-118 a T-130) y CA-002-98.
 - Aviso: aprobar D-93 deja desactualizados CA-001-22, CA-001-23, la política 1 de `docs/seguridad.md` y la nota de Configuración; planes, tema y tareas de las specs 000/001 pueden quedar desactualizados por la retirada de `ensureAnonymousUser` y de `DevAccountSwitch`.
 
 ## 8. Trazabilidad
@@ -802,7 +1006,23 @@ Cómo se verifica: paso manual con captura en escala de grises. **No verificado 
 | RF-50 (R9, enunciado §5) | CA-002-87 a CA-002-89 |
 | RF-51 (R10, enunciado §3, §7) | CA-002-90 |
 | RNF-19 (R5 a R9) | CA-002-46, CA-002-84, CA-002-D7 a CA-002-D10 |
+| RF-53 (R11, hallazgo G1-H1) | CA-002-91 a CA-002-93, CA-002-D11 |
+| RF-54 (R11, hallazgo G1-H2, G3) | CA-002-94, CA-002-95, CA-002-106 |
+| RF-55 (R11, hallazgo G1-H3) | CA-002-D12 |
+| RF-56 (R11, hallazgo G1-H4) | CA-002-96 a CA-002-100 |
+| RF-57 (R11, G2a) | CA-002-101, CA-002-102 |
+| RF-58 (R11, G2b) | CA-002-103, CA-002-104 |
+| RF-59 (R11, G2c) | CA-002-105 |
+| RF-60 (R11, G4) | CA-002-107, CA-002-108 |
 | D-107 | CA-002-58, CA-002-60 a CA-002-73 |
 | D-108 | CA-002-58 a CA-002-60, CA-002-65 |
 | D-109 | CA-002-62 |
 | D-110 | CA-002-77, CA-002-86 |
+| RF-61 (R12, ENCARGO) | CA-002-109 a CA-002-119, CA-002-126, CA-002-129 |
+| RF-62 (R12, ENCARGO) | CA-002-122 a CA-002-125, CA-002-127 |
+| RNF-20 (R12, ENCARGO) | CA-002-115, CA-002-116, CA-002-118, CA-002-120, CA-002-121, CA-002-128 |
+| D-116 | CA-002-109 a CA-002-119 |
+| D-117 | CA-002-109, CA-002-110, CA-002-122 |
+| D-118 | CA-002-110, CA-002-114, CA-002-129 |
+| D-119 | CA-002-120, CA-002-121 |
+| D-120 | CA-002-115, CA-002-116 |

@@ -139,7 +139,7 @@ for (const header of [undefined, '', 'Bearer', 'Basic good-u1', 'Bearer bad', 'B
 // ---------- checkout table (CA-002-61, 62) ----------
 {
   const { handlers, mp } = build();
-  const ok = await handlers.checkout({ uid: 'u1', body: { tripId: 't1', amount: 1, title: 'hack' } });
+  const ok = await handlers.checkout({ uid: 'u1', body: { tripId: 't1', provider: 'mercadopago', amount: 1, title: 'hack' } });
   assert.equal(ok.status, 200);
   assert.deepEqual(ok.body, { url: 'https://pay.example/checkout' });
   assert.equal(mp.calls.preferences.length, 1);
@@ -163,14 +163,23 @@ const checkoutCases = [
 ];
 for (const [name, trips, uid, tripId, status] of checkoutCases) {
   const { handlers, mp } = build(trips);
-  const result = await handlers.checkout({ uid, body: { tripId } });
+  const result = await handlers.checkout({ uid, body: { tripId, provider: 'mercadopago' } });
   assert.equal(result.status, status, name);
   assert.equal(mp.calls.preferences.length, 0, `${name}: no preference`);
   assert.ok(!('url' in result.body), name);
 }
 {
   const { handlers } = build(undefined, { createPreference: async () => { throw new Error('boom'); } });
-  assert.equal((await handlers.checkout({ uid: 'u1', body: { tripId: 't1' } })).status, 502);
+  assert.equal((await handlers.checkout({ uid: 'u1', body: { tripId: 't1', provider: 'mercadopago' } })).status, 502);
+}
+// #59: the provider is required (no default gateway); an unknown id is invalid_request.
+{
+  const { handlers, mp } = build();
+  for (const provider of [undefined, null, '', 'paypal', 5]) {
+    const result = await handlers.checkout({ uid: 'u1', body: { tripId: 't1', provider } });
+    assert.deepEqual(result.body, { error: 'invalid_request' }, String(provider));
+  }
+  assert.equal(mp.calls.preferences.length, 0);
 }
 
 // ---------- store transaction: idempotent, never regresses (CA-002-64) ----------
@@ -358,7 +367,7 @@ function fakeRes() {
 
   assert.equal((await call('/payments/checkout', { headers: {}, body: { tripId: 't1' }, ip: '1.1.1.1' })).code, 401);
   assert.equal((await call('/payments/checkout', { headers: { authorization: 'Bearer bad' }, body: { tripId: 't1' }, ip: '1.1.1.1' })).code, 401);
-  const good = { headers: { authorization: 'Bearer good-u1' }, body: { tripId: 't1' }, ip: '1.1.1.1' };
+  const good = { headers: { authorization: 'Bearer good-u1' }, body: { tripId: 't1', provider: 'mercadopago' }, ip: '1.1.1.1' };
   assert.equal((await call('/payments/checkout', good)).code, 200);
   assert.equal((await call('/payments/sync', good)).code, 200);
   assert.equal((await call('/payments/checkout', good)).code, 400, 'approved after sync');

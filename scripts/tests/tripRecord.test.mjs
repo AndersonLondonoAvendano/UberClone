@@ -83,7 +83,8 @@ for (const file of walk('src')) {
     .split('\n')
     .filter((line) => !line.trim().startsWith('//')) // comments are not writes
     .join('\n');
-  if (/paymentId|paymentStatus\s*:\s*['"](approved|rejected)['"]/.test(source)) offenders.push(file);
+  // Reads of savedTrip.paymentId / trip.paymentId (the chosen-gateway check, #59) are not writes.
+  if (/paymentId\s*:(?!\s*(savedTrip|trip)\b)|paymentStatus\s*:\s*['"](approved|rejected)['"]/.test(source)) offenders.push(file);
   if (/status\s*:\s*['"]paid['"]|status\s*:\s*TRIP_STATUS\.PAID/.test(source) && !file.split(sep).join('/').endsWith('services/tripRepository.js')) {
     offenders.push(file);
   }

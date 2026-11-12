@@ -5,6 +5,7 @@
 // app, so the net earning is the saved driverEarnings (fare minus commission).
 
 import { TRIP_STATUS } from '../constants/tripStatus';
+import { isCardMethod } from '../services/trip/tripRecord';
 import { periodBounds } from './dateRanges';
 
 export const PERIOD = { DAY: 'day', WEEK: 'week', MONTH: 'month' };
@@ -48,7 +49,8 @@ export function computePeriodTotals(trips, period, now = Date.now()) {
 }
 
 // AI-assisted: see docs/AI_LOG.md #55 (T-99, CA-002-75)
-// Balance with the platform: card payments (Mercado Pago, approved) leave the platform owing the driver
+// AI-assisted: see docs/AI_LOG.md #58 (T-149: Stripe counts as a card payment)
+// Balance with the platform: card payments (Mercado Pago or Stripe, approved) leave the platform owing the driver
 // their earnings; cash trips leave the driver owing the platform its commission. Positive = the platform
 // owes the driver; negative = the driver owes the platform. Trips without a valid method are ignored.
 export function computeBalance(trips) {
@@ -57,7 +59,7 @@ export function computeBalance(trips) {
   for (const trip of trips) {
     if (!trip || typeof trip !== 'object') continue;
     if (trip.status === TRIP_STATUS.CANCELLED) continue;
-    if (trip.paymentMethod === 'mercadopago') {
+    if (isCardMethod(trip.paymentMethod)) {
       if (trip.paymentStatus !== 'approved') continue;
       balance += amount(trip.driverEarnings);
     } else if (trip.paymentMethod === 'cash') {

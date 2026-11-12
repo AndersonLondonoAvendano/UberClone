@@ -35,20 +35,20 @@ function make(fetchFn, extra = {}) {
 
 // Error classification, never a throw.
 const failure = async (client) => (await client.requestCheckoutUrl('t1')).error;
-assert.equal(await failure(make(async () => { throw new TypeError('Network request failed'); })), PAYMENTS_ERROR.OFFLINE);
-assert.equal(await failure(make(() => new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('a'), { name: 'AbortError' })), 5)))), PAYMENTS_ERROR.BACKEND_UNAVAILABLE);
-assert.equal(await failure(make(async () => reply(500, {}))), PAYMENTS_ERROR.BACKEND_UNAVAILABLE);
-assert.equal(await failure(make(async () => reply(502, {}))), PAYMENTS_ERROR.BACKEND_UNAVAILABLE);
-assert.equal(await failure(make(async () => reply(429, {}))), PAYMENTS_ERROR.BACKEND_UNAVAILABLE);
-assert.equal(await failure(make(async () => reply(400, {}))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(401, {}))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(404, {}))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(200, { url: 'http://insecure' }))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(200, {}))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => ({ status: 200, ok: true, json: async () => { throw new Error('bad json'); } }))), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(200, {}), { baseUrl: '' })), PAYMENTS_ERROR.BACKEND_UNAVAILABLE);
-assert.equal(await failure(make(async () => reply(200, {}), { getToken: async () => null })), PAYMENTS_ERROR.FAILED);
-assert.equal(await failure(make(async () => reply(200, {}), { getToken: async () => { throw new Error('x'); } })), PAYMENTS_ERROR.FAILED);
+assert.equal(await failure(make(async () => { throw new TypeError('Network request failed'); })), PAYMENTS_ERROR.NETWORK);
+assert.equal(await failure(make(() => new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('a'), { name: 'AbortError' })), 5)))), PAYMENTS_ERROR.TIMEOUT);
+assert.equal(await failure(make(async () => reply(500, {}))), PAYMENTS_ERROR.SERVER);
+assert.equal(await failure(make(async () => reply(502, {}))), PAYMENTS_ERROR.SERVER);
+assert.equal(await failure(make(async () => reply(429, {}))), PAYMENTS_ERROR.SERVER);
+assert.equal(await failure(make(async () => reply(400, {}))), PAYMENTS_ERROR.PROVIDER);
+assert.equal(await failure(make(async () => reply(401, {}))), PAYMENTS_ERROR.AUTH);
+assert.equal(await failure(make(async () => reply(404, {}))), PAYMENTS_ERROR.NOT_FOUND);
+assert.equal(await failure(make(async () => reply(200, { url: 'http://insecure' }))), PAYMENTS_ERROR.INVALID_RESPONSE);
+assert.equal(await failure(make(async () => reply(200, {}))), PAYMENTS_ERROR.INVALID_RESPONSE);
+assert.equal(await failure(make(async () => ({ status: 200, ok: true, json: async () => { throw new Error('bad json'); } }))), PAYMENTS_ERROR.INVALID_RESPONSE);
+assert.equal(await failure(make(async () => reply(200, {}), { baseUrl: '' })), PAYMENTS_ERROR.NOT_CONFIGURED);
+assert.equal(await failure(make(async () => reply(200, {}), { getToken: async () => null })), PAYMENTS_ERROR.AUTH);
+assert.equal(await failure(make(async () => reply(200, {}), { getToken: async () => { throw new Error('x'); } })), PAYMENTS_ERROR.AUTH);
 assert.equal((await make(async () => reply(200, { paymentStatus: 7 })).syncPayment('t')).ok, false);
 
 // Cash confirmation: exactly the two fields, at the trip document, nothing else.
