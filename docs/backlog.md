@@ -865,6 +865,338 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Diseño: Auditado en lo estático; pendiente de revisión visual en el celular (rediseño #53, informe docs/diseno/auditoria-estatica-53.md)
 - Estado: **VALIDADA** por declaración de Anderson en dispositivo (2026-11-11, SHOW_DEV_TOOLS=false, prompt #51): regla de `trips` publicada; «Confirmar cobro» guarda el documento en Firestore sin coordenadas; Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial; con modo avión hay error con salida segura; Perfil con datos correctos y sin edición; Configuración sin paneles con la bandera en false; la tarjeta de solicitud sigue encima de estas pantallas. Antes: implementada y verificada en lo estático (prompt #50). Diseño: Pendiente (lo cubre el rediseño, prompt #51).
 
+## Spec 002 — Funcionalidad final (plan: `specs/002-funcionalidad-final/plan.md`; planificada bajo el encargo del prompt #54, spec en Borrador hasta que Anderson la ratifique; congelar código jueves 2026-11-12 12:00)
+
+### T-55 — R1: solicitud con ganancia y botones siempre visibles (pantalla)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R1; plan §3)
+- Requisitos: RF-31 (extiende RF-10, RF-11)
+- Depende de: —
+- Archivos: `src/screens/trip/TripRequestScreen.js` (existente, se modifica)
+- Hacer: reordenar el contenido (bloque de precio con ganancia mayor y tarifa menor primero, luego pasajero, origen, destino, distancia y tiempo, resto después); contenido en un contenedor desplazable y «Aceptar» y «Rechazar» fuera de él, fijos abajo; sin cambiar textos, testID (`trip-request-*`), cuenta regresiva ni comportamiento.
+- Criterios: CA-002-01, 03, 04, 05, 06.
+- Hecho cuando: `git diff` solo muestra cambios de disposición en el archivo (ni `labels.js` ni testID ni lógica); revisión de código confirma botones fuera del desplazable; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: 360 x 640 dp con fuente al 100 %, 130 % y 200 %: ganancia y tarifa completas sin desplazar (100 y 130 %), botones fijos, y a 200 % la ganancia es lo primero que se desplaza. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: medio (pantalla central del viaje).
+- Diseño hecho cuando: solo tokens; botones de 44 pt; contraste AA; CA-002-D1, D4.
+- Diseño: Pendiente
+- Estado: Implementada (verificada en lo estático por verifier independiente, 2026-11-11; pendiente de punto de control de dispositivo, D-59)
+
+### T-56 — R1: solicitud con ganancia y botones siempre visibles (tarjeta sobre otras pantallas)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R1; plan §3)
+- Requisitos: RF-31 (extiende RF-10, RF-11)
+- Depende de: —
+- Archivos: `src/components/IncomingRequestCard.js` (existente, se modifica)
+- Hacer: mismo orden de lectura y misma separación (contenido desplazable, botones fijos abajo) en la tarjeta que aparece sobre Historial, Ganancias, Perfil y Configuración; la animación sigue respetando «reducir movimiento»; sin cambiar textos, testID (`incoming-request-*`) ni comportamiento.
+- Criterios: CA-002-02, 03, 04, 05, 06.
+- Hecho cuando: revisión de código y `git diff` limpio de textos/testID/lógica; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: la tarjeta sobre otra pantalla del menú con ganancia y tarifa sin desplazar y botones fijos, con fuente 100, 130 y 200 %. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: como T-55.
+- Diseño: Pendiente
+- Estado: Implementada (verificada en lo estático por verifier independiente, 2026-11-11; pendiente de punto de control de dispositivo, D-59)
+
+### T-57 — R2: campos de registro accesibles (valor anunciado, un solo anuncio de subida)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R2 i y vi; plan §3)
+- Requisitos: RNF-14 (i, vi)
+- Depende de: —
+- Archivos: `src/components/registration/SelectField.js`, `src/components/registration/DateField.js`, `src/components/registration/PhotoField.js` (existentes, se modifican)
+- Hacer: la etiqueta accesible de `SelectField` y `DateField` incluye nombre y valor elegido (o «sin seleccionar»); quitar el comentario «plan §7» de `SelectField`; en `PhotoField` dejar una sola descripción accesible del indicador de subida.
+- Criterios: CA-002-07, CA-002-12 (partes de estos archivos).
+- Hecho cuando: revisión de código de las propiedades de accesibilidad; búsqueda de «plan §7» sin resultados; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: con TalkBack/VoiceOver, el campo anuncia nombre y valor; sin valor, «sin seleccionar». **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: sin cambio visual; tokens existentes.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-58 — R2: pestañas, menú lateral y limpiezas
+- Spec: `specs/002-funcionalidad-final/spec.md` (R2 ii, v, vi; plan §3)
+- Requisitos: RNF-14 (ii, v, vi)
+- Depende de: —
+- Archivos: `src/navigation/AppTabBar.js`, `src/navigation/AppDrawerContent.js`, `src/components/ScreenState.js`, `src/constants/labels.js` (existentes, se modifican)
+- Hacer: «Documentos» y «Vehículo» legibles completos con fuente al 200 % (sin recorte ni puntos suspensivos); la entrada activa del menú conserva su fondo al presionarla; quitar el comentario huérfano de `ScreenState`; borrar la clave `history.route` de `labels.js` si no tiene referencias (buscar antes).
+- Criterios: CA-002-08, CA-002-11, CA-002-12 (parte restante).
+- Hecho cuando: búsqueda de `history.route` sin referencias; revisión de código; `check-constitution` (C26) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: pestañas de registro con fuente al 200 % legibles; entrada activa del menú con fondo al presionarla. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: solo tokens; 44 pt; sin recortes al 200 %.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-59 — R2: acción principal fija en el viaje activo
+- Spec: `specs/002-funcionalidad-final/spec.md` (R2 iii; plan §3)
+- Requisitos: RNF-14 (iii)
+- Depende de: —
+- Archivos: `src/screens/trip/TripActiveScreen.js` (existente, se modifica)
+- Hacer: la acción principal queda fuera del panel desplazable, fija abajo; sin cambiar la lógica de fases ni los testID.
+- Criterios: CA-002-09.
+- Hecho cuando: revisión de código (botón fuera del contenedor desplazable); `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: durante un viaje, al desplazar el panel la acción principal no se mueve. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: solo tokens; botón de 44 pt; contraste AA.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-60 — R2: cuenta regresiva anunciada solo en 10, 5 y 0 s
+- Spec: `specs/002-funcionalidad-final/spec.md` (R2 iv, D-101; plan DP-14)
+- Requisitos: RNF-14 (iv)
+- Depende de: T-55, T-56 (mismos archivos; evita choque de edición)
+- Archivos: `src/screens/trip/TripRequestScreen.js`, `src/components/IncomingRequestCard.js` (existentes), `src/utils/format.js` (existente; función pura `countdownAnnouncement`)
+- Hacer: función pura `countdownAnnouncement(secondsLeft)` que devuelve texto solo en 10, 5 y 0 s; la región viva pasa a `polite` y su texto accesible cambia solo en esos umbrales; el contador visible no cambia.
+- Criterios: CA-002-10.
+- Hecho cuando: script fuera del proyecto contra la función real (valores 30…0, 10, 5, 0, negativos, NaN); ninguna región `assertive` ligada al contador; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: con lector de pantalla, la solicitud anuncia el tiempo solo cerca de 10, 5 y 0 s. **No verificado en dispositivo.**
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: sin cambio visual.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-61 — R3: tokens de color de auto y función pura
+- Spec: `specs/002-funcionalidad-final/spec.md` (R3, D-100; plan DP-15)
+- Requisitos: RF-32
+- Depende de: —
+- Archivos: `src/theme/tokens.js` (existente), `src/utils/vehicleColor.js` (nuevo), `docs/diseno/guia-de-estilo.md` (existente)
+- Hacer: añadir `vehicleColor` con un token para cada color de `registrationOptions.js` (`blanco`, `negro`, `gris`, `plata`, `rojo`, `azul`, `verde`, `amarillo`; `otro` usa `color.primary`); `vehicleColorToken(value)` pura (vacío, `null`, `undefined`, mayúsculas y desconocido devuelven `color.primary`, sin lanzar); anotar en la guía la razón de contraste ≥ 3:1 contra el fondo de la insignia.
+- Criterios: CA-002-13, CA-002-16.
+- Hecho cuando: script fuera del proyecto contra la función real y las opciones reales de `registrationOptions.js` (ninguna opción sin token) y script de contraste de los nueve tokens ≥ 3:1; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada todavía (se ve en T-62).
+- Validación: script temporal; verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: tokens documentados en la guía; contraste ≥ 3:1.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-62 — R3: marcador de auto en el mapa
+- Spec: `specs/002-funcionalidad-final/spec.md` (R3, D-100; plan DP-15)
+- Requisitos: RF-32
+- Depende de: T-61
+- Archivos: `src/components/map/CarMarker.js` (nuevo), `src/components/map/TripMap.js` (existente), `src/screens/trip/TripActiveScreen.js` (existente; solo pasa el color)
+- Hacer: `CarMarker` con glifo de auto de Ionicons vía `Icon.js`, teñido con el token del color registrado (de `driverProfile` ya cargado, sin consulta nueva), dentro de insignia circular `color.surface` con borde `color.border` y `borderWidth.thin`; decorativo (no se anuncia) y sin movimiento nuevo; `TripMap` lo muestra en lugar del círculo del conductor, sin más actualizaciones por segundo ni capas animadas; anillo del destino y marcador del pasajero conservan su forma. Confirmar en `node_modules` el nombre del componente de anotación exportado por MapLibre (sin dependencias nuevas).
+- Criterios: CA-002-14, 15, 17, 18, 19.
+- Hecho cuando: revisión de código (sin consulta nueva, sin dependencias, diferencia de `package.json` vacía); `check-constitution` (C15) limpio; probar en el celular con dos cuentas de colores distintos. **No verificado en dispositivo.**
+- Qué debe ver Anderson en el celular: durante un viaje, el auto con el color de su vehículo, distinto en forma del anillo del destino (también en escala de grises), moviéndose con la misma fluidez.
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: medio (módulo nativo de mapa).
+- Diseño hecho cuando: solo tokens; glifo + insignia; contraste ≥ 3:1; forma distingue los tres marcadores.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-63 — R4a: mapeo de errores y validadores de autenticación (puros)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4a, D-96, D-103; plan §4)
+- Requisitos: RF-33, RF-34, RF-35, RNF-15
+- Depende de: —
+- Archivos: `src/utils/authErrors.js` (nuevo), `src/utils/authValidators.js` (nuevo), `src/constants/labels.js` (existente; textos `labels.auth`)
+- Hacer: `mapAuthError(context, error)` con la tabla de la spec §5 (login, crear, recuperar; nunca el código crudo); `validateEmail` (recortado, patrón D-62), `validatePassword` (≥ 8, sin recortar), `validatePasswordConfirmation`, `validateLogin`, `validateSignUp`, `firstInvalidField`, `passwordRequirements`; módulos sin imports de React Native ni Firebase.
+- Criterios: CA-002-20 (validación), CA-002-22, CA-002-24 (mensaje), CA-002-33 (sin logs).
+- Hecho cuando: script fuera del proyecto contra las funciones reales: tabla completa, códigos con mayúsculas, `undefined`, objeto sin `code`, correo con espacios, contraseña de 7 y 8 caracteres, confirmación distinta; sin `console.*`; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada (lógica sin pantalla).
+- Validación: script temporal; verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (sin interfaz).
+- Diseño: N/A
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-64 — R4a: servicio de autenticación
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4a; plan DP-02, DP-03)
+- Requisitos: RF-33, RF-34, RF-35, RF-36, RF-37, RNF-15
+- Depende de: —
+- Archivos: `src/services/authService.js` (nuevo; usa `auth` de `src/services/firebase.js`, sin modificarlo)
+- Hacer: `signUpWithEmail`, `signInWithEmail`, `sendPasswordReset`, `signOutUser`, `listenToAuthState` con la firma del plan §4; relanza el error con su `code` sin imprimir nada; sin guardar correo ni contraseña; solo importa funciones ya incluidas en el SDK instalado.
+- Criterios: CA-002-33 (sin logs ni almacenamiento), CA-002-40.
+- Hecho cuando: revisión de código (sin `console.*`, sin dependencias nuevas, `package.json` sin diferencias); la app sigue arrancando (el servicio aún no se usa); `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada todavía (aún sin conectar). Habilitar el proveedor Correo/contraseña en la consola de Firebase (paso manual de Anderson, ver T-74).
+- Validación: revisión de código por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-65 — R4a: procedimiento de cierre de sesión (`resetSession`) con dependencias inyectadas
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4a, D-98; plan DP-11)
+- Requisitos: RF-37, RNF-04
+- Depende de: —
+- Archivos: `src/services/session/resetSession.js` (nuevo)
+- Hacer: `createSessionReset(deps)` con los seis pasos en orden (viaje en curso bloquea con `TRIP_IN_PROGRESS` sin cambiar nada; descartar solicitud; no disponible y publicar estado final con tope de 5 s sin bloquear; detener ubicación y liberar suscripciones/temporizadores; limpiar contextos y almacenamiento propio; `signOut`); si `signOut` falla devuelve `SIGN_OUT_FAILED`; reloj/tiempo límite inyectables.
+- Criterios: CA-002-28, 29, 30, 31 (parte de código), 32.
+- Hecho cuando: script fuera del proyecto con dependencias simuladas que registran el orden: caso completo, sin solicitud, sin disponibilidad, viaje en curso (nada cambia), publicación que falla, publicación que tarda más de 5 s (reloj simulado), `signOut` que rechaza; sin `console.*`; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada todavía (se cablea en T-70).
+- Validación: script temporal; verifier distinto.
+- Riesgo: medio (orden y tiempos).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-66 — R4b: Iniciar sesión (pila de autenticación y pantalla)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4b; plan DP-06 a DP-10)
+- Requisitos: RF-34, RNF-15, RNF-17
+- Depende de: T-63, T-64
+- Archivos: `src/components/auth/PasswordField.js` (nuevo), `src/components/auth/AuthFormError.js` (nuevo), `src/navigation/AuthStack.js` (nuevo, solo ruta `Login`), `src/screens/auth/LoginScreen.js` (nuevo), `src/constants/labels.js` (existente)
+- Hacer: pantalla con correo (teclado de correo, sin autocapitalizar ni autocorregir, autocompletado y tipo de contenido del sistema) y contraseña con mostrar/ocultar accesible; errores con ícono y texto en región `polite`; foco al primer campo con error; botón deshabilitado al enviar y sin doble envío; contraseña solo en estado local y vaciada al salir y tras el éxito; reutiliza `TextField`, `PrimaryButton`, `Card`; testID del contrato (`screen-login`, `login-field-*`, `login-error-*`, `login-submit`, `login-toggle-password`); aún no enlazada a la app.
+- Criterios: CA-002-23 (mapeo), CA-002-33, 34, CA-002-D1, D2, D3, D4, D5, D6.
+- Hecho cuando: revisión de código (sin `Alert`, sin `console.*`, tokens, 44 pt); script que importa `AuthStack` no es necesario; la app sigue arrancando; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada hasta T-69 (la pantalla aún no está enlazada). **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto; prueba en el celular tras T-69.
+- Riesgo: medio.
+- Diseño hecho cuando: solo tokens; 44 pt con separación de 8; 200 % sin recortes; teclado sin tapar campo, error ni botón.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-67 — R4b: Crear cuenta
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4b; plan DP-07)
+- Requisitos: RF-33, RNF-15, RNF-17
+- Depende de: T-66
+- Archivos: `src/screens/auth/SignUpScreen.js` (nuevo), `src/navigation/AuthStack.js` (existente), `src/screens/auth/LoginScreen.js` (existente; enlace `login-link-signup`), `src/constants/labels.js` (existente)
+- Hacer: pantalla con correo, contraseña y confirmación; requisitos de la contraseña visibles desde el inicio con cumplimiento indicado por texto o ícono; errores bajo cada campo (`signup-error-*`), foco al primer error; el éxito lleva al registro por la puerta (T-69); mapeo de errores de creación; testID del contrato (`screen-signup`, `signup-field-*`, `signup-submit`, `signup-toggle-password`).
+- Criterios: CA-002-20, 21, 33, 34, CA-002-D1 a D6.
+- Hecho cuando: revisión de código como T-66; script de validadores ya cubierto por T-63; la app sigue arrancando; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: tras T-69, crear una cuenta de prueba (nunca datos reales) y llegar al registro. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto; prueba en el celular tras T-69.
+- Riesgo: medio.
+- Diseño hecho cuando: como T-66.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-68 — R4b: Recuperar contraseña
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4b, D-96)
+- Requisitos: RF-35, RNF-15, RNF-17
+- Depende de: T-66
+- Archivos: `src/screens/auth/ForgotPasswordScreen.js` (nuevo), `src/navigation/AuthStack.js` (existente), `src/screens/auth/LoginScreen.js` (existente; enlace `login-link-forgot`), `src/constants/labels.js` (existente)
+- Hacer: pantalla con correo y envío; mensaje neutro idéntico con y sin cuenta; mensajes distintos para red caída y demasiados intentos; formato de correo como error bajo el campo; testID del contrato (`screen-forgot-password`, `forgot-password-field-email`, `forgot-submit`); sin guardar el correo.
+- Criterios: CA-002-24, 33, 34, CA-002-D1 a D6.
+- Hecho cuando: revisión de código como T-66; la app sigue arrancando; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: tras T-69, el mismo mensaje con un correo con cuenta y otro sin cuenta, y el correo de restablecimiento recibido. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto; prueba en el celular tras T-69.
+- Riesgo: bajo.
+- Diseño hecho cuando: como T-66.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-69 — R4b: puerta de autenticación (arranque, ramas y sesión anónima heredada)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4b, D-94, D-97; plan DP-03 a DP-05)
+- Requisitos: RF-36
+- Depende de: T-64, T-66, T-67, T-68
+- Archivos: `src/context/AppStateContext.js`, `src/navigation/RootNavigator.js`, `src/screens/startup/StartupScreen.js` (existentes, se modifican)
+- Hacer: `AppStateContext` se suscribe con `listenToAuthState` y expone `authStatus` y `authUser` (`{ uid, email }`); `driverId` sale de `authUser`; solo con sesión abre `listenToDriverAccount`; deja de llamar `ensureAnonymousUser`; una sesión anónima heredada se cierra sin error ni migración; `pickScreen(accountStatus, authStatus)` con la rama `ROOT_SCREEN.AUTH` (monta `AuthStack`); carga mientras `onAuthStateChanged` no responde; sin usuario, la pila de autenticación; con usuario sin documento, registro; pendiente, pestañas con aviso; aprobado, principal.
+- Criterios: CA-002-25, 26, 33 (sin logs de correo/token).
+- Hecho cuando: script fuera del proyecto contra `pickScreen` ampliada (todas las combinaciones, incluido un argumento); revisión de código; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control S4b; antes habilitar el proveedor Correo/contraseña): crear cuenta A, llegar al registro, reiniciar con sesión persistente, instalación sobre la versión anterior cierra la sesión anónima, contraseña incorrecta, modo avión en Iniciar sesión, recuperación. **No verificado en dispositivo.**
+- Validación: script temporal; verifier distinto; prueba en el celular.
+- Riesgo: alto (cambia el arranque de la app).
+- Diseño hecho cuando: pantalla de carga con `ScreenState` y tokens.
+- Diseño: Pendiente
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-70 — R4c: cableado real de `resetSession` y limpieza de contextos
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4c, D-98; plan DP-12, DP-13)
+- Requisitos: RF-37, RNF-04
+- Depende de: T-65, T-69
+- Archivos: `src/context/useSessionReset.js` (nuevo), `src/context/AvailabilityContext.js`, `src/context/TripContext.js`, `src/context/RegistrationFormContext.js`, `src/context/AppStateContext.js` (existentes; solo añaden una función `reset`/de limpieza)
+- Hacer: hook que arma las dependencias reales (viaje en curso desde `TripContext`; descartar solicitud y disponibilidad desde `AvailabilityContext`, publicación final con la cola existente; detener ubicación; limpiar contextos; `AsyncStorage` propio tras revisar todos sus usos; `signOutUser`) y devuelve `resetSession`; sin cambiar el comportamiento actual de los contextos.
+- Criterios: CA-002-28, 29, 31, 32 (cableado).
+- Hecho cuando: revisión de código de todos los usos de `AsyncStorage` en `src/` (solo la persistencia de Firebase sobrevive); la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada nuevo hasta T-71. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto.
+- Riesgo: alto (toca cuatro contextos).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de punto de control de dispositivo (D-59)
+
+### T-71 — R4c: Cerrar sesión y Cambiar de cuenta en Configuración
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4c, D-102; plan DP-12)
+- Requisitos: RF-37
+- Depende de: T-70
+- Archivos: `src/screens/main/SettingsScreen.js`, `src/constants/labels.js` (existentes, se modifican)
+- Hacer: sección Cuenta con correo enmascarado (`maskEmail`), «Cerrar sesión» y «Cambiar de cuenta»; confirmación en la propia pantalla (sin `Alert`) con confirmar y cancelar; con viaje en curso muestra «Termina o cancela el viaje antes de cerrar sesión» sin cambiar nada; error de `signOut` con «Reintentar»; reemplaza la nota «Tu sesión es anónima…»; testID del contrato (`settings-account-email`, `settings-sign-out`, `settings-switch-account`, `settings-session-confirm`, `settings-session-cancel`, `settings-session-error`).
+- Criterios: CA-002-27, 28, 31, 32, 37 (nota anónima), CA-002-D1, D3, D4, D6.
+- Hecho cuando: revisión de código (sin `Alert`, sin `console.*`, tokens, 44 pt); la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control S4c): cerrar sesión de A, iniciar con B sin ver nada de A, volver a A con historial y ganancias, cierre bloqueado con viaje en curso, ciclo de viaje y cobro previo. **No verificado en dispositivo.**
+- Validación: revisión de código por un verifier distinto y prueba en el celular.
+- Riesgo: alto.
+- Diseño hecho cuando: solo tokens; íconos Ionicons junto a texto; confirmación visible con 200 % de fuente.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-72 — R4c: retiro de paneles de desarrollo anónimos y de `ensureAnonymousUser`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4c, RF-38, D-53, D-93)
+- Requisitos: RF-38
+- Depende de: T-71
+- Archivos: `src/components/DevAccountSwitch.js` (se elimina), `src/services/firebase.js`, `src/context/AppStateContext.js`, `src/screens/home/HomeScreen.js`, `src/screens/registration/PersonalDataScreen.js`, `src/screens/main/SettingsScreen.js`, `src/screens/startup/StartupScreen.js` (existentes, se modifican)
+- Hacer: quitar `DevAccountSwitch` y sus usos, `ensureAnonymousUser` y `signInAnonymously`; si ya nada usa `simulateAccountStatus`, quitarlo del contexto; mantener solo la lectura de `isAnonymous` para cerrar anónimas heredadas; ninguna pantalla muestra paneles de desarrollo ni la nota anónima con `SHOW_DEV_TOOLS=false`.
+- Criterios: CA-002-37, CA-002-D6.
+- Hecho cuando: búsqueda de `signInAnonymously`, `ensureAnonymousUser` y `DevAccountSwitch` en `src/` sin usos (salvo lectura de `isAnonymous`); la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: Inicio, Datos personales, Configuración y arranque sin paneles de desarrollo. **No verificado en dispositivo.**
+- Validación: búsqueda en `src/` por un verifier distinto y prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: sin huecos visuales donde estaban los paneles.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-73 — R4d: texto de las reglas de seguridad y orden de publicación
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4d, D-99; plan DP-17)
+- Requisitos: RNF-16
+- Depende de: T-72
+- Archivos: `docs/seguridad.md` (existente, se modifica)
+- Hacer: escribir el texto de las reglas con `sign_in_provider == 'password'` para `drivers`, `driverLocations` y `trips` (cada cuenta solo su `uid`); orden de publicación (primero validar la app con las reglas actuales, después publicar, después repetir la prueba; las publica Anderson); actualizar la política que menciona la autenticación anónima; sin publicar nada ni tocar la consola.
+- Criterios: CA-002-35 (texto), CA-002-36.
+- Hecho cuando: revisión del documento contra CA-002-35 y 36; sin credenciales ni `.env`.
+- Qué debe ver Anderson en el celular: nada; después de publicar, repetir (a) en el celular (registro, disponibilidad, viaje guardado) y que el verifier ejecute (b) y (c) con cuentas de prueba.
+- Validación: revisión del documento por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-74 — R4d: README, arquitectura de sesiones y lista de comprobación en dispositivo
+- Spec: `specs/002-funcionalidad-final/spec.md` (R4d; plan DP-16)
+- Requisitos: RNF-17, RF-33 a RF-38 (descripción), ENT-02
+- Depende de: T-72
+- Archivos: `README.md` (existente), `docs/arquitectura-sesiones.md` (nuevo), `docs/checklist-dispositivo-sesiones.md` (nuevo)
+- Hacer: README y arquitectura describen el flujo de sesión, D-94, D-95, el habilitado del proveedor Correo/contraseña en la consola y el orden de publicación de reglas; la lista de comprobación recoge: crear cuenta A, registro, aprobar en consola, ciclo de viaje y cobro, cerrar sesión, cuenta B sin ver nada de A, volver a A con historial y ganancias, cierre bloqueado con viaje, modo avión en Iniciar sesión, contraseña incorrecta, recuperación, reinicio con sesión persistente, instalación sobre la versión anterior.
+- Criterios: CA-002-38.
+- Hecho cuando: revisión de los tres documentos contra CA-002-38; sin valores de `.env`.
+- Qué debe ver Anderson en el celular: seguir la lista y declarar el resultado por paso.
+- Validación: revisión de documentos por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-75 — Auditoría de diseño: solicitud, accesibilidad y marcador (R1, R2, R3)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RNF-17; plan §5)
+- Requisitos: RF-31, RNF-14, RF-32, RNF-17
+- Depende de: T-55, T-56, T-58, T-59, T-62
+- Archivos: `docs/diseno/auditorias/` (informe de ronda); campo Diseño de las tareas auditadas (lo escribe el design-auditor)
+- Hacer: auditar con el `design-auditor` T-55, T-56, T-58, T-59 y T-62 (y el contraste de T-61): capa A estática y capa B con capturas del celular; hallazgos al `implementer` (máximo dos rondas).
+- Criterios: CA-002-D1, D4, CA-002-16, 17.
+- Hecho cuando: informe de ronda emitido y campo Diseño de las tareas auditadas en «Aprobado» o con hallazgos abiertos.
+- Qué debe ver Anderson en el celular: capturas de la solicitud (100, 130, 200 %) y del mapa con el auto, incluida una en escala de grises.
+- Validación: la aprueba solo el `design-auditor`.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica de `docs/diseno/` completa.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-76 — Auditoría de diseño: Iniciar sesión, Crear cuenta, Recuperar contraseña y Cuenta en Configuración (R4)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RNF-17; plan §5)
+- Requisitos: RNF-17, RF-33, RF-34, RF-35, RF-37
+- Depende de: T-66, T-67, T-68, T-71
+- Archivos: `docs/diseno/auditorias/` (informe de ronda); campo Diseño de las tareas auditadas
+- Hacer: auditar con el `design-auditor` las pantallas T-66, T-67, T-68 y la sección Cuenta de T-71: tokens, componentes compartidos, 44 x 44 con 8 de separación, errores con ícono y texto, 200 % de fuente, teclado abierto, ausencia de `Alert`; hallazgos al `implementer` (máximo dos rondas).
+- Criterios: CA-002-D1 a D6.
+- Hecho cuando: informe de ronda emitido y campo Diseño de las tareas auditadas en «Aprobado» o con hallazgos abiertos.
+- Qué debe ver Anderson en el celular: capturas de las tres pantallas con teclado abierto y con 200 % de fuente, y de la confirmación de Configuración.
+- Validación: la aprueba solo el `design-auditor`.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica completa.
+- Diseño: Pendiente
+- Estado: Pendiente
+
 ## Fase 3 — Implementar
 (vacío)
 

@@ -10,6 +10,7 @@
 // AI-assisted: see docs/AI_LOG.md #41
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #54
 // Navigation and screen-state texts (Spanish). Nested keys so a dictionary can replace them later.
 
 export const labels = {
@@ -168,7 +169,6 @@ export const labels = {
     emptyTitle: 'Todavía no tienes viajes',
     emptyMessage: 'Tus viajes completados y cancelados aparecen aquí cuando termines uno.',
     errorMessage: 'No pudimos traer tu historial. Revisa tu conexión e inténtalo de nuevo.',
-    route: '{origin} → {destination}',
     status: { completed: 'Completado', cancelled: 'Cancelado' },
     cancelledAmounts: 'Sin cobro',
     fare: 'Tarifa',
@@ -279,6 +279,76 @@ export const labels = {
     sharedValueLabel: 'Valor escrito en Datos personales',
     sharedValueEmpty: 'Todavía no escribiste nada',
   },
+  auth: {
+    login: {
+      title: 'Iniciar sesión',
+      submit: 'Iniciar sesión',
+      submitting: 'Entrando…',
+      forgotLink: 'Recuperar contraseña',
+      signUpLink: 'Crear cuenta',
+    },
+    signUp: {
+      title: 'Crear cuenta',
+      submit: 'Crear cuenta',
+      submitting: 'Creando cuenta…',
+      loginLink: 'Ya tengo cuenta',
+    },
+    reset: {
+      title: 'Recuperar contraseña',
+      submit: 'Enviar instrucciones',
+      submitting: 'Enviando…',
+      neutral: 'Si el correo tiene una cuenta, te enviamos instrucciones para restablecer tu contraseña.',
+      intro: 'Escribe el correo de tu cuenta y te enviaremos instrucciones para restablecer tu contraseña.',
+      backLink: 'Volver a iniciar sesión',
+    },
+    fields: {
+      email: { label: 'Correo electrónico', placeholder: 'nombre@correo.com' },
+      password: { label: 'Contraseña' },
+      confirmation: { label: 'Confirmar contraseña' },
+    },
+    fieldErrors: {
+      emailRequired: 'Escribe tu correo.',
+      emailInvalid: 'Escribe un correo válido, con @ y dominio.',
+      passwordRequired: 'Escribe tu contraseña.',
+      passwordTooShort: 'La contraseña debe tener al menos 8 caracteres.',
+      confirmationRequired: 'Confirma tu contraseña.',
+      confirmationMismatch: 'Las contraseñas no coinciden.',
+    },
+    passwordHelp: {
+      title: 'Tu contraseña debe tener:',
+      minLength: 'Al menos 8 caracteres',
+      met: 'Cumple',
+      unmet: 'Pendiente',
+    },
+    errors: {
+      invalidCredentials: 'Correo o contraseña incorrectos.',
+      network: 'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
+      tooManyRequests: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+      emailInUse: 'Ese correo ya tiene una cuenta. Inicia sesión o usa otro correo.',
+      weakPassword: 'La contraseña es muy débil. Usa al menos 8 caracteres.',
+      invalidEmail: 'Escribe un correo válido, con @ y dominio.',
+      generic: 'No se pudo completar la acción. Inténtalo de nuevo.',
+    },
+    signOut: {
+      blockedByTrip: 'Termina o cancela el viaje antes de cerrar sesión',
+      confirmTitle: '¿Cerrar sesión?',
+      confirmBody: 'Dejarás de estar disponible y tendrás que iniciar sesión de nuevo.',
+      confirmSwitchTitle: '¿Cambiar de cuenta?',
+      confirmSwitchBody: 'Cerraremos la sesión actual para que inicies con otra cuenta.',
+      confirm: 'Cerrar sesión',
+      confirmSwitch: 'Cambiar de cuenta',
+      cancel: 'Cancelar',
+      error: 'No pudimos cerrar la sesión. Inténtalo de nuevo.',
+      retry: 'Reintentar',
+    },
+    a11y: {
+      showPassword: 'Mostrar contraseña',
+      hidePassword: 'Ocultar contraseña',
+      passwordShown: 'La contraseña está visible',
+      passwordHidden: 'La contraseña está oculta',
+      submitting: 'Enviando, espera un momento',
+    },
+  },
   registration: {
     pendingNotice: 'Pendiente de aprobación. Mientras tu cuenta se revisa, no puedes editar ni reenviar tu registro.',
     gender: {
@@ -307,6 +377,7 @@ export const labels = {
       amarillo: 'Amarillo',
       otro: 'Otro',
     },
+    unselected: 'sin seleccionar',
     photo: {
       instruction: 'Elige una foto con la cámara o la galería.',
       camera: 'Cámara',

@@ -1,6 +1,7 @@
+// AI-assisted: see docs/AI_LOG.md #54 (driver drawn as a car marker, R3)
 // AI-assisted: see docs/AI_LOG.md #43
 // Shared trip map (T-44): MapLibre with the OpenFreeMap style, the route of the current leg as a
-// GeoJSON line, the target point (pickup or destination) and the driver dot. The camera follows the
+// GeoJSON line, the target point (pickup or destination) and the driver car marker. The camera follows the
 // driver while `follow` is on. A failed style load shows the error with a retry that remounts the
 // Map (new key). The attribution is always shown as on-screen text over the map.
 // Points arrive as { lat, lng }; GeoJSON and MapLibre use [lng, lat].
@@ -16,19 +17,14 @@ import {
 } from '../../config/map';
 import { labels } from '../../constants/labels';
 import { color, mapMarker, radius, space, type } from '../../theme/tokens';
+import { CarMarker } from './CarMarker';
 import { SecondaryButton } from '../SecondaryButton';
 
 const ROUTE_LAYOUT = { 'line-join': 'round', 'line-cap': 'round' };
 const ROUTE_PAINT = { 'line-color': color.primary, 'line-width': ROUTE_LINE_WIDTH };
 const ROUTE_APPROX_PAINT = { ...ROUTE_PAINT, 'line-dasharray': [2, 2] };
 // AI-assisted: see docs/AI_LOG.md #53
-// Driver: filled dot. Target: larger hollow ring. Shape tells them apart, not only colour.
-const DRIVER_PAINT = {
-  'circle-radius': mapMarker.driverRadius,
-  'circle-color': color.primary,
-  'circle-stroke-width': mapMarker.driverStroke,
-  'circle-stroke-color': color.surface,
-};
+// Driver: car glyph in a badge (CarMarker). Target: hollow ring. Shape tells them apart, not only colour.
 const TARGET_PAINT = {
   'circle-radius': mapMarker.targetRadius,
   'circle-color': color.surface,
@@ -40,7 +36,7 @@ const toLngLat = (point) => [point.lng, point.lat];
 const pointFeature = (point) =>
   point ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: toLngLat(point) } } : null;
 
-export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true }) {
+export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true, vehicleColorValue }) {
   const cameraRef = useRef(null);
   const [mapKey, setMapKey] = useState(0);
   const [failed, setFailed] = useState(false);
@@ -56,7 +52,6 @@ export function TripMap({ testID, position, target, routeCoordinates, approximat
         : null,
     [routeCoordinates],
   );
-  const driverFeature = useMemo(() => pointFeature(position), [position]);
   const targetFeature = useMemo(() => pointFeature(target), [target]);
 
   const lng = position?.lng;
@@ -100,10 +95,8 @@ export function TripMap({ testID, position, target, routeCoordinates, approximat
             <Layer type="circle" id="trip-target-dot" paint={TARGET_PAINT} />
           </GeoJSONSource>
         ) : null}
-        {driverFeature ? (
-          <GeoJSONSource id="trip-driver" data={driverFeature}>
-            <Layer type="circle" id="trip-driver-dot" paint={DRIVER_PAINT} />
-          </GeoJSONSource>
+        {typeof lng === 'number' && typeof lat === 'number' ? (
+          <CarMarker lng={lng} lat={lat} vehicleColorValue={vehicleColorValue} />
         ) : null}
       </MapLibreMap>
       <View style={styles.attribution} pointerEvents="none">

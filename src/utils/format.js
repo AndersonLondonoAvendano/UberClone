@@ -38,6 +38,18 @@ export function fillLabel(template, values) {
   return Object.keys(values).reduce((text, key) => text.split(`{${key}}`).join(String(values[key])), template);
 }
 
+// AI-assisted: see docs/AI_LOG.md #54
+// Screen-reader text for the request countdown: only at the thresholds (10, 5 and 0 s), empty otherwise.
+// template is labels.trip.countdownA11y ("... {s} ...").
+export const COUNTDOWN_ANNOUNCE_AT = [10, 5, 0];
+export function countdownAnnouncement(secondsLeft, template) {
+  // AI-assisted: see docs/AI_LOG.md #54 (null, undefined and '' must not become 0)
+  if (secondsLeft == null || secondsLeft === '') return '';
+  const seconds = Number(secondsLeft);
+  if (!Number.isFinite(seconds) || !COUNTDOWN_ANNOUNCE_AT.includes(seconds)) return '';
+  return fillLabel(template, { s: seconds });
+}
+
 // AI-assisted: see docs/AI_LOG.md #50
 // Local date and time "11/11/2026 14:05" (day first, as in Colombia). Empty text for an unknown date.
 export function formatDateTime(timestamp) {

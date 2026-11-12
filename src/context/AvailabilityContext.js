@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
+// AI-assisted: see docs/AI_LOG.md #54 (reset: session reset puts everything back to the initial state)
 // Driver availability (T-42, RF-08). In memory only: no Firestore writes for availability.
 // Turning it on (a user action) asks the location permission if missing, then checks that the phone
 // location is on; if it is off it shows the system dialog ONCE (askToEnableServices). If location is
@@ -36,6 +37,8 @@ export function AvailabilityProvider({ children }) {
   // retry once (without a dialog).
   const blockedRef = useRef(false);
   const isAvailableRef = useRef(false);
+  // Bumped by reset(): an enable() that started before a reset must not turn availability back on.
+  const resetGenerationRef = useRef(0);
 
   useEffect(() => {
     isAvailableRef.current = isAvailable;
@@ -78,6 +81,8 @@ export function AvailabilityProvider({ children }) {
     async (allowDialog) => {
       changingRef.current = true;
       setIsChanging(true);
+      const generation = resetGenerationRef.current;
+      const isStale = () => generation !== resetGenerationRef.current;
       const source = getLocationSource();
       const finish = () => {
         changingRef.current = false;
@@ -86,6 +91,7 @@ export function AvailabilityProvider({ children }) {
       // AI-assisted: see docs/AI_LOG.md #44
       // Only a switch touch may prompt; the foreground check only reads the permission (no dialog).
       const permission = allowDialog ? await source.requestPermission() : await source.getPermission();
+      if (isStale()) return undefined;
       if (!mountedRef.current) return finish();
       if (permission !== 'granted') {
         blockedRef.current = false;
@@ -95,6 +101,7 @@ export function AvailabilityProvider({ children }) {
       }
       let servicesOn = await source.checkServices();
       if (!servicesOn && allowDialog) servicesOn = await source.askToEnableServices();
+      if (isStale()) return undefined;
       if (!mountedRef.current) return finish();
       if (!servicesOn) {
         blockForServices();
@@ -142,6 +149,22 @@ export function AvailabilityProvider({ children }) {
 
   const requestSimulatedTrip = useCallback(() => requestSimulatedTripNow(), []);
 
+  // AI-assisted: see docs/AI_LOG.md #54
+  // Session reset: availability off (the effects above then stop the location source and the request
+  // subscription), pending request freed, trip flag and notices cleared. Idempotent.
+  const reset = useCallback(() => {
+    resetGenerationRef.current += 1;
+    blockedRef.current = false;
+    changingRef.current = false;
+    positionRef.current = null;
+    setIsAvailable(false);
+    setIsChanging(false);
+    setOnTripState(false);
+    setNotice(null);
+    setRequestScreenId(null);
+    clearPendingRequest();
+  }, [clearPendingRequest]);
+
   const value = useMemo(
     () => ({
       isAvailable,
@@ -160,6 +183,7 @@ export function AvailabilityProvider({ children }) {
       lastRequest,
       requestsError,
       requestSimulatedTrip,
+      reset,
     }),
     [
       isAvailable,
@@ -177,6 +201,7 @@ export function AvailabilityProvider({ children }) {
       lastRequest,
       requestsError,
       requestSimulatedTrip,
+      reset,
     ],
   );
 
@@ -187,4 +212,10 @@ export function useAvailability() {
   const context = useContext(AvailabilityContext);
   if (!context) throw new Error('useAvailability must be used inside AvailabilityProvider');
   return context;
+}
+
+// AI-assisted: see docs/AI_LOG.md #54
+// Tolerant read for code that may run outside the provider (useSessionReset): null when absent.
+export function useOptionalAvailability() {
+  return useContext(AvailabilityContext);
 }

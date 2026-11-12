@@ -109,3 +109,30 @@ export const mapMarker = { driverRadius: 8, driverStroke: 3, targetRadius: 11, t
 // AI-assisted: see docs/AI_LOG.md #53
 // Height (px) of the photo preview frame of the registration photo fields.
 export const photoPreviewHeight = 160;
+
+// AI-assisted: see docs/AI_LOG.md #54
+// Car glyph colour per registered vehicle colour (registrationOptions.js). Each is >= 3:1 against the
+// badge it is drawn on: light tones (white, silver, yellow) go on the dark badge, the rest on the white
+// one (see carMarker). 'otro' uses color.primary.
+export const vehicleColor = {
+  blanco: '#F5F5F5',
+  negro: '#14201C',
+  gris: '#5A6360',
+  plata: '#C0C4C8',
+  rojo: '#C62828',
+  azul: '#1565C0',
+  verde: '#2E7D32',
+  amarillo: '#F2C200',
+};
+
+// Car map marker: badge diameter and glyph size (px), badge fills (light/dark) and the ring colour. The ring
+// (color.primaryDark) is >= 3:1 against the map land and water, so the badge never melts into the map.
+// minGlyphContrast: minimum glyph contrast against the light badge before the dark badge is used.
+export const carMarker = {
+  badge: 36,
+  glyph: 22,
+  badgeLight: color.surface,
+  badgeDark: color.primaryDark,
+  ring: color.primaryDark,
+  minGlyphContrast: 3,
+};

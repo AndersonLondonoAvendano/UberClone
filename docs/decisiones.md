@@ -564,3 +564,54 @@ Propuesta por el agente principal; encargada por Anderson (2026-11-11, prompt #5
 Decisión: las áreas B a E del rediseño (Inicio, viaje, ganancias/historial/perfil/configuración, registro) y el pase del menú lateral y las pestañas de registro se auditan solo en lo estático, por lectura de código y contraste calculado. El campo Diseño de las tareas con interfaz que estaba en «Pendiente» pasa a «Auditado en lo estático; pendiente de revisión visual en el celular». No equivale a «Aprobado».
 Justificación: no hay dispositivo en esta sesión; la puerta visual la sigue cerrando Anderson en el celular.
 Plan de reversa: devolver el campo a «Pendiente»; el informe queda en docs/diseno/auditoria-estatica-53.md.
+
+### D-93 — Firebase Auth con correo y contraseña reemplaza el acceso anónimo · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: D-53 usa sesión anónima; reinstalar pierde la cuenta y RF-29 (F1 §3) pide cierre de sesión.
+Decisión: proveedor correo/contraseña de Firebase Auth; `uid` sigue siendo `driverId`; D-53 queda Reemplazada. Requiere que Anderson habilite el proveedor en la consola (paso manual).
+Alternativa: mantener el acceso anónimo (descartada: sin cuentas recuperables ni cierre de sesión significativo).
+Impacto: CA-001-22 y CA-001-23 de la spec 001, la política 1 de `docs/seguridad.md` y la nota de Configuración quedan desactualizadas (no las edita esta spec).
+
+### D-94 — «Varias sesiones» = varias cuentas en el mismo teléfono, una activa a la vez · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: el SDK JS de Firebase Auth mantiene un solo usuario activo por instancia.
+Decisión: se entiende «varias sesiones» como varias cuentas de conductor que se turnan en el mismo dispositivo; «Cambiar de cuenta» = `resetSession` + volver a Iniciar sesión; no se guardan credenciales de otras cuentas. Se documenta en README y arquitectura.
+Alternativa: varias instancias de Auth o tokens guardados para cambio instantáneo (descartada: complejidad y riesgo con credenciales).
+
+### D-95 — Sin verificación de correo (riesgo aceptado) · Vigente (por encargo, prompt #54; Anderson ratifica)
+Situación: verificar el correo añade pantallas, estados y dependencia del buzón; hay una entrega con fecha límite.
+Decisión: no se exige verificación; cualquiera puede crear una cuenta con un correo ajeno. El riesgo se mitiga porque la cuenta no opera hasta la aprobación manual (RF-04). Se documenta en README y `docs/seguridad.md`.
+Alternativa: exigir verificación antes del registro (descartada por alcance).
+
+### D-96 — Mensajes de autenticación que no revelan si un correo existe · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: (a) iniciar sesión: credenciales erróneas, correo sin cuenta y credencial inválida → «Correo o contraseña incorrectos»; (b) mensajes específicos solo para red caída, demasiados intentos y, al crear, correo ya en uso (esta última revela la existencia por diseño, es lo que se pidió); (c) recuperar contraseña: respuesta neutra siempre que el envío no falle por red o límite; (d) cualquier otro código → mensaje genérico de «no se pudo, inténtalo de nuevo»; (e) el código crudo de Firebase nunca se muestra. La configuración «protección contra enumeración de correos» de la consola de Firebase cambia qué códigos llegan; el mapeo cubre ambas variantes.
+Alternativa: mostrar el mensaje exacto de Firebase (descartada: filtra información).
+
+### D-97 — Cuentas anónimas heredadas: cerrar sesión, sin migración · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: al detectar un usuario anónimo se cierra su sesión y se muestra Iniciar sesión; los datos de `drivers/{uid-anónimo}` quedan inaccesibles (como al reinstalar, D-53). Solo hay datos de prueba.
+Alternativa: vincular el usuario anónimo a correo/contraseña (descartada: alcance y datos solo de prueba).
+
+### D-98 — Un solo procedimiento de reinicio de sesión (`resetSession`) · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: seis pasos en el orden del requisito RF-37, con bloqueo si hay viaje en curso, espera máxima de 5 s para publicar el estado final y `signOut` siempre al final. Por qué ese orden: la publicación y las suscripciones necesitan la sesión viva (las reglas exigen autenticación); si `signOut` fuera antes, los listeners fallarían con permiso denegado y la publicación final se perdería.
+Alternativa: limpiar por separado en cada pantalla (descartada: se olvidan pasos y se filtran datos entre cuentas).
+
+### D-99 — Reglas exigen proveedor `password` y se publican después de validar la app · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: `drivers`, `driverLocations` y `trips` exigen `request.auth != null` y proveedor `password`; orden: (1) validar la app en el celular con las reglas actuales, (2) publicar reglas, (3) repetir la prueba. El proveedor anónimo se deja habilitado hasta terminar las pruebas de denegación (CA-002-35) y luego Anderson decide si lo apaga.
+Alternativa: publicar primero (descartada: un fallo de la app se confundiría con un fallo de reglas).
+
+### D-100 — Marcador de auto: glifo teñido con el color registrado, insignia blanca, tokens y función pura · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: glifo Ionicons de auto vía `Icon.js`, tintado con el token del color del vehículo, dentro de una insignia circular `color.surface` con borde `color.border`; un token por valor de color; `otro`/desconocido → `color.primary`; el contraste de la silueta contra la insignia debe ser de al menos 3:1 para los nueve valores (los colores claros —blanco, plata, amarillo— usan el tono visible más cercano que cumpla, y los hex de los tokens y sus razones se calculan y documentan en la guía de estilo al implementar). Sin dependencias ni consultas nuevas.
+Alternativa: imagen PNG del auto por color (descartada: activos nuevos); punto con color (descartada: no comunica «auto»).
+Pregunta abierta para Anderson: cómo se representa «Blanco» (hoy propuesto: gris muy oscuro suficiente para 3:1, por lo que Blanco y Plata podrían parecerse); alternativa: cambiar el fondo de la insignia para los claros.
+
+### D-101 — La cuenta regresiva anuncia solo umbrales (10, 5 y 0 s) en `polite` · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: la región viva se conserva; el texto anunciado solo cambia al llegar a esos tres valores. El tiempo restante sigue legible como texto en pantalla.
+Alternativa: quitar la región viva (descartada: se pierde el aviso de vencimiento).
+
+### D-102 — Correo de la cuenta en Configuración; «Cambiar de cuenta» usa el mismo procedimiento · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: el correo de la cuenta (enmascarado) se muestra en Configuración, sección «Cuenta», junto a las dos acciones (no en Perfil, para no mezclarlo con el correo personal y el de Mercado Pago). «Cerrar sesión» y «Cambiar de cuenta» ejecutan `resetSession`; solo cambian el texto de la confirmación y el aviso inicial de Iniciar sesión.
+Alternativa: mostrarlo en Perfil (posible; lo decide Anderson).
+
+### D-103 — Reglas de los campos de la cuenta · Vigente (por encargo, prompt #54; Anderson ratifica)
+Decisión: correo recortado (sin espacios al inicio y al fin), con el mismo patrón `algo@dominio.algo` de D-62; contraseña de mínimo 8 caracteres, sin máximo propio, sin recortar ni normalizar, con confirmación; el correo de la cuenta es independiente del correo personal del registro (no se precarga ni se sincroniza).
+Alternativa: precargar el correo del registro con el de la cuenta (descartada: cambia la spec 001 sin necesidad).
+
+Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

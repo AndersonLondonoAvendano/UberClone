@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (car marker colour; main action fixed below the scrollable panel)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
@@ -29,6 +30,7 @@ import { SecondaryButton } from '../../components/SecondaryButton';
 import { TripMap } from '../../components/map/TripMap';
 import { labels } from '../../constants/labels';
 import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
+import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
 import { TRIP_PHASE } from '../../services/trip/tripController';
 import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
@@ -47,6 +49,7 @@ const FINISH_ERROR_TEXT = {
 
 export function TripActiveScreen({ navigation }) {
   const { trip, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
+  const { driverProfile } = useAppState();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
   const [working, setWorking] = useState(false);
@@ -289,12 +292,16 @@ export function TripActiveScreen({ navigation }) {
           target={trip.target}
           routeCoordinates={trip.route?.coordinates}
           approximate={trip.routeApproximate}
+          vehicleColorValue={driverProfile?.vehicle?.color}
         />
       </View>
 
-      {/* AI-assisted: see docs/AI_LOG.md #53 */}
+      {/* AI-assisted: see docs/AI_LOG.md #53, #54 (the whole panel is capped, the scroll yields space) */}
       <View style={[styles.panel, { maxHeight: windowHeight * PANEL_MAX_SHARE }]}>
-        <ScrollView contentContainerStyle={styles.panelContent}>
+        <ScrollView
+          style={styles.panelScroll}
+          contentContainerStyle={styles.panelContent}
+        >
         <View style={styles.info} accessibilityLiveRegion="polite">
           <Chip testID="trip-active-phase" label={phaseText} tone={atPickup || atDestination ? 'success' : 'brand'} />
           {showRemaining ? (
@@ -331,8 +338,9 @@ export function TripActiveScreen({ navigation }) {
           <Notice testID="trip-active-report-error" text={labels.trip.reportError} onRetry={retryReport} />
         ) : null}
 
-        {actions}
         </ScrollView>
+
+        {actions}
       </View>
     </SafeAreaView>
   );
@@ -378,6 +386,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     ...elevation.raised,
+  },
+  panelScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
   },
   panelContent: {
     gap: space[3],

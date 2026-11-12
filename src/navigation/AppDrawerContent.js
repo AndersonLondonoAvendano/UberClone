@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (the active entry keeps its fill while pressed)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #52 (new drawer: brand header with profile, icon items, footer)
 // Custom drawer panel. A solid brand header (photo, name, vehicle, availability) built only from data
@@ -152,6 +153,7 @@ export function AppDrawerContent({ state, navigation }) {
                 styles.item,
                 focused && styles.itemActive,
                 pressed && styles.itemPressed,
+                pressed && !focused && styles.itemPressedIdle,
               ]}
             >
               {focused ? <View style={styles.accent} /> : null}
@@ -275,6 +277,8 @@ const styles = StyleSheet.create({
   },
   itemPressed: {
     opacity: opacity.pressed,
+  },
+  itemPressedIdle: {
     backgroundColor: color.surfaceMuted,
   },
   accent: {

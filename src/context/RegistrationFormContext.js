@@ -3,6 +3,7 @@
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalRegistrationForm)
 // Registration form state (useContext): the 17 fields across the three tabs, per-field "touched"
 // flags and per-tab "visited" flags (DP-08), aggregate validity per tab and overall (RF-02), and
 // the submit flow (RF-04). The plate is normalized to uppercase on every change, so the field
@@ -177,6 +178,21 @@ export function RegistrationFormProvider({ children }) {
     setVisitedTabs((current) => ({ ...current, [tab]: true }));
   }, []);
 
+  // AI-assisted: see docs/AI_LOG.md #54
+  // Session reset: empties the form and lets the next uid preload its own saved registration.
+  const reset = useCallback(() => {
+    hasPreloadedRef.current = false;
+    setPersonalDataState(INITIAL_PERSONAL_DATA);
+    setPersonalDataTouched(emptyTouched(INITIAL_PERSONAL_DATA));
+    setVehicleState(INITIAL_VEHICLE);
+    setVehicleTouched(emptyTouched(INITIAL_VEHICLE));
+    setDocumentsState(INITIAL_DOCUMENTS);
+    setDocumentsTouched(emptyTouched(INITIAL_DOCUMENTS));
+    setVisitedTabs(INITIAL_VISITED_TABS);
+    setSubmitState('idle');
+    setSubmitErrorMessage(null);
+  }, []);
+
   const isPersonalDataValid = useMemo(
     () =>
       isValidFullName(personalData.fullName) &&
@@ -294,6 +310,7 @@ export function RegistrationFormProvider({ children }) {
       submitErrorMessage,
       submitRegistration,
       isLocked,
+      reset,
     }),
     [
       personalData,
@@ -319,6 +336,7 @@ export function RegistrationFormProvider({ children }) {
       submitErrorMessage,
       submitRegistration,
       isLocked,
+      reset,
     ],
   );
 
@@ -331,4 +349,11 @@ export function useRegistrationForm() {
     throw new Error('useRegistrationForm must be used inside a RegistrationFormProvider');
   }
   return context;
+}
+
+// AI-assisted: see docs/AI_LOG.md #54
+// Tolerant read for code that may run outside the provider (useSessionReset): null when absent
+// (the main branch does not mount the registration form).
+export function useOptionalRegistrationForm() {
+  return useContext(RegistrationFormContext);
 }

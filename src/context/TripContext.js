@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalTrip)
 // The trip in progress (T-44, T-45): one tripController at a time, shared by the request card, the
 // trip screen and the summary. It goes through the passenger API port only (never an adapter).
 // Starting a trip pauses the availability watch and the request subscription (setOnTrip(true));
@@ -116,6 +117,20 @@ export function TripProvider({ children }) {
     setOnTrip(false);
   }, [driverId, setOnTrip]);
 
+  // AI-assisted: see docs/AI_LOG.md #54
+  // Session reset: releases a finished trip (summary still open) like endTrip does, or just clears
+  // the state when there is none. A trip still in progress is never dropped: returns false.
+  const reset = useCallback(() => {
+    const controller = controllerRef.current;
+    if (!controller) {
+      setTrip(null);
+      return true;
+    }
+    if (!controller.getState().finished) return false;
+    endTrip();
+    return true;
+  }, [endTrip]);
+
   // Each action is a no-op without a trip and always returns a promise.
   const call = useCallback((name) => {
     const controller = controllerRef.current;
@@ -136,7 +151,10 @@ export function TripProvider({ children }) {
     [call],
   );
 
-  const value = useMemo(() => ({ trip, startTrip, endTrip, ...actions }), [trip, startTrip, endTrip, actions]);
+  const value = useMemo(
+    () => ({ trip, startTrip, endTrip, reset, ...actions }),
+    [trip, startTrip, endTrip, reset, actions],
+  );
 
   return createElement(TripContext.Provider, { value }, children);
 }
@@ -145,4 +163,10 @@ export function useTrip() {
   const context = useContext(TripContext);
   if (!context) throw new Error('useTrip must be used inside TripProvider');
   return context;
+}
+
+// AI-assisted: see docs/AI_LOG.md #54
+// Tolerant read for code that may run outside the provider (useSessionReset): null when absent.
+export function useOptionalTrip() {
+  return useContext(TripContext);
 }

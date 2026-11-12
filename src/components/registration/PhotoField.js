@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #54 (one accessible description of the upload indicator)
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #29
 // AI-assisted: see docs/AI_LOG.md #36
@@ -68,7 +69,7 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
           <Image source={{ uri: value }} style={styles.previewImage} />
         ) : uploadState === 'uploading' ? (
           <View style={styles.previewState}>
-            <ActivityIndicator accessibilityLabel={labels.registration.photo.uploading} color={color.primary} />
+            <ActivityIndicator importantForAccessibility="no" accessibilityElementsHidden color={color.primary} />
             <Text style={styles.previewPlaceholder}>{labels.registration.photo.uploading}</Text>
           </View>
         ) : (

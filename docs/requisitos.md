@@ -42,6 +42,14 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | RF-28 | Mensaje vacío si no hay viajes; la consulta pagina o limita (ej. 20 por carga) | F1 §6 |
 | RF-29 | Perfil y configuración: datos editables, vehículo, documentos, idioma y cierre de sesión | F1 §3 |
 | RF-30 | Navegación combinada: Stack (viaje), Tabs (registro), Drawer (perfil, historial, ganancias, configuración) | F1 §1 |
+| RF-31 | Solicitud entrante legible: «tu ganancia» y la tarifa visibles sin desplazar en ~360 x 640 dp con fuente al 100 % y 130 %; bloque de precio primero; Aceptar/Rechazar fijos fuera del scroll; con 200 % se permite desplazar sin perder la ganancia ni los botones; sin cambiar contenido, cuenta regresiva, testID ni comportamiento | ENCARGO (spec 002; extiende F1 §2 RF-10/11) |
+| RF-32 | Marcador del conductor como auto genérico con el color del vehículo registrado (token por color; `otro`/desconocido = color de marca), glifo Ionicons en insignia blanca; decorativo; sin dependencias ni consultas nuevas | ENCARGO (spec 002) |
+| RF-33 | Crear cuenta de conductor con correo y contraseña (Firebase Auth; mínimo 8 caracteres, confirmación, ayuda visible), seguida del registro de 3 pestañas y aprobación manual; sin verificación de correo (riesgo aceptado) | ENCARGO (spec 002); F1 §3 |
+| RF-34 | Iniciar sesión con correo y contraseña; error genérico «Correo o contraseña incorrectos» y mensajes específicos solo para red caída, demasiados intentos y correo ya en uso al crear; mapeo en función pura | ENCARGO (spec 002); F1 §3 |
+| RF-35 | Recuperar contraseña con `sendPasswordResetEmail` y mensaje neutro que no revela si el correo existe | ENCARGO (spec 002) |
+| RF-36 | Puerta de autenticación en el navegador raíz: carga, pila de autenticación sin usuario, lógica de cuenta existente con usuario; las sesiones anónimas heredadas se cierran sin migrar | ENCARGO (spec 002) |
+| RF-37 | Cerrar sesión y Cambiar de cuenta en Configuración (correo enmascarado, confirmación en pantalla) mediante un único `resetSession` de 6 pasos; varias cuentas por teléfono, una activa a la vez | ENCARGO (spec 002); F1 §3 (RF-29) |
+| RF-38 | Retirar o adaptar los paneles y código dependientes de cuentas anónimas; con `SHOW_DEV_TOOLS` en `false` no se ve nada de ellos | ENCARGO (spec 002) |
 
 ## Requisitos no funcionales (RNF)
 | ID | Texto | Fuente |
@@ -59,6 +67,10 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | RNF-11 | Backend Node.js/Express | ENCARGO (F1 §4 lo admite) |
 | RNF-12 | Development build; sin Expo Go | ENCARGO |
 | RNF-13 | Verificación en celular físico desde la primera pantalla | ENCARGO |
+| RNF-14 | Accesibilidad pendiente: valor elegido anunciado en SelectField/DateField; pestañas de registro sin truncar a 200 %; acción principal de viaje activo fija; cuenta regresiva solo en 10, 5 y 0 s en `polite`; fondo activo del drawer al presionar; limpieza de comentarios y claves huérfanas | ENCARGO (spec 002); F1 §2 |
+| RNF-15 | Credenciales: nunca en logs ni en almacenamiento propio, campos limpiados al salir, contraseña oculta con botón accesible, autocompletado y teclado de correo, sin doble envío | ENCARGO (spec 002); F1 §2, §3 (RNF-04) |
+| RNF-16 | Reglas de Firestore de `drivers`, `driverLocations` y `trips` exigen sesión con proveedor `password`; texto solo en `docs/seguridad.md`, Anderson las publica tras validar la app | ENCARGO (spec 002) |
+| RNF-17 | Pantallas de autenticación y confirmación de sesión con el sistema de diseño: etiquetas, errores con ícono y texto en región viva `polite`, foco en el primer error, 44 x 44, 200 % sin recorte, teclado sin tapar, sin `Alert`; README y arquitectura actualizados | ENCARGO (spec 002); F1 §8 |
 
 ## Entrega (ENT)
 | ID | Texto | Fuente |
@@ -92,5 +104,6 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | 007-historial | RF-26 a RF-28, RNF-10 | — |
 | 008-perfil-config | RF-29 | — |
 | 009-entrega | ENT-01 a ENT-08 | — |
+| 002-funcionalidad-final (Borrador; el número 002 convive con 002-disponibilidad-ubicacion, a decidir por Anderson) | RF-31 a RF-38, RNF-14 a RNF-17 (extiende RF-29, RNF-04) | RF-31: T-55, T-56, T-75; RNF-14: T-57, T-58, T-59, T-60, T-75; RF-32: T-61, T-62, T-75; RF-33: T-63, T-64, T-66, T-67, T-76; RF-34: T-63, T-64, T-66, T-76; RF-35: T-63, T-64, T-68; RF-36: T-64, T-69; RF-37: T-64, T-65, T-70, T-71; RF-38: T-72; RNF-15: T-63, T-64, T-66, T-67, T-68; RNF-16: T-73; RNF-17: T-66, T-67, T-68, T-71, T-74, T-75, T-76; RNF-04 (extensión): T-65, T-70 |
 
 Nota: RNF-06 completo (FCM, Firestore, geolocalización) queda repartido entre 002 y 003; RNF-01 y RNF-13 se cubren con T-01.

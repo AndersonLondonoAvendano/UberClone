@@ -6,7 +6,11 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
-export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false }) {
+// AI-assisted: see docs/AI_LOG.md #54 (inputRef, inputProps and announceError for the auth forms)
+// inputRef: ref of the TextInput (focus on the first error). inputProps: extra TextInput props
+// (autoComplete, textContentType, secureTextEntry...). announceError: error in a polite live region
+// with the accessible label "<label>: <error>".
+export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false, inputRef, inputProps, announceError = false }) {
   const [focused, setFocused] = useState(false);
   const hasError = Boolean(errorMessage);
 
@@ -14,6 +18,8 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
+        {...inputProps}
+        ref={inputRef}
         testID={testID}
         accessibilityLabel={label}
         accessibilityState={{ disabled: !!disabled }}
@@ -35,7 +41,12 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
           disabled && styles.inputDisabled,
         ]}
       />
-      <FieldError testID={errorTestID} message={errorMessage} />
+      <FieldError
+        testID={errorTestID}
+        message={errorMessage}
+        accessibilityLabel={announceError && hasError ? `${label}: ${errorMessage}` : undefined}
+        liveRegion={announceError ? 'polite' : undefined}
+      />
     </View>
   );
 }
