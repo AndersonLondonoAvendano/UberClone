@@ -3,6 +3,7 @@
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #55 (license, SOAT and technical review sections, RF-41)
+// AI-assisted: see docs/AI_LOG.md #60 (payments email label and helper text)
 // Documents tab: license (number, photo, expiry), SOAT (photo, expiry), technical review (photo,
 // expiry, or the reason it is not required), the Mercado Pago email, the terms checkbox with the
 // commission percentage, and the "Enviar registro" button that submits the whole form.
@@ -211,6 +212,7 @@ export function DocumentsScreen() {
             testID="documents-field-mp-email"
             errorTestID="documents-error-mp-email"
             label={FIELDS.mercadoPagoEmail.label}
+            helperText={FIELDS.mercadoPagoEmail.help}
             value={documents.mercadoPagoEmail}
             onChangeText={(value) => setDocumentsField('mercadoPagoEmail', value)}
             onBlur={() => touchDocumentsField('mercadoPagoEmail')}

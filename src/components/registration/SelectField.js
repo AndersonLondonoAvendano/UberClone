@@ -20,6 +20,7 @@ export function SelectField({ testID, label, options, value, onChange, errorTest
       <Pressable
         testID={testID}
         accessibilityRole="button"
+        accessibilityState={{ disabled: Boolean(disabled) }}
         accessibilityLabel={`${label}: ${selected ? selected.label : labels.registration.unselected}`}
         onPress={() => setIsOpen(true)}
         disabled={disabled}

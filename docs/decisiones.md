@@ -711,4 +711,16 @@ Decisión: (1) el contrato del pasajero simulado emite 'card' o 'cash' (mappers.
 Alternativa: guardar 'card' (descartada: las reglas publicadas no lo aceptan y no se republican); derivar el botón de trip.paymentMethod (descartada: causó el hallazgo).
 Consecuencia: filtros del Historial, saldo, ganancias y recibos usan el valor guardado y no cambian. Impacto: `src/services/passengerApi/*`, `tripRecord`, `paymentGateway`, `chargePanel`, backend `/payments/checkout`, `firestore.rules` local (create solo 'cash' y 'mercadopago').
 
+### D-122 — Perfil editable acotado: solo nombre, celular, color del vehículo y correo de cobros · Vigente (Anderson, orden #60, 2026-11-12; RF-66)
+Situación: el Perfil era de solo lectura; el conductor necesita corregir datos de contacto y el color de su auto sin pasar por soporte.
+Decisión: son EDITABLES nombre, celular, color del vehículo y correo de cobros. Son SOLO LECTURA placa, marca y modelo, año, categoría, estado de la cuenta y los documentos, con el texto visible «Para cambiar estos datos contacta a soporte.». Motivo: placa, categoría y documentos fueron la base de la aprobación manual y la categoría afecta la tarifa; cambiarlos exigiría una nueva aprobación (fuera de alcance).
+Alternativa: editar todo (descartada: obliga a re-aprobar); no editar nada (descartada: contacto desactualizado).
+Impacto: `ProfileScreen`, `driverRepository.updateDriverProfile` (solo cuatro rutas con punto), regla de Firestore de actualización acotada en `docs/seguridad.md` (la publica Anderson a mano, D-80). RF-63 a RF-66.
+
+### D-123 — «Correo de cobros» neutro: solo cambian etiqueta y ayuda, no el campo de Firestore · Vigente (Anderson, orden #60, 2026-11-12; RF-66)
+Situación: el campo se llama «Correo de Mercado Pago» pero el cobro real con Stripe no lo usa; el nombre promete algo que no ocurre.
+Decisión: etiqueta «Correo de cobros» y ayuda «Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.» en registro, Perfil y Configuración. NO se renombra `documents.mercadoPagoEmail` (sin migración ni cambio de reglas). Sin «Stripe» en la etiqueta. Los textos visibles de «Mercado Pago» que hablan de la pasarela real no se tocan; solo los que hablan del correo.
+Alternativa: renombrar el campo (descartada: migración y reglas); nombrar «Stripe» (descartada: el correo no se usa en su checkout).
+Impacto: `labels.js`, `DocumentsScreen`, Perfil. RF-66.
+
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

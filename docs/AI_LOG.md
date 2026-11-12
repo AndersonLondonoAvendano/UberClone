@@ -2020,3 +2020,98 @@ Corrección urgente de la selección de pasarela de pago + decisiones pendientes
 - Archivos y commit: nuevos paymentGateway.js, hooks/useChargeProviders.js, paymentGateway.test.mjs, paymentConvention.test.mjs; modificados chargePanel, TripSummaryScreen, IncomingRequestCard, TripRequestScreen, tripDetailView, passengerApi (contract, mappers), tripRecord, paymentsClient, labels, backend (middleware, app, server, routes/payments, firestore, providers/registry, scripts/doctor.mjs), firestore.rules (local, create solo cash y mercadopago), decisiones (D-116..D-120 Vigente, D-121), seguridad, omisiones-y-limites y pruebas asociadas. Sin commit ni parche: ambos comandos fueron denegados; todo queda en el árbol de trabajo para que Anderson haga el commit.
 - Verificación: los 28 archivos de scripts/tests pasan; check-constitution igual que la línea base (13 errores / 147 avisos); verifier distinto (un pase): sin rechazos funcionales y 3 menores (dos de documentación ya corregidos; texto heredado en labels sin efecto). Todo «Implementada / No verificado en dispositivo»; el Diseño de T-147/T-150 sigue Pendiente. Falta la prueba de Anderson con Stripe en el celular.
 - Aprendizaje:
+
+### Entrada #60
+- Fecha: 2026-11-12
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Perfil editable acotado (nombre, celular, color, correo de cobros) y etiqueta neutra «Correo de cobros» (D-122, D-123).
+- Prompt textual:
+````
+PROMPT — Perfil editable acotado + "Correo de cobros" neutro
+
+0. ANTES DE TODO: crea la entrada en docs/AI_LOG.md copiando ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Aprendizaje" vacío (lo escribe Anderson). Completa
+   "Archivos y commit" con los archivos que toques; el hash se llena al final.
+
+CONTEXTO
+Flujo de pagos con Stripe validado en dispositivo. Nota: ya no hay "congelamiento de
+código"; seguimos implementando, pero con el mismo rigor SDD y sin ampliar alcance
+más allá de lo que pide este prompt.
+
+REGLAS DURAS (no negociables)
+- No leas ni imprimas .env, backend/.env ni backend/secrets/*. Ningún token/clave en
+  chat, código, docs ni bitácora.
+- Sin dependencias nuevas, sin tocar app.json ni código nativo, sin Alert, sin push,
+  sin commit (Anderson commitea). SHOW_DEV_TOOLS debe seguir en false.
+- firestore.rules sigue fuera de git (D-80). Si hay que cambiar reglas: deja el texto
+  completo en docs/seguridad.md y avisa a Anderson para que lo publique a mano.
+- Roles distintos: spec-author → planner → implementer → verifier (distinto del
+  implementer) → design-auditor para lo visual. El implementer no aprueba. Si el
+  verifier rechaza, DETENTE y repórtalo.
+- Los verifiers no editan docs.
+
+DECISIONES YA TOMADAS (regístralas como D-122 y D-123 en docs/decisiones.md, Vigente)
+D-122 Perfil editable acotado:
+  - EDITABLES: nombre, celular, color del vehículo, correo de cobros.
+  - SOLO LECTURA: placa, marca y modelo, año, categoría, estado de la cuenta, y los
+    documentos. Texto visible: "Para cambiar estos datos contacta a soporte."
+  - Motivo: placa/categoría/documentos fueron la base de la aprobación manual y la
+    categoría afecta la tarifa; cambiarlos exigiría re-aprobación (fuera de alcance).
+D-123 "Correo de cobros" neutro:
+  - Se cambia SOLO la etiqueta y el texto de ayuda en registro, perfil y Configuración.
+    Etiqueta: "Correo de cobros". Ayuda: "Correo asociado a tu cuenta de la pasarela
+    de pagos. Solo informativo en esta versión."
+  - NO se renombra el campo de Firestore (evita migración y cambios en reglas).
+  - No pongas "Stripe" en la etiqueta: Mercado Pago sigue en el código y el correo no
+    se usa en el checkout de Stripe.
+  - Revisa TODAS las apariciones de "Mercado Pago" en textos visibles al conductor y
+    cámbialas solo si hablan del correo de cobros. No toques las de la pasarela real.
+
+TAREAS
+A. SPEC corta (spec-author): amplía specs/002-funcionalidad-final/spec.md con RF de
+   edición de perfil (criterios: validación igual que en registro, guardado, error de
+   red sin perder lo escrito, estado de carga, accesibilidad).
+B. PLAN (planner): tareas pequeñas con IDs T-nnn.
+C. IMPLEMENTACIÓN
+   1. Pantalla Perfil: botón "Editar" (o edición por campo). Un solo modo a la vez.
+      Reutiliza los validadores del registro (nombre, celular, color, correo). Botón
+      Guardar deshabilitado si no hay cambios o hay errores; botón Cancelar que
+      descarta. Mensajes en línea, sin Alert. Estados: guardando / guardado / error.
+      Si falla la red, conserva lo escrito y ofrece Reintentar.
+   2. Persistencia: updateDoc en drivers/{uid} SOLO con los 4 campos editables. Nunca
+      envíes accountStatus, categoría, placa ni documentos.
+   3. Color del vehículo: al cambiarlo, el marcador del auto en el mapa debe usar el
+      nuevo color (verifica el token de color y el caso "Blanco").
+   4. Etiquetas D-123 en registro (pestaña de datos), Perfil y donde aparezca.
+      El correo se sigue mostrando enmascarado en modo lectura; en edición muestra el
+      valor completo solo al propio usuario.
+   5. Sesiones: al cambiar de cuenta (A/B) el formulario no debe mostrar datos de la
+      otra cuenta; limpia el estado local en resetSession.
+D. SEGURIDAD — verifica y reporta (no asumas):
+   - Con el texto de reglas publicado (docs/seguridad.md), ¿puede el dueño actualizar
+     drivers/{uid}? ¿Puede cambiarse accountStatus desde el cliente? Si SÍ puede,
+     ese es un hallazgo crítico: propón la regla que impida cambiar accountStatus y los
+     campos solo-lectura (request.resource.data.diff(resource.data).affectedKeys()
+     .hasOnly([...4 campos editables...])), pruébala razonando casos, déjala en
+     docs/seguridad.md y dime qué publicar. NO publiques nada tú.
+   - Confirma que los validadores de reglas aceptan el correo y celular editados.
+E. VERIFICACIÓN (verifier distinto): checklist por criterio de la spec, check-constitution
+   (compara con la línea base 12–13 errores; no la empeores), lint/test existentes,
+   grep de "Mercado Pago" visible, grep de secretos, SHOW_DEV_TOOLS=false.
+F. DOCS (solo implementer/orquestador, no verifier): progress.md y backlog.md
+   (estado "Implementada, pendiente de dispositivo", no "Validada"), omisiones-y-limites.md
+   (campos solo lectura y por qué; correo de cobros informativo), AI_LOG.md.
+
+ENTREGA
+Informe corto: archivos cambiados, decisiones, resultado del verifier, hallazgo de
+seguridad (sí/no) y el texto de reglas a publicar si aplica, y checklist de
+dispositivo para Anderson (editar nombre/celular/color/correo; validaciones; sin red;
+cambio de cuenta A→B sin mezcla; color nuevo en el marcador; campos bloqueados no
+editables). Sin recap de pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Perfil editable acotado (nombre, celular, color, correo de cobros) con validadores del registro, guardado con updateDoc de 4 campos, color al marcador del mapa, textos «Correo de cobros» (D-122, D-123) y regla `validProfileEdit()` propuesta en `docs/seguridad.md` sin publicar. Sesión previa cortada por créditos; se retomó y se cerró lo pendiente.
+- Usado / modificado / descartado: Usado lo ya implementado (T-157 a T-164). Modificado: `labels.js` (paymentTransfer neutro) y un comentario de `profileEdit.js` (C26). Descartado: renombrar el campo `mercadoPagoEmail` en Firestore.
+- Archivos y commit: `src/utils/profileEdit.js`, `profileEditFlow.js`, `src/services/profileUpdater.js`, `driverRepository.js`, `src/hooks/useProfileEdit.js`, `ProfileScreen.js`, `TextField.js`, `DocumentsScreen.js`, `HomeScreen.js`, `labels.js`, 4 pruebas en `scripts/tests/`, y docs (spec, plan, decisiones, requisitos, backlog, seguridad, progress, omisiones). Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson): 
+- Aprendizaje (lo escribe Anderson):

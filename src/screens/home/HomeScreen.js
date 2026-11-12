@@ -10,6 +10,7 @@
 // AI-assisted: see docs/AI_LOG.md #54
 // AI-assisted: see docs/AI_LOG.md #57 (H-1: map centers once, "My location" button)
 // AI-assisted: see docs/AI_LOG.md #55 (F1b: full-screen map, floating card, local position without publishing)
+// AI-assisted: see docs/AI_LOG.md #60 (R13: the live profile colour reaches the map marker)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
@@ -31,6 +32,7 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
+import { useAppState } from '../../context/AppStateContext';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
 import { color, iconSize, radius, space, touch, type } from '../../theme/tokens';
@@ -56,6 +58,9 @@ const NOTICE_TEXT = {
 };
 
 export function HomeScreen({ navigation }) {
+  // Live profile from AppStateContext (refreshed by the profile snapshot after saving); the same source as
+  // the active trip. CarMarker maps the raw value to its token (unknown or 'otro' -> brand colour).
+  const { driverProfile } = useAppState();
   const {
     isAvailable,
     isChanging,
@@ -113,7 +118,7 @@ export function HomeScreen({ navigation }) {
   return (
     <View style={styles.screen} testID="home-screen">
       <View style={styles.map} accessible accessibilityLabel={labels.home.mapLabel}>
-        <TripMap testID="home-map" position={position} follow={false} centerOnce recenterSignal={recenterSignal} attributionAtBottom attributionInsetRight={ATTRIBUTION_INSET_RIGHT} attributionInsetBottom={insets.bottom} />
+        <TripMap testID="home-map" position={position} follow={false} centerOnce recenterSignal={recenterSignal} vehicleColorValue={driverProfile?.vehicle?.color} attributionAtBottom attributionInsetRight={ATTRIBUTION_INSET_RIGHT} attributionInsetBottom={insets.bottom} />
       </View>
       <HomeFloatingCard
         isAvailable={isAvailable}

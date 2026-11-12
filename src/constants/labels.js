@@ -139,8 +139,8 @@ export const labels = {
     paymentTitle: 'Cobro',
     paymentSimulated: 'Pago de prueba: no se mueve dinero real.',
     paymentCash: 'Efectivo: recibe el pago del pasajero en mano.',
-    paymentTransfer: 'Transferencia a tu cuenta de Mercado Pago ({email}).',
-    paymentTransferNoEmail: 'Transferencia a tu cuenta de Mercado Pago registrada.',
+    paymentTransfer: 'Transferencia a tu correo de cobros ({email}).',
+    paymentTransferNoEmail: 'Transferencia a tu correo de cobros registrado.',
     paymentCardGeneric: 'El pago se cobra con tarjeta.',
     paymentCardChosen: { mercadopago: 'El pago se cobra con tarjeta (Mercado Pago).', stripe: 'El pago se cobra con tarjeta (Stripe).' },
     confirmCharge: 'Confirmar cobro',
@@ -346,14 +346,31 @@ export const labels = {
     color: 'Color',
     category: 'Categoría',
     payments: 'Cobros',
-    mercadoPago: 'Correo de Mercado Pago',
+    payoutEmail: 'Correo de cobros',
+    payoutEmailHelp: 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.',
     account: 'Estado de la cuenta',
     accountStatus: { pending: 'Pendiente de aprobación', approved: 'Aprobada' },
     missing: 'Sin dato',
     emptyTitle: 'Aún no hay datos de tu perfil',
     emptyMessage: 'Completa tu registro para ver aquí tu perfil.',
     errorMessage: 'No pudimos traer tu perfil. Revisa tu conexión e inténtalo de nuevo.',
-    readOnly: 'Por ahora solo puedes ver estos datos.',
+    readOnly: 'Para cambiar estos datos contacta a soporte.',
+    // R13 (T-157): edit mode texts. Inline field errors (profile.errors) are linked below the object.
+    edit: {
+      edit: 'Editar',
+      save: 'Guardar',
+      cancel: 'Cancelar',
+      retry: 'Reintentar',
+      editHint: 'Abre la edición de nombre, celular, color del vehículo y correo de cobros.',
+      saveHint: 'Guarda los cambios de tu perfil.',
+      cancelHint: 'Descarta los cambios y vuelve a ver tu perfil.',
+      retryHint: 'Vuelve a intentar guardar los cambios.',
+    },
+    status: {
+      saving: 'Guardando…',
+      saved: 'Cambios guardados.',
+      networkError: 'No pudimos guardar. Revisa tu conexión e inténtalo de nuevo. Lo que escribiste se conserva.',
+    },
   },
   settings: {
     appTitle: 'Información de la app',
@@ -569,7 +586,11 @@ export const labels = {
     },
     documents: {
       fields: {
-        mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
+        mercadoPagoEmail: {
+          label: 'Correo de cobros',
+          help: 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.',
+          error: 'Escribe un correo válido, con @ y dominio.',
+        },
         termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
         // AI-assisted: see docs/AI_LOG.md #55
         licenseNumber: { label: 'Número de licencia de conducción', error: 'Escribe un número de licencia válido (5 a 20 letras o números).' },
@@ -605,6 +626,14 @@ export const labels = {
       },
     },
   },
+};
+
+// R13 (T-157): profile inline errors point at the registration messages (same text, no copies).
+labels.profile.errors = {
+  fullName: labels.registration.personalData.fields.fullName.error,
+  phone: labels.registration.personalData.fields.phone.error,
+  vehicleColor: labels.registration.vehicle.fields.color.error,
+  payoutEmail: labels.registration.documents.fields.mercadoPagoEmail.error,
 };
 
 export function getSubmitErrorMessage(code) {

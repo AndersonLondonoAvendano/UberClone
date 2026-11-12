@@ -3,6 +3,7 @@
 Estado: Borrador (pendiente de aprobación de Anderson; el spec-author no aprueba su propio trabajo). Las decisiones D-93 a D-103 citadas aquí están en estado "Propuesta" y solo viven en esta spec: el agente principal las registra en `docs/decisiones.md`.
 **Adición del lote final (2026-11-11, prompt #55, autorizado por Anderson):** esta spec se amplía con los bloques R5 a R10 (§2, §4, §8), las decisiones D-107 a D-110 (Propuesta) y los requisitos RF-39 a RF-52, RNF-18 y RNF-19. R1 a R4 no cambian. El spec-author no añade esos IDs a `docs/requisitos.md` ni las D-xx a `docs/decisiones.md`: lo hace el agente principal. Fuente de los bloques: ENCARGO (prompt #55) y `docs/analisis-brechas-2026-11-11.md` §5 (R0b, filas «Rebanada» F1a a F6), que cita el enunciado del taller (§2 a §9). Estado de la adición: Pendiente de aprobación (puerta autorizada por Anderson para este lote; las D-107 a D-110 siguen «Propuesta»).
 **Adición R12 (Stripe como segunda pasarela de prueba, P5):** se añade el bloque R12 (RF-61, RF-62, RNF-20), las decisiones D-116 a D-120 (Propuesta) y los criterios CA-002-109 a CA-002-129. Fuente: ENCARGO (Mercado Pago no permite crear cuentas de prueba). Estado: Propuesta, pendiente de aprobación de Anderson. Aviso P5: los planes, el tema y las tareas de R8 y R11 pueden quedar desactualizados; CA-002-98 (texto del mensaje pendiente) se matiza en CA-002-124.
+**Adición R13 (Perfil editable acotado y «Correo de cobros» neutro, P5):** se añade el bloque R13 (RF-63 a RF-66) y los criterios CA-002-130 a CA-002-148. Fuente: ENCARGO (orden #60) y las decisiones D-122 y D-123 (Vigente). Estado: Propuesta, pendiente de aprobación de Anderson. Aviso P5: los planes, el tema y las tareas de T-49 (Perfil de solo lectura), del registro y de Configuración pueden quedar desactualizados; el texto «Por ahora solo puedes ver estos datos.» y la etiqueta «Correo de Mercado Pago» del Perfil y del registro quedan reemplazados. El spec-author no añade RF-63 a RF-66 a `docs/requisitos.md`: lo hace el agente principal.
 Requisitos cubiertos: RF-31 a RF-38, RNF-14 a RNF-17 (nuevos, añadidos a `docs/requisitos.md`). Extiende RF-04, RF-10, RF-11, RF-29 y RNF-04. Fuentes: F1 §2, §3 (vía `docs/requisitos.md`) y ENCARGO (encargo al spec-author del 2026-11-11, cuatro bloques R1 a R4).
 Aviso de numeración: `specs/README.md` y la matriz de `docs/requisitos.md` reservan «002» para `002-disponibilidad-ubicacion`; esta spec usa la carpeta `002-funcionalidad-final` por el encargo. Anderson decide si renumera.
 
@@ -224,8 +225,16 @@ Estado: Propuesta, pendiente de Anderson. Fuente: ENCARGO (adición R12): Mercad
 - [RF-62] Cuando haya al menos una pasarela configurada, la app deberá mostrar un botón de cobro por cada una («Cobrar con Mercado Pago», «Cobrar con Stripe (tarjeta de prueba)»); si ninguna, el mensaje «No hay una pasarela de pago configurada»; «Verificar pago» y la verificación al volver a primer plano usan el proveedor del viaje; `stripe` se trata como tarjeta en Historial, detalle y saldo.
 - [RNF-20] El sistema deberá usar solo credenciales de prueba (D-119), verificar la firma del webhook, aplicar a Stripe las mismas defensas que a Mercado Pago, no registrar ni imprimir secretos y no añadir dependencias fuera de `scripts/dependencies.json`.
 
+### R13 — Perfil editable acotado y «Correo de cobros» neutro (RF-63 a RF-66)
+Estado: Propuesta, pendiente de Anderson. Fuente: ENCARGO (orden #60), D-122 y D-123 (Vigente). Porqué: el Perfil era de solo lectura y el conductor no podía corregir su contacto ni el color de su auto sin pasar por soporte; el nombre «Correo de Mercado Pago» promete un uso que el cobro real no tiene. Placa, categoría y documentos fueron la base de la aprobación manual y la categoría afecta la tarifa, por eso no se editan.
+- [RF-63] Cuando el conductor abra el Perfil con datos cargados, la app deberá mostrar la acción «Editar»; solo podrá haber un modo de edición a la vez. Serán editables únicamente el nombre, el celular, el color del vehículo y el correo de cobros. Placa, marca y modelo, año, categoría, estado de la cuenta y documentos serán de solo lectura y mostrarán el texto «Para cambiar estos datos contacta a soporte.» (D-122).
+- [RF-64] Mientras el conductor edite, la app deberá validar con los mismos validadores del registro (`isValidFullName`, `isValidPhone`, `isValidVehicleColor`, `isValidEmail`). «Guardar» estará deshabilitado sin cambios o con errores; «Cancelar» descarta lo escrito; los mensajes serán en línea, sin `Alert`; habrá estados guardando, guardado y error. Con error de red se conservará lo escrito y se ofrecerá «Reintentar». La persistencia con `updateDoc` tocará solo esos cuatro campos (nunca `accountStatus`, categoría, placa ni documentos) y los recortes de espacios seguirán D-71. Accesibilidad: roles y etiquetas, estado deshabilitado u ocupado anunciado, mensajes de error anunciados y objetivos táctiles de al menos 48 dp.
+- [RF-65] Tras guardar, la app deberá reflejar el nuevo color del vehículo en el marcador del mapa (incluido «Blanco», D-100); el correo de cobros se mostrará enmascarado en lectura y completo solo en edición; y al cambiar de cuenta (A a B) o al ejecutar `resetSession` (D-98) el formulario no mostrará ni conservará datos de la otra cuenta. Seguridad: la regla de Firestore de actualización del documento del conductor solo permitirá cambiar esos cuatro campos y `updatedAt`, y mantendrá `accountStatus`; Anderson la publica a mano (D-80).
+- [RF-66] La app deberá mostrar «Correo de cobros» con la ayuda «Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.» en el registro, el Perfil y Configuración (D-123). El campo `documents.mercadoPagoEmail` no se renombra y los textos visibles de la pasarela real no cambian.
+
 ## 3. Decisiones relacionadas
 D-116 a D-120 (Propuesta, R12): Stripe Checkout, proveedores intercambiables, método de pago por pasarela, rechazo de claves live y webhook opcional.
+D-122 y D-123 (Vigente, R13): Perfil editable acotado y «Correo de cobros» neutro.
 
 Ya Vigentes que esta spec usa sin cambiar: D-11 (navegación por estado de cuenta), D-60 (sin documento = no registrado), D-71 (recorte de espacios al guardar), D-74 (campos bloqueados), D-80 (reglas publicadas a mano; documento en palabras), D-83 (cuenta regresiva, estado final y reposo), D-85 (tarjeta inferior), D-90/D-91 (rediseño, Ionicons).
 
@@ -838,6 +847,83 @@ CA-002-129 [RF-61, D-118]
 Dado `docs/seguridad.md` y `firestore.rules` local, Cuando se revisan, Entonces `stripe` figura entre los valores permitidos de `paymentMethod` y se documenta que el backend escribe `mercadopago` o `stripe` solo sin pago aprobado; las reglas se publican en Firebase solo cuando el backend cambie el método a `stripe` (paso manual de Anderson).
 Cómo se verifica: revisión de ambos archivos. Publicación: **No verificado en dispositivo** (paso manual, tarea por asignar).
 
+### R13 — Perfil editable y «Correo de cobros» (Propuesta, pendiente de Anderson)
+CA-002-130 [RF-63, D-122]
+Dado el Perfil con datos cargados, Cuando se abre, Entonces muestra la acción «Editar»; al activarla aparecen como campos editables solo nombre, celular, color del vehículo y correo de cobros, y no hay un segundo modo de edición simultáneo.
+Cómo se verifica: pruebas de componente del Perfil (render en lectura y en edición, conteo de campos editables). En el celular: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-131 [RF-63, D-122]
+Dado el Perfil en lectura y en edición, Cuando se revisan placa, marca y modelo, año, categoría, estado de la cuenta y documentos, Entonces no son editables y se muestra el texto «Para cambiar estos datos contacta a soporte.» (desde `labels.js`).
+Cómo se verifica: pruebas de componente y revisión de `labels.js`.
+
+CA-002-132 [RF-64]
+Dado el modo de edición, Cuando se escribe un valor, Entonces se valida con `isValidFullName`, `isValidPhone`, `isValidVehicleColor` e `isValidEmail` (los mismos del registro, sin copias) y el mensaje de error aparece en línea junto al campo, sin `Alert`.
+Cómo se verifica: pruebas de componente con valores válidos e inválidos; búsqueda de `Alert` en el Perfil.
+
+CA-002-133 [RF-64]
+Dado el modo de edición, Cuando no hay cambios respecto al perfil cargado o algún campo tiene error, Entonces «Guardar» está deshabilitado (y anunciado como deshabilitado); con al menos un cambio y sin errores se habilita.
+Cómo se verifica: pruebas de componente por cada combinación. Anuncio con lector de pantalla: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-134 [RF-64]
+Dado el modo de edición con cambios, Cuando se pulsa «Cancelar», Entonces se descartan los cambios, se vuelve a la lectura con los valores guardados y no se escribe nada en Firestore.
+Cómo se verifica: prueba de componente con un fake del repositorio (cero llamadas).
+
+CA-002-135 [RF-64, D-71]
+Dado un guardado válido, Cuando se pulsa «Guardar», Entonces se muestra el estado «guardando» (botón ocupado, sin doble envío), después «guardado» y se vuelve a la lectura; los textos se recortan de espacios al guardar.
+Cómo se verifica: pruebas con un fake del repositorio que resuelve tras un retardo (una sola llamada aunque se pulse dos veces).
+
+CA-002-136 [RF-64]
+Dado un guardado que falla por red, Cuando termina el intento, Entonces se muestra un mensaje de error en línea, se conserva lo escrito en el formulario, se sigue en modo de edición y se ofrece «Reintentar», que repite el guardado con los mismos valores.
+Cómo se verifica: prueba con un fake del repositorio que rechaza y luego resuelve. Con el teléfono sin red: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-137 [RF-64, D-122]
+Dado `updateDoc` (vía `driverRepository.updateDriverProfile`), Cuando se guarda, Entonces la llamada incluye solo las rutas de nombre, celular, color del vehículo y `documents.mercadoPagoEmail` (más `updatedAt`) y jamás `accountStatus`, categoría, placa, marca, modelo, año ni otros documentos.
+Cómo se verifica: prueba con un fake de Firestore que inspecciona las rutas del `updateDoc`; revisión estática.
+
+CA-002-138 [RF-64, RNF-14]
+Dado el modo de edición, Cuando se revisan los componentes, Entonces cada campo y botón tiene rol y etiqueta accesibles, el estado deshabilitado u ocupado se anuncia, los mensajes de error se anuncian al aparecer y todos los objetivos táctiles miden al menos 48 dp.
+Cómo se verifica: revisión estática de `accessibilityRole`, `accessibilityLabel`, `accessibilityState`, `accessibilityLiveRegion` y estilos. Lector de pantalla y 200 % de texto: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-139 [RF-65, D-100]
+Dado un guardado exitoso con un color nuevo (incluido «Blanco»), Cuando el conductor vuelve a Inicio, Entonces el marcador del mapa usa el color guardado, sin reiniciar la app.
+Cómo se verifica: prueba unitaria de que el marcador se calcula desde el perfil actualizado (suscripción existente). Aspecto en el mapa: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-140 [RF-65]
+Dado el correo de cobros, Cuando el Perfil está en lectura, Entonces se muestra enmascarado (`maskEmail`); al entrar en edición se muestra completo en el campo y, al guardar o cancelar, vuelve a enmascararse.
+Cómo se verifica: pruebas de componente en ambos modos.
+
+CA-002-141 [RF-65, D-98]
+Dado un formulario de edición con texto sin guardar de la cuenta A, Cuando se cambia a la cuenta B o se ejecuta `resetSession`, Entonces el formulario sale del modo de edición y no muestra ni conserva ningún dato de A (ni en lectura ni en edición de B).
+Cómo se verifica: prueba con dos perfiles fake y un `resetSession`; el cambio de cuenta en el teléfono: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-142 [RF-65, D-80]
+Dado `firestore.rules` local y `docs/seguridad.md`, Cuando se revisan, Entonces la regla de actualización de `drivers/{uid}` solo admite cambios en nombre, celular, color del vehículo, `documents.mercadoPagoEmail` y `updatedAt`, y exige que `accountStatus` no cambie; se documenta que Anderson publica la regla a mano.
+Cómo se verifica: revisión de ambos archivos y, si hay emulador, pruebas de la regla (intento de cambiar `accountStatus`, categoría o placa rechazado). Publicación en Firebase: **No verificado en dispositivo** (paso manual de Anderson, tarea por asignar).
+
+CA-002-143 [RF-66, D-123]
+Dado el registro, el Perfil y Configuración, Cuando se muestra el correo de cobros, Entonces la etiqueta es «Correo de cobros» y la ayuda «Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.», ambas tomadas de `labels.js`, sin la palabra «Stripe» ni «Mercado Pago» en la etiqueta.
+Cómo se verifica: revisión de `labels.js` (claves de registro y de Perfil) y búsqueda del texto antiguo «Correo de Mercado Pago» (cero resultados en `src/`).
+
+CA-002-144 [RF-66, D-123]
+Dado el cambio de etiqueta, Cuando se revisa el código y las reglas, Entonces `documents.mercadoPagoEmail` conserva su nombre en el modelo, el repositorio, las reglas y el backend, y no hay migración.
+Cómo se verifica: búsqueda del identificador y revisión de `docs/seguridad.md`.
+
+CA-002-145 [RF-66, D-123]
+Dado el cambio de etiqueta, Cuando se revisan los textos de cobro con la pasarela real (botones «Cobrar con…», nota de pago con tarjeta, método «Tarjeta (Mercado Pago)» o «Tarjeta (Stripe)»), Entonces no cambian respecto a R8 y R12.
+Cómo se verifica: comparación de `labels.js` antes y después (solo cambian las claves del correo).
+
+CA-002-146 [RF-63, RF-64]
+Dado el Perfil, Cuando el estado de la cuenta es de error, de carga o vacío, Entonces no se ofrece «Editar» y se conservan los estados existentes (reintentar, cargando, vacío).
+Cómo se verifica: pruebas de componente por estado.
+
+CA-002-147 [RF-63 a RF-66]
+Dado el cambio completo, Cuando se revisan `package.json` y `scripts/dependencies.json`, Entonces no hay dependencias nuevas y el Perfil usa los componentes y tokens compartidos (`TextField`, `PrimaryButton`, `SecondaryButton`, `Card`, `ScreenState`).
+Cómo se verifica: `node scripts/check-constitution.mjs` y revisión estática.
+
+CA-002-148 [RF-63 a RF-66]
+Dado el flujo completo en un teléfono, Cuando se edita, se guarda, se cambia de cuenta y se prueba sin red, Entonces todo lo anterior se cumple a la vista.
+Cómo se verifica: **No verificado en dispositivo** (tarea por asignar; prueba manual de Anderson).
+
 ### Criterios de diseño
 CA-002-D1 [RNF-17]
 Dado Iniciar sesión, Crear cuenta, Recuperar contraseña y la confirmación de Configuración, Cuando se revisa el código, Entonces colores, tipografía, espaciados, radios y bordes salen solo de los tokens, los componentes compartidos (`TextField`, `PrimaryButton`, `SecondaryButton`, `Card`, `ScreenState`) se reutilizan y los íconos son Ionicons vía `Icon.js` junto a texto.
@@ -939,6 +1025,15 @@ Cómo se verifica: revisión de código (sin altura fija ni `numberOfLines` que 
 - Falla de `GET /payments/providers` (sin red): se clasifica como en D-113 y solo se muestra tras una acción del usuario.
 - Pasajero simulado: el monto sigue sin confirmarlo nadie del lado del pasajero (D-109).
 
+**Perfil editable (R13, Propuesta)**
+- Guardado sin cambios reales (el conductor escribe y vuelve al valor original): «Guardar» queda deshabilitado (CA-002-133).
+- Campo vacío o con solo espacios: es error en línea; no se guarda (CA-002-132).
+- El perfil cambia por la suscripción mientras se edita (por ejemplo, edición desde otro teléfono): lectura conservadora, se conserva lo escrito en edición y los valores guardados se actualizan al salir; no se pisa lo escrito.
+- Cuenta con perfil sin correo de cobros: «Sin dato» en lectura y campo vacío en edición; `isValidEmail` exige un correo válido al escribir uno (lectura conservadora).
+- Doble pulsación de «Guardar» o de «Reintentar»: una sola escritura (CA-002-135).
+- Salir de la pantalla con cambios sin guardar: se descartan (lectura conservadora, por confirmar).
+- «Transferencia a tu cuenta de Mercado Pago ({email})» en el resumen de cobro habla de la pasarela, no de la etiqueta del campo: no se toca en R13 (lectura conservadora de D-123, por confirmar).
+
 ## 6. No encontrado
 - Cuántos decimales usa Stripe para COP: no se afirma aquí; el plan lo verifica en la documentación oficial de Stripe.
 - Texto del mensaje pendiente con dos pasarelas: propuesto en CA-002-124, por confirmar.
@@ -959,6 +1054,7 @@ Cómo se verifica: revisión de código (sin altura fija ni `numberOfLines` que 
 - Aprobar D-107 (**reemplaza** D-89 y **modifica** D-58) y D-110 (**modifica** D-87 solo en la ruta planeada): dejan desactualizados CA-002-39 para R8, el texto de «cobro simulado» en la pantalla de resumen, Configuración y README, y D-87 en el punto de coordenadas.
 - La dependencia `firebase-admin` en el backend (no está en la lista `backend` de `scripts/dependencies.json`): Anderson decide si la añade; sin ella R8 no puede cumplirse. `express-rate-limit` y `cors` no se piden: límite y CORS se resuelven con código propio.
 - Pasos manuales suyos: credenciales de prueba y cuentas de prueba de Mercado Pago, URL pública (`PUBLIC_BASE_URL`) para el webhook, cuenta de servicio de Firebase fuera de Git, publicar las reglas de documentos y de viajes tras validar, y las pruebas en el celular.
+- Adición R13: RF-63 a RF-66 (D-122 y D-123 ya Vigentes). Pasos manuales suyos: publicar a mano la regla acotada de actualización de `drivers/{uid}` (D-80) y validar en el celular. Aprobar R13 deja desactualizados las tareas de Perfil de solo lectura (T-49), el texto «Por ahora solo puedes ver estos datos.» y la etiqueta «Correo de Mercado Pago» del registro y del Perfil.
 - Adición R12: RF-61, RF-62, RNF-20 y las decisiones D-116 a D-120 (Propuesta). Pasos manuales suyos: clave de prueba de Stripe (`sk_test_`/`rk_test_`) en `backend/.env`, y opcionalmente webhook y su secreto; publicar reglas solo si el backend escribe `stripe`. Aprobar R12 deja desactualizados los planes y tareas de R8/R11 (T-85 a T-97, T-118 a T-130) y CA-002-98.
 - Aviso: aprobar D-93 deja desactualizados CA-001-22, CA-001-23, la política 1 de `docs/seguridad.md` y la nota de Configuración; planes, tema y tareas de las specs 000/001 pueden quedar desactualizados por la retirada de `ensureAnonymousUser` y de `DevAccountSwitch`.
 
@@ -1026,3 +1122,9 @@ Cómo se verifica: revisión de código (sin altura fija ni `numberOfLines` que 
 | D-118 | CA-002-110, CA-002-114, CA-002-129 |
 | D-119 | CA-002-120, CA-002-121 |
 | D-120 | CA-002-115, CA-002-116 |
+| RF-63 (R13, ENCARGO, D-122) | CA-002-130, CA-002-131, CA-002-146 a CA-002-148 |
+| RF-64 (R13, ENCARGO, D-122) | CA-002-132 a CA-002-138, CA-002-146 a CA-002-148 |
+| RF-65 (R13, ENCARGO) | CA-002-139 a CA-002-142, CA-002-147, CA-002-148 |
+| RF-66 (R13, ENCARGO, D-123) | CA-002-143 a CA-002-145, CA-002-147, CA-002-148 |
+| D-122 | CA-002-130, CA-002-131, CA-002-137 |
+| D-123 | CA-002-143 a CA-002-145 |

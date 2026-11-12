@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
 // AI-assisted: see docs/AI_LOG.md #53 (rest / focus / error / disabled states, error with icon)
+// AI-assisted: see docs/AI_LOG.md #60 (optional helperText, hidden while an inline error shows)
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
@@ -10,9 +11,11 @@ import { FieldError } from './FieldError';
 // inputRef: ref of the TextInput (focus on the first error). inputProps: extra TextInput props
 // (autoComplete, textContentType, secureTextEntry...). announceError: error in a polite live region
 // with the accessible label "<label>: <error>".
-export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false, inputRef, inputProps, announceError = false }) {
+export function TextField({ testID, label, value, onChangeText, onBlur, errorTestID, errorMessage, keyboardType, maxLength, disabled = false, inputRef, inputProps, announceError = false, helperText }) {
   const [focused, setFocused] = useState(false);
   const hasError = Boolean(errorMessage);
+  // The inline error has priority: the helper text is hidden while an error shows.
+  const showHelper = Boolean(helperText) && !hasError;
 
   return (
     <View style={styles.field}>
@@ -22,6 +25,7 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
         ref={inputRef}
         testID={testID}
         accessibilityLabel={label}
+        accessibilityHint={showHelper ? helperText : inputProps?.accessibilityHint}
         accessibilityState={{ disabled: !!disabled }}
         value={value}
         onChangeText={onChangeText}
@@ -41,6 +45,7 @@ export function TextField({ testID, label, value, onChangeText, onBlur, errorTes
           disabled && styles.inputDisabled,
         ]}
       />
+      {showHelper ? <Text style={styles.helper}>{helperText}</Text> : null}
       <FieldError
         testID={errorTestID}
         message={errorMessage}
@@ -62,6 +67,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     ...type.label,
     color: color.text,
+  },
+  helper: {
+    ...type.caption,
+    color: color.textMuted,
+    flexShrink: 1,
   },
   input: {
     ...type.body,

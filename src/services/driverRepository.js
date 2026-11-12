@@ -1,7 +1,8 @@
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #34
-import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
+import { createProfileUpdater } from './profileUpdater';
 
 // Listens to drivers/{uid}; onChange receives the document's accountStatus, or null
 // when the document does not exist yet (treated as "not registered", not an error).
@@ -49,3 +50,7 @@ export async function submitDriverRegistration(uid, { personalData, vehicle, doc
     { merge: true },
   );
 }
+
+// AI-assisted: see docs/AI_LOG.md #60
+// Saves the editable profile fields (payload from buildProfilePayload) with dotted paths only.
+export const updateDriverProfile = createProfileUpdater({ doc, updateDoc, serverTimestamp, db });

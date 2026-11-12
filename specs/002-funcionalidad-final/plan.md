@@ -453,3 +453,92 @@ Tareas visuales: T-147 (botones y mensaje del panel) y T-148 (sin cambio visual,
 - Un webhook requiere URL pública y registrar el endpoint en Stripe (CLI `stripe listen` para pruebas); es opcional (D-120).
 - Las tareas de pantalla (T-147, T-148, T-150) quedan «No verificado en dispositivo» hasta que Anderson confirme; el cobro real de Stripe en el navegador también.
 - ~60 minutos es ajustado para 23 tareas: estimación honesta de 5 a 10 minutos por tarea de backend o de lógica y 10 a 15 por tarea de pantalla (2 a 3 horas en total); el corte mínimo está en §10.1.
+
+## 11. Perfil editable acotado y «Correo de cobros» (R13; T-157 a T-166)
+Origen: ENCARGO (orden #60), RF-63 a RF-66, D-122 y D-123 (Vigente), CA-002-130 a CA-002-148. La spec y R13 siguen en «Propuesta, pendiente de Anderson» (no hay «Aprobada» propia): este plan se escribe bajo el encargo, como el de R12, y no sustituye esa aprobación; ninguna tarea se ejecuta sin ella. Todas quedan «Pendiente». Ninguna instala dependencias (CA-002-147). Aviso P5: la tarea T-49 (Perfil de solo lectura), el texto `profile.readOnly` y las etiquetas «Correo de Mercado Pago» del registro y del Perfil quedan desactualizados.
+
+### 11.1 Hallazgos del código que condicionan el plan
+- **No hay renderizador de componentes en el proyecto**: las pruebas son scripts de Node (`scripts/tests/*.test.mjs` con `helpers/registerSrcLoader.mjs`). Los CA que la spec llama «pruebas de componente» (CA-002-130 a 136, 140, 141, 146) se cumplen así: toda la lógica va en módulos puros (`profileEdit`, `profileEditFlow`, `profileUpdater`) probados en Node y la pantalla queda como una capa delgada revisada de forma estática y en el celular (**No verificado en dispositivo**). Crear un entorno de pruebas de componentes exigiría dependencias fuera de `scripts/dependencies.json`: no se planifica.
+- **`firestore.rules` hoy impide escribir a una cuenta aprobada** (línea 89: `resource.data.accountStatus != 'approved' && validSubmission()`), y `validSubmission` exige `accountStatus == 'pending'` y los documentos completos. Sin una segunda regla de `update`, «Guardar» falla con permisos para toda cuenta aprobada (T-164). Es el riesgo principal: la edición no funciona en el celular hasta que Anderson publique la regla a mano (D-80).
+- **`HomeScreen` no pasa `vehicleColorValue` a `TripMap`** (solo `TripActiveScreen` lo hace): hoy el marcador de Inicio siempre sale con el color de marca. CA-002-139 («vuelve a Inicio, el marcador usa el color guardado») exige pasarlo (T-163).
+- `labels.profile.mercadoPago` y `labels.registration.documents.fields.mercadoPagoEmail.label` son las únicas etiquetas del correo. `labels.profile.paymentTransfer` y `paymentTransferNoEmail` (`labels.js` L142-143) **no se usan en ningún archivo de `src/`**.
+- `TextField` no tiene texto de ayuda: la ayuda de D-123 necesita una propiedad opcional `helperText` (T-158).
+- Configuración (`AccountActions`) hoy solo muestra «Correo de la cuenta» (el de acceso, no el de cobros).
+
+### 11.2 Rebanadas y orden de ejecución
+| Rebanada | Tareas | Requisitos |
+|---|---|---|
+| S1 textos y etiqueta neutra | T-157, T-158 | RF-66, RF-63 |
+| S2 lógica pura | T-159, T-160, T-161 | RF-63, RF-64, RF-65 |
+| S3 pantalla | T-162, T-163 | RF-63 a RF-65 |
+| S4 reglas | T-164 | RF-65, RF-64 |
+| S5 verificación y auditoría | T-165, T-166 | RF-63 a RF-66, RNF-19 |
+
+Orden: T-157 a T-166 en orden numérico (cada una depende solo de las anteriores). Corte mínimo si falta tiempo: T-157, T-159 a T-162, T-164 (edición de punta a punta); T-158, T-163 y T-166 pueden esperar, pero sin T-163 CA-002-139 queda sin cumplir.
+
+### 11.3 Decisiones técnicas (DP-51 en adelante; no sustituyen `docs/decisiones.md`)
+- **DP-51 Etiquetas (D-123).** `labels.profile.mercadoPago` se reemplaza por `labels.profile.payoutEmail = 'Correo de cobros'` más `labels.profile.payoutEmailHelp = 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.'`; `registration.documents.fields.mercadoPagoEmail.label` pasa a «Correo de cobros» y gana `help` con el mismo texto (la clave `mercadoPagoEmail` y el campo de Firestore no cambian). `profile.readOnly` pasa a «Para cambiar estos datos contacta a soporte.». Se añaden `profile.edit` (Editar, Guardar, Cancelar, Reintentar), `profile.status` (guardando, guardado, error de red) y `profile.errors` (los mensajes de error en línea reutilizan los de `registration.*.fields.*.error` por referencia, sin copias). Revisión de todos los «Mercado Pago» visibles: quedan sin cambio los de la pasarela real (botones «Cobrar con…», nota de pago con tarjeta, método «Tarjeta (Mercado Pago)», `paymentCardChosen`, `paymentMethod`); `paymentTransfer` y `paymentTransferNoEmail` **no se tocan**: hablan de la cuenta de destino de una transferencia (la pasarela, no la etiqueta del campo), D-123 y la lectura conservadora de la spec (§5) las dejan igual, y además no se muestran en ninguna pantalla hoy. Por confirmar con Anderson: si quiere neutralizarlas aunque no se vean.
+- **DP-52 Configuración (RF-66).** Configuración no muestra el correo de cobros y R13 no añade campos nuevos a esa pantalla (decisión del encargo). RF-66 se cumple en Configuración en el sentido de que, donde el correo de cobros aparezca (registro y Perfil, y cualquier pantalla futura), la etiqueta y la ayuda salen de las claves de DP-51; «Correo de la cuenta» (acceso) es otro dato y conserva su nombre. Lectura conservadora, por confirmar.
+- **DP-53 Validación y carga útil (`src/utils/profileEdit.js`, puro).** `PROFILE_FIELDS = ['fullName', 'phone', 'vehicleColor', 'payoutEmail']`. `profileValuesFrom(profile) -> { fullName, phone, vehicleColor, payoutEmail }` con cadenas vacías si falta algo. `validateProfileDraft(draft) -> { errors: { [campo]: true }, isValid }` con `isValidFullName`, `isValidPhone`, `isValidVehicleColor`, `isValidEmail` importados de `validators.js` (cero copias; mismos criterios que el registro: el celular son 10 dígitos exactos, el color uno de `VEHICLE_COLOR_OPTIONS`). `diffProfile(baseline, draft) -> string[]` compara tras recortar (D-71: nombre y correo con `trim`; el celular tal cual, sin espacios porque la validación lo exige). `canSave(baseline, draft) -> boolean` = hay cambios y es válido. `buildProfilePayload(draft) -> { fullName, phone, vehicleColor, payoutEmail }` siempre con los cuatro campos y recortados. El correo de cobros vacío en una cuenta que nunca lo tuvo: `isValidEmail('')` es falso, así que no se puede dejar vacío al guardar (lectura conservadora de la spec §5); si el borrador queda igual que el original vacío, no hay cambios y «Guardar» sigue deshabilitado.
+- **DP-54 Estado de la edición (`src/utils/profileEditFlow.js`, puro).** Un reductor sin React: `createProfileEditFlow({ save, now })` con `{ getState(), subscribe(fn), start(uid, profile), change(field, value), cancel(), submit(), retry(), reset(uid) }`. Estado `{ uid, mode: 'read'|'edit', phase: 'idle'|'saving'|'saved'|'error', baseline, draft, errors, canSave }`. `start` solo funciona en `read` (un solo modo de edición, CA-002-130) y congela `baseline` al entrar. `change` actualiza `draft` y recalcula `errors` y `canSave` (los errores se muestran tras el primer cambio o desenfoque del campo; `touched` por campo). `submit` y `retry`: si `phase === 'saving'` no hacen nada (una sola llamada, CA-002-135); si `!canSave` no hacen nada; llaman `save(uid, buildProfilePayload(draft))`; al resolver pasa a `mode: 'read'`, `phase: 'saved'`; al rechazar pasa a `phase: 'error'` conservando `draft` y `mode: 'edit'` (CA-002-136). `cancel` descarta `draft` y vuelve a `read` sin llamar a `save` (CA-002-134). `reset(uid)` (cambio de cuenta A a B, `resetSession`, desmontaje) vuelve a estado inicial con `uid` nuevo y cero datos: una respuesta de `save` que llega con otro `uid` o después de `reset` se ignora. Los valores guardados que cambian por la suscripción mientras se edita no pisan `draft` ni `baseline` (spec §5); la lectura toma el perfil vivo al salir.
+- **DP-55 Escritura (`src/services/profileUpdater.js` + `driverRepository.updateDriverProfile`).** `profileUpdater.js` no importa Firebase: `createProfileUpdater({ doc, updateDoc, serverTimestamp, db }) -> (uid, payload) => Promise` para poder probarlo en Node con un fake. Llama `updateDoc(doc(db, 'drivers', uid), { 'personalData.fullName': ..., 'personalData.phone': ..., 'vehicle.color': ..., 'documents.mercadoPagoEmail': ..., updatedAt: serverTimestamp() })`: rutas con punto (una sola vez cada una, sin reemplazar mapas completos), de modo que nunca viajan `accountStatus`, categoría, placa, marca, modelo, año ni otros documentos (CA-002-137). Rechaza (`throw`) un `payload` con campos de más o sin los cuatro. `driverRepository.updateDriverProfile` lo enlaza con `firebase/firestore` y `db` existentes (el repositorio sigue siendo el único módulo con Firestore del Perfil). El `updateDoc` no se reintenta solo: lo reintenta el conductor con «Reintentar». Sin `Alert`.
+- **DP-56 Pantalla (`ProfileScreen`).** Hook interno `useProfileEdit(driverId, driverProfile)` crea el flujo de DP-54 con `useRef` y se suscribe con `useSyncExternalStore` (sin dependencias nuevas). Un `useEffect` con `[driverId]` llama `flow.reset(driverId)` (el `DrawerNavigator` mantiene la pantalla montada, así que no basta con el desmontaje); `resetSession` limpia por la misma vía porque `driverId` pasa a `null` y la pantalla no tiene perfil. «Editar» solo se ofrece cuando hay `driverProfile` y `accountStatus` no es de error ni de carga (CA-002-146). Lectura: correo con `maskEmail`; edición: `TextField` (nombre, celular, correo) y `SelectField` (color) con `VEHICLE_COLOR_OPTIONS`, `PrimaryButton` «Guardar» y `SecondaryButton` «Cancelar» (y «Reintentar» en el estado de error), `ScreenState` y `Card` existentes. Solo-lectura: `Field`/`DataRow` existentes y el texto de soporte. Anuncios: región `polite` única para guardando, guardado y error de red; el error en línea de cada campo con `announceError`. Botones: `accessibilityState={{ disabled, busy }}`, altura mínima `touch.controlHeight`/48 dp; si `PrimaryButton` o `SecondaryButton` no admite `busy` o 48 dp, T-162 lo señala al `implementer` en vez de modificarlo en silencio (como DP de R12). Sin `Alert`. Texto sin guardar al salir de la pantalla: se conserva mientras la pantalla siga montada y se descarta con `reset` (lectura conservadora de la spec §5, por confirmar).
+- **DP-57 Marcador (RF-65).** El marcador de Inicio recibe el color de `driverProfile.vehicle.color` por la suscripción existente (sin segundo listener): `HomeScreen` lee `driverProfile` de `useAppState` y pasa `vehicleColorValue` a `TripMap`. «Blanco» ya resuelve a un token con insignia oscura por `vehicleBadgeToken` (D-100); T-163 lo prueba para todos los colores de `VEHICLE_COLOR_OPTIONS` incluido «Blanco», con y sin tildes y mayúsculas.
+- **DP-58 Regla de Firestore (D-122, D-80).** Se conserva el `allow update` actual (reenvío de registro de una cuenta no aprobada) y se añade un segundo `allow update` (las reglas hacen OR): `isDriverSession(driverId) && validProfileEdit()`, donde `validProfileEdit()` exige: (a) `request.resource.data.accountStatus == resource.data.accountStatus` (nunca cambia, aplica a cuentas aprobadas y pendientes); (b) el diff de primer nivel `request.resource.data.diff(resource.data).affectedKeys().hasOnly(['personalData', 'vehicle', 'documents', 'updatedAt'])`; (c) diffs anidados: `personalData` `.hasOnly(['fullName', 'phone'])`, `vehicle` `.hasOnly(['color'])`, `documents` `.hasOnly(['mercadoPagoEmail'])` (los objetos anidados se comparan por diff, no por igualdad, para que categoría, placa, documentos y `commissionRate` queden intactos); (d) tipos y tamaños: nombre de 1 a 50, celular de 10, color texto de longitud 1 a 30, correo texto de hasta 254 (la validez fina del color y del correo la comprueba la app; Firestore no tiene la lista de colores ni el formato de correo); (e) `request.resource.data.updatedAt == request.time`. Casos permitidos: cambiar solo uno o varios de los cuatro campos, con `accountStatus` `approved` o `pending`. Denegados: tocar `accountStatus`, `vehicle.category`, `vehicle.plate`, `vehicle.brand`, `vehicle.model`, `vehicle.year`, `documents.license`, `documents.soat`, `documents.technicalReview`, `documents.commissionRate`, `personalData.documentNumber` u otro campo; sesión anónima o de otro uid; sin `updatedAt` del servidor; campos con tipo o tamaño inválido. Si hay emulador, pruebas de la regla; si no, razonamiento por casos en `docs/seguridad.md`. La regla se escribe en `firestore.rules` local y en `docs/seguridad.md` (un solo texto final); **no se publica: la publica Anderson a mano (D-80)**. Riesgo medio (reglas de seguridad): revisión por un verifier distinto.
+- **DP-59 `documents.mercadoPagoEmail` no se renombra (D-123).** Ni el modelo, ni el repositorio, ni las reglas, ni el backend lo cambian; `documentsMapping.js` (registro) no se toca.
+
+### 11.4 Archivos → responsabilidad → requisitos
+| Archivo | Responsabilidad | Requisitos | Tarea |
+|---|---|---|---|
+| `src/constants/labels.js` | etiqueta y ayuda neutras, textos de edición, soporte | RF-66, RF-63, RF-64 | T-157 |
+| `src/components/registration/TextField.js`, `src/screens/registration/DocumentsScreen.js` | `helperText` opcional; registro con «Correo de cobros» y ayuda | RF-66 | T-158 |
+| `src/utils/profileEdit.js`, `scripts/tests/profileEdit.test.mjs` | validación, diff, carga útil | RF-63, RF-64 | T-159 |
+| `src/utils/profileEditFlow.js`, `scripts/tests/profileEditFlow.test.mjs` | estados, un solo envío, reintento, reinicio por cuenta | RF-63, RF-64, RF-65 | T-160 |
+| `src/services/profileUpdater.js`, `src/services/driverRepository.js`, `scripts/tests/profileUpdater.test.mjs` | `updateDriverProfile` con cuatro rutas con punto | RF-64 | T-161 |
+| `src/screens/main/ProfileScreen.js` | modo de edición, lectura, accesibilidad | RF-63, RF-64, RF-65, RF-66 | T-162 |
+| `src/screens/home/HomeScreen.js`, `scripts/tests/vehicleColor.test.mjs` | color del perfil al marcador de Inicio | RF-65 | T-163 |
+| `firestore.rules`, `docs/seguridad.md` | regla acotada de actualización | RF-65, RF-64 | T-164 |
+| (verificación) | pruebas, búsquedas, dependencias, `check-constitution` | RF-63 a RF-66 | T-165 |
+| `docs/diseno/auditorias/ronda-1-perfil-editable.md` | informe del `design-auditor` | RNF-19, RF-63 a RF-66 | T-166 |
+
+### 11.5 Contratos (firmas)
+- `profileValuesFrom(profile) -> { fullName, phone, vehicleColor, payoutEmail }`
+- `validateProfileDraft(draft) -> { errors, isValid }`; `diffProfile(baseline, draft) -> string[]`; `canSave(baseline, draft) -> boolean`; `buildProfilePayload(draft) -> { fullName, phone, vehicleColor, payoutEmail }`
+- `createProfileEditFlow({ save }) -> { getState, subscribe, start, change, touch, cancel, submit, retry, reset }`
+- `createProfileUpdater({ doc, updateDoc, serverTimestamp, db }) -> (uid, payload) => Promise<void>`; `driverRepository.updateDriverProfile(uid, payload) -> Promise<void>`
+- `TextField({ ..., helperText })` (opcional; sin él el resultado es idéntico al actual)
+
+### 11.6 Diseño
+Tareas visuales: T-158 (ayuda bajo el campo del registro), T-162 (pantalla de edición) y T-163 (marcador de Inicio con el color del perfil). Auditoría en T-166 con el `design-auditor`: modo lectura y edición, cuatro campos, texto de soporte, botones de 48 dp con rol y nombre, estado deshabilitado y ocupado, mensajes en línea con icono y texto, región `polite`, 200 % de texto sin corte, tokens y `labels.js`, sin `Alert`, marcador blanco legible sobre el mapa. Se reutilizan `TextField`, `SelectField`, `PrimaryButton`, `SecondaryButton`, `Card`, `ScreenState`, `DataRow`; sin valores fijos.
+
+### 11.7 Mapa CA → implementación
+| CA | Tareas |
+|---|---|
+| CA-002-130 | T-160, T-162 |
+| CA-002-131 | T-157, T-162 |
+| CA-002-132 | T-159, T-162 |
+| CA-002-133 | T-159, T-160, T-162 |
+| CA-002-134 | T-160, T-162 |
+| CA-002-135 | T-159, T-160, T-161 |
+| CA-002-136 | T-160, T-162 |
+| CA-002-137 | T-161 |
+| CA-002-138 | T-162, T-166 |
+| CA-002-139 | T-163 |
+| CA-002-140 | T-159, T-162 |
+| CA-002-141 | T-160, T-162 |
+| CA-002-142 | T-164 |
+| CA-002-143 | T-157, T-158, T-165 |
+| CA-002-144 | T-157, T-161, T-164, T-165 |
+| CA-002-145 | T-157, T-165 |
+| CA-002-146 | T-162 |
+| CA-002-147 | T-158, T-162, T-165 |
+| CA-002-148 | T-165, T-166 (prueba manual de Anderson) |
+
+### 11.8 Riesgos y puntos abiertos
+- Spec, R13: «Propuesta, pendiente de Anderson»; D-122 y D-123 Vigente.
+- Sin la regla de T-164 publicada por Anderson, «Guardar» devuelve error de permisos en cuentas aprobadas: la prueba en el celular de T-162 depende de ese paso manual (**No verificado en dispositivo**).
+- Los CA de «prueba de componente» se cubren con lógica pura en Node y revisión estática de la pantalla (no hay renderizador); el aspecto y los anuncios son «No verificado en dispositivo».
+- `paymentTransfer` y `paymentTransferNoEmail` no se tocan (DP-51); Configuración no gana campos (DP-52); ambos por confirmar.
+- El diff de reglas (`affectedKeys`, diff anidado) no se puede ejecutar sin emulador: se razona por casos y se revisa por un verifier distinto antes de que Anderson publique.
+- Celular o correo ya guardados con un formato que el validador actual rechaza (cuentas antiguas): «Guardar» quedaría deshabilitado hasta que se corrija ese campo; se muestra el error en línea (lectura conservadora).
+- Estimación honesta: 5 a 10 minutos por tarea de lógica o texto y 10 a 15 por las de pantalla (T-158, T-162, T-163).

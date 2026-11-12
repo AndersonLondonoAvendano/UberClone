@@ -2417,6 +2417,158 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: Pendiente
 - Estado: Pendiente
 
+## Spec 002 — Perfil editable y «Correo de cobros» R13 (plan: `specs/002-funcionalidad-final/plan.md` §11; planificado 2026-11-12 bajo el ENCARGO de la orden #60; R13 sigue «Propuesta, pendiente de Anderson», D-122 y D-123 Vigente; ninguna tarea se ejecuta sin esa aprobación)
+
+### T-157 — S1a: textos de D-123 y de la edición del Perfil en `labels.js`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-66, RF-63, RF-64, CA-002-131, CA-002-143, CA-002-144, CA-002-145)
+- Requisitos: RF-66, RF-63, RF-64
+- Depende de: —
+- Archivos: `src/constants/labels.js`, `src/screens/main/ProfileScreen.js` (solo la referencia a la clave renombrada, para que siga arrancando)
+- Hacer: DP-51. `profile.mercadoPago` pasa a `profile.payoutEmail` («Correo de cobros») y `profile.payoutEmailHelp` («Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.»); `registration.documents.fields.mercadoPagoEmail.label` pasa a «Correo de cobros» y gana `help` (la clave y el campo de Firestore no cambian); `profile.readOnly` = «Para cambiar estos datos contacta a soporte.»; claves nuevas `profile.edit` (Editar, Guardar, Cancelar, Reintentar, ayudas de accesibilidad de cada botón) y `profile.status` (guardando, guardado, error de red). Los mensajes de error en línea reutilizan los de `registration.*.fields.*.error` por referencia, sin copias. Revisar con Grep todos los «Mercado Pago» visibles y dejar sin cambio los de la pasarela real; `paymentTransfer` y `paymentTransferNoEmail` (L142-143) no se tocan (no se muestran en ninguna pantalla; DP-51). Configuración no gana campos (DP-52). En `ProfileScreen` solo se cambia la clave usada, sin tocar el comportamiento.
+- Criterios: CA-002-131, CA-002-143, CA-002-144, CA-002-145.
+- Hecho cuando: Grep de «Correo de Mercado Pago» en `src/` da cero resultados; el diff de `labels.js` solo toca las claves del correo, `readOnly` y claves nuevas; `documents.mercadoPagoEmail` y `mercadoPagoEmail` (clave del formulario) siguen igual; la app arranca.
+- Qué debe ver Anderson en el celular: el Perfil muestra «Correo de cobros» (la ayuda aparece con la pantalla de edición, T-162). Resultado: «No verificado en dispositivo».
+- Validación: Grep y comparación de `labels.js` antes y después; verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (los textos nuevos se auditan en T-166).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-158 — S1b: ayuda en `TextField` y «Correo de cobros» en el registro
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-66, CA-002-143, CA-002-147)
+- Requisitos: RF-66
+- Depende de: T-157
+- Archivos: `src/components/registration/TextField.js`, `src/screens/registration/DocumentsScreen.js`
+- Hacer: DP-51 y §11.5. `TextField` gana la propiedad opcional `helperText` (texto de tokens `type.caption` y `color.textMuted` bajo el campo, parte de `accessibilityHint` del input; sin ella el resultado es idéntico al actual). `DocumentsScreen` usa la etiqueta y la ayuda de `labels` en el campo del correo. Sin cambiar nombres de claves ni de campo. Paso probar en el celular: abrir el registro.
+- Criterios: CA-002-143, CA-002-147. «No verificado en dispositivo» para el aspecto.
+- Hecho cuando: el registro muestra «Correo de cobros» y la ayuda; el resto de los formularios con `TextField` no cambia (sin la propiedad, mismo resultado); arranca.
+- Qué debe ver Anderson en el celular: la pestaña de documentos del registro con la etiqueta y la ayuda bajo el campo. Resultado: «No verificado en dispositivo».
+- Validación: revisión estática por un verifier distinto y prueba en el celular de Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: ayuda con tokens, sin corte a 200 %, no compite con el mensaje de error.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-159 — S2a: helper puro de validación, diff y carga útil del Perfil
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-63, RF-64, CA-002-132, CA-002-133, CA-002-135, CA-002-140)
+- Requisitos: RF-63, RF-64
+- Depende de: —
+- Archivos: `src/utils/profileEdit.js` (nuevo), `scripts/tests/profileEdit.test.mjs` (nuevo)
+- Hacer: DP-53 y §11.5. `profileValuesFrom`, `validateProfileDraft` (con `isValidFullName`, `isValidPhone`, `isValidVehicleColor`, `isValidEmail` importados de `validators.js`, sin copias), `diffProfile`, `canSave`, `buildProfilePayload` (los cuatro campos, recortados, D-71). Pruebas: válido e inválido por campo; vacío y solo espacios; sin cambios deshabilita; escribir y volver al original no cuenta como cambio; con error no se puede guardar; el payload nunca trae más de cuatro campos ni `accountStatus`, categoría o placa; «Blanco» es un color válido; `maskEmail` sigue enmascarando (lectura).
+- Criterios: CA-002-132, CA-002-133, CA-002-135 (recorte), CA-002-140 (insumo).
+- Hecho cuando: `node scripts/tests/profileEdit.test.mjs` pasa y `check-constitution` no da hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: pruebas y verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-160 — S2b: flujo de edición puro (estados, un solo envío, reintento, reinicio por cuenta)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-63, RF-64, RF-65, CA-002-130, CA-002-133 a CA-002-136, CA-002-141)
+- Requisitos: RF-63, RF-64, RF-65
+- Depende de: T-159
+- Archivos: `src/utils/profileEditFlow.js` (nuevo), `scripts/tests/profileEditFlow.test.mjs` (nuevo)
+- Hacer: DP-54. `createProfileEditFlow({ save })` con `start`, `change`, `touch`, `cancel`, `submit`, `retry`, `reset`, `getState`, `subscribe`. Pruebas con `save` fake: un solo modo de edición (segundo `start` ignorado); `cancel` con cambios no llama a `save`; doble `submit` o `retry` con el guardado pendiente = una sola llamada; éxito → lectura y fase «saved»; rechazo → sigue en edición, conserva el borrador y `retry` repite con los mismos valores; `reset(uid)` (cuenta A a B y `resetSession`) deja cero datos de A y una respuesta tardía de `save` de A se ignora; un cambio del perfil por suscripción durante la edición no pisa el borrador.
+- Criterios: CA-002-130, CA-002-133, CA-002-134, CA-002-135, CA-002-136, CA-002-141.
+- Hecho cuando: `node scripts/tests/profileEditFlow.test.mjs` pasa; el módulo no importa React, Firebase ni React Native.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: pruebas y verifier distinto.
+- Riesgo: medio (concurrencia de guardado y cambio de cuenta).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-161 — S2c: `driverRepository.updateDriverProfile` con cuatro rutas con punto
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-64, D-122, CA-002-137, CA-002-144)
+- Requisitos: RF-64
+- Depende de: T-159
+- Archivos: `src/services/profileUpdater.js` (nuevo), `src/services/driverRepository.js`, `scripts/tests/profileUpdater.test.mjs` (nuevo)
+- Hacer: DP-55. `createProfileUpdater({ doc, updateDoc, serverTimestamp, db })` llama `updateDoc` solo con `personalData.fullName`, `personalData.phone`, `vehicle.color`, `documents.mercadoPagoEmail` y `updatedAt`; rechaza una carga útil con campos de más o de menos. `driverRepository.updateDriverProfile(uid, payload)` lo enlaza con `firebase/firestore` y `db` (el resto del repositorio no cambia). Prueba con un fake de Firestore que inspecciona las rutas del `updateDoc`: jamás `accountStatus`, `vehicle.category`, `vehicle.plate`, `vehicle.brand`, `vehicle.model`, `vehicle.year`, `documents.license`, `documents.soat`, `documents.technicalReview` ni objetos completos (`personalData`, `vehicle`, `documents`); una sola llamada; el error del `updateDoc` se propaga.
+- Criterios: CA-002-137, CA-002-144 (el identificador `documents.mercadoPagoEmail` se conserva).
+- Hecho cuando: `node scripts/tests/profileUpdater.test.mjs` pasa; Grep del repositorio confirma que no hay otro `updateDoc` hacia `drivers/{uid}`; arranca.
+- Qué debe ver Anderson en el celular: nada todavía (se ve en T-162).
+- Validación: prueba más revisión estática por un verifier distinto.
+- Riesgo: medio (escritura al documento de la cuenta).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-162 — S3a: `ProfileScreen` con modo de edición
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-63 a RF-66, RNF-14, D-122, CA-002-130 a CA-002-136, CA-002-138, CA-002-140, CA-002-141, CA-002-146, CA-002-147)
+- Requisitos: RF-63, RF-64, RF-65, RF-66
+- Depende de: T-157, T-158, T-160, T-161
+- Archivos: `src/screens/main/ProfileScreen.js`
+- Hacer: DP-56. Capa delgada sobre el flujo de T-160: hook interno `useProfileEdit(driverId, driverProfile)` con `useRef` y `useSyncExternalStore`; `useEffect([driverId])` llama `flow.reset(driverId)`. «Editar» solo con `driverProfile` y estado de cuenta que no sea de error ni de carga (los estados actuales se conservan). Edición: `TextField` (nombre, celular con teclado numérico y `maxLength` 10, correo con teclado de correo y la ayuda de D-123 con `helperText`), `SelectField` de color, `PrimaryButton` «Guardar» deshabilitado sin cambios o con errores, `SecondaryButton` «Cancelar», «Reintentar» tras un error de red, estado guardando (botón ocupado) y guardado; errores en línea con `announceError`, una sola región `polite` para el estado, sin `Alert`. Lectura: correo con `maskEmail`; completo solo en edición. Solo lectura (placa, marca y modelo, año, categoría, estado de la cuenta y documentos) con el texto «Para cambiar estos datos contacta a soporte.». Si `PrimaryButton`/`SecondaryButton` no admite `busy` o 48 dp, se señala al `implementer`. Paso probar en el celular: editar, guardar, cancelar, sin red, cambio de cuenta. Sin la regla de T-164 publicada, el guardado de una cuenta aprobada falla con permisos.
+- Criterios: CA-002-130 a CA-002-136, CA-002-138, CA-002-140, CA-002-141, CA-002-146, CA-002-147. «No verificado en dispositivo» hasta que Anderson confirme (incluye lector de pantalla, 200 % y cuenta A a B).
+- Hecho cuando: Grep de `Alert` en el Perfil da cero; solo se usan componentes y tokens compartidos; sin dependencias nuevas; en el celular se edita, se guarda y el Perfil muestra los datos nuevos.
+- Qué debe ver Anderson en el celular: Perfil con «Editar»; los cuatro campos editables y el resto solo lectura con el texto de soporte; «Guardar» deshabilitado hasta que haya un cambio válido; «Cancelar» descarta; con el teléfono sin red aparece el error y «Reintentar» (se conserva lo escrito); correo enmascarado en lectura y completo en edición. Resultado: «No verificado en dispositivo».
+- Validación: revisión estática (roles, etiquetas, estados, 48 dp), verifier distinto y prueba en el celular de Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: lectura y edición con tokens y componentes compartidos, 48 dp, 200 % sin corte, errores con icono y texto, sin `Alert`.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-163 — S3b: el color guardado llega al marcador de Inicio
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-65, D-100, CA-002-139)
+- Requisitos: RF-65
+- Depende de: T-162
+- Archivos: `src/screens/home/HomeScreen.js`, `scripts/tests/vehicleColor.test.mjs` (nuevo)
+- Hacer: DP-57. `HomeScreen` lee `driverProfile` de `useAppState` y pasa `vehicleColorValue={driverProfile?.vehicle?.color}` a `TripMap` (hoy no se pasa y el marcador sale con el color de marca). Sin segundo listener. Prueba de `vehicleColorToken` y `vehicleBadgeToken` para todos los valores de `VEHICLE_COLOR_OPTIONS` (incluido «Blanco», D-100, con tildes, mayúsculas y espacios) y para un perfil con color nuevo después de guardar (el color se calcula desde el perfil actual). Paso probar en el celular: guardar un color y volver a Inicio.
+- Criterios: CA-002-139. «No verificado en dispositivo» para el aspecto en el mapa.
+- Hecho cuando: la prueba pasa; Inicio y el viaje activo usan el mismo origen de color; arranca.
+- Qué debe ver Anderson en el celular: cambiar el color en el Perfil (por ejemplo a Blanco) y ver el marcador del mapa de Inicio con ese color, sin reiniciar la app. Resultado: «No verificado en dispositivo».
+- Validación: prueba, verifier distinto y prueba en el celular de Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: marcador blanco legible sobre el mapa claro (insignia oscura).
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-164 — S4: regla acotada de actualización en `docs/seguridad.md` y `firestore.rules`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-65, RF-64, D-122, D-80, CA-002-142, CA-002-144)
+- Requisitos: RF-65, RF-64
+- Depende de: T-161
+- Archivos: `firestore.rules`, `docs/seguridad.md`
+- Hacer: DP-58. Conservar el `allow update` de reenvío y añadir un segundo `allow update` con `validProfileEdit()`: `accountStatus` sin cambios; diff de primer nivel solo `personalData`, `vehicle`, `documents`, `updatedAt`; diffs anidados `personalData` solo `fullName` y `phone`, `vehicle` solo `color`, `documents` solo `mercadoPagoEmail`; tipos y tamaños (nombre 1 a 50, celular 10, color texto 1 a 30, correo hasta 254); `updatedAt == request.time`. Documentar el razonamiento de casos permitidos (uno o varios de los cuatro campos, con cuenta aprobada o pendiente) y denegados (`accountStatus`, categoría, placa, marca, modelo, año, licencia, SOAT, revisión técnica, `commissionRate`, `personalData.documentNumber`, sesión anónima u otro uid, sin `updatedAt` del servidor, tipos inválidos); decir que la regla no se publica y que Anderson la publica a mano (D-80). Corregir en el documento la frase «Con la cuenta aprobada ya no puede escribir su documento». Si hay emulador, pruebas de la regla; si no, el razonamiento por casos queda en el documento.
+- Criterios: CA-002-142, CA-002-144 (el nombre `documents.mercadoPagoEmail` se conserva en las reglas).
+- Hecho cuando: ambos archivos tienen el mismo texto de regla, la sintaxis es válida (revisión) y el documento indica el paso manual; el `allow update` de reenvío no cambia.
+- Qué debe ver Anderson en el celular: nada. Paso manual de Anderson: publicar la regla en la consola; sin eso, T-162 no guarda en cuentas aprobadas (**No verificado en dispositivo**).
+- Validación: revisión por un verifier distinto (con atención a no abrir campos de más); publicación manual de Anderson.
+- Riesgo: medio (reglas de seguridad).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-165 — S5a: verificación funcional y estática de R13
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RF-63 a RF-66, CA-002-143 a CA-002-148)
+- Requisitos: RF-63, RF-64, RF-65, RF-66
+- Depende de: T-158, T-163, T-164
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`; el planner no lo edita)
+- Hacer: un `verifier` distinto de quien implementó ejecuta todas las pruebas de `scripts/tests` (incluidas las tres nuevas), `node scripts/check-constitution.mjs`, lint y `npx expo-doctor` (antes y después); Grep de «Correo de Mercado Pago» (cero en `src/`), de `Alert` en el Perfil (cero), del identificador `mercadoPagoEmail` (intacto en modelo, repositorio, reglas y backend); compara `labels.js` antes y después (solo cambian las claves del correo, `readOnly` y las claves nuevas; los textos de cobro de R8 y R12 sin cambio); confirma con `git diff` que `package.json` y `scripts/dependencies.json` no ganan dependencias; revisa que el `updateDoc` del Perfil solo toque las cuatro rutas. Espera la prueba en el celular de Anderson («Pega aquí el resultado de la prueba en el celular: <resultado>») antes de marcar «Validada» lo que depende de dispositivo.
+- Criterios: CA-002-143, CA-002-144, CA-002-145, CA-002-147, CA-002-148. «No verificado en dispositivo» para lo que solo se ve en el celular.
+- Hecho cuando: todo lo estático pasa y se reporta la lista de lo que queda por probar en el celular (editar, guardar, cancelar, sin red, cambio de cuenta, marcador blanco, lector de pantalla, 200 %, publicar la regla).
+- Qué debe ver Anderson en el celular: el flujo completo de CA-002-148 (editar, guardar, cambiar de cuenta, probar sin red). Resultado: «No verificado en dispositivo».
+- Validación: verifier distinto; Anderson en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (lo visual lo cubre T-166).
+- Diseño: N/A
+- Estado: Aprobada en lo funcional y estático por el verifier (sin hallazgos críticos); pendiente de dispositivo. No pasa a Validada sin la prueba en el celular de Anderson
+
+### T-166 — S5b: auditoría de diseño de R13 (Perfil editable, ayuda del registro y marcador)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R13, RNF-19, RNF-14, RF-63 a RF-66, CA-002-138, CA-002-148)
+- Requisitos: RNF-19, RF-63, RF-64, RF-66
+- Depende de: T-165, T-162, T-158, T-163
+- Archivos: `docs/diseno/auditorias/ronda-1-perfil-editable.md` (informe, lo escribe el design-auditor)
+- Hacer: el agente principal carga las skills de diseño y llama al `design-auditor` sobre T-158, T-162 y T-163: lectura y edición del Perfil, cuatro campos editables, texto de soporte, botones de 48 dp con rol y nombre, estados deshabilitado, ocupado, guardado y error, mensajes en línea con icono y texto, una sola región `polite`, ayuda del correo de cobros en registro y Perfil, 200 % de texto sin corte, tokens y `labels.js`, sin `Alert`, marcador blanco legible sobre el mapa; máximo dos rondas (los hallazgos van al `implementer`). Paso probar en el celular con capturas.
+- Criterios: CA-002-138, CA-002-148. «No verificado en dispositivo» hasta las capturas de Anderson.
+- Hecho cuando: Diseño «Aprobado» en T-158, T-162 y T-163 o hallazgos enviados al `implementer`.
+- Qué debe ver Anderson en el celular: Perfil en lectura y en edición con letra al 200 %, el registro con la ayuda y Inicio con el marcador del color guardado. Resultado: «No verificado en dispositivo».
+- Validación: design-auditor (solo lo visual) y verifier distinto (lo funcional).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto por pantalla.
+- Diseño: Pendiente
+- Estado: Pendiente (necesita capturas del celular; el design-auditor no corrió). Diseño: Pendiente
+
 ## Fase 3 — Implementar
 (vacío)
 
