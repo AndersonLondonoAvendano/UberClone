@@ -36,7 +36,7 @@ const toLngLat = (point) => [point.lng, point.lat];
 const pointFeature = (point) =>
   point ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: toLngLat(point) } } : null;
 
-export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true, vehicleColorValue }) {
+export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true, vehicleColorValue, attributionAtBottom = false }) {
   const cameraRef = useRef(null);
   const [mapKey, setMapKey] = useState(0);
   const [failed, setFailed] = useState(false);
@@ -99,7 +99,7 @@ export function TripMap({ testID, position, target, routeCoordinates, approximat
           <CarMarker lng={lng} lat={lat} vehicleColorValue={vehicleColorValue} />
         ) : null}
       </MapLibreMap>
-      <View style={styles.attribution} pointerEvents="none">
+      <View style={[styles.attribution, attributionAtBottom && styles.attributionBottom]} pointerEvents="none">
         <Text style={styles.attributionText}>{labels.mapTest.attribution}</Text>
       </View>
     </View>
@@ -122,6 +122,12 @@ const styles = StyleSheet.create({
     paddingVertical: space[1],
     backgroundColor: color.surface,
     borderRadius: radius.sm,
+  },
+  // AI-assisted: see docs/AI_LOG.md #55 (Home: the top of the map holds the floating card)
+  attributionBottom: {
+    top: undefined,
+    bottom: space[2],
+    right: undefined,
   },
   attributionText: {
     ...type.caption,

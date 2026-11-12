@@ -1,6 +1,7 @@
 # Spec 002 — Funcionalidad final: solicitud legible, accesibilidad, marcador de auto y sesiones de conductor
 
 Estado: Borrador (pendiente de aprobación de Anderson; el spec-author no aprueba su propio trabajo). Las decisiones D-93 a D-103 citadas aquí están en estado "Propuesta" y solo viven en esta spec: el agente principal las registra en `docs/decisiones.md`.
+**Adición del lote final (2026-11-11, prompt #55, autorizado por Anderson):** esta spec se amplía con los bloques R5 a R10 (§2, §4, §8), las decisiones D-107 a D-110 (Propuesta) y los requisitos RF-39 a RF-52, RNF-18 y RNF-19. R1 a R4 no cambian. El spec-author no añade esos IDs a `docs/requisitos.md` ni las D-xx a `docs/decisiones.md`: lo hace el agente principal. Fuente de los bloques: ENCARGO (prompt #55) y `docs/analisis-brechas-2026-11-11.md` §5 (R0b, filas «Rebanada» F1a a F6), que cita el enunciado del taller (§2 a §9). Estado de la adición: Pendiente de aprobación (puerta autorizada por Anderson para este lote; las D-107 a D-110 siguen «Propuesta»).
 Requisitos cubiertos: RF-31 a RF-38, RNF-14 a RNF-17 (nuevos, añadidos a `docs/requisitos.md`). Extiende RF-04, RF-10, RF-11, RF-29 y RNF-04. Fuentes: F1 §2, §3 (vía `docs/requisitos.md`) y ENCARGO (encargo al spec-author del 2026-11-11, cuatro bloques R1 a R4).
 Aviso de numeración: `specs/README.md` y la matriz de `docs/requisitos.md` reservan «002» para `002-disponibilidad-ubicacion`; esta spec usa la carpeta `002-funcionalidad-final` por el encargo. Anderson decide si renumera.
 
@@ -109,6 +110,102 @@ Cerrar la funcionalidad de la entrega final con cuatro bloques:
 - [RNF-17] Las pantallas Iniciar sesión, Crear cuenta, Recuperar contraseña y la confirmación de Configuración deberán usar el sistema de diseño (`DESIGN.md`, `docs/diseno/guia-de-estilo.md`): campos con etiqueta; errores con ícono y texto en región viva `polite`; foco en el primer campo con error tras intentar enviar; objetivos táctiles de al menos 44 × 44 px; texto al 200 % sin recorte; teclado que no tape campos ni el botón principal; sin `Alert`.
 - [RNF-17, ENT-02] El `README.md` y `docs/arquitectura*` deberán describir el nuevo flujo de sesión, el orden de publicación de reglas y el riesgo de D-95 (lo hará la tarea correspondiente).
 
+### Lote final (R5 a R10)
+Objetivo y porqué: cerrar lo que el enunciado exige y aún falta (Inicio con mapa, documentos del conductor, cobro real de prueba, Historial y Ganancias completos) y declarar con honestidad lo que se omite. Mientras R1 a R4 cuidan la decisión y la cuenta del conductor, R5 a R9 cuidan el dinero y los documentos: son los datos que más importan si algo sale mal. Todo se construye con estilos cerrados: tokens, `Card`, `Chip`, `DataRow`, `ScreenHeader`, `Icon`, `SkeletonBlock`, fuente Inter, `DESIGN.md` y `docs/diseno/guia-de-estilo.md`; ningún color, tamaño ni texto suelto en el código (RNF-19).
+
+Alcance sobre el lote anterior: la frase «sin cambios en `backend/`» (CA-002-39, D-58) y «sin dependencias nuevas» (CA-002-40) valen para R1 a R4. R8 modifica `backend/` por D-107 (que reemplaza D-58 y D-89 para ese fin); la app no añade dependencias en ningún bloque; el backend solo usa lo de `scripts/dependencies.json` y, para firebase-admin, requiere la aprobación de Anderson (ver §7).
+
+### R5 — Inicio con mapa a pantalla completa y tarjeta flotante (RF-39)
+Fuente: enunciado §3.1 (R0b, F1b).
+- [RF-39] El sistema deberá mostrar en Inicio el mapa a pantalla completa con la ubicación actual del conductor (marcador de R3) y, sobre él, una tarjeta flotante con el interruptor de disponibilidad, el estado y los avisos actuales de Inicio.
+- [RF-39] Mientras el conductor esté «Disponible», el sistema deberá publicar su ubicación a `driverLocations/{uid}`; en cualquier otro estado (No disponible, cuenta no aprobada, sin permiso) no deberá publicar ubicación.
+- [RF-39] Mientras Inicio esté enfocada, el sistema deberá seguir la ubicación en local para centrar el mapa y mover el marcador, aunque el conductor esté «No disponible» (sin publicar).
+- [RF-39] Cuando Inicio pierda el foco (blur) o el conductor pase a «No disponible», el sistema deberá detener el seguimiento local y liberar suscripciones y temporizadores propios de Inicio; la publicación a `driverLocations` sigue las reglas de RF-37 y D-83 (estado final y reposo) sin cambios.
+- [RF-39] Si no hay permiso de ubicación, el sistema deberá mostrar un estado claro en la tarjeta (qué falta y por qué) con un botón para pedirlo o abrir los ajustes, y el interruptor no deberá poder dejar «Disponible» sin permiso.
+- [RF-39] El sistema no deberá hacer ninguna llamada de ruta (OSRM, Directions) desde Inicio.
+- [RF-39, RNF-19] La tarjeta flotante deberá respetar el área segura, tener objetivos táctiles de al menos 48 dp, contraste de texto suficiente sobre el mapa, crecer en alto con la fuente al 200 % y desactivar toda animación o transición con «reducir movimiento».
+
+### R6 — Defecto «NaN:NaN» en Ganancias (RF-40)
+Fuente: enunciado §3 (R0b, F1a).
+- [RF-40] El sistema deberá formatear fechas y horas mediante una utilidad con guarda que, ante `null`, `undefined`, cadenas (vacías, no numéricas, ISO inválidas) o fechas inválidas, devuelva un texto neutro definido en `labels.js` y nunca «NaN», «Invalid Date» ni un valor impreso a partir de un número inválido.
+- [RF-40] El sistema no deberá ocultar visualmente el defecto: la corrección es la guarda en la utilidad, no esconder el elemento ni recortar el texto con estilos.
+- [RF-40] El sistema deberá cubrir la utilidad con pruebas puras (casos de la tabla de CA-002-48).
+
+### R7 — Documentos del conductor en la pestaña 3 «Documentos y pagos» (RF-41)
+Fuente: enunciado §2, pestaña 3 (R0b, F2); `docs/seguridad.md` para las reglas.
+- [RF-41] El sistema deberá pedir en la pestaña 3: licencia (número, foto y fecha de vencimiento posterior a hoy), SOAT (foto y vencimiento posterior a hoy) y revisión técnico-mecánica (foto y vencimiento posterior a hoy), además del correo de Mercado Pago y la aceptación de términos con comisión que ya existen.
+- [RF-41] El sistema deberá exigir la revisión técnico-mecánica solo si el vehículo tiene 5 años o más, calculados con el año de modelo registrado y el año actual (año actual − año registrado ≥ 5); si no se exige, deberá mostrar el motivo en pantalla (p. ej. «No se exige: tu vehículo tiene menos de 5 años»). Si el año del vehículo falta o es inválido, deberá exigirla (lectura conservadora; ver Casos límite).
+- [RF-41] El sistema deberá mostrar el error bajo cada campo (texto e ícono, región viva `polite`), sin `Alert`, y habilitar «Enviar» solo cuando las 3 pestañas sean válidas, incluidos los campos nuevos.
+- [RF-41] El sistema no deberá pedir ni guardar números de cuenta bancaria ni de tarjeta (solo el correo de Mercado Pago).
+- [RF-41] El sistema deberá subir las fotos por Cloudinary con el mecanismo vigente (D-68) mediante `PhotoField`, usar `DateField` para las fechas, y guardar en `drivers/{uid}` una estructura clara: un objeto `documents` con `license` (`number`, `photoUrl`, `expiresAt`), `soat` (`photoUrl`, `expiresAt`) y `technicalReview` (`required`, `photoUrl`, `expiresAt`, con `photoUrl` y `expiresAt` nulos si no se exige).
+- [RF-41, RNF-16] El sistema deberá documentar en `docs/seguridad.md` el texto de las reglas de `drivers` que validan esa estructura (tipos, longitudes, fechas) y una nota que diga que las fotos de prueba se alojan en URLs públicas no adivinables de Cloudinary y que no deben usarse documentos reales (ENT-05).
+
+### R8 — Pagos reales de prueba, efectivo y saldo (RF-42 a RF-46, RF-52, RNF-18)
+Fuente: enunciado §3.4, §4 (R0b, F4c, F4d, F4e); ENCARGO.
+
+#### Modelo del viaje y escritores (RF-42)
+- [RF-42, D-108] El sistema deberá crear el documento del viaje en `drivers/{uid}/trips/{tripId}` al COMPLETAR el viaje, con `status: 'completed'`, `paymentStatus: 'pending'` y `paymentMethod` igual a `'mercadopago'` o `'cash'` (el que eligió el pasajero en la solicitud).
+- [RF-42, D-108] El sistema deberá pasar `status` a `'paid'` cuando se confirme el cobro (pasarela aprobada, o efectivo confirmado por el conductor) y a `'cancelled'` si el viaje se cancela.
+- [RF-42, D-108] El sistema deberá permitir que solo el backend (firebase-admin) modifique `paymentStatus`, `paymentId` y `status` en viajes con `paymentMethod: 'mercadopago'`; la app no deberá poder escribirlos.
+- [RF-42, D-108] Cuando el método sea efectivo, el sistema deberá permitir al conductor dueño y aprobado marcar el cobro mediante una regla estrecha: solo cambian `paymentMethod`, `paymentStatus` y `status`; `paymentStatus` pasa de `'pending'` a `'paid'`, `status` pasa de `'completed'` a `'paid'`, y solo si `paymentMethod` ya era `'cash'`; cualquier otra edición y todo borrado quedan denegados.
+- [RF-42] El sistema deberá documentar el texto de esas reglas en `docs/seguridad.md` (D-80: Anderson las publica) y guardar `commissionRate` por viaje.
+
+#### Backend de pagos (RF-43, RNF-18)
+- [RF-43, D-107] El backend Express deberá exponer `GET /health`, `POST /payments/checkout`, `POST /payments/sync` y `POST /webhooks/mercadopago`.
+- [RF-43, RNF-18] `POST /payments/checkout {tripId}` deberá verificar el token del conductor (`verifyIdToken`), comprobar que el viaje pertenece al `uid`, que `status` es `'completed'`, que `paymentMethod` es `'mercadopago'` y que `paymentStatus` no es `'approved'`; tomará el monto DEL DOCUMENTO del viaje (nunca del cuerpo, D-109), exigirá que sea positivo y menor o igual a un tope razonable definido en el backend, creará la preferencia de Checkout Pro con `external_reference = tripId` y devolverá solo el enlace de pago.
+- [RF-43] `POST /payments/sync {tripId}` deberá, con el mismo control de identidad y propiedad, consultar el estado del pago con el token de servidor y aplicar el resultado.
+- [RF-43, RNF-18] `POST /webhooks/mercadopago` no deberá confiar en el cuerpo recibido: tomará solo el identificador del pago, consultará el pago con el token de servidor, validará `external_reference`, monto, moneda y estado contra el viaje, verificará `x-signature` si `MP_WEBHOOK_SECRET` está definido, aplicará el cambio en una transacción idempotente y no retrocederá nunca un viaje ya `approved`.
+- [RF-43, D-108] El sistema deberá mapear el estado de Mercado Pago así: `approved` → `approved`; `pending` o `in_process` → `pending`; `rejected` o `cancelled` → `rejected`.
+- [RNF-18] El backend deberá aplicar limitación de peticiones por usuario, limitar el tamaño del cuerpo, no registrar tokens ni cabeceras de autorización, devolver errores genéricos al cliente y cerrar CORS (sin origen comodín).
+- [RNF-18] El sistema deberá configurar el backend con las variables `MP_ACCESS_TOKEN`, `FIREBASE_SERVICE_ACCOUNT_PATH`, `PUBLIC_BASE_URL`, `PORT` y `MP_WEBHOOK_SECRET` (opcional) en `backend/.env`, la app con `EXPO_PUBLIC_BACKEND_URL`, un `backend/.env.example` solo con nombres y `backend/.env` y `backend/secrets/` fuera de Git; ningún secreto en la app ni en logs.
+
+#### Pantalla «Cobro y resumen» (RF-44)
+- [RF-44, D-107] La pantalla «Cobro y resumen» deberá mostrar el estado del cobro como `Chip` con texto: «Aprobado», «Pendiente», «Rechazado» o «Efectivo».
+- [RF-44] Con método Mercado Pago y estado no aprobado, la pantalla deberá ofrecer «Cobrar con Mercado Pago», que pide el enlace al backend y lo abre con `Linking.openURL`; tras un rechazo, «Reintentar pago».
+- [RF-44] La pantalla deberá escuchar el viaje con `onSnapshot`, liberando la suscripción al salir; al volver la app a primer plano deberá llamar a `/payments/sync`, y deberá ofrecer un botón «Verificar pago» con la misma acción.
+- [RF-44] Con método efectivo, la pantalla deberá ofrecer «Confirmar efectivo recibido», que ejecuta la escritura estrecha de RF-42.
+- [RF-44, RF-03] La pantalla deberá tener estados de cargando (`SkeletonBlock`), error, sin conexión y backend no disponible, cada uno con texto y una salida segura a Inicio; sin `Alert`.
+- [RF-44] El sistema no deberá marcar nada como pagado desde la app para método Mercado Pago, ni tratar el regreso del navegador como prueba de pago.
+
+#### Método de pago visible (RF-45)
+- [RF-45] El sistema deberá mostrar el método de pago (Mercado Pago o efectivo) en `IncomingRequestCard` y en `TripRequestScreen`, como texto, sin cambiar el orden de R1 ni los `testID` existentes (RF-31).
+
+#### Saldo (RF-46)
+- [RF-46] El sistema deberá calcular el saldo como la suma de las ganancias netas de viajes aprobados por la pasarela menos la comisión de los viajes en efectivo, y podrá ser negativo.
+- [RF-46] Si el saldo es negativo, el sistema deberá mostrar el texto «Saldo a favor de la plataforma» (con el importe) en vez de un número negativo sin explicación.
+
+#### Ruta planeada (RF-52)
+- [RF-52, D-110] El sistema deberá guardar en el viaje una ruta planeada simplificada de como máximo 40 puntos con 4 decimales (`route`), obtenida de la ruta ya calculada para el viaje, sin nuevas llamadas de ruta.
+- [RF-52, D-110] Si la ruta no existe, el sistema deberá guardar el viaje sin ella, sin fallar.
+
+### R9 — Historial y Ganancias (RF-47 a RF-50)
+Fuente: enunciado §5, §6 (R0b, F3a, F3b, F3c).
+
+#### Historial (RF-47)
+- [RF-47] El sistema deberá listar los viajes con `FlatList`, del más reciente al más antiguo.
+- [RF-47] El sistema deberá ofrecer filtros de periodo Hoy, Semana, Mes y Rango, y de método Todos, Tarjeta y Efectivo; en Rango, dos `DateField` con inicio menor o igual al fin, mensajes de error en pantalla y un rango máximo razonable (366 días).
+- [RF-47] El sistema deberá consultar con `orderBy` y rango solo sobre `createdAt` (sin índice compuesto), cargar 20 por página con «Cargar más», y aplicar el filtro de método en el cliente.
+- [RF-47] Cada elemento deberá mostrar fecha y hora, origen → destino, categoría, tarifa, ganancia neta y un `Chip` con el estado de pago; sin viajes, deberá mostrar un estado vacío con texto.
+- [RF-47, RNF-19] Los periodos Hoy, Semana y Mes deberán calcularse en la zona horaria de Colombia (UTC−5), con la semana de lunes a domingo.
+
+#### Gráfica de barras (RF-48)
+- [RF-48] El sistema deberá dibujar con `View` (sin dependencias) una gráfica de barras de la ganancia neta: por franjas horarias para Hoy, por día para Semana y Mes, y por día o por semana para Rango.
+- [RF-48, RNF-19] Cada barra deberá llevar etiqueta de texto y `accessibilityLabel`, y la gráfica un resumen legible (total y barra mayor); nada deberá depender solo del color.
+
+#### Detalle del viaje (RF-49)
+- [RF-49] El detalle deberá mostrar la ruta dibujada si existe (si no, lo dirá con texto sin fallar), duración, distancia, comisión, propina, método de pago y estado, y la calificación solo si existe.
+
+#### Ganancias y `useEarnings` (RF-50)
+- [RF-50] El sistema deberá calcular en el hook `useEarnings`, con `useMemo`, seis métricas para Hoy, Semana y Mes: viajes, total facturado, comisiones, propinas, neto y promedio por viaje, más el saldo de RF-46.
+- [RF-50] El sistema deberá cubrir con pruebas puras el ejemplo del enunciado (8,5 km, 22 min): Económico 19.200 / 3.840 / 15.360 y XL 26.900 / 5.380 / 21.520 (total / comisión / neto), y los límites de semana y mes en la zona horaria de Colombia.
+
+### R10 — Documentación de omisiones (RF-51)
+Fuente: enunciado §3, §7 (R0b, F5).
+- [RF-51] El sistema deberá entregar `docs/omisiones-y-limites.md` con, para cada punto, qué pide el enunciado, qué se hizo y por qué: FCM (sin notificaciones con la app cerrada), perfil editable frente a «aprobada, sin edición», idioma ES/EN (sin selector, textos en `labels.js`), OSRM y MapLibre frente a Directions y `react-native-maps` (D-82), iOS no verificado, `DateField` solo en Android y propinas y calificación fuera de alcance salvo que existan datos.
+
+### Requisito transversal del lote (RNF-19)
+- [RNF-19] Las pantallas y componentes de R5 a R9 deberán usar solo tokens, `Card`, `Chip`, `DataRow`, `ScreenHeader`, `Icon`, `SkeletonBlock` y la fuente Inter, sin valores de color, tamaño ni texto escritos a mano; respetar área segura, objetivos de 48 dp, 200 % de texto sin recorte, «reducir movimiento» y no usar `Alert`; y no pedir dependencias nuevas en la app.
+
 ## 3. Decisiones relacionadas
 Ya Vigentes que esta spec usa sin cambiar: D-11 (navegación por estado de cuenta), D-60 (sin documento = no registrado), D-71 (recorte de espacios al guardar), D-74 (campos bloqueados), D-80 (reglas publicadas a mano; documento en palabras), D-83 (cuenta regresiva, estado final y reposo), D-85 (tarjeta inferior), D-90/D-91 (rediseño, Ionicons).
 
@@ -165,7 +262,31 @@ Alternativa: mostrarlo en Perfil (posible; lo decide Anderson).
 Decisión: correo recortado (sin espacios al inicio y al fin), con el mismo patrón `algo@dominio.algo` de D-62; contraseña de mínimo 8 caracteres, sin máximo propio, sin recortar ni normalizar, con confirmación; el correo de la cuenta es independiente del correo personal del registro (no se precarga ni se sincroniza).
 Alternativa: precargar el correo del registro con el de la cuenta (descartada: cambia la spec 001 sin necesidad).
 
-Dependencias: ninguna nueva; no se edita `scripts/dependencies.json`.
+Nuevas del lote final, propuestas por esta spec (todas «Propuesta»; el agente principal las registra en `docs/decisiones.md`):
+
+### D-107 — Pago de prueba real con Mercado Pago Checkout Pro reemplaza el cobro simulado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-89 declara el cobro SIMULADO y D-58 deja el backend sin cambios; el enunciado (§4) pide preferencia con llave secreta en el backend, confirmación por webhook o sincronización y escucha en tiempo real.
+Decisión: Checkout Pro en modo de prueba (credenciales y tarjetas de prueba, nunca dinero real) con backend Express y firebase-admin; D-89 queda Reemplazada y D-58 queda Modificada (el backend deja de estar intacto solo para R8). Tarjeta: solo el backend escribe el resultado; efectivo: el conductor, con la regla estrecha de D-108. La pantalla y el README dicen que es pago de prueba.
+Alternativa: mantener el cobro simulado (descartada: incumple §4 del enunciado).
+Impacto: añade `firebase-admin` al backend, que hoy no está en `scripts/dependencies.json` (lista `backend`); requiere aprobación de Anderson. CA-002-39 vale solo para R1 a R4. El valor `transfer` de `paymentMethod` de D-89 pasa a `mercadopago` (datos antiguos de prueba, sin migración).
+
+### D-108 — Modelo de estados y escritores del viaje; regla estrecha de efectivo · Vigente (por encargo, prompt #55; Anderson ratifica)
+Decisión: el viaje nace al completar con `status: 'completed'`, `paymentStatus: 'pending'` y `paymentMethod` `'mercadopago'` o `'cash'`; `paymentStatus` toma `approved`, `pending` o `rejected`; `status` toma `completed`, `paid` o `cancelled`. Escritores: tarjeta, solo el backend; efectivo, el conductor dueño aprobado, únicamente `paymentMethod`, `paymentStatus` y `status`, de `pending`/`completed` a `paid`, y solo si ya era `cash`. Sin otras ediciones ni borrados. Por qué: el conductor no debe poder declararse pagado un viaje de tarjeta.
+Alternativa: que la app marque todo (descartada: falsificable).
+Impacto: reglas nuevas en `docs/seguridad.md`; Anderson las publica tras validar (D-99).
+
+### D-109 — El backend toma el monto del documento del viaje; límite aceptado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: el enunciado dice enviar `tripId` y monto al backend. El monto sale de una tarifa calculada por la app y el pasajero es simulado (sin cuenta de pasajero).
+Decisión: el backend lee el monto del documento del viaje del `uid` autenticado y exige monto positivo y menor que un tope. Límite aceptado y documentado: un conductor modificado podría escribir un monto distinto al crear el viaje; no se resuelve sin un servidor de tarifas y un pasajero real, fuera de alcance.
+Alternativa: recalcular la tarifa en el backend (descartada: requeriría ruta y reglas de tarifa en servidor).
+
+### D-110 — Ruta planeada simplificada guardada en el viaje · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-87 prohíbe coordenadas y por eso el historial no dibuja la ruta (RF-27 parcial); el enunciado pide ruta dibujada en el detalle.
+Decisión: se guarda una ruta planeada (no el recorrido real del conductor) de máximo 40 puntos con 4 decimales (unos 11 m), solo en `route` del documento del viaje; no se guarda ninguna posición real ni se registra el recorrido. D-87 queda Modificada solo en ese punto; origen y destino siguen guardándose como texto.
+Alternativa: no guardar nada (descartada: incumple §6); recorrido real (descartada: privacidad).
+Impacto: la regla de viajes admite `route` con validación de tamaño y tipo.
+
+Dependencias: ninguna nueva en la app; en el backend solo `firebase-admin`, ya añadido a `scripts/dependencies.json` (lista «backend») por encargo de Anderson (prompt #55, D-107).
 
 ## 4. Criterios de aceptación
 
@@ -333,6 +454,212 @@ CA-002-40 [RNF-14, RNF-15, RF-32]
 Dado `package.json` y `scripts/dependencies.json`, Cuando se comparan antes y después, Entonces no hay dependencias nuevas.
 Cómo se verifica: diferencia vacía y `node scripts/check-constitution.mjs` (C15).
 
+### R5 — Inicio con mapa
+CA-002-41 [RF-39]
+Dado Inicio enfocada con el conductor aprobado, Cuando se abre, Entonces el mapa ocupa toda la pantalla, muestra la ubicación actual con el marcador de auto y encima flota una tarjeta con el interruptor y el estado.
+Cómo se verifica: revisión de código y paso manual en el celular. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-42 [RF-39]
+Dado el conductor en «No disponible», Cuando está en Inicio, Entonces el mapa sigue su ubicación en local y no se escribe nada en `driverLocations`; al ponerse «Disponible» se publica; al volver a «No disponible» se detiene el seguimiento local y se publica el estado final según D-83.
+Cómo se verifica: script fuera del proyecto con la fuente de ubicación y el escritor simulados que cuenta escrituras por estado, y paso manual con la consola de Firestore. **No verificado en dispositivo** (paso manual).
+
+CA-002-43 [RF-39]
+Dado Inicio, Cuando pierde el foco (se abre otra pantalla del menú) o la app pasa a segundo plano, Entonces el seguimiento local se detiene y no quedan suscripciones ni temporizadores de Inicio; al volver a enfocarse se reanuda.
+Cómo se verifica: script con suscripciones simuladas que cuenta altas y bajas, y revisión de código de la limpieza del efecto. **No verificado en dispositivo** para el paso manual.
+
+CA-002-44 [RF-39]
+Dado un teléfono sin permiso de ubicación, Cuando se abre Inicio, Entonces la tarjeta explica qué falta con texto y ofrece un botón para pedirlo o abrir los ajustes, y el interruptor no deja «Disponible».
+Cómo se verifica: paso manual (denegar el permiso) y revisión de código. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-45 [RF-39]
+Dado el código de Inicio, Cuando se busca, Entonces no hay ninguna llamada a OSRM, Directions ni al servicio de ruta.
+Cómo se verifica: búsqueda en `src/` de los importes y llamadas del servicio de ruta en los archivos de Inicio.
+
+CA-002-46 [RF-39, RNF-19]
+Dado la tarjeta flotante, Cuando se mide y se revisa, Entonces respeta el área segura, sus controles miden al menos 48 dp, el texto cumple contraste 4.5:1 sobre el fondo de la tarjeta (superficie opaca, no el mapa), crece con la fuente al 200 % y no tiene animación con «reducir movimiento» activo.
+Cómo se verifica: script de contraste con los tokens (Capa A), revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+### R6 — «NaN:NaN»
+CA-002-47 [RF-40]
+Dado la pantalla de Ganancias con viajes de prueba que incluyen uno sin fecha, Cuando se abre, Entonces no aparece «NaN», «Invalid Date» ni «NaN:NaN» en ninguna parte.
+Cómo se verifica: paso manual en el celular con un viaje de prueba sin fecha. **No verificado en dispositivo** (tarea por asignar); la parte pura se cubre en CA-002-48.
+
+CA-002-48 [RF-40]
+Dado la utilidad de formato de fecha y hora, Cuando recibe `null`, `undefined`, `''`, `'abc'`, `'2026-13-45'`, `NaN`, `new Date('x')`, un objeto sin `toDate` y un número fuera de rango, Entonces devuelve siempre el texto neutro de `labels.js`, sin lanzar y sin «NaN»; con una fecha válida (cadena ISO, `Date`, marca de tiempo de Firestore) devuelve el texto esperado.
+Cómo se verifica: script de prueba fuera del proyecto contra la función real, con pruebas puras en el repositorio si el planner las asigna.
+
+CA-002-49 [RF-40]
+Dado el arreglo, Cuando se revisa la diferencia, Entonces la corrección está en la utilidad (guarda) y no en estilos que oculten el texto (`opacity`, `display`, tamaño cero).
+Cómo se verifica: revisión de la diferencia.
+
+### R7 — Documentos del conductor
+CA-002-50 [RF-41]
+Dado la pestaña 3, Cuando se abre, Entonces hay campos de licencia (número, foto, vencimiento), SOAT (foto, vencimiento) y revisión técnico-mecánica (foto, vencimiento) o su motivo de no exigencia, el correo de Mercado Pago y los términos con comisión.
+Cómo se verifica: revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-51 [RF-41]
+Dado la función pura de validación de vencimiento, Cuando recibe hoy, ayer, mañana, vacío, `null` e inválida, Entonces solo «mañana» (posterior a hoy, en zona horaria de Colombia) es válida y las demás devuelven un error con texto.
+Cómo se verifica: script fuera del proyecto contra la función real.
+
+CA-002-52 [RF-41]
+Dado la función pura que decide si se exige la revisión técnico-mecánica, Cuando recibe el año actual 2026 y años de vehículo 2022, 2021, 2020, 2026, vacío, `null`, texto y un año futuro, Entonces: 2021 y 2020 la exigen (≥5 años); 2022 y 2026 no; vacío, `null`, texto y año futuro la exigen (conservador); y cuando no se exige devuelve el motivo para mostrarlo.
+Cómo se verifica: script fuera del proyecto contra la función real con el año actual inyectado.
+
+CA-002-53 [RF-41]
+Dado un vehículo de menos de 5 años, Cuando se abre la pestaña 3, Entonces la revisión técnico-mecánica no se pide y se muestra su motivo; con 5 años o más, se pide foto y vencimiento y «Enviar» no se habilita sin ellos.
+Cómo se verifica: script de validación del formulario y paso manual. **No verificado en dispositivo** (paso manual).
+
+CA-002-54 [RF-41, RF-03]
+Dado un campo inválido de la pestaña 3, Cuando se intenta enviar, Entonces el error aparece bajo ese campo con ícono y texto, sin `Alert`, y «Enviar» solo se habilita con las 3 pestañas válidas.
+Cómo se verifica: script contra la función de validación del registro, búsqueda de `Alert` en `src/` y `node scripts/check-constitution.mjs` (C05).
+
+CA-002-55 [RF-41]
+Dado el código y el documento guardado, Cuando se busca, Entonces la app no tiene campos ni almacena números de cuenta o de tarjeta, y el documento tiene la estructura `documents.license`, `documents.soat` y `documents.technicalReview` de RF-41.
+Cómo se verifica: búsqueda en `src/` y script contra el mapeo a documento.
+
+CA-002-56 [RF-41, D-68]
+Dado la subida de las tres fotos, Cuando se envía el registro, Entonces se usan `PhotoField` y el mecanismo de `cloudinary.js` (D-68), con `DateField` en las fechas, sin dependencias nuevas.
+Cómo se verifica: revisión de código y diferencia de `package.json` vacía. Subida real: **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-57 [RF-41, RNF-16]
+Dado `docs/seguridad.md`, Cuando se revisa, Entonces contiene el texto de las reglas de `drivers` que validan `documents`, la indicación de que Anderson las publica y la nota de fotos de prueba en URLs públicas no adivinables sin documentos reales.
+Cómo se verifica: revisión del documento.
+
+### R8 — Pagos, efectivo y saldo
+CA-002-58 [RF-42, D-108]
+Dado un viaje que se completa, Cuando se crea su documento, Entonces tiene `status: 'completed'`, `paymentStatus: 'pending'`, `paymentMethod` `'mercadopago'` o `'cash'` y `commissionRate`; un viaje cancelado queda con `status: 'cancelled'`.
+Cómo se verifica: script fuera del proyecto contra el constructor del registro del viaje (`tripRecord`) y paso manual con la consola de Firestore. **No verificado en dispositivo** (paso manual).
+
+CA-002-59 [RF-42, D-108]
+Dado las reglas de Firestore de `docs/seguridad.md`, Cuando un conductor aprobado dueño de un viaje en efectivo pasa `paymentStatus` de `pending` a `paid` y `status` de `completed` a `paid`, Entonces se permite; y se deniega: cambiar otros campos, cambiar el monto, pasar `paymentStatus` a `approved`, marcar un viaje de `mercadopago`, escribir en el viaje de otro `uid`, borrar, o actuar una cuenta no aprobada.
+Cómo se verifica: script fuera del proyecto con el emulador o con cuentas de prueba (sin imprimir credenciales) tras publicar las reglas. **No verificado en dispositivo** para el paso manual.
+
+CA-002-60 [RF-42, D-108]
+Dado la app, Cuando se busca escritura a `paymentStatus`, `paymentId` o `status: 'paid'` para viajes de `mercadopago`, Entonces no existe en `src/` (solo el backend los escribe); la única escritura de la app es la regla estrecha de efectivo.
+Cómo se verifica: búsqueda en `src/` y revisión de código.
+
+CA-002-61 [RF-43, RNF-18]
+Dado `POST /payments/checkout`, Cuando se llama sin token, con token inválido, con un `tripId` de otro conductor, con viaje no completado, con método `cash`, con viaje ya `approved`, con monto cero, negativo o por encima del tope, Entonces responde un error genérico sin crear preferencia, y con un viaje válido devuelve solo el enlace.
+Cómo se verifica: script fuera del proyecto contra el servidor real con `verifyIdToken`, Firestore y Mercado Pago simulados (tabla de casos).
+
+CA-002-62 [RF-43, D-109]
+Dado `POST /payments/checkout` con un cuerpo que incluye `amount` o `title`, Cuando se procesa, Entonces el monto de la preferencia es el del documento del viaje y el valor del cuerpo se ignora; la preferencia lleva `external_reference` igual a `tripId`.
+Cómo se verifica: el mismo script, inspeccionando la petición simulada a Mercado Pago.
+
+CA-002-63 [RF-43, RNF-18]
+Dado el webhook, Cuando llega una notificación con cuerpo falso (estado `approved` inventado, `tripId` ajeno, monto distinto, moneda distinta, `external_reference` que no corresponde), Entonces el backend consulta el pago con el token de servidor, no aplica nada y responde sin revelar detalles; con `MP_WEBHOOK_SECRET` definido y `x-signature` inválida o ausente rechaza.
+Cómo se verifica: script fuera del proyecto con Mercado Pago y Firestore simulados.
+
+CA-002-64 [RF-43]
+Dado el webhook o `/payments/sync` recibidos dos o más veces para el mismo pago, y un pago `rejected` o `pending` posterior a un `approved`, Entonces el resultado es el mismo (idempotente) y un viaje `approved` nunca retrocede.
+Cómo se verifica: script con transacción simulada que reproduce entregas duplicadas y fuera de orden.
+
+CA-002-65 [RF-43, D-108]
+Dado la función pura de mapeo, Cuando recibe `approved`, `pending`, `in_process`, `rejected`, `cancelled`, `refunded`, `undefined` y texto desconocido, Entonces devuelve `approved`, `pending`, `pending`, `rejected`, `rejected` y, para lo no listado, `pending` sin lanzar (lectura conservadora: nunca aprueba lo desconocido).
+Cómo se verifica: script de prueba fuera del proyecto contra la función real.
+
+CA-002-66 [RNF-18]
+Dado el backend, Cuando se lanzan más peticiones que el límite por usuario, un cuerpo mayor al máximo y una petición desde un origen no permitido, Entonces se responde 429, 413 y sin cabeceras CORS de permiso, respectivamente; y los logs no contienen tokens ni cabeceras de autorización ni el cuerpo de las peticiones.
+Cómo se verifica: script contra el servidor real y búsqueda de `console.*` y del registro de peticiones en `backend/src`.
+
+CA-002-67 [RNF-18]
+Dado el repositorio, Cuando se revisa, Entonces existe `backend/.env.example` con los nombres `MP_ACCESS_TOKEN`, `FIREBASE_SERVICE_ACCOUNT_PATH`, `PUBLIC_BASE_URL`, `PORT` y `MP_WEBHOOK_SECRET` (sin valores), `.gitignore` excluye `backend/.env` y `backend/secrets/`, y la app solo usa `EXPO_PUBLIC_BACKEND_URL` y ningún secreto.
+Cómo se verifica: revisión de archivos y búsqueda de `MP_ACCESS_TOKEN` en `src/` (sin resultados); `.env` no se lee.
+
+CA-002-68 [RF-43]
+Dado `GET /health`, Cuando se llama, Entonces responde correcto sin autenticación y sin datos sensibles.
+Cómo se verifica: script contra el servidor real.
+
+CA-002-69 [RF-44]
+Dado «Cobro y resumen» con los estados Aprobado, Pendiente, Rechazado y Efectivo, Cuando se muestra cada uno, Entonces el `Chip` lleva texto y ícono, y las acciones son: «Cobrar con Mercado Pago» (pendiente), «Reintentar pago» (rechazado), «Verificar pago» (pendiente o rechazado), «Confirmar efectivo recibido» (efectivo pendiente) y ninguna (aprobado).
+Cómo se verifica: script contra la función pura que decide estado y acciones a partir del documento, y paso manual. **No verificado en dispositivo** (paso manual).
+
+CA-002-70 [RF-44]
+Dado «Cobrar con Mercado Pago», Cuando se pulsa, Entonces la app pide el enlace al backend con el token del conductor y lo abre con `Linking.openURL`; si el backend falla, no responde o no hay conexión, se muestra el estado correspondiente sin cerrar la pantalla.
+Cómo se verifica: revisión de código y paso manual con tarjeta de prueba. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-71 [RF-44]
+Dado el conductor que vuelve del navegador, Cuando la app pasa a primer plano, Entonces se llama a `/payments/sync`, el `onSnapshot` refleja el cambio del backend y el estado pasa a Aprobado sin que la app escriba el pago.
+Cómo se verifica: paso manual con pago de prueba y revisión de código de la limpieza de la suscripción. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-72 [RF-44]
+Dado un viaje en efectivo, Cuando el conductor pulsa «Confirmar efectivo recibido», Entonces el viaje pasa a `paid` con la escritura estrecha de RF-42 y la pantalla lo muestra como Efectivo cobrado.
+Cómo se verifica: paso manual con la consola de Firestore. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-73 [RF-44, RF-03]
+Dado que no hay red, que el viaje no carga o que el backend no está disponible, Cuando se abre la pantalla, Entonces se muestra cada estado (cargando con `SkeletonBlock`, error, sin conexión, backend no disponible) con texto y salida segura a Inicio, sin `Alert`.
+Cómo se verifica: paso manual (modo avión, backend apagado) y búsqueda de `Alert`. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-74 [RF-45]
+Dado una solicitud entrante, Cuando se muestra en `TripRequestScreen` e `IncomingRequestCard`, Entonces se lee el método de pago como texto y los `testID` y el orden de R1 no cambian.
+Cómo se verifica: revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-75 [RF-46]
+Dado la función pura del saldo, Cuando recibe viajes aprobados por pasarela, en efectivo y mezclados (incluido el caso en que la comisión en efectivo supera lo aprobado), Entonces devuelve ganancias aprobadas menos comisión de efectivo, puede ser negativo y nunca produce `NaN`.
+Cómo se verifica: script de prueba fuera del proyecto contra la función real.
+
+CA-002-76 [RF-46]
+Dado un saldo negativo, Cuando se muestra, Entonces aparece «Saldo a favor de la plataforma» con el importe y no un número negativo sin explicación.
+Cómo se verifica: revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-77 [RF-52, D-110]
+Dado un viaje completado con ruta calculada, Cuando se guarda, Entonces `route` tiene como máximo 40 puntos, cada coordenada con 4 decimales, y no se guarda ninguna posición real del conductor; sin ruta, el viaje se guarda sin ella y sin fallar.
+Cómo se verifica: script fuera del proyecto contra la función pura de simplificación (0, 1, 2, 39, 40, 41 y 500 puntos, coordenadas inválidas) y el constructor del registro.
+
+### R9 — Historial y Ganancias
+CA-002-78 [RF-47]
+Dado el Historial con viajes, Cuando se abre, Entonces se muestran con `FlatList` del más reciente al más antiguo, 20 por página, y «Cargar más» trae la siguiente página sin duplicados; sin más viajes, el botón desaparece.
+Cómo se verifica: script con Firestore simulado (paginación) y paso manual. **No verificado en dispositivo** (paso manual).
+
+CA-002-79 [RF-47]
+Dado la función pura de rangos, Cuando se calculan Hoy, Semana y Mes con instantes alrededor de la medianoche de Colombia (UTC−5), el domingo a lunes y el último día de un mes (incluido febrero bisiesto), Entonces los límites son los correctos en hora de Colombia.
+Cómo se verifica: script fuera del proyecto contra la función real.
+
+CA-002-80 [RF-47]
+Dado el filtro Rango, Cuando se elige inicio mayor que fin, un rango de más de 366 días o falta una fecha, Entonces se muestra el mensaje en pantalla (sin `Alert`) y no se consulta; con rango válido se consulta.
+Cómo se verifica: script contra la función de validación del rango y paso manual con los `DateField`. **No verificado en dispositivo** (paso manual).
+
+CA-002-81 [RF-47]
+Dado la consulta, Cuando se revisa, Entonces usa `orderBy('createdAt', 'desc')` y rango solo sobre `createdAt`, sin `where` sobre otro campo, de modo que no exige índice compuesto; el filtro Todos/Tarjeta/Efectivo se aplica en el cliente.
+Cómo se verifica: revisión de código y script que inspecciona los argumentos de la consulta simulada.
+
+CA-002-82 [RF-47]
+Dado un elemento del Historial, Cuando se muestra, Entonces tiene fecha y hora, origen → destino, categoría, tarifa, neto y un `Chip` de estado de pago con texto; sin viajes en el filtro, aparece el estado vacío con texto.
+Cómo se verifica: revisión de código y paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-83 [RF-48]
+Dado la función pura que agrupa ganancia neta, Cuando recibe viajes para Hoy (franjas), Semana y Mes (por día) y Rango (por día o por semana según su longitud), incluidos viajes en los bordes, sin viajes y con fechas inválidas, Entonces cada grupo suma lo correcto, los grupos vacíos valen 0 y las fechas inválidas se excluyen sin lanzar.
+Cómo se verifica: script fuera del proyecto contra la función real.
+
+CA-002-84 [RF-48, RNF-19]
+Dado la gráfica, Cuando se revisa, Entonces está hecha con `View`, cada barra tiene etiqueta de texto y `accessibilityLabel` (periodo e importe), el resumen legible indica total y barra mayor, y la información no depende solo del color.
+Cómo se verifica: revisión de código y paso manual con lector de pantalla. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-85 [RF-48]
+Dado una gráfica sin ganancias, Cuando se muestra, Entonces lo dice con texto y no dibuja barras de alto indefinido.
+Cómo se verifica: revisión de código y script sobre la función de escala (máximo 0).
+
+CA-002-86 [RF-49]
+Dado el detalle de un viaje con `route`, Cuando se abre, Entonces la ruta se dibuja en el mapa; sin `route` (viajes anteriores a D-110), un texto lo dice sin fallar; el detalle muestra duración, distancia, comisión, propina, método y estado, y la calificación solo si existe.
+Cómo se verifica: revisión de código, script contra la función pura de presentación del detalle (con y sin ruta, propina y calificación ausentes) y paso manual. **No verificado en dispositivo** (paso manual).
+
+CA-002-87 [RF-50]
+Dado la función pura de métricas, Cuando recibe viajes de hoy, semana y mes, Entonces calcula viajes, total facturado, comisiones, propinas, neto y promedio por viaje (0 si no hay viajes, nunca `NaN`) y el saldo de RF-46.
+Cómo se verifica: script de prueba fuera del proyecto contra la función real.
+
+CA-002-88 [RF-50]
+Dado el ejemplo del enunciado (8,5 km, 22 min), Cuando se calculan las tarifas, Entonces Económico es 19.200 / 3.840 / 15.360 y XL 26.900 / 5.380 / 21.520 (total / comisión / neto).
+Cómo se verifica: script de prueba fuera del proyecto contra las funciones reales de tarifa y comisión, con pruebas puras en el repositorio si el planner las asigna.
+
+CA-002-89 [RF-50]
+Dado el hook `useEarnings`, Cuando se revisa, Entonces calcula las métricas con `useMemo`, la pantalla de Ganancias lo usa sin lógica de cálculo propia y `commissionRate` se lee de cada viaje (con el valor vigente solo como respaldo si falta).
+Cómo se verifica: revisión de código y `node scripts/check-constitution.mjs` (C12).
+
+### R10 — Omisiones
+CA-002-90 [RF-51]
+Dado `docs/omisiones-y-limites.md`, Cuando se revisa, Entonces trata FCM, perfil editable frente a «aprobada, sin edición», idioma ES/EN, OSRM y MapLibre frente a Google (D-82), iOS no verificado, `DateField` solo Android, y propinas y calificación, cada uno con qué pide el enunciado, qué se hizo y por qué.
+Cómo se verifica: revisión del documento.
+
 ### Criterios de diseño
 CA-002-D1 [RNF-17]
 Dado Iniciar sesión, Crear cuenta, Recuperar contraseña y la confirmación de Configuración, Cuando se revisa el código, Entonces colores, tipografía, espaciados, radios y bordes salen solo de los tokens, los componentes compartidos (`TextField`, `PrimaryButton`, `SecondaryButton`, `Card`, `ScreenState`) se reutilizan y los íconos son Ionicons vía `Icon.js` junto a texto.
@@ -358,6 +685,22 @@ CA-002-D6 [RNF-17, RF-03]
 Dado el código de las pantallas nuevas y del cierre de sesión, Cuando se busca `Alert`, Entonces no hay ningún uso.
 Cómo se verifica: búsqueda en `src/` y `node scripts/check-constitution.mjs` (C05).
 
+CA-002-D7 [RNF-19]
+Dado las pantallas y componentes de R5 a R9, Cuando se revisa el código, Entonces colores, tipografía, espaciados, radios y bordes salen solo de los tokens, se reutilizan `Card`, `Chip`, `DataRow`, `ScreenHeader`, `Icon` y `SkeletonBlock`, la fuente es Inter, los textos están en `labels.js` y no se añade ninguna dependencia a la app.
+Cómo se verifica: revisión de código (capa A), `node scripts/check-constitution.mjs` (C15) y revisión del `design-auditor`.
+
+CA-002-D8 [RNF-19]
+Dado cada pantalla de R5 a R9 con el texto al 200 %, Cuando se abre, Entonces nada se corta ni se solapa, los controles miden al menos 48 dp en Inicio y 44 × 44 px en el resto, el contenido respeta el área segura y toda animación se desactiva con «reducir movimiento».
+Cómo se verifica: paso manual. **No verificado en dispositivo** (tarea por asignar).
+
+CA-002-D9 [RNF-19, RF-03]
+Dado un estado de pago, un error o un vencimiento inválido, Cuando se muestra, Entonces lleva ícono y texto (no solo color), los errores de formulario viven en región viva `polite` y no se usa `Alert` en ninguna pantalla de R5 a R9.
+Cómo se verifica: revisión de código, búsqueda de `Alert` en `src/` y `node scripts/check-constitution.mjs` (C05); paso manual con lector de pantalla. **No verificado en dispositivo** (paso manual).
+
+CA-002-D10 [RNF-19, RF-48]
+Dado la gráfica de barras en escala de grises y con el texto al 200 %, Cuando se ve, Entonces cada barra se distingue por su etiqueta de texto y su altura, y las etiquetas no se solapan (se rotan o se muestran de forma alternada si hace falta).
+Cómo se verifica: paso manual con captura en escala de grises. **No verificado en dispositivo** (tarea por asignar).
+
 ## 5. Casos límite
 - **Tabla de mapeo de errores de Firebase** (función pura, D-96): iniciar sesión — `auth/invalid-credential`, `auth/wrong-password`, `auth/user-not-found`, `auth/invalid-email` → credenciales; `auth/network-request-failed` → red; `auth/too-many-requests` → demasiados intentos; resto → genérico. Crear — `auth/email-already-in-use` → ya en uso; `auth/weak-password` → ayuda de contraseña (el cliente ya valida los 8 caracteres); `auth/invalid-email` → error de formato bajo el campo; red y límite como arriba; resto → genérico. Recuperar — éxito y `auth/user-not-found` → neutro; red y límite → específicos; `auth/invalid-email` → error de formato; resto → genérico.
 - Con la «protección contra enumeración de correos» activa en Firebase, el inicio de sesión devuelve el mismo código para correo inexistente y contraseña errónea; con ella apagada, devuelve dos códigos distintos. El mensaje del usuario es el mismo en ambos casos.
@@ -376,17 +719,43 @@ Cómo se verifica: búsqueda en `src/` y `node scripts/check-constitution.mjs` (
 - Color de vehículo cambiado en el registro (cuenta aún pendiente, antes de aprobarse): el marcador usa el valor guardado vigente, sin recargar la app.
 - Texto del mapa a escalas grandes: el marcador no escala con la fuente (es un elemento gráfico de tamaño fijo, con área mínima legible).
 
+**Lote final (R5 a R10)**
+- Inicio: permiso concedido solo «mientras se usa» o revocado con la app abierta: se vuelve al estado de permiso y se deja de publicar (la cola de D-83 publica el estado final).
+- Inicio: GPS apagado o sin señal: el mapa conserva la última posición y lo dice con texto; no se publica una posición inventada.
+- Año del vehículo falta o es inválido, o es futuro: se exige la revisión técnico-mecánica (lectura conservadora). El año de modelo es entero de cuatro cifras; el año actual lo toma de la fecha del teléfono.
+- Vencimiento «hoy»: no es válido (debe ser posterior a hoy); el día se cuenta en la zona horaria de Colombia, no en UTC.
+- Cambiar el año del vehículo tras llenar la revisión técnico-mecánica: si deja de exigirse, sus datos no se envían (se guardan nulos); si pasa a exigirse, se pide.
+- Una cuenta ya aprobada o enviada antes de R7 no tiene `documents`: no se bloquea su acceso (cuentas de prueba); la nota queda en `docs/omisiones-y-limites.md`.
+- Pago: el conductor vuelve del navegador sin pagar, o cierra el navegador: queda «Pendiente»; puede reintentar o verificar. Doble toque en «Cobrar con Mercado Pago»: una sola petición en curso.
+- Pago: el webhook llega antes que la escritura del viaje, o el viaje no existe: se responde correcto sin aplicar (Mercado Pago reintenta); el viaje se verifica por `/payments/sync`.
+- Pago: Mercado Pago aprueba pero el backend cae antes de escribir: `/payments/sync` y el reintento del webhook lo corrigen; el conductor ve «Pendiente» y «Verificar pago».
+- Pago: dos pagos para el mismo viaje (reintento tras rechazo): cuenta el aprobado; un segundo aprobado no cambia el estado ni el monto (idempotencia) y se señala para revisión manual (fuera de alcance).
+- Viaje sin `paymentMethod` (datos de prueba de D-89: `transfer`, `none`): se trata como «No disponible» en la pantalla de pago, no se ofrece cobrar y no cuenta para el saldo.
+- Saldo con solo viajes en efectivo: es negativo (comisión debida) y se muestra como «Saldo a favor de la plataforma».
+- El pasajero es simulado (D-109): el monto no lo confirma nadie del lado del pasajero; el límite queda documentado.
+- Historial: rango sin viajes → estado vacío; cambiar de filtro durante una carga descarta la respuesta tardía (sin mezclar páginas); filtro de método en el cliente puede dejar una página con menos de 20 elementos aunque haya más: «Cargar más» sigue disponible hasta agotar los resultados del servidor.
+- Zona horaria: el teléfono puede estar en otra zona; los límites de Hoy, Semana y Mes se calculan siempre en hora de Colombia (UTC−5, sin horario de verano).
+- Detalle: viaje sin `route`, con un solo punto o con coordenadas inválidas: se dice con texto «Ruta no disponible» sin fallar.
+- Propina y calificación: no hay origen de datos con pasajero simulado; el detalle muestra propina 0 o «sin propina» y omite la calificación si no existe.
+
 ## 6. No encontrado
 - Cuántas cuentas por teléfono admite F1: F1 no menciona sesiones múltiples; D-94 propone la lectura conservadora.
 - Si el cierre de sesión de RF-29 («cierre de sesión» en F1 §3) exige confirmación: F1 no lo dice; se pide por buena práctica (ENCARGO).
 - Aspecto exacto de «Blanco» como color de silueta (D-100, pregunta abierta para Anderson).
 - Rúbrica y pesos (D-17, PARADA; no afecta esta spec).
+- Lote final: `docs/enunciado-taller.pdf` no existe en el repositorio; la fuente es el PDF de Descargas citado en `docs/analisis-brechas-2026-11-11.md` §5. Los textos literales del enunciado no se pudieron cotejar desde el repositorio.
+- Tope razonable del monto del cobro, rango máximo del Historial (366 días propuesto) y límite de peticiones por usuario: el enunciado no da cifras; el planner y Anderson las fijan (el 366 está propuesto aquí).
+- Texto exacto de propinas y calificación: el enunciado los pide en el detalle, pero no hay fuente de datos con pasajero simulado.
 
 ## 7. Qué debe aprobar el equipo (Anderson)
 - La spec completa y sus requisitos (RF-31 a RF-38, RNF-14 a RNF-17) y las decisiones D-93 a D-103 (siguen «Propuesta»).
 - La renumeración o el nombre de esta spec respecto a `002-disponibilidad-ubicacion`.
 - Dónde se ve el correo de la cuenta (D-102: Configuración) y la representación de «Blanco» (D-100).
 - Pasos manuales suyos: habilitar el proveedor correo/contraseña en Firebase, decidir sobre la protección contra enumeración de correos, validar en el celular y publicar las reglas (D-99).
+- Lote final: RF-39 a RF-52, RNF-18, RNF-19 y las decisiones D-107 a D-110 (siguen «Propuesta»).
+- Aprobar D-107 (**reemplaza** D-89 y **modifica** D-58) y D-110 (**modifica** D-87 solo en la ruta planeada): dejan desactualizados CA-002-39 para R8, el texto de «cobro simulado» en la pantalla de resumen, Configuración y README, y D-87 en el punto de coordenadas.
+- La dependencia `firebase-admin` en el backend (no está en la lista `backend` de `scripts/dependencies.json`): Anderson decide si la añade; sin ella R8 no puede cumplirse. `express-rate-limit` y `cors` no se piden: límite y CORS se resuelven con código propio.
+- Pasos manuales suyos: credenciales de prueba y cuentas de prueba de Mercado Pago, URL pública (`PUBLIC_BASE_URL`) para el webhook, cuenta de servicio de Firebase fuera de Git, publicar las reglas de documentos y de viajes tras validar, y las pruebas en el celular.
 - Aviso: aprobar D-93 deja desactualizados CA-001-22, CA-001-23, la política 1 de `docs/seguridad.md` y la nota de Configuración; planes, tema y tareas de las specs 000/001 pueden quedar desactualizados por la retirada de `ensureAnonymousUser` y de `DevAccountSwitch`.
 
 ## 8. Trazabilidad
@@ -417,3 +786,23 @@ Cómo se verifica: búsqueda en `src/` y `node scripts/check-constitution.mjs` (
 | D-101 | CA-002-10 |
 | D-102 | CA-002-27 |
 | D-103 | CA-002-20, CA-002-34 |
+| RF-39 (R5, enunciado §3.1) | CA-002-41 a CA-002-46 |
+| RF-40 (R6, enunciado §3) | CA-002-47 a CA-002-49 |
+| RF-41 (R7, enunciado §2) | CA-002-50 a CA-002-57 |
+| RF-42 (R8, enunciado §3, §4) | CA-002-58 a CA-002-60 |
+| RF-43 (R8, enunciado §4) | CA-002-61 a CA-002-65, CA-002-68 |
+| RNF-18 (R8, enunciado §4) | CA-002-61, CA-002-63, CA-002-66, CA-002-67 |
+| RF-44 (R8, enunciado §3.4, §4) | CA-002-69 a CA-002-73 |
+| RF-45 (R8, enunciado §3.2) | CA-002-74 |
+| RF-46 (R8, enunciado §4) | CA-002-75, CA-002-76 |
+| RF-52 (R8/R9, enunciado §6) | CA-002-77, CA-002-86 |
+| RF-47 (R9, enunciado §6) | CA-002-78 a CA-002-82 |
+| RF-48 (R9, mejora propia) | CA-002-83 a CA-002-85, CA-002-D10 |
+| RF-49 (R9, enunciado §6) | CA-002-86 |
+| RF-50 (R9, enunciado §5) | CA-002-87 a CA-002-89 |
+| RF-51 (R10, enunciado §3, §7) | CA-002-90 |
+| RNF-19 (R5 a R9) | CA-002-46, CA-002-84, CA-002-D7 a CA-002-D10 |
+| D-107 | CA-002-58, CA-002-60 a CA-002-73 |
+| D-108 | CA-002-58 a CA-002-60, CA-002-65 |
+| D-109 | CA-002-62 |
+| D-110 | CA-002-77, CA-002-86 |

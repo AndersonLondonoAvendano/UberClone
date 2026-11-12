@@ -25,9 +25,25 @@ export function formatMinutesFromSeconds(seconds) {
   return String(value === 0 ? 0 : Math.max(1, Math.ceil(value / 60)));
 }
 
-// Clock time "14:05" in the phone's local time.
+// AI-assisted: see docs/AI_LOG.md #55 (F1a: «NaN:NaN» in Earnings)
+// Root cause: saved trips carry Firestore Timestamps ({ toMillis }); new Date(timestamp) of one is an
+// invalid date, whose getHours() is NaN. toValidDate accepts number, Date, numeric string and
+// Timestamp, and returns null for anything else (null, undefined, '', invalid text or dates).
+export function toValidDate(value) {
+  if (value == null || value === '') return null;
+  let ms;
+  if (typeof value === 'number') ms = value;
+  else if (value instanceof Date) ms = value.getTime();
+  else if (typeof value.toMillis === 'function') ms = value.toMillis();
+  else if (typeof value === 'string') ms = /^\d+$/.test(value.trim()) ? Number(value) : new Date(value).getTime();
+  else return null;
+  return Number.isFinite(ms) ? new Date(ms) : null;
+}
+
+// Clock time "14:05" in the phone's local time. Empty text for an unknown date.
 export function formatClock(timestamp) {
-  const date = new Date(timestamp);
+  const date = toValidDate(timestamp);
+  if (!date) return '';
   const hh = String(date.getHours()).padStart(2, '0');
   const mm = String(date.getMinutes()).padStart(2, '0');
   return `${hh}:${mm}`;
@@ -53,8 +69,8 @@ export function countdownAnnouncement(secondsLeft, template) {
 // AI-assisted: see docs/AI_LOG.md #50
 // Local date and time "11/11/2026 14:05" (day first, as in Colombia). Empty text for an unknown date.
 export function formatDateTime(timestamp) {
-  if (timestamp == null || Number.isNaN(new Date(timestamp).getTime())) return '';
-  const date = new Date(timestamp);
+  const date = toValidDate(timestamp);
+  if (!date) return '';
   const dd = String(date.getDate()).padStart(2, '0');
   const mo = String(date.getMonth() + 1).padStart(2, '0');
   return `${dd}/${mo}/${date.getFullYear()} ${formatClock(timestamp)}`;

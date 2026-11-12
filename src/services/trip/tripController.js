@@ -22,6 +22,7 @@ import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { PASSENGER_API_ERROR } from '../passengerApi';
 import { canTransition } from './tripMachine';
 import { hasArrived, remainingOnRoute, remainingPath, shouldReportLocation } from './routeProgress';
+import { simplifyRoute } from './simplifyRoute';
 
 export const TRIP_PHASE = {
   STARTING: 'starting',
@@ -85,6 +86,8 @@ export function createTripController({
     finishedAt: null,
     // AI-assisted: see docs/AI_LOG.md #50
     startedAt: null, // when the passenger boarded (saved with the trip)
+    // AI-assisted: see docs/AI_LOG.md #55
+    plannedRoute: null, // null | [[lat, lng], ...] simplified route to the destination (saved with the trip)
     // AI-assisted: see docs/AI_LOG.md #44
     finishing: false,
     finishError: null, // null | one of FINISH_ERROR
@@ -374,6 +377,13 @@ export function createTripController({
     const approximate = !route;
     const finalRoute = route ?? buildStraightLineRoute(from, to);
     const patch = { route: finalRoute, routeLoading: false, routeApproximate: approximate };
+    // AI-assisted: see docs/AI_LOG.md #55
+    // The first real (not straight-line) route to the destination is kept, simplified, to save with the
+    // trip (RF-52). No new route request is made for it and no driver position is stored.
+    const realRoute = !approximate && finalRoute.provider !== 'fallback' && finalRoute.provider !== 'straight';
+    if (realRoute && state.phase === TRIP_PHASE.TO_DESTINATION && !state.plannedRoute) {
+      patch.plannedRoute = simplifyRoute((finalRoute.coordinates ?? []).map(([lng, lat]) => [lat, lng]));
+    }
     if (state.position) {
       const { remainingM, remainingS } = remainingOnRoute(finalRoute, state.position);
       patch.remainingM = remainingM;

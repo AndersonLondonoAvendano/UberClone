@@ -55,3 +55,24 @@ export function computePeriodTotals(trips, period, now = Date.now()) {
     trips: inPeriod,
   };
 }
+
+// AI-assisted: see docs/AI_LOG.md #55 (T-99, CA-002-75)
+// Balance with the platform: card payments (Mercado Pago, approved) leave the platform owing the driver
+// their earnings; cash trips leave the driver owing the platform its commission. Positive = the platform
+// owes the driver; negative = the driver owes the platform. Trips without a valid method are ignored.
+export function computeBalance(trips) {
+  let balance = 0;
+  if (!Array.isArray(trips)) return 0;
+  for (const trip of trips) {
+    if (!trip || typeof trip !== 'object') continue;
+    if (trip.status === TRIP_STATUS.CANCELLED) continue;
+    if (trip.paymentMethod === 'mercadopago') {
+      if (trip.paymentStatus !== 'approved') continue;
+      balance += amount(trip.driverEarnings);
+    } else if (trip.paymentMethod === 'cash') {
+      if (trip.paymentStatus !== 'paid' && trip.status !== 'paid') continue;
+      balance -= amount(trip.commission);
+    }
+  }
+  return Number.isFinite(balance) ? balance : 0;
+}

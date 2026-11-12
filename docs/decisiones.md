@@ -618,12 +618,33 @@ Alternativa: precargar el correo del registro con el de la cuenta (descartada: c
 Decisión: (1) un componente único `AccountActions` ofrece la sección Cuenta de Configuración (correo enmascarado, «Cerrar sesión», «Cambiar de cuenta») y, en las tres pestañas de registro y el aviso de cuenta pendiente, solo «Cerrar sesión» como botón secundario con confirmación en pantalla que avisa que lo no enviado se pierde; ambos usan el mismo `resetSession`. (2) Antes de `signOut`, `resetSession` espera hasta 8 s (`TRIP_SAVE_DRAIN_TIMEOUT_MS`) a que termine el guardado de viaje en curso (cola `services/trip/saveQueue.js`); si no termina devuelve `trip-save-pending` sin cerrar sesión, y la pantalla ofrece «Reintentar» o «Cerrar sesión de todos modos» (con confirmación; opción `skipTripSaveWait`). Un viaje en curso sigue bloqueando siempre.
 Alternativa: cerrar sesión sin esperar el guardado (descartada: puede perder el último viaje).
 
-### D-105 — Botón «Cerrar sesión» en la pantalla de error de estado de cuenta · Propuesta (decidida por Anderson en T-72; pendiente de que Anderson la marque Vigente)
+### D-105 — Botón «Cerrar sesión» en la pantalla de error de estado de cuenta · Vigente (Anderson, 2026-11-11)
 Decisión: la variante `error` de `StartupScreen` (ruta ERROR del gate) añade un botón secundario «Cerrar sesión» reutilizando `AccountActions` con `variant="registration"` (confirmación en pantalla, sin `Alert`, mismo `useSessionReset`; testIDs `auth-*`). No aparece en la variante de carga. Evita que el conductor quede sin salida cuando falla la lectura del estado de cuenta.
 Alternativa: solo «Reintentar» (descartada: sin salida si el error persiste).
 
-### D-106 — Guardado fallido del resumen del viaje: pendiente de la rebanada de pagos · Propuesta
+### D-106 — Guardado fallido del resumen del viaje: pendiente de la rebanada de pagos · Vigente (Anderson, 2026-11-11; enlazada a la rebanada de pagos)
 Decisión: el guardado fallido del resumen del viaje (`SAVE.ERROR`) que no entra en la cola de guardado se deja PENDIENTE y enlazado a la rebanada de pagos, que redefine cuándo se guarda el viaje (se creará al completarlo, con estado de pago pendiente). No se implementa ahora (T-72 no lo toca).
 Alternativa: encolar ya el guardado fallido (descartada: se rediseña con pagos).
+
+### D-107 — Pago de prueba real con Mercado Pago Checkout Pro reemplaza el cobro simulado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-89 declaraba el cobro SIMULADO y D-58 dejaba el backend sin cambios; el enunciado (§4) pide preferencia con llave secreta en el backend, confirmación por webhook o sincronización y escucha en tiempo real.
+Decisión: Checkout Pro en modo de prueba (credenciales y tarjetas de prueba, nunca dinero real) con backend Express y firebase-admin. D-89 queda Reemplazada y D-58 queda Modificada (el backend deja de estar intacto solo para esta rebanada). Tarjeta: solo el backend escribe el resultado; efectivo: el conductor, con la regla estrecha de D-108. La pantalla y el README dicen que es pago de prueba. `firebase-admin` se añade a la lista `backend` de `scripts/dependencies.json` (aprobado por el prompt #55). El valor `transfer` de `paymentMethod` pasa a `mercadopago` (datos antiguos de prueba, sin migración). CA-002-39 vale solo para R1 a R4.
+Alternativa: mantener el cobro simulado (descartada: incumple §4 del enunciado).
+
+### D-108 — Modelo de estados y escritores del viaje; regla estrecha de efectivo · Vigente (por encargo, prompt #55; Anderson ratifica)
+Decisión: el viaje nace al completar con `status: 'completed'`, `paymentStatus: 'pending'` y `paymentMethod` `'mercadopago'` o `'cash'`; `paymentStatus` toma `approved`, `pending` o `rejected`; `status` toma `completed`, `paid` o `cancelled`. Escritores: tarjeta, solo el backend; efectivo, el conductor dueño aprobado, únicamente `paymentMethod`, `paymentStatus` y `status`, de `pending`/`completed` a `paid`, y solo si ya era `cash`. Sin otras ediciones ni borrados. Por qué: el conductor no debe poder declararse pagado un viaje de tarjeta.
+Alternativa: que la app marque todo (descartada: falsificable).
+Impacto: reglas nuevas en `docs/seguridad.md`; Anderson las publica tras validar (D-99).
+
+### D-109 — El backend toma el monto del documento del viaje; límite aceptado · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: el enunciado dice enviar `tripId` y monto al backend. El monto sale de una tarifa calculada por la app y el pasajero es simulado.
+Decisión: el backend lee el monto del documento del viaje del `uid` autenticado y exige monto positivo y menor que un tope. Límite aceptado y documentado: un conductor modificado podría escribir un monto distinto al crear el viaje; no se resuelve sin un servidor de tarifas y un pasajero real, fuera de alcance.
+Alternativa: recalcular la tarifa en el backend (descartada: requeriría ruta y reglas de tarifa en servidor).
+
+### D-110 — Ruta planeada simplificada guardada en el viaje · Vigente (por encargo, prompt #55; Anderson ratifica)
+Situación: D-87 prohíbe coordenadas y por eso el historial no dibuja la ruta; el enunciado pide ruta dibujada en el detalle.
+Decisión: se guarda una ruta planeada (no el recorrido real) de máximo 40 puntos con 4 decimales (unos 11 m), solo en `route` del documento del viaje; no se guarda posición real alguna. D-87 queda Modificada solo en ese punto; origen y destino siguen como texto.
+Alternativa: no guardar nada (descartada: incumple §6); recorrido real (descartada: privacidad).
+Impacto: la regla de viajes admite `route` con validación de tamaño y tipo.
 
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

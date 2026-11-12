@@ -31,7 +31,7 @@ El mapa (MapLibre con teselas de OpenFreeMap) y las rutas (OSRM) no necesitan cl
 ## Reglas de seguridad de Firestore
 Las reglas efectivas se publican a mano en la consola de Firebase (Firestore → Reglas). El archivo `firestore.rules` de la raíz es una copia local de trabajo que Git ignora, así que no viene al clonar. La política vigente está descrita en [docs/seguridad.md](docs/seguridad.md) (D-80).
 
-El backend (`backend/`) todavía no requiere un `.env.example` propio: hoy solo expone `/health` y no maneja secretos. Cuando se implemente la spec de cobro y pagos (Mercado Pago/Stripe), sus llaves irán únicamente en `backend/.env`, con su propio `.env.example` sin valores.
+El backend (`backend/`) expone `GET /health`, `POST /payments/checkout`, `POST /payments/sync` y `POST /webhooks/mercadopago`. Sus secretos viven únicamente en `backend/.env` (ignorado por Git); copia `backend/.env.example` (solo nombres, sin valores) a `backend/.env` y complétalo a mano. La app lleva solo `EXPO_PUBLIC_BACKEND_URL`, una URL pública sin secreto. Diseño y prueba manual en [docs/pagos.md](docs/pagos.md).
 
 ## Cómo correr la app (development build) y el backend
 En una terminal, backend:
@@ -45,8 +45,8 @@ npm start
 ```
 Esto abre Metro con `expo start --dev-client`. Conecta el development build al servidor que aparece en la terminal.
 
-## Cobro simulado
-El cobro de esta versión es **simulado**: no hay pasarela de pago real (Mercado Pago/Stripe quedan fuera de esta entrega, P-03). «Confirmar cobro» solo guarda el viaje en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros) y no se cobra dinero. Ganancias e Historial leen esos viajes. La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
+## Cobro: Mercado Pago Checkout Pro (modo de prueba) y efectivo
+El cobro con tarjeta usa **Mercado Pago Checkout Pro en modo de prueba**: el backend crea la preferencia con el importe leído del viaje en Firestore y la app abre el enlace; el resultado llega por webhook o por `/payments/sync` al volver a la app. No se cobra dinero real. El pago en efectivo lo confirma el conductor con «Confirmar efectivo recibido». El viaje se guarda en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros). Ganancias e Historial leen esos viajes y Ganancias muestra el saldo con la plataforma. Detalles, límites y prueba manual en [docs/pagos.md](docs/pagos.md). La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
 
 ## Estructura del proyecto
 - `src/screens/` — pantallas por flujo (`registration/`, `home/`, `main/`, `trip/`, `startup/`).

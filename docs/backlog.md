@@ -1148,6 +1148,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Qué debe ver Anderson en el celular: nada; después de publicar, repetir (a) en el celular (registro, disponibilidad, viaje guardado) y que el verifier ejecute (b) y (c) con cuentas de prueba.
 - Validación: revisión del documento por un verifier distinto.
 - Riesgo: bajo.
+- Nota de orden (planner, 2026-11-11): se ejecuta en el cierre F6, después de T-114 y antes de T-115, junto con las reglas de T-84 y T-91 en el mismo orden de publicación; el contenido no cambia.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
 - Estado: Pendiente
@@ -1163,6 +1164,7 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Qué debe ver Anderson en el celular: seguir la lista y declarar el resultado por paso.
 - Validación: revisión de documentos por un verifier distinto.
 - Riesgo: bajo.
+- Nota de orden (planner, 2026-11-11): se ejecuta en el cierre F6, después de T-73 y antes de T-115; el README y la arquitectura incluyen también los pagos de prueba (`docs/pagos.md`) y el modelo del viaje de D-108; el resto del contenido no cambia.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
 - Estado: Pendiente
@@ -1195,6 +1197,634 @@ Regla de `check-constitution` que avise cuando `app.json` fije `userInterfaceSty
 - Riesgo: bajo.
 - Diseño hecho cuando: rúbrica completa.
 - Diseño: Pendiente
+- Estado: Pendiente
+
+## Spec 002 — Lote final R5 a R10 (plan: `specs/002-funcionalidad-final/plan.md` §8; planificado 2026-11-11; la adición de la spec sigue «Pendiente de aprobación», las D-107 a D-110 siguen «Propuesta»; T-73 a T-76 conservan su contenido anterior y se ejecutan según el orden de plan §0)
+
+Orden de ejecución obligatorio: F1a (T-77, T-78) → F1b (T-79, T-80) → F2 (T-81 a T-84) → [punto de control A] → F4c (T-85 a T-89) → F4a (T-90, T-91) → F4d (T-92 a T-98) → F4e (T-99, T-100) → [punto de control B tras T-98 y T-100] → F3a (T-101 a T-106) → F3b (T-107, T-108) → F3c (T-109, T-110) → [punto de control C] → F5 (T-111) → auditorías (T-112 a T-114) → F6 (T-73, T-74 y T-115 a T-117).
+Puntos de control de dispositivo (D-59): **A** tras T-83 (Inicio, «NaN:NaN», documentos); **B** tras T-98 y T-100 (pago con tarjeta de prueba, efectivo, método en solicitud, saldo; requiere que Anderson publique las reglas de T-84 y T-91, arranque el backend con su `.env` y exponga `PUBLIC_BASE_URL`); **C** tras T-110 (Historial, filtros, paginación, gráfica, detalle con ruta, Ganancias y saldo). Toda tarea marcada «Dispositivo» queda **No verificado en dispositivo** hasta que Anderson confirme.
+Regla de pruebas del lote: lo puro de `src/` lleva prueba en `scripts/tests/*.test.mjs` (ayudante de T-78; correr con `node`); el backend se verifica con scripts con fakes FUERA del proyecto (scratchpad). Ninguna tarea toca `package.json` de la app; la única edición de `scripts/dependencies.json` es T-85.
+
+### T-77 — R6: guarda en el formato de fecha y hora («NaN:NaN»)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R6, RF-40)
+- Requisitos: RF-40
+- Depende de: T-76
+- Archivos: `src/utils/format.js`, `src/constants/labels.js`, y los puntos de uso de `formatClock`/`formatDateTime` (`src/screens/main/EarningsScreen.js`, `src/screens/main/HistoryScreen.js`, `src/screens/trip/TripSummaryScreen.js`) solo si hace falta cambiar la llamada (existentes)
+- Nota: el árbol de trabajo ya trae `toValidDate` en `src/utils/format.js` (cambio sin confirmar, entrada #55 de la bitácora, devuelve texto vacío); esta tarea revisa ese cambio, lo completa con el texto neutro y lo da por implementado solo si cumple CA-002-48.
+- Hacer: añadir (o completar) una función interna con guarda que convierta `null`, `undefined`, cadenas vacías o no numéricas, ISO inválidas, `NaN`, `Invalid Date`, objetos sin `toDate` y números fuera de rango en «no válido»; `formatClock` y `formatDateTime` devuelven entonces el texto neutro de `labels.format.unknownDate` (clave nueva) y nunca lanzan ni imprimen «NaN»; con fecha válida (ISO, `Date`, marca de Firestore) el texto no cambia. Corrección en la utilidad, sin `opacity`, `display` ni tamaño cero.
+- Criterios: CA-002-47 (parte estática), CA-002-48, CA-002-49.
+- Hecho cuando: la utilidad no puede devolver «NaN» ni «Invalid Date» para ninguna entrada de CA-002-48; el diff muestra la corrección en la utilidad y sin estilos que oculten; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control A): Ganancias con un viaje de prueba sin fecha, sin «NaN:NaN». **No verificado en dispositivo.**
+- Validación: script de la tabla de CA-002-48 por un verifier distinto (las pruebas del repositorio llegan en T-78).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (solo cambia el texto devuelto por una utilidad).
+- Diseño: N/A
+- Estado: Implementada (verificada estáticamente; sin prueba en el celular)
+
+### T-78 — R6: ayudante de pruebas puras y pruebas del formato
+- Spec: `specs/002-funcionalidad-final/spec.md` (R6, RF-40)
+- Requisitos: RF-40
+- Depende de: T-77
+- Archivos: `scripts/tests/_load.mjs` (nuevo), `scripts/tests/format.test.mjs` (nuevo)
+- Hacer: el ayudante copia un módulo puro de `src/` (ESM `.js`) a un `.mjs` temporal bajo el directorio temporal del sistema y lo importa, para correrlo con `node` sin Babel ni dependencias; `format.test.mjs` cubre cada entrada de CA-002-48 (incluida una marca de Firestore simulada con `toDate`) y falla con código distinto de cero si algo devuelve «NaN». El ayudante no importa `react-native`, Firebase ni contextos.
+- Criterios: CA-002-48.
+- Hecho cuando: `node scripts/tests/format.test.mjs` pasa; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: el verifier corre el script y rompe a propósito la guarda para ver que falla.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-79 — R5: política de publicación (solo Disponible) y seguimiento local enfocado
+- Spec: `specs/002-funcionalidad-final/spec.md` (R5, RF-39)
+- Requisitos: RF-39
+- Depende de: T-78
+- Archivos: `src/services/locationPolicy.js` (nuevo, puro), `scripts/tests/locationPolicy.test.mjs` (nuevo), `src/hooks/useDriverLocation.js`, `src/context/AvailabilityContext.js` (existentes)
+- Hacer: función pura `locationPolicy({ available, accountApproved, permissionGranted, focused })` → `{ track, publish }`: `track` es verdadero si Inicio está enfocada y hay permiso; `publish` solo si además está Disponible y la cuenta aprobada; ajustar `useDriverLocation` para seguir en local con «No disponible» sin llamar al publicador, y detener y liberar suscripciones y temporizadores al perder el foco o pasar a No disponible; la publicación de estado final y reposo (D-83) y `resetSession` quedan sin cambios.
+- Criterios: CA-002-42, CA-002-43 (parte con script), CA-002-45 (sin rutas en estos archivos).
+- Hecho cuando: la prueba cuenta cero escrituras en No disponible y una por ciclo en Disponible, y altas igual a bajas de suscripciones simuladas; búsqueda de OSRM/ruta sin resultados en los archivos tocados; la app arranca; `check-constitution` (C11) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control A): con No disponible, el mapa sigue su ubicación y la consola de Firestore no recibe escrituras; con Disponible sí. **No verificado en dispositivo.**
+- Validación: script de la política y de conteo de suscripciones con fuente de ubicación y escritor simulados, por un verifier distinto.
+- Riesgo: medio (toca el hook de ubicación y `driverLocations`).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada (verificador: 1 hallazgo corregido; falta celular, punto de control A)
+
+### T-80 — R5: Inicio con mapa a pantalla completa y tarjeta flotante
+- Spec: `specs/002-funcionalidad-final/spec.md` (R5, RF-39, RNF-19)
+- Requisitos: RF-39, RNF-19
+- Depende de: T-79
+- Archivos: `src/screens/home/HomeScreen.js` (existente), `src/components/home/HomeFloatingCard.js` (nuevo), `src/components/map/TripMap.js` (existente, solo si hace falta un modo sin ruta), `src/constants/labels.js`
+- Hacer: mapa a pantalla completa con marcador de auto (T-62) y, encima, `HomeFloatingCard` (superficie opaca con `Card`, interruptor, estado y avisos actuales); estado sin permiso con texto de qué falta y por qué y botón para pedirlo o abrir los ajustes, y el interruptor no deja «Disponible» sin permiso; GPS sin señal: conserva la última posición y lo dice; área segura, controles de al menos 48 dp, crece con la fuente al 200 %, sin animación con «reducir movimiento»; solo tokens y componentes compartidos; sin llamadas de ruta.
+- Criterios: CA-002-41, CA-002-44, CA-002-45, CA-002-46, CA-002-D7, CA-002-D8, CA-002-D9 (parte de Inicio).
+- Hecho cuando: revisión de código contra los criterios; script de contraste con tokens; búsqueda de `Alert`, OSRM, `Directions` en los archivos de Inicio sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control A): Inicio con mapa completo y tarjeta flotante; probar permiso denegado, fuente al 200 % y «reducir movimiento». **No verificado en dispositivo.**
+- Validación: verifier distinto en lo estático; prueba en el celular de Anderson.
+- Riesgo: medio (Inicio es la pantalla principal; depende del mapa nativo).
+- Diseño hecho cuando: rúbrica de `docs/diseno/` completa en la auditoría T-112.
+- Diseño: Pendiente
+- Estado: Implementada (Diseño: Pendiente; falta celular, punto de control A)
+
+### T-81 — R7: validadores puros de vencimiento y de revisión técnico-mecánica
+- Spec: `specs/002-funcionalidad-final/spec.md` (R7, RF-41)
+- Requisitos: RF-41
+- Depende de: T-78
+- Archivos: `src/utils/documentValidators.js` (nuevo), `scripts/tests/documentValidators.test.mjs` (nuevo), `src/constants/labels.js`
+- Hacer: `validateExpiry(value, now)` (solo válido si es posterior a hoy en hora de Colombia, UTC−5; vacío, `null`, inválida → error con texto de `labels`), `requiresTechnicalReview(vehicleYear, currentYear)` → `{ required, reason }` (≥5 años exige; 2022 y 2026 no; vacío, `null`, texto y año futuro exigen; si no se exige devuelve el motivo) y `validateLicenseNumber(value)`; año actual inyectable.
+- Criterios: CA-002-51, CA-002-52.
+- Hecho cuando: las pruebas pasan con la tabla de ambos criterios; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: script de las dos tablas por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-82 — R7: estado del formulario y mapeo a `documents`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R7, RF-41)
+- Requisitos: RF-41
+- Depende de: T-81
+- Archivos: `src/context/RegistrationFormContext.js`, `src/services/driverRepository.js`, `src/utils/validators.js` (existentes), `scripts/tests/documentsMapping.test.mjs` (nuevo)
+- Hacer: añadir al estado los campos de licencia (número, foto, vencimiento), SOAT y revisión técnico-mecánica; validez por pestaña 3 que usa T-81 (revisión exigida según el año del vehículo; si deja de exigirse sus datos no se envían); `drivers/{uid}.documents` = `license {number, photoUrl, expiresAt}`, `soat {photoUrl, expiresAt}`, `technicalReview {required, photoUrl, expiresAt}` (nulos si no se exige); precarga de lo guardado; «Enviar» solo con las 3 pestañas válidas; sin campos de cuenta bancaria ni tarjeta; cuentas anteriores sin `documents` no se bloquean.
+- Criterios: CA-002-53 (script), CA-002-54 (script), CA-002-55.
+- Hecho cuando: el script cubre vehículo de menos y de más de 5 años y el mapeo a documento; búsqueda de números de cuenta o tarjeta en `src/` sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada hasta T-83.
+- Validación: verifier distinto con scripts de validación y mapeo.
+- Riesgo: medio (toca el envío del registro).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-83 — R7: pestaña 3 «Documentos y pagos» con licencia, SOAT y técnico-mecánica
+- Spec: `specs/002-funcionalidad-final/spec.md` (R7, RF-41, D-68)
+- Requisitos: RF-41, RNF-19
+- Depende de: T-82
+- Archivos: `src/screens/registration/DocumentsScreen.js` (existente), `src/components/registration/DateField.js`, `src/components/registration/PhotoField.js` (solo si hace falta una propiedad), `src/constants/labels.js`
+- Hacer: campos de licencia, SOAT y revisión técnico-mecánica con `TextField`, `DateField` y `PhotoField` (Cloudinary, D-68); si no se exige la revisión, muestra el motivo en pantalla; error bajo cada campo con ícono y texto en región `polite`, sin `Alert`; `testID` por campo siguiendo el patrón existente; correo de Mercado Pago y términos con comisión se conservan; teclado sin tapar campo, error ni botón; fuente al 200 %.
+- Criterios: CA-002-50, CA-002-53, CA-002-54, CA-002-56, CA-002-D7, CA-002-D8, CA-002-D9 (parte de documentos).
+- Hecho cuando: revisión de código; diff de `package.json` vacío; búsqueda de `Alert` sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control A): abrir la pestaña 3 con un vehículo de 2020 y otro de 2024, subir las tres fotos, probar fecha de ayer, de hoy y de mañana, y enviar. `DateField` es solo Android. **No verificado en dispositivo.**
+- Validación: verifier distinto en lo estático; subida real y fechas en el celular de Anderson.
+- Riesgo: medio (Cloudinary y selector nativo).
+- Diseño hecho cuando: rúbrica completa en la auditoría T-112.
+- Diseño: Pendiente
+- Estado: Implementada (falta celular, punto de control A)
+
+### T-84 — R7: texto de las reglas de `drivers.documents` en `docs/seguridad.md`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R7, RF-41, RNF-16, D-80)
+- Requisitos: RF-41, RNF-16
+- Depende de: T-83
+- Archivos: `docs/seguridad.md` (existente)
+- Hacer: escribir el texto de las reglas de `drivers` que validan `documents` (tipos, longitudes y fechas), las que dejan pasar cuentas sin `documents`, la indicación de que Anderson las publica y la nota de que las fotos de prueba están en URLs públicas no adivinables de Cloudinary y no deben usarse documentos reales; sin publicar nada ni tocar la consola.
+- Criterios: CA-002-57.
+- Hecho cuando: revisión contra CA-002-57; sin credenciales ni valores de `.env`.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: revisión por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada (falta revisión por un verifier distinto)
+- **Punto de control A (dispositivo)** tras T-83: Inicio (T-79, T-80), «NaN:NaN» (T-77) y documentos (T-81 a T-83). Si algo falla, la cadena se detiene aquí.
+
+### T-85 — F4c: configuración del backend, `.env.example`, `.gitignore` y dependencia `firebase-admin`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, RNF-18, D-107)
+- Requisitos: RF-43, RNF-18
+- Depende de: T-84 y, **bloqueante**, D-107 en estado «Vigente» y aprobación de Anderson de `firebase-admin` en `scripts/dependencies.json` (D-58 y D-89 siguen Vigentes hasta entonces; sin esa decisión no se empieza)
+- Archivos: `backend/src/config.js` (nuevo), `backend/.env.example` (nuevo), `.gitignore`, `backend/package.json`, `scripts/dependencies.json`
+- Hacer: `config.js` lee `MP_ACCESS_TOKEN`, `FIREBASE_SERVICE_ACCOUNT_PATH`, `PUBLIC_BASE_URL`, `PORT` y `MP_WEBHOOK_SECRET` (opcional) del entorno y valida su presencia sin imprimir valores; `.env.example` solo con nombres; `.gitignore` excluye `backend/.env` y `backend/secrets/`; añadir `firebase-admin` a la clave `backend` de `scripts/dependencies.json` y a `backend/package.json`; mencionar `EXPO_PUBLIC_BACKEND_URL` solo como nombre en el ejemplo de la app (sin tocar `.env` real). No leer ni escribir valores de `.env`. El build y la instalación de `npm install` los ejecuta el humano si hace falta.
+- Criterios: CA-002-67.
+- Hecho cuando: revisión de archivos; búsqueda de `MP_ACCESS_TOKEN` en `src/` sin resultados; `check-constitution` (C01 a C03, C15) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada; Anderson crea `backend/.env` y la carpeta `backend/secrets/` con la cuenta de servicio.
+- Validación: verifier distinto por revisión de archivos.
+- Riesgo: medio (dependencia nueva del backend y secretos).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto). Criterios con cuenta real de Mercado Pago: ⏳ No verificado en dispositivo
+
+### T-86 — F4c: verificación del token y acceso a Firestore del backend (inyectables)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, D-108, D-109)
+- Requisitos: RF-43, RNF-18
+- Depende de: T-85
+- Archivos: `backend/src/auth.js` (nuevo), `backend/src/firestore.js` (nuevo)
+- Hacer: `auth.js` expone `createAuth(adminAuth)` con `verifyToken(header)` → `uid` o error genérico (sin registrar tokens); `firestore.js` expone `createTripStore(db)` con `getTrip(uid, tripId)` y `applyPayment(uid, tripId, payment)` dentro de una transacción idempotente que nunca retrocede un viaje `approved` y mapea sólo `status`/`paymentStatus`/`paymentId`; la inicialización real de `firebase-admin` queda en una fábrica separada (`initAdmin(config)`) para que las pruebas inyecten fakes.
+- Criterios: CA-002-64 (transacción), CA-002-66 (sin registros de tokens).
+- Hecho cuando: script con fakes fuera del proyecto: token válido/ausente/inválido; transacción con entregas duplicadas y fuera de orden; búsqueda de `console.*` sin tokens ni cabeceras.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto con script en scratchpad.
+- Riesgo: alto (dinero y propiedad de datos).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto). Criterios con cuenta real de Mercado Pago: ⏳ No verificado en dispositivo
+
+### T-87 — F4c: cliente de Mercado Pago inyectable y mapeo de estados
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, RNF-18, D-107)
+- Requisitos: RF-43, RNF-18
+- Depende de: T-85
+- Archivos: `backend/src/mercadopago.js` (nuevo)
+- Hacer: `createMercadoPagoClient({ accessToken, fetch })` con `createPreference({ tripId, amount, currency, notificationUrl })`, `getPayment(id)` y `verifySignature({ headers, dataId, secret })`; usa `fetch` nativo (sin SDK nuevo); `mapPaymentStatus(status)` puro (`approved`→`approved`; `pending`/`in_process`→`pending`; `rejected`/`cancelled`→`rejected`; todo lo demás, incluido `refunded` y `undefined`, → `pending`); sin registrar el token.
+- Criterios: CA-002-62 (forma de la preferencia), CA-002-63 (firma), CA-002-65.
+- Hecho cuando: script con `fetch` simulado: tabla de CA-002-65, preferencia con `external_reference = tripId` y monto indicado, firma válida, inválida y ausente.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto). Criterios con cuenta real de Mercado Pago: ⏳ No verificado en dispositivo
+
+### T-88 — F4c: `/health`, `/payments/checkout`, `/payments/sync` y defensas de la app Express
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, RNF-18, D-109)
+- Requisitos: RF-43, RNF-18
+- Depende de: T-86, T-87
+- Archivos: `backend/src/app.js`, `backend/src/server.js`, `backend/src/routes/payments.js` (nuevo), `backend/src/middleware.js` (nuevo)
+- Hacer: `createApp({ auth, store, mp, config })` con dependencias inyectadas; `GET /health` sin autenticación y sin datos sensibles; `POST /payments/checkout {tripId}` (token; viaje del `uid`, `completed`, `mercadopago`, no `approved`; monto del DOCUMENTO, positivo y bajo el tope; ignora `amount`/`title` del cuerpo; devuelve solo el enlace) y `POST /payments/sync {tripId}` (mismo control; consulta el pago y aplica el resultado); límite de peticiones por usuario (429), cuerpo máximo (413), CORS cerrado sin comodín, errores genéricos, sin registro de tokens ni cuerpos; `server.js` arma las dependencias reales.
+- Criterios: CA-002-61, CA-002-62, CA-002-64 (sync), CA-002-66, CA-002-68.
+- Hecho cuando: scripts con fakes fuera del proyecto contra el servidor real (tabla de CA-002-61, 62, 66, 68); `GET /health` sigue respondiendo; búsqueda de `console.*` y del registro de peticiones.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto). Criterios con cuenta real de Mercado Pago: ⏳ No verificado en dispositivo
+
+### T-89 — F4c: `/webhooks/mercadopago` con consulta del pago e idempotencia
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, RNF-18, D-108)
+- Requisitos: RF-43, RNF-18
+- Depende de: T-88
+- Archivos: `backend/src/routes/webhooks.js` (nuevo), `backend/src/app.js`
+- Hacer: tomar solo el identificador del pago, consultarlo con el token de servidor, validar `external_reference`, monto, moneda y estado contra el viaje, verificar `x-signature` si `MP_WEBHOOK_SECRET` está definido (rechaza inválida o ausente), aplicar en transacción idempotente sin retroceder un `approved`; viaje inexistente → respuesta correcta sin aplicar; respuestas sin detalles.
+- Criterios: CA-002-63, CA-002-64.
+- Hecho cuando: scripts con fakes: cuerpo falso (estado inventado, `tripId` ajeno, monto o moneda distintos), firma inválida o ausente, entregas duplicadas y fuera de orden, `rejected` tras `approved`.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto). Criterios con cuenta real de Mercado Pago: ⏳ No verificado en dispositivo
+
+### T-90 — F4a: `docs/pagos.md`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-43, RNF-18, D-107, D-109)
+- Requisitos: RF-43, RNF-18, RF-42
+- Depende de: T-89
+- Archivos: `docs/pagos.md` (nuevo)
+- Hacer: documentar el flujo (checkout, enlace, webhook y sincronización, estados y mapeo), que es pago de PRUEBA (credenciales y tarjetas de prueba, nunca dinero real), variables de entorno por nombre, cómo exponer `PUBLIC_BASE_URL`, cómo arrancar el backend, el límite aceptado de D-109 (monto de un conductor modificado) y los pasos manuales de Anderson; sin valores de `.env`.
+- Criterios: CA-002-67 (nombres), documentación de RNF-18.
+- Hecho cuando: revisión del documento contra RF-43 y RNF-18, sin secretos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: revisión por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada (corregida una vez tras rechazo del verificador; falta re-verificación por un verificador distinto)
+
+### T-91 — F4a: texto de las reglas de `trips` (efectivo, solo backend, `route`) en `docs/seguridad.md`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-42, D-108, D-110, D-80)
+- Requisitos: RF-42, RF-52, RNF-16
+- Depende de: T-90
+- Archivos: `docs/seguridad.md` (existente)
+- Hacer: texto de las reglas de `drivers/{uid}/trips/{tripId}`: creación con `status: 'completed'`, `paymentStatus: 'pending'`, `paymentMethod` `mercadopago`/`cash` y `commissionRate`; `paymentStatus`, `paymentId` y `status` de viajes `mercadopago` solo por el backend; regla estrecha de efectivo (solo `paymentMethod`, `paymentStatus` y `status`, de `pending`/`completed` a `paid`, solo si ya era `cash`, conductor dueño y aprobado; sin otras ediciones ni borrados); validación de `route` (hasta 40 puntos); lista de casos denegados de CA-002-59; Anderson las publica (D-80, D-99); sin tocar la consola.
+- Criterios: CA-002-59 (texto), CA-002-60 (parte documental).
+- Hecho cuando: revisión contra CA-002-59 y 60; sin credenciales.
+- Qué debe ver Anderson en el celular: nada; antes del punto de control B Anderson publica las reglas de T-84 y T-91 tras validar la app (D-99).
+- Validación: revisión por un verifier distinto; la prueba con cuentas de prueba o emulador se ejecuta después de publicar.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto); CA-002-59 con emulador pendiente hasta que Anderson publique las reglas
+
+### T-92 — F4d: simplificación pura de la ruta planeada (D-110)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-52, D-110)
+- Requisitos: RF-52
+- Depende de: T-91
+- Archivos: `src/services/trip/simplifyRoute.js` (nuevo), `scripts/tests/simplifyRoute.test.mjs` (nuevo)
+- Hacer: `simplifyRoute(points, maxPoints = 40)` devuelve como máximo 40 puntos `[lat, lng]` con 4 decimales, conserva el primero y el último, descarta coordenadas inválidas y devuelve `null` si no hay ruta usable; no guarda ninguna posición real del conductor.
+- Criterios: CA-002-77.
+- Hecho cuando: pruebas con 0, 1, 2, 39, 40, 41 y 500 puntos y coordenadas inválidas pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto corre el script.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto; no verificado en dispositivo)
+
+### T-93 — F4d: nuevo modelo del viaje (`completed`, `paymentStatus`, método, `route`, `cancelled`)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-42, RF-52, D-108, D-110)
+- Requisitos: RF-42, RF-52
+- Depende de: T-92
+- Archivos: `src/services/trip/tripRecord.js`, `src/services/trip/tripController.js`, `src/services/tripRepository.js`, `src/services/passengerApi/mappers.js`, `src/services/passengerApi/mockPassengerApi.js`, `src/constants/tripStatus.js` (existentes), `scripts/tests/tripRecord.test.mjs` (nuevo)
+- Hacer: `buildTripRecord` crea el viaje al completar con `status: 'completed'`, `paymentStatus: 'pending'`, `paymentMethod` `mercadopago` o `cash` (el que traiga la solicitud; el mock de la API del pasajero lo incluye), `commissionRate` y `route` simplificada con T-92 (sin ruta se guarda sin ella y sin fallar); un viaje cancelado queda con `status: 'cancelled'`; sustituir `transfer` por `mercadopago` y mantener `none` como valor heredado leído; ninguna escritura de `paymentStatus`, `paymentId` ni `status: 'paid'` desde la app para viajes de tarjeta; `TRIP_STATUS` agrega `PAID` desde la constante única.
+- Criterios: CA-002-58, CA-002-60, CA-002-77.
+- Hecho cuando: script contra `buildTripRecord` (completado con y sin ruta, cancelado, ambos métodos); búsqueda de las escrituras prohibidas en `src/` sin resultados; la app arranca; `check-constitution` (C14) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control B): completar un viaje y ver el documento en la consola con los campos nuevos. **No verificado en dispositivo.**
+- Validación: verifier distinto.
+- Riesgo: alto (cambia el documento del viaje y el cobro simulado actual).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto); documento en la consola: No verificado en dispositivo hasta el punto de control B
+
+### T-94 — F4d: decisión pura del estado de cobro y las acciones
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-44)
+- Requisitos: RF-44
+- Depende de: T-93
+- Archivos: `src/services/trip/paymentView.js` (nuevo), `scripts/tests/paymentView.test.mjs` (nuevo), `src/constants/labels.js`
+- Hacer: `paymentView(trip)` → `{ chip: 'approved'|'pending'|'rejected'|'cash'|'unavailable', actions: [...] }` con las reglas de CA-002-69: «Cobrar con Mercado Pago» (pendiente), «Reintentar pago» (rechazado), «Verificar pago» (pendiente o rechazado), «Confirmar efectivo recibido» (efectivo pendiente) y ninguna (aprobado o efectivo cobrado); método ausente o heredado (`transfer`, `none`) → «No disponible» sin ofrecer cobrar.
+- Criterios: CA-002-69 (parte pura).
+- Hecho cuando: pruebas de todos los estados y del caso heredado pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto; no verificado en dispositivo)
+
+### T-95 — F4d: servicio de pagos de la app y escritura estrecha de efectivo
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-42, RF-44, RNF-18, D-108)
+- Requisitos: RF-42, RF-44, RNF-18
+- Depende de: T-94
+- Archivos: `src/services/paymentsService.js` (nuevo), `src/services/tripRepository.js` (existente), `src/config/backend.js` (nuevo o existente, lee `EXPO_PUBLIC_BACKEND_URL`)
+- Hacer: `requestCheckoutUrl(tripId)` y `syncPayment(tripId)` llaman al backend con el ID token del conductor (`fetch` con tiempo límite; sin cuerpo con monto); clasifican fallos en `OFFLINE`, `BACKEND_UNAVAILABLE` y `FAILED` sin lanzar el error crudo; `confirmCashPayment(driverId, tripId)` en `tripRepository` escribe solo `paymentMethod`, `paymentStatus: 'paid'` y `status: 'paid'` (regla estrecha); la app no escribe `paymentStatus` de viajes de tarjeta; ningún secreto en la app.
+- Criterios: CA-002-60, CA-002-70 (parte del servicio), CA-002-72 (escritura).
+- Hecho cuando: script con `fetch` y Firestore simulados que comprueba el cuerpo (solo `tripId`), el encabezado, la clasificación de errores y los tres campos de la escritura de efectivo; búsqueda de `MP_ACCESS_TOKEN` y de escrituras prohibidas en `src/` sin resultados; `check-constitution` (C10) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada hasta T-97.
+- Validación: verifier distinto.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada (estático, verificador distinto); escribe solo {paymentStatus,status}, coherente con la regla de T-91; no verificado en dispositivo
+
+### T-96 — F4d: «Cobro y resumen» con estado del cobro y estados de pantalla
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-44, RF-03, RNF-19)
+- Requisitos: RF-44, RNF-19
+- Depende de: T-95
+- Archivos: `src/screens/trip/TripSummaryScreen.js` (existente), `src/hooks/useTripPayment.js` (nuevo), `src/constants/labels.js`
+- Hacer: `useTripPayment(tripId)` escucha el viaje con `onSnapshot` y libera la suscripción al salir; la pantalla muestra el estado de cobro como `Chip` con texto e ícono («Aprobado», «Pendiente», «Rechazado», «Efectivo»), el resumen del viaje y los estados cargando (`SkeletonBlock`), error, sin conexión y backend no disponible, cada uno con texto y salida segura a Inicio; sin `Alert`; sin acciones aún (T-97).
+- Criterios: CA-002-69 (Chip), CA-002-73, CA-002-D7, CA-002-D9 (parte de cobro).
+- Hecho cuando: revisión de código; script de la limpieza de la suscripción simulada; búsqueda de `Alert` sin resultados; la app arranca; `check-constitution` (C11) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control B): el resumen tras completar un viaje, en modo avión y con el backend apagado. **No verificado en dispositivo.**
+- Validación: verifier distinto en lo estático; prueba en el celular de Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-113.
+- Diseño: Pendiente
+- Estado: Validada (estático, verificador distinto); no verificado en dispositivo (punto de control B); Diseño pendiente (T-113). Menor: el estado «Sin conexión» puede no verse porque onSnapshot sirve caché sin error
+
+### T-97 — F4d: acciones de cobro (Mercado Pago, verificar, reintentar y efectivo)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-42, RF-44)
+- Requisitos: RF-42, RF-44
+- Depende de: T-96
+- Archivos: `src/screens/trip/TripSummaryScreen.js`, `src/hooks/useTripPayment.js`, `src/constants/labels.js` (existentes)
+- Hacer: «Cobrar con Mercado Pago» pide el enlace con `requestCheckoutUrl` y lo abre con `Linking.openURL` (una sola petición en curso ante doble toque); «Reintentar pago» tras rechazo; «Verificar pago» y sincronización automática al volver la app a primer plano (`AppState`, limpiando el oyente); «Confirmar efectivo recibido» con `confirmCashPayment`; la app nunca marca como pagado un viaje de tarjeta ni trata el regreso del navegador como prueba; el resumen dice que es pago de prueba.
+- Criterios: CA-002-69, CA-002-70, CA-002-71, CA-002-72, CA-002-D9.
+- Hecho cuando: revisión de código y script de las acciones con el servicio simulado; búsqueda de las escrituras prohibidas en `src/` sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control B): pago con tarjeta de prueba (aprobado, y uno rechazado con reintento), volver al navegador y ver «Aprobado» sin escribir en la app; viaje en efectivo con «Confirmar efectivo recibido» y el cambio visible en la consola. **No verificado en dispositivo.**
+- Validación: verifier distinto en lo estático; Anderson hace la prueba real.
+- Riesgo: alto.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-113.
+- Diseño: Pendiente
+- Estado: Implementada (verificada en lo estático por un verificador distinto, sin rechazo funcional); no verificado en dispositivo (punto de control B); Diseño pendiente (T-113). Menores: sin aviso si se toca un botón mientras corre una sincronización automática; literales `'cash'`/`'mercadopago'` en vez de `SAVED_PAYMENT`; `paymentActionsTitle` sin uso; revisar la jerarquía (acción principal como `SecondaryButton`)
+
+### T-98 — F4d: método de pago visible en la solicitud entrante
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-45)
+- Requisitos: RF-45
+- Depende de: T-93
+- Archivos: `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`, `src/constants/labels.js` (existentes)
+- Hacer: mostrar el método de pago (Mercado Pago o efectivo) como texto en ambas vistas, sin cambiar el orden de R1, los `testID` ni los botones fijos.
+- Criterios: CA-002-74, CA-002-06 (sin cambios de `testID`).
+- Hecho cuando: revisión del diff (orden y `testID` intactos); la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control B): ver el método en la solicitud con fuente al 130 % y 200 %. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio (R1 depende de que el precio y los botones sigan visibles).
+- Diseño hecho cuando: rúbrica completa en la auditoría T-113.
+- Diseño: Pendiente
+- Estado: Implementada (verificada en lo estático por un verificador distinto, sin rechazo funcional); no verificado en dispositivo (punto de control B); Diseño pendiente (T-113). Menores: el diccionario se indexa con un valor del servidor (`Object.hasOwn` pendiente); la tarjeta oculta un método desconocido y la pantalla completa muestra el texto crudo.
+
+### T-99 — F4e: saldo puro con pruebas
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-46)
+- Requisitos: RF-46
+- Depende de: T-93
+- Archivos: `src/utils/earnings.js` (existente), `scripts/tests/balance.test.mjs` (nuevo)
+- Hacer: `computeBalance(trips)` = suma de la ganancia neta de viajes aprobados por la pasarela menos la comisión de los viajes en efectivo cobrados; puede ser negativo, ignora viajes sin `paymentMethod` válido y nunca produce `NaN`; la comisión sale de `commissionRate` del viaje.
+- Criterios: CA-002-75.
+- Hecho cuando: pruebas con aprobados, efectivo, mezclados, comisión mayor que lo aprobado, solo efectivo, viaje heredado y valores inválidas pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada y Validada en lo estático (10 aserciones, `balance.test.mjs`). Menores: la comisión sale de `trip.commission` guardada (T-108 pide `commissionRate` por viaje); efectivo con `status: paid` sin prueba dedicada; literales `cash`/`mercadopago` en vez de `SAVED_PAYMENT`
+
+### T-100 — F4e: mostrar el saldo con «Saldo a favor de la plataforma»
+- Spec: `specs/002-funcionalidad-final/spec.md` (R8, RF-46, RNF-19)
+- Requisitos: RF-46, RNF-19
+- Depende de: T-99
+- Archivos: `src/screens/main/EarningsScreen.js` (existente), `src/constants/labels.js`
+- Hacer: bloque de saldo con `Card` y `DataRow`; con saldo negativo muestra «Saldo a favor de la plataforma» con el importe en positivo, no un número negativo suelto; texto e ícono, sin color solo; el cálculo vive en `earnings.js` (T-108 lo pasa a `useEarnings`).
+- Criterios: CA-002-76, CA-002-D7.
+- Hecho cuando: revisión de código; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (puntos de control B y C): un saldo negativo (solo efectivo) con su texto. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Implementada (2026-11-11); verificación por un verificador distinto en curso; no verificado en dispositivo (punto de control B)
+- **Punto de control B (dispositivo)** tras T-98 y T-100: modelo del viaje (T-93), Cobro y resumen (T-96, T-97), método en la solicitud (T-98) y saldo (T-100). Prerrequisito de Anderson: reglas de T-84 y T-91 publicadas, backend arrancado y `PUBLIC_BASE_URL` accesible. Si falla, la cadena se detiene.
+
+### T-101 — F3a: rangos de periodo en hora de Colombia y validación del Rango
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47)
+- Requisitos: RF-47
+- Depende de: T-100
+- Archivos: `src/utils/dateRanges.js` (nuevo), `scripts/tests/dateRanges.test.mjs` (nuevo), `src/constants/labels.js`
+- Hacer: `periodBounds(period, now)` para Hoy, Semana (lunes a domingo) y Mes en UTC−5 sin horario de verano, y `validateRange(start, end)` (inicio ≤ fin, máximo 366 días, ambas fechas presentes) con mensaje de `labels`.
+- Criterios: CA-002-79, CA-002-80 (función).
+- Hecho cuando: pruebas alrededor de la medianoche de Colombia, domingo a lunes, fin de mes y febrero bisiesto, y los tres errores del Rango pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio (las zonas horarias son fuente de errores).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-102 — F3a: consulta paginada de viajes (20 por página, sin índice compuesto)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47)
+- Requisitos: RF-47
+- Depende de: T-101
+- Archivos: `src/services/tripRepository.js`, `src/hooks/useTrips.js` (existentes), `scripts/tests/tripQuery.test.mjs` (nuevo)
+- Hacer: consulta con `orderBy('createdAt', 'desc')`, rango solo sobre `createdAt`, `limit(20)` y `startAfter` del último documento; `useTrips` expone `trips`, `loadMore`, `hasMore`, `loading`, `error` y descarta la respuesta tardía al cambiar de filtro; el filtro de método (Todos, Tarjeta, Efectivo) se aplica en el cliente; sin duplicados al paginar.
+- Criterios: CA-002-78 (script), CA-002-81.
+- Hecho cuando: script con Firestore simulado que inspecciona los argumentos de la consulta (sin `where` sobre otro campo), pagina sin duplicados y oculta «Cargar más» al agotar; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada hasta T-106.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-103 — F3a: agrupación pura de la ganancia neta para la gráfica
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-48)
+- Requisitos: RF-48
+- Depende de: T-101
+- Archivos: `src/utils/chartData.js` (nuevo), `scripts/tests/chartData.test.mjs` (nuevo)
+- Hacer: `groupNetEarnings(trips, period, range)` → grupos `{ key, label, value }` por franja horaria (Hoy), por día (Semana y Mes) y por día o semana (Rango según su longitud); grupos vacíos valen 0; fechas inválidas se excluyen sin lanzar; `barScale(groups)` con máximo 0 devuelve alto 0 sin dividir por cero; resumen (total y barra mayor).
+- Criterios: CA-002-83, CA-002-85.
+- Hecho cuando: pruebas con bordes, sin viajes y fechas inválidas pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-104 — F3a: componente de gráfica de barras con `View`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-48, RNF-19)
+- Requisitos: RF-48, RNF-19
+- Depende de: T-103
+- Archivos: `src/components/BarChart.js` (nuevo), `src/constants/labels.js`
+- Hacer: barras con `View` y tokens, cada una con etiqueta de texto y `accessibilityLabel` (periodo e importe), resumen legible (total y barra mayor), estado sin ganancias con texto y sin barras de alto indefinido; etiquetas alternadas o rotadas si se solapan; no depende solo del color; sin dependencias nuevas.
+- Criterios: CA-002-84, CA-002-85, CA-002-D7, CA-002-D10.
+- Hecho cuando: revisión de código; diff de `package.json` vacío; la app arranca; `check-constitution` (C15) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control C): la gráfica con texto al 200 % y una captura en escala de grises. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-105 — F3a: filtros del Historial (periodo, Rango y método)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47)
+- Requisitos: RF-47, RNF-19
+- Depende de: T-101, T-102
+- Archivos: `src/components/history/HistoryFilters.js` (nuevo), `src/constants/labels.js`
+- Hacer: selector de periodo (Hoy, Semana, Mes, Rango) y de método (Todos, Tarjeta, Efectivo) con `Chip`; en Rango dos `DateField` y los mensajes de `validateRange` en pantalla con ícono y texto, región `polite`, sin `Alert` y sin consultar si es inválido; objetivos de 44 x 44 y fuente al 200 %.
+- Criterios: CA-002-80, CA-002-D7, CA-002-D8, CA-002-D9.
+- Hecho cuando: revisión de código; búsqueda de `Alert` sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control C): los filtros y los tres errores del Rango. `DateField` es solo Android. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-106 — F3a: Historial con lista paginada, `Chip` de estado y gráfica
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-47, RF-48)
+- Requisitos: RF-47, RF-48, RNF-19
+- Depende de: T-102, T-104, T-105
+- Archivos: `src/screens/main/HistoryScreen.js` (existente), `src/components/history/TripListItem.js` (nuevo), `src/constants/labels.js`
+- Hacer: `FlatList` del más reciente al más antiguo con `TripListItem` (fecha y hora con la guarda de T-77, origen → destino, categoría, tarifa, neto y `Chip` del estado de pago con texto e ícono), «Cargar más» que desaparece al agotar, estado vacío con texto, cargando (`SkeletonBlock`), error; la gráfica sobre la lista con el periodo elegido; sin `Alert`.
+- Criterios: CA-002-78, CA-002-82, CA-002-D7, CA-002-D8, CA-002-D9.
+- Hecho cuando: revisión de código; la app arranca; `check-constitution` (C13) sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control C): lista con más de 20 viajes, «Cargar más», cada filtro y el estado vacío. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-107 — F3b: métricas puras de Ganancias y ejemplo del enunciado
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-50)
+- Requisitos: RF-50
+- Depende de: T-99, T-101
+- Archivos: `src/utils/earnings.js` (existente), `scripts/tests/earnings.test.mjs` (nuevo), `scripts/tests/fare.test.mjs` (nuevo)
+- Hacer: `computeMetrics(trips, period, now)` → viajes, total facturado, comisiones, propinas, neto, promedio por viaje (0 sin viajes) y saldo (T-99) con los límites de T-101 y `commissionRate` por viaje (el valor vigente solo de respaldo); pruebas del ejemplo del enunciado con las funciones reales (8,5 km y 22 min: Económico 19.200 / 3.840 / 15.360 y XL 26.900 / 5.380 / 21.520) y de los límites de semana y mes en Colombia.
+- Criterios: CA-002-87, CA-002-88.
+- Hecho cuando: las pruebas pasan sin `NaN`; si el ejemplo no coincide con `calculateFare`, se reporta y se detiene sin cambiar tarifas (fuera de este alcance).
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-108 — F3b: hook `useEarnings` y Ganancias con las seis métricas
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-50, RNF-03)
+- Requisitos: RF-50, RF-46, RNF-19
+- Depende de: T-107, T-100
+- Archivos: `src/hooks/useEarnings.js` (nuevo), `src/screens/main/EarningsScreen.js` (existente)
+- Hacer: `useEarnings(trips)` calcula con `useMemo` las métricas de Hoy, Semana y Mes y el saldo; la pantalla lo usa sin lógica de cálculo propia y muestra las seis métricas más el saldo con `Card`/`DataRow`.
+- Criterios: CA-002-89, CA-002-87 (uso), CA-002-76.
+- Hecho cuando: `useEarnings` existe y usa `useMemo`; la pantalla no calcula; `check-constitution` (C12, C13) sin hallazgos nuevos; la app arranca.
+- Qué debe ver Anderson en el celular (punto de control C): las seis métricas de cada periodo y el saldo coherentes con el Historial. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio.
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-109 — F3c: presentación pura del detalle del viaje
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-49, D-110)
+- Requisitos: RF-49
+- Depende de: T-93, T-77
+- Archivos: `src/services/trip/tripDetailView.js` (nuevo), `scripts/tests/tripDetailView.test.mjs` (nuevo), `src/constants/labels.js`
+- Hacer: `tripDetailView(trip)` devuelve duración, distancia, comisión, propina (0 o «sin propina»), método, estado, calificación solo si existe y `route` válida o `null` con el texto «Ruta no disponible» (sin ruta, un solo punto o coordenadas inválidas); usa las guardas de T-77.
+- Criterios: CA-002-86 (parte pura).
+- Hecho cuando: pruebas con y sin ruta, propina y calificación ausentes pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-110 — F3c: pantalla de detalle con la ruta planeada dibujada
+- Spec: `specs/002-funcionalidad-final/spec.md` (R9, RF-49, D-110, RNF-19)
+- Requisitos: RF-49, RNF-19
+- Depende de: T-109, T-106
+- Archivos: `src/screens/main/TripDetailScreen.js` (nuevo), `src/navigation/MainDrawer.js` o la pila de Historial (existente, nueva ruta), `src/components/map/TripMap.js` (solo si hace falta un modo de solo lectura), `src/components/history/TripListItem.js`
+- Hacer: tocar un elemento del Historial abre el detalle: mapa con la línea de `route` (sin llamadas de ruta nuevas), o el texto «Ruta no disponible» sin fallar; `DataRow` de duración, distancia, comisión, propina, método y estado (`Chip`), y la calificación solo si existe; salida al Historial; sin `Alert`.
+- Criterios: CA-002-86, CA-002-D7, CA-002-D8, CA-002-D9.
+- Hecho cuando: revisión de código; búsqueda de OSRM y `Directions` en los archivos tocados sin resultados; la app arranca; `check-constitution` sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular (punto de control C): detalle de un viaje nuevo con ruta y de uno antiguo sin ruta. **No verificado en dispositivo.**
+- Validación: verifier distinto; prueba en el celular.
+- Riesgo: medio (mapa nativo).
+- Diseño hecho cuando: rúbrica completa en la auditoría T-114.
+- Diseño: Pendiente
+- Estado: Pendiente
+- **Punto de control C (dispositivo)** tras T-110: Historial y filtros (T-101 a T-106), Ganancias y saldo (T-100, T-107, T-108) y detalle con ruta (T-109, T-110). Si falla, la cadena se detiene.
+
+### T-111 — F5: `docs/omisiones-y-limites.md`
+- Spec: `specs/002-funcionalidad-final/spec.md` (R10, RF-51)
+- Requisitos: RF-51
+- Depende de: T-110
+- Archivos: `docs/omisiones-y-limites.md` (nuevo)
+- Hacer: por cada punto, qué pide el enunciado, qué se hizo y por qué: FCM (sin notificaciones con la app cerrada), perfil editable frente a «aprobada, sin edición», idioma ES/EN (sin selector; textos en `labels.js`), OSRM y MapLibre frente a Directions y `react-native-maps` (D-82), iOS no verificado, `DateField` solo Android, propinas y calificación fuera de alcance salvo que existan datos; añade la nota de cuentas anteriores sin `documents` y el límite de D-109.
+- Criterios: CA-002-90.
+- Hecho cuando: revisión del documento contra CA-002-90.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: revisión por un verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-112 — Auditoría de diseño: Inicio, «NaN» y documentos (R5, R6, R7)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RNF-19; plan §5)
+- Requisitos: RNF-19, RF-39, RF-40, RF-41
+- Depende de: T-80, T-83, T-110
+- Archivos: `docs/diseno/auditorias/` (informe de ronda); campo Diseño de las tareas auditadas (lo escribe el design-auditor)
+- Hacer: auditar con el `design-auditor` T-80 y T-83: tokens, componentes compartidos, 48 dp en Inicio y 44 x 44 en el resto, 200 % de fuente, área segura, «reducir movimiento», errores con ícono y texto, ausencia de `Alert`; hallazgos al `implementer` (máximo dos rondas).
+- Criterios: CA-002-D7, CA-002-D8, CA-002-D9 (Inicio y documentos).
+- Hecho cuando: informe de ronda emitido y campo Diseño de T-80 y T-83 en «Aprobado» o con hallazgos abiertos.
+- Qué debe ver Anderson en el celular: capturas de Inicio (100 y 200 %, permiso denegado) y de la pestaña 3 con errores y teclado abierto.
+- Validación: la aprueba solo el `design-auditor`.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica de `docs/diseno/` completa.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-113 — Auditoría de diseño: Cobro y resumen y método de pago (R8)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RNF-19; plan §5)
+- Requisitos: RNF-19, RF-44, RF-45
+- Depende de: T-96, T-97, T-98, T-110
+- Archivos: `docs/diseno/auditorias/` (informe de ronda); campo Diseño de las tareas auditadas
+- Hacer: auditar T-96, T-97 y T-98: `Chip` con texto e ícono en los cuatro estados, estados de pantalla con salida segura, 200 % de fuente, ausencia de `Alert`, y que la solicitud conserve el orden y los `testID` de R1.
+- Criterios: CA-002-D7, CA-002-D8, CA-002-D9 (cobro), CA-002-06.
+- Hecho cuando: informe de ronda emitido y campo Diseño de T-96, T-97 y T-98 resuelto.
+- Qué debe ver Anderson en el celular: capturas de los cuatro estados de cobro y de la solicitud con el método (130 y 200 %).
+- Validación: la aprueba solo el `design-auditor`.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica completa.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-114 — Auditoría de diseño: Historial, gráfica, Ganancias y detalle (R9)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RNF-19; plan §5)
+- Requisitos: RNF-19, RF-46, RF-47, RF-48, RF-49, RF-50
+- Depende de: T-100, T-104, T-105, T-106, T-108, T-110
+- Archivos: `docs/diseno/auditorias/` (informe de ronda); campo Diseño de las tareas auditadas
+- Hacer: auditar T-100, T-104, T-105, T-106, T-108 y T-110: tokens, `Chip`, `DataRow`, gráfica en escala de grises y con etiquetas sin solapar, filtros, estados vacío, cargando y error, 200 % de fuente.
+- Criterios: CA-002-D7, CA-002-D8, CA-002-D9, CA-002-D10.
+- Hecho cuando: informe de ronda emitido y campo Diseño de las tareas auditadas resuelto.
+- Qué debe ver Anderson en el celular: capturas de Historial, gráfica (100 %, 200 % y escala de grises), Ganancias, saldo negativo y detalle con y sin ruta.
+- Validación: la aprueba solo el `design-auditor`.
+- Riesgo: bajo.
+- Diseño hecho cuando: rúbrica completa.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### Cierre F6 (orden: después de T-114)
+T-73 y T-74 (arriba) se ejecutan aquí, con el contenido que ya tienen más lo indicado en sus notas de orden; después T-115, T-116 y T-117.
+
+### T-115 — F6: comprobaciones de cierre (grep cero, constitución, dependencias)
+- Spec: `specs/002-funcionalidad-final/spec.md` (RF-38, CA-002-37, CA-002-39, CA-002-40, CA-002-D6)
+- Requisitos: RF-38, RNF-18, RNF-19
+- Depende de: T-73, T-74, T-114
+- Archivos: ninguno (verificación); registra el resultado el verifier
+- Hacer: búsqueda en `src/` de `signInAnonymously`, `ensureAnonymousUser`, `DevAccountSwitch`, `simulateAccountStatus` y `authNote` con cero usos (salvo la lectura de `isAnonymous`); `Alert` sin usos; `MP_ACCESS_TOKEN` y escrituras prohibidas de pago sin usos en `src/`; diff de `package.json` de la app y de `scripts/dependencies.json` limitado a lo aprobado (solo `firebase-admin` en el backend); `node scripts/check-constitution.mjs`, `node scripts/check-constitution.mjs --selftest` y `npx expo-doctor` sin hallazgos nuevos; todos los `scripts/tests/*.test.mjs` pasan.
+- Criterios: CA-002-37, CA-002-39 (alcance R1 a R4), CA-002-40, CA-002-60, CA-002-67, CA-002-D6, CA-002-D9.
+- Hecho cuando: reporte con los resultados y sin hallazgos nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto de quien implementó el lote.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-116 — F6: revisión independiente de `TripActiveScreen` (rebanada S2)
+- Spec: `specs/002-funcionalidad-final/spec.md` (R2, RNF-14 iii; plan §0)
+- Requisitos: RNF-14, RF-32
+- Depende de: T-59, T-62, T-115
+- Archivos: ninguno (verificación)
+- Hacer: un verifier DISTINTO del que validó la rebanada S2 revisa `src/screens/trip/TripActiveScreen.js` (acción principal fija bajo el panel desplazable, color del auto hacia `TripMap`, limpieza de efectos) y deja el resultado por escrito.
+- Criterios: CA-002-09, CA-002-14, CA-002-15.
+- Hecho cuando: informe del verifier distinto sin hallazgos abiertos o con ellos listados.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: la hace el verifier; no se marca Validada la tarea de la rebanada sin la evidencia de dispositivo.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-117 — F6: diff de `docs/progress.md` y reducción de los hallazgos C23
+- Spec: `specs/002-funcionalidad-final/spec.md` (§8 trazabilidad; constitución §10, C23)
+- Requisitos: RNF-17, RNF-19 (trazabilidad de CA-002-01 a CA-002-90 y CA-002-D1 a D10)
+- Depende de: T-115, T-116
+- Archivos: `docs/progress.md` (lo escribe el verifier, no el planner)
+- Hacer: el verifier añade en `docs/progress.md` una fila por cada CA de la spec 002 con su estado y evidencia (⏳ «No verificado en dispositivo» donde falta el celular), revisa el diff de `progress.md` contra lo ejecutado, y reduce los 29 hallazgos C23 hasta los que no tengan evidencia posible; ejecuta `node scripts/check-constitution.mjs` antes y después y reporta el conteo de C23.
+- Criterios: C23 (constitución §10).
+- Hecho cuando: conteo de C23 menor que 29 reportado antes y después, y cada hallazgo restante explicado.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: revisión por Anderson del diff de `progress.md`.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
 - Estado: Pendiente
 
 ## Fase 3 — Implementar

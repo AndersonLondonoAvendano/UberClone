@@ -57,7 +57,7 @@ export function HistoryScreen({ navigation }) {
 function TripItem({ trip }) {
   const cancelled = trip.status === TRIP_STATUS.CANCELLED;
   const statusText = cancelled ? labels.history.status.cancelled : labels.history.status.completed;
-  const date = formatDateTime(trip.finishedAt);
+  const date = formatDateTime(trip.finishedAt) || labels.history.dateUnknown;
   const a11y =
     fillLabel(labels.history.itemA11y, {
       status: statusText,

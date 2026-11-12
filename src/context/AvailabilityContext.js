@@ -1,6 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
+// AI-assisted: see docs/AI_LOG.md #55 (F1b: local tracking while Home is focused; publishing only while available)
 // AI-assisted: see docs/AI_LOG.md #54 (reset: session reset puts everything back to the initial state)
 // Driver availability (T-42, RF-08). In memory only: no Firestore writes for availability.
 // Turning it on (a user action) asks the location permission if missing, then checks that the phone
@@ -17,6 +18,11 @@
 
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { useAppState } from './AppStateContext';
+import { ACCOUNT_STATUS } from '../constants/accountStatus';
+import { DRIVER_LOCATION_IDLE_STATUS } from '../constants/tripStatus';
+import { locationPolicy } from '../services/locationPolicy';
+import { publishDriverLocation } from '../services/driverLocationPublisher';
 import { useDriverLocation } from '../hooks/useDriverLocation';
 import { useTripRequests } from '../hooks/useTripRequests';
 import { getLocationSource } from '../services/location';
@@ -30,6 +36,9 @@ export function AvailabilityProvider({ children }) {
   const [onTrip, setOnTripState] = useState(false);
   const [notice, setNotice] = useState(null); // null | 'denied' | 'unavailable' | 'services_off'
   const [requestScreenId, setRequestScreenId] = useState(null);
+  const { accountStatus } = useAppState();
+  const [homeFocused, setHomeFocused] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
   const mountedRef = useRef(true);
   // A user action (permission or the location dialog) is in progress.
   const changingRef = useRef(false);
@@ -52,7 +61,48 @@ export function AvailabilityProvider({ children }) {
   }, []);
 
   const watching = isAvailable && !onTrip;
-  const location = useDriverLocation({ enabled: watching });
+  const policy = locationPolicy({
+    available: isAvailable,
+    accountApproved: accountStatus === ACCOUNT_STATUS.APPROVED,
+    permissionGranted,
+    focused: homeFocused,
+  });
+  const location = useDriverLocation({ enabled: policy.track && !onTrip });
+
+  // Reads the permission without any dialog whenever Home is focused (and on foreground return).
+  const [foregroundTick, setForegroundTick] = useState(0);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') setForegroundTick((n) => n + 1);
+    });
+    return () => sub.remove();
+  }, []);
+  useEffect(() => {
+    if (!homeFocused) return undefined;
+    let cancelled = false;
+    getLocationSource()
+      .getPermission()
+      .then((permission) => {
+        if (!cancelled && mountedRef.current) setPermissionGranted(permission === 'granted');
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [homeFocused, isAvailable, foregroundTick]);
+
+  // Publishes to driverLocations only while Disponible (never while merely viewing the map).
+  const publishPosition = policy.publish && !onTrip ? location.position : null;
+  useEffect(() => {
+    if (publishPosition) publishDriverLocation(publishPosition, DRIVER_LOCATION_IDLE_STATUS);
+  }, [publishPosition]);
+
+  // Grant button: asks the permission (user action) without turning availability on.
+  const requestLocationPermission = useCallback(async () => {
+    const permission = await getLocationSource().requestPermission();
+    if (mountedRef.current) setPermissionGranted(permission === 'granted');
+    return permission;
+  }, []);
 
   // The mock reads the latest position through a stable getter, so a new position does not
   // resubscribe.
@@ -109,6 +159,7 @@ export function AvailabilityProvider({ children }) {
       }
       blockedRef.current = false;
       setNotice(null);
+      setPermissionGranted(true);
       setIsAvailable(true);
       return finish();
     },
@@ -131,7 +182,8 @@ export function AvailabilityProvider({ children }) {
 
   // The phone location was turned off while available: switch off, no automatic restart.
   useEffect(() => {
-    if (location.status === 'services_off') blockForServices();
+    // Only while Disponible: local tracking on Home must never mark a block nor re-enable by itself.
+    if (location.status === 'services_off' && isAvailableRef.current) blockForServices();
   }, [location.status, blockForServices]);
 
   // Back in the foreground after being blocked: one silent check; enable only if location is on.
@@ -158,6 +210,8 @@ export function AvailabilityProvider({ children }) {
     changingRef.current = false;
     positionRef.current = null;
     setIsAvailable(false);
+    setHomeFocused(false);
+    setPermissionGranted(false);
     setIsChanging(false);
     setOnTripState(false);
     setNotice(null);
@@ -183,6 +237,10 @@ export function AvailabilityProvider({ children }) {
       lastRequest,
       requestsError,
       requestSimulatedTrip,
+      homeFocused,
+      setHomeFocused,
+      permissionGranted,
+      requestLocationPermission,
       reset,
     }),
     [
@@ -201,6 +259,9 @@ export function AvailabilityProvider({ children }) {
       lastRequest,
       requestsError,
       requestSimulatedTrip,
+      homeFocused,
+      permissionGranted,
+      requestLocationPermission,
       reset,
     ],
   );

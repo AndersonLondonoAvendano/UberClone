@@ -110,3 +110,51 @@ Total estimado de esta lista: unas 14,5 h, cerca de 7 de ellas de Anderson (celu
 ## 4. Conteo por estado
 
 Total de filas: 53. Hecho y validado (HV): 19. Hecho sin validación en dispositivo (HSV): 7. Parcial (P): 19. Faltante (F): 2. Fuera de alcance acordado (FA): 6.
+
+## 5. Actualización R0b (2026-11-11, noche): lectura completa del enunciado
+
+Fuente leída: `C:\Users\Anderson\Downloads\UberClone — Versión Conductor.pdf` (secciones 1 a 9, 387 líneas de texto extraído). **Discrepancia:** `docs/enunciado-taller.pdf` NO existe en el repositorio; el PDF se leyó desde Descargas. La numeración del enunciado coincide con §2 a §9 del encargo. Estados con la misma clave de la sección 1, más NI = no iniciado. Horas: estimación del analista para el lote final.
+
+| Requisito del enunciado | Estado antes del lote | Evidencia / brecha | Prioridad | Horas | Rebanada |
+|---|---|---|---|---|---|
+| §3.1 Inicio: mapa a pantalla completa con ubicación actual y interruptor | P | el mapa existe, la tarjeta no es flotante; publicar solo Disponible | obligatorio | 2 | F1b |
+| §3 «NaN:NaN» junto al nombre en Ganancias | defecto | formato de hora/fecha sin guarda | obligatorio | 0,5 | F1a |
+| §2 Pestaña 3: licencia (número, foto, vencimiento > hoy) | F | no hay campos de licencia | obligatorio | 2 | F2 |
+| §2 Pestaña 3: SOAT (foto, vencimiento > hoy) | F | no existe | obligatorio | 1 | F2 |
+| §2 Pestaña 3: revisión técnico-mecánica si aplica por año (≥5 años) | F | no existe | obligatorio | 1 | F2 |
+| §2 Correo Mercado Pago y términos con comisión | HSV | ya existe | obligatorio | 0 | F2 |
+| §2 Enviar solo con 3 pestañas válidas | HSV | debe incluir los nuevos campos | obligatorio | 0,5 | F2 |
+| §2 Sin números de cuenta/tarjeta en la app | HV | se mantiene | obligatorio | 0 | F2 |
+| §2 Idioma ES/EN en datos personales | F | textos centralizados en `labels.js`, sin selector; se documenta como omisión | declarar | 0 | F5 |
+| §3.4 Cobro y resumen: Aprobado/Pendiente/Rechazado/Efectivo | P | hoy simulado (D-89); sin estado de pasarela real | obligatorio | 3 | F4d |
+| §3.2 Solicitud entrante muestra método de pago | F | la tarjeta de solicitud no lo muestra | obligatorio | 0,5 | F4d |
+| §3 Estados `completed` y `paid` en `status` | P | `paid` no se escribe | obligatorio | 1 | F4 |
+| §3 Estado `cancelled` | P | pendiente de verificar escritura | obligatorio | 0,5 | F4 |
+| §3 Perfil editable | P | solo lectura; choca con «aprobada, sin edición» | declarar | 0 | F5 |
+| §3 Hooks: `useMemo`, `useCallback` | HV | ya cumplido | obligatorio | 0 | F3 |
+| §3 Hook `useEarnings` | F | no existe (C12) | obligatorio | 1 | F3b |
+| §3 FCM (notificaciones con app en segundo plano) | F | requiere build nativo y servidor; fuera de alcance | declarar | 0 | F5 |
+| §4 Backend crea preferencia con llave secreta | F | solo `/health` | obligatorio | 4 | F4c |
+| §4 Webhook / sincronización que actualiza `paymentStatus`, `paymentId`, `paid` | F | no existe | obligatorio | 3 | F4c |
+| §4 App abre el checkout y escucha el cambio en tiempo real | F | no existe | obligatorio | 3 | F4d |
+| §4 `.env.example` con nombres, `.env` fuera de Git | P | falta `backend/.env.example` y `backend/secrets/` en `.gitignore` | obligatorio | 0,5 | F4c |
+| §4 Efectivo marcado por el conductor | P | marca a mano; falta regla estrecha y estado persistido | obligatorio | 1 | F4 |
+| §4 Saldo: ganancias pasarela menos comisiones en efectivo (puede ser negativo) | P | existe en `earnings.js`; falta el texto «Saldo a favor de la plataforma» y pruebas | obligatorio | 1 | F4e |
+| §5 Ganancias: 6 métricas hoy/semana/mes con `useMemo` | P | faltan propinas y promedio visibles y el hook `useEarnings` | obligatorio | 1,5 | F3b |
+| §5 `commissionRate` por viaje | P | ver RF-23 | obligatorio | 0,5 | F3 |
+| §5 Ejemplo 8,5 km / 22 min (19.200/3.840/15.360 y 26.900/5.380/21.520) | HV | T-39; se añaden pruebas puras al hook | obligatorio | 0,5 | F3b |
+| §6 Historial: `FlatList`, más reciente primero | HV | T-48 | obligatorio | 0 | F3a |
+| §6 Filtros Hoy/Semana/Mes/Rango | F | solo filtro por método | obligatorio | 3 | F3a |
+| §6 Filtro por método de pago | P | existe parcialmente | obligatorio | 0,5 | F3a |
+| §6 Paginación de 20 con «Cargar más» | P | límite sin carga adicional | obligatorio | 1 | F3a |
+| §6 Elemento con fecha/hora, origen → destino, categoría, tarifa, neto, estado de pago | P | falta el Chip de estado de pago | obligatorio | 1 | F3a |
+| §6 Detalle con ruta dibujada, duración, distancia, comisión, propina, calificación | P | sin ruta guardada (D-87) | obligatorio | 3 | F3c |
+| §6 Mensaje vacío | HV | T-48 | obligatorio | 0 | F3a |
+| §6 Gráfica de barras de ganancia neta (mejora propia) | F | no está en el enunciado, se pide en el lote | mejora | 2 | F3a |
+| §7 Servicios gratuitos: FCM obligatorio | F | se documenta como omisión | declarar | 0 | F5 |
+| §7 Geolocalización, Firestore tiempo real, Cloudinary | HV | `expo-location`, `onSnapshot`, Cloudinary | obligatorio | 0 | n/a |
+| §7 Directions/Distance Matrix; `react-native-maps` | FA | OSRM y MapLibre (D-82) | declarar | 0 | F5 |
+| §8 Bitácora con plantilla y marcas `// AI-assisted` | P | entrada #55 abierta | obligatorio | 0,5 | F6 |
+| §9 Video de máximo 5 minutos | F | lo graba Anderson | obligatorio | 1,5 | humano |
+
+Nota sobre la pasarela: el enunciado pide enviar `tripId` y monto al backend; el lote decide (F4) que el backend toma el monto del documento del viaje y no del cuerpo, que es más seguro y compatible con el espíritu de la regla de seguridad del §4.

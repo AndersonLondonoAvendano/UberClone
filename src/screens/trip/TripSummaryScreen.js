@@ -18,22 +18,30 @@
 // card is a surface step over the background and the totals are separated by space only.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
+import { Chip } from '../../components/Chip';
+import { SkeletonBlock } from '../../components/ScreenState';
 import { DataRow } from '../../components/DataRow';
 import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { BACKEND_URL } from '../../config/backend';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
+import { useTripPayment } from '../../hooks/useTripPayment';
+import { requestCheckoutUrl, syncPayment } from '../../services/paymentsService';
+import { createPaymentActions } from '../../services/trip/paymentActions';
+import { PAYMENT_ACTION, PAYMENT_CHIP, paymentView } from '../../services/trip/paymentView';
+import { TRIP_PAYMENT_ERROR } from '../../services/trip/tripPaymentSubscription';
 import { classifySaveError, SAVE_ERROR } from '../../services/trip/saveRetry';
 import { buildTripRecord, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
 import { trackTripSave } from '../../services/trip/saveQueue';
-import { saveTrip } from '../../services/tripRepository';
+import { confirmCashPayment, saveTrip } from '../../services/tripRepository';
 import { color, iconSize, space, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { fillLabel, formatClock, formatCop, formatKm } from '../../utils/format';
@@ -47,6 +55,15 @@ const ERROR_COPY = {
   [SAVE_ERROR.TIMEOUT]: 'saveErrorTimeout',
   [SAVE_ERROR.DENIED]: 'saveErrorDenied',
   [SAVE_ERROR.UNKNOWN]: 'saveErrorGeneric',
+};
+
+// AI-assisted: see docs/AI_LOG.md #55 (charge chip: text plus icon, never colour alone)
+const CHIP_LOOK = {
+  [PAYMENT_CHIP.APPROVED]: { tone: 'success', icon: 'checkmark-circle' },
+  [PAYMENT_CHIP.PENDING]: { tone: 'warning', icon: 'time' },
+  [PAYMENT_CHIP.REJECTED]: { tone: 'danger', icon: 'close-circle' },
+  [PAYMENT_CHIP.CASH]: { tone: 'neutral', icon: 'cash' },
+  [PAYMENT_CHIP.UNAVAILABLE]: { tone: 'neutral', icon: 'help-circle' },
 };
 
 function fareOf(request) {
@@ -67,6 +84,8 @@ export function TripSummaryScreen({ navigation }) {
       request: trip.request,
       finishedAt: trip.finishedAt ?? null,
       startedAt: trip.startedAt ?? null,
+      // AI-assisted: see docs/AI_LOG.md #55
+      plannedRoute: trip.plannedRoute ?? null,
     };
   const shown = shownRef.current;
   const request = shown?.request ?? null;
@@ -100,6 +119,7 @@ export function TripSummaryScreen({ navigation }) {
         status: SAVED_STATUS.COMPLETED,
         startedAt: shown.startedAt,
         finishedAt: shown.finishedAt ?? Date.now(),
+        route: shown.plannedRoute, // AI-assisted: see docs/AI_LOG.md #55
       });
       // AI-assisted: see docs/AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
       await trackTripSave(() => saveTrip(driverId, shown.tripId, record));
@@ -119,6 +139,61 @@ export function TripSummaryScreen({ navigation }) {
         : labels.trip.paymentTransferNoEmail;
   const saved = save.state === SAVE.SAVED;
   const saving = save.state === SAVE.SAVING;
+
+  // AI-assisted: see docs/AI_LOG.md #55
+  // The charge state exists only once the trip is saved; before that there is nothing to listen to.
+  const { trip: savedTrip, loading: paymentLoading, error: paymentError } = useTripPayment(saved ? shown?.tripId : null);
+  const view = paymentView(savedTrip);
+  const chipLook = CHIP_LOOK[view.chip] ?? CHIP_LOOK[PAYMENT_CHIP.UNAVAILABLE];
+  const needsBackend = view.actions.length > 0;
+  const paymentIssue = paymentError
+    ? paymentError === TRIP_PAYMENT_ERROR.OFFLINE
+      ? labels.trip.paymentOffline
+      : labels.trip.paymentError
+    : needsBackend && !BACKEND_URL
+      ? labels.trip.paymentBackendUnavailable
+      : null;
+
+  // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
+  // One runner per screen: it keeps a single request in flight. The card state is never set here: it only
+  // changes when the backend writes the trip document and onSnapshot delivers it.
+  const runner = useMemo(
+    () => createPaymentActions({ requestCheckoutUrl, syncPayment, confirmCashPayment, openUrl: (url) => Linking.openURL(url) }),
+    [],
+  );
+  const [action, setAction] = useState({ busy: null, error: null });
+  const tripIdRef = useRef(null);
+  const canSyncRef = useRef(false);
+  const savedTripId = saved ? shown?.tripId ?? null : null;
+  tripIdRef.current = savedTripId;
+  canSyncRef.current = view.actions.includes(PAYMENT_ACTION.VERIFY);
+
+  const runAction = useCallback(
+    async (name) => {
+      if (!tripIdRef.current || runner.isBusy()) return;
+      setAction({ busy: name, error: null });
+      const result = await runner.run(name, { uid: driverId, tripId: tripIdRef.current });
+      if (!mounted.current || result.skipped) return;
+      setAction({ busy: null, error: result.ok ? null : result.error });
+    },
+    [runner, driverId],
+  );
+
+  // Back from the browser: ask the backend to sync. The result is ignored on purpose (errors are silent and
+  // success proves nothing); the document listener is the only source of the card state.
+  useEffect(() => {
+    if (!savedTripId) return undefined;
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active' && canSyncRef.current && tripIdRef.current) {
+        runner.run(PAYMENT_ACTION.VERIFY, { uid: driverId, tripId: tripIdRef.current });
+      }
+    });
+    return () => subscription.remove();
+  }, [savedTripId, runner, driverId]);
+
+  const actionBusy = action.busy !== null;
+  const actionError = action.error ? labels.trip.paymentActionError[action.error] : null;
+  const cashCollected = savedTrip?.paymentMethod === 'cash' && view.actions.length === 0 && !paymentError;
 
   return (
     <SafeAreaView testID="screen-trip-summary" edges={SAFE_EDGES} style={styles.screen}>
@@ -177,6 +252,91 @@ export function TripSummaryScreen({ navigation }) {
               <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
               <Text style={[styles.muted, styles.flex]}>{labels.trip.paymentSimulated}</Text>
             </View>
+            {saved ? (
+              <View testID="trip-summary-payment-state" style={styles.paymentState}>
+                <Text style={styles.sectionTitle} accessibilityRole="header">
+                  {labels.trip.paymentStateTitle}
+                </Text>
+                {paymentLoading ? (
+                  <View
+                    testID="trip-summary-payment-loading"
+                    accessible
+                    accessibilityLabel={labels.trip.paymentLoading}
+                    accessibilityLiveRegion="polite"
+                  >
+                    <SkeletonBlock height={space[6]} width="40%" />
+                  </View>
+                ) : paymentError ? null : (
+                  <Chip
+                    testID="trip-summary-payment-chip"
+                    label={labels.trip.paymentChip[view.chip]}
+                    tone={chipLook.tone}
+                    icon={chipLook.icon}
+                  />
+                )}
+                {paymentIssue ? (
+                  <Card variant="status" tone={paymentError ? 'danger' : 'warning'} style={styles.statusCard}>
+                    <Icon
+                      name={paymentError === TRIP_PAYMENT_ERROR.OFFLINE ? 'cloud-offline' : 'alert-circle'}
+                      size={iconSize.lg}
+                      tint={paymentError ? color.onDangerSoft : color.onWarningSoft}
+                    />
+                    <View style={styles.flex}>
+                      <Text
+                        testID="trip-summary-payment-issue"
+                        style={[styles.sectionTitle, paymentError ? styles.onDanger : styles.onWarning]}
+                        accessibilityRole="header"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {paymentIssue.title}
+                      </Text>
+                      <Text style={[styles.body, paymentError ? styles.onDanger : styles.onWarning]}>
+                        {paymentIssue.message}
+                      </Text>
+                    </View>
+                  </Card>
+                ) : null}
+                {/* AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97) */}
+                {!paymentLoading && !paymentError && view.actions.length > 0 ? (
+                  <View testID="trip-summary-payment-actions" style={styles.paymentState}>
+                    {savedTrip?.paymentMethod === 'mercadopago' ? (
+                      <Text style={styles.muted}>{labels.trip.paymentCardNote}</Text>
+                    ) : null}
+                    {view.actions.map((name) => (
+                      <SecondaryButton
+                        key={name}
+                        testID={`trip-summary-action-${name}`}
+                        label={action.busy === name ? labels.trip.paymentActionBusy : labels.trip.paymentAction[name]}
+                        onPress={() => runAction(name)}
+                        disabled={actionBusy}
+                        accessibilityHint={action.busy === name ? labels.trip.paymentActionBusy : undefined}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+                {cashCollected ? (
+                  <Text testID="trip-summary-cash-collected" style={styles.body} accessibilityLiveRegion="polite">
+                    {labels.trip.paymentCashCollected}
+                  </Text>
+                ) : null}
+                {actionError ? (
+                  <Card variant="status" tone="danger" style={styles.statusCard}>
+                    <Icon name="alert-circle" size={iconSize.lg} tint={color.onDangerSoft} />
+                    <View style={styles.flex}>
+                      <Text
+                        testID="trip-summary-action-error"
+                        style={[styles.sectionTitle, styles.onDanger]}
+                        accessibilityRole="header"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {actionError.title}
+                      </Text>
+                      <Text style={[styles.body, styles.onDanger]}>{actionError.message}</Text>
+                    </View>
+                  </Card>
+                ) : null}
+              </View>
+            ) : null}
             {saving ? (
               <Text testID="trip-summary-saving" style={styles.body} accessibilityLiveRegion="polite">
                 {labels.trip.saving}
@@ -310,6 +470,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...type.label,
     color: color.text,
+  },
+  paymentState: {
+    gap: space[2],
+  },
+  onDanger: {
+    color: color.onDangerSoft,
   },
   onWarning: {
     color: color.onWarningSoft,

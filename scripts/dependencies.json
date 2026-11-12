@@ -37,6 +37,10 @@
     "expo-localization"
   ],
   "backend": [
-    "express"
-  ]
+    "express",
+    "firebase-admin"
+  ],
+  "notes": {
+    "firebase-admin": "Backend de pagos (spec 002, D-107): verifyIdToken del Bearer y transacciones de Firestore con credencial de servicio. Aprobada por Anderson en el prompt #55 (docs/AI_LOG.md); ya instalada por él. Mercado Pago se llama con fetch nativo de Node, sin SDK."
+  }
 }

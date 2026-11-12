@@ -238,6 +238,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const progress = Math.min(1, secondsLeft / requestTotalSeconds(request));
   const name = request.passenger?.name ?? '';
   const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
+  const paymentLabel = request.paymentMethod ? (labels.trip.paymentMethod[request.paymentMethod] ?? null) : null;
   const translateY = entrance.interpolate({ inputRange: [0, 1], outputRange: [ENTRANCE_OFFSET, 0] });
 
   return (
@@ -303,6 +304,13 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
             <View style={styles.pickupRow}>
               <Icon name="navigate" size={iconSize.md} tint={color.primary} />
               <Text style={[styles.muted, styles.flex, type.numeric]}>{toPickup}</Text>
+            </View>
+          ) : null}
+          {/* AI-assisted: see docs/AI_LOG.md #55 (T-98: payment method visible before accepting) */}
+          {paymentLabel ? (
+            <View style={styles.pickupRow}>
+              <Text style={styles.muted}>{labels.trip.payment}:</Text>
+              <Text testID="incoming-request-payment" style={[styles.body, styles.flex]}>{paymentLabel}</Text>
             </View>
           ) : null}
         </ScrollView>

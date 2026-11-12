@@ -3,7 +3,8 @@
 // tone: 'neutral' | 'brand' | 'success' | 'warning' | 'danger'. Tokens only.
 
 import { StyleSheet, Text, View } from 'react-native';
-import { color, radius, space, type } from '../theme/tokens';
+import { color, iconSize, radius, space, type } from '../theme/tokens';
+import { Icon } from './Icon';
 
 const TONES = {
   neutral: { bg: color.surfaceMuted, fg: color.text },
@@ -13,10 +14,12 @@ const TONES = {
   danger: { bg: color.dangerSoft, fg: color.onDangerSoft },
 };
 
-export function Chip({ label, tone = 'neutral', testID }) {
+// AI-assisted: see docs/AI_LOG.md #55 (optional icon next to the text, T-96)
+export function Chip({ label, tone = 'neutral', testID, icon }) {
   const t = TONES[tone] ?? TONES.neutral;
   return (
     <View testID={testID} style={[styles.chip, { backgroundColor: t.bg }]}>
+      {icon ? <Icon name={icon} size={iconSize.sm} tint={t.fg} /> : null}
       <Text style={[styles.text, { color: t.fg }]}>{label}</Text>
     </View>
   );
@@ -25,6 +28,9 @@ export function Chip({ label, tone = 'neutral', testID }) {
 const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[1],
     borderRadius: radius.full,
     paddingHorizontal: space[3],
     paddingVertical: space[1],

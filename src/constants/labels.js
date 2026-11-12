@@ -52,6 +52,12 @@ export const labels = {
     devBusy: 'Ya hay una solicitud o un viaje en curso.',
     devNotSupported: 'La API real no permite simular solicitudes.',
     servicesOff: 'Activa la ubicación del teléfono para estar disponible.',
+    // AI-assisted: see docs/AI_LOG.md #55 (F1b: Home map)
+    hintLocalOnly: 'Solo tú ves tu posición. Activa Disponible para recibir solicitudes.',
+    permissionNeeded: 'Necesitamos tu ubicación para mostrarte en el mapa y recibir solicitudes.',
+    grantPermission: 'Permitir ubicación',
+    mapLabel: 'Mapa con tu posición',
+    noSignal: 'Aún sin señal de ubicación.',
   },
   trip: {
     requestTitle: 'Solicitud entrante',
@@ -67,7 +73,7 @@ export const labels = {
     tripLength: 'Viaje de {km} km · {min} min',
     category: 'Categoría',
     payment: 'Pago',
-    paymentMethod: { card: 'Tarjeta', cash: 'Efectivo' },
+    paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
     net: 'Tu ganancia',
@@ -131,7 +137,7 @@ export const labels = {
     minValue: '{min} min',
     // AI-assisted: see docs/AI_LOG.md #50 (simulated payment and saving, T-46)
     paymentTitle: 'Cobro',
-    paymentSimulated: 'Cobro simulado: no se mueve dinero real.',
+    paymentSimulated: 'Pago de prueba: no se mueve dinero real.',
     paymentCash: 'Efectivo: recibe el pago del pasajero en mano.',
     paymentTransfer: 'Transferencia a tu cuenta de Mercado Pago ({email}).',
     paymentTransferNoEmail: 'Transferencia a tu cuenta de Mercado Pago registrada.',
@@ -150,6 +156,47 @@ export const labels = {
     leaveConfirm: 'Sí, volver sin guardar',
     leaveKeep: 'Seguir en el resumen',
     noTrip: 'No hay un viaje para mostrar.',
+    // AI-assisted: see docs/AI_LOG.md #55 (charge state and actions, T-94)
+    paymentChip: {
+      approved: 'Aprobado',
+      pending: 'Pendiente',
+      rejected: 'Rechazado',
+      cash: 'Efectivo',
+      unavailable: 'No disponible',
+    },
+    // AI-assisted: see docs/AI_LOG.md #55 (charge state screen states, T-96)
+    paymentStateTitle: 'Estado del cobro',
+    paymentLoading: 'Consultando el estado del cobro',
+    paymentOffline: {
+      title: 'Sin conexión',
+      message: 'No podemos consultar el estado del cobro sin internet. Tu viaje está guardado; puedes volver a Inicio y revisarlo después.',
+    },
+    paymentBackendUnavailable: {
+      title: 'Servicio de cobro no disponible',
+      message: 'No pudimos contactar el servicio de cobro. Tu viaje está guardado; puedes volver a Inicio y cobrar más tarde.',
+    },
+    paymentError: {
+      title: 'No pudimos consultar el cobro',
+      message: 'Algo falló al traer el estado del cobro. Tu viaje está guardado; vuelve a Inicio e inténtalo más tarde.',
+    },
+    paymentAction: {
+      charge: 'Cobrar con Mercado Pago',
+      retry: 'Reintentar pago',
+      verify: 'Verificar pago',
+      confirmCash: 'Confirmar efectivo recibido',
+    },
+    // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
+    paymentActionsTitle: 'Acciones de cobro',
+    paymentActionBusy: 'Procesando…',
+    paymentCardNote: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando Mercado Pago lo confirma; esta pantalla no lo marca.',
+    paymentCashCollected: 'Efectivo cobrado.',
+    paymentActionError: {
+      offline: { title: 'Sin conexión', message: 'No pudimos completar la acción sin internet. Inténtalo de nuevo cuando vuelvas a tener conexión.' },
+      backendUnavailable: { title: 'Servicio de cobro no disponible', message: 'No pudimos contactar el servicio de cobro. Inténtalo de nuevo en unos minutos.' },
+      failed: { title: 'No pudimos completar la acción', message: 'Algo falló con el cobro. Inténtalo de nuevo.' },
+      openFailed: { title: 'No pudimos abrir el pago', message: 'No se pudo abrir el navegador con el enlace de pago. Inténtalo de nuevo.' },
+      cashFailed: { title: 'No pudimos confirmar el efectivo', message: 'No se guardó la confirmación. Revisa tu conexión e inténtalo de nuevo.' },
+    },
   },
   // AI-assisted: see docs/AI_LOG.md #50 (earnings, history, profile and settings: T-47 to T-49)
   earnings: {
@@ -164,6 +211,13 @@ export const labels = {
     emptyMessage: 'Cuando completes un viaje y confirmes el cobro, aparece aquí.',
     errorMessage: 'No pudimos traer tus ganancias. Revisa tu conexión e inténtalo de nuevo.',
     tripLine: '{passenger} · {time}',
+    // AI-assisted: see docs/AI_LOG.md #55 (RF-40: neutral text when a trip has no valid date)
+    timeUnknown: 'Hora no disponible',
+    // AI-assisted: see docs/AI_LOG.md #55 (T-100: balance with the platform)
+    balance: 'Saldo con la plataforma',
+    balanceCredit: 'Saldo a favor de la plataforma',
+    balanceHint: 'La plataforma te debe esta cantidad por los cobros con tarjeta.',
+    balanceCreditHint: 'Debes esta cantidad a la plataforma por la comisión de los viajes en efectivo.',
   },
   history: {
     emptyTitle: 'Todavía no tienes viajes',
@@ -177,6 +231,7 @@ export const labels = {
     showMoreHint: 'Muestra más viajes anteriores',
     itemA11y: '{status}. {date}. {passenger}. De {origin} a {destination}.',
     itemA11yAmounts: ' Tarifa {fare}. Tu ganancia {net}.',
+    dateUnknown: 'Fecha no disponible',
   },
   profile: {
     photoA11y: 'Foto de perfil',
@@ -415,6 +470,26 @@ export const labels = {
       fields: {
         mercadoPagoEmail: { label: 'Correo de Mercado Pago', error: 'Escribe un correo válido, con @ y dominio.' },
         termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
+        // AI-assisted: see docs/AI_LOG.md #55
+        licenseNumber: { label: 'Número de licencia de conducción', error: 'Escribe un número de licencia válido (5 a 20 letras o números).' },
+        licensePhotoUrl: { label: 'Foto de la licencia de conducción', error: 'Elige una foto de tu licencia con la cámara o la galería.' },
+        licenseExpiresAt: { label: 'Vencimiento de la licencia', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+        soatPhotoUrl: { label: 'Foto del SOAT', error: 'Elige una foto de tu SOAT con la cámara o la galería.' },
+        soatExpiresAt: { label: 'Vencimiento del SOAT', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+        technicalReviewPhotoUrl: { label: 'Foto de la revisión técnico-mecánica', error: 'Elige una foto de tu revisión técnico-mecánica con la cámara o la galería.' },
+        technicalReviewExpiresAt: { label: 'Vencimiento de la revisión técnico-mecánica', error: 'Elige una fecha de vencimiento posterior a hoy.' },
+      },
+      // AI-assisted: see docs/AI_LOG.md #55
+      sections: {
+        license: 'Licencia de conducción',
+        soat: 'SOAT',
+        technicalReview: 'Revisión técnico-mecánica',
+        payments: 'Pagos y términos',
+      },
+      validation: {
+        expiryInvalid: 'Elige una fecha de vencimiento posterior a hoy.',
+        licenseNumberInvalid: 'Escribe un número de licencia válido (5 a 20 letras o números).',
+        technicalReviewNotRequired: 'No se exige: tu vehículo tiene menos de 5 años.',
       },
       termsLabel: 'Acepto los términos y condiciones. La plataforma retiene una comisión del {percent} % sobre cada viaje.',
       submit: 'Enviar registro',

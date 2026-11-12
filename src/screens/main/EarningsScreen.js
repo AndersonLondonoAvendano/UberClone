@@ -16,7 +16,7 @@ import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
 import { useTrips } from '../../hooks/useTrips';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
-import { computePeriodTotals, PERIOD } from '../../utils/earnings';
+import { computeBalance, computePeriodTotals, PERIOD } from '../../utils/earnings';
 import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/format';
 
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
@@ -25,6 +25,8 @@ export function EarningsScreen({ navigation }) {
   const { status, trips, retry } = useTrips();
   const [period, setPeriod] = useState(PERIOD.DAY);
   const totals = useMemo(() => computePeriodTotals(trips, period, Date.now()), [trips, period]);
+  // AI-assisted: see docs/AI_LOG.md #55 (T-100: balance with the platform over all saved trips)
+  const balance = useMemo(() => computeBalance(trips), [trips]);
 
   return (
     <PlaceholderScreen
@@ -87,7 +89,7 @@ export function EarningsScreen({ navigation }) {
                   key={trip.id}
                   style={styles.trip}
                   accessible
-                  accessibilityLabel={`${trip.passengerName}, ${formatDateTime(trip.finishedAt)}, ${formatCop(trip.driverEarnings)}`}
+                  accessibilityLabel={`${trip.passengerName}, ${formatDateTime(trip.finishedAt) || labels.earnings.timeUnknown}, ${formatCop(trip.driverEarnings)}`}
                 >
                   <View style={styles.badge}>
                     <Icon name="person" size={iconSize.md} tint={color.onPrimarySoft} />
@@ -95,7 +97,7 @@ export function EarningsScreen({ navigation }) {
                   <Text style={styles.body}>
                     {fillLabel(labels.earnings.tripLine, {
                       passenger: trip.passengerName,
-                      time: period === PERIOD.DAY ? formatClock(trip.finishedAt) : formatDateTime(trip.finishedAt),
+                      time: (period === PERIOD.DAY ? formatClock(trip.finishedAt) : formatDateTime(trip.finishedAt)) || labels.earnings.timeUnknown,
                     })}
                   </Text>
                   <Text style={styles.amount}>{formatCop(trip.driverEarnings)}</Text>
@@ -103,6 +105,20 @@ export function EarningsScreen({ navigation }) {
               ))}
             </View>
           </>
+        ) : null}
+        {/* AI-assisted: see docs/AI_LOG.md #55 (T-100) */}
+        {status === 'ready' && trips.length > 0 ? (
+          <Card style={styles.card} testID="earnings-balance">
+            <Line
+              label={balance < 0 ? labels.earnings.balanceCredit : labels.earnings.balance}
+              value={formatCop(Math.abs(balance))}
+              last
+            />
+            <View style={styles.hintRow}>
+              <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
+              <Text style={styles.muted}>{balance < 0 ? labels.earnings.balanceCreditHint : labels.earnings.balanceHint}</Text>
+            </View>
+          </Card>
         ) : null}
       </View>
     </PlaceholderScreen>
@@ -119,6 +135,7 @@ function Line({ label, value, last = false }) {
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
+  hintRow: { flexDirection: 'row', alignItems: 'center', gap: space[2], paddingTop: space[2] },
   periods: { flexDirection: 'row', gap: space[2] },
   period: {
     flex: 1,

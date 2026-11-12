@@ -50,6 +50,20 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | RF-36 | Puerta de autenticación en el navegador raíz: carga, pila de autenticación sin usuario, lógica de cuenta existente con usuario; las sesiones anónimas heredadas se cierran sin migrar | ENCARGO (spec 002) |
 | RF-37 | Cerrar sesión y Cambiar de cuenta en Configuración (correo enmascarado, confirmación en pantalla) mediante un único `resetSession` de 6 pasos; varias cuentas por teléfono, una activa a la vez | ENCARGO (spec 002); F1 §3 (RF-29) |
 | RF-38 | Retirar o adaptar los paneles y código dependientes de cuentas anónimas; con `SHOW_DEV_TOOLS` en `false` no se ve nada de ellos | ENCARGO (spec 002) |
+| RF-39 | Inicio con mapa a pantalla completa y tarjeta flotante superior (interruptor Disponible/No disponible, estado en texto, Chip, pista); posición local sin publicar mientras Inicio está enfocado, publicación en `driverLocations` solo con Disponible, limpieza al perder foco, estado claro sin permiso | ENCARGO (spec 002, prompt #55) |
+| RF-40 | Fechas desconocidas o inválidas nunca producen «NaN:NaN»: guarda en la utilidad de formato (causa raíz), texto neutro en `labels.js`, sin ocultar, con pruebas puras | ENCARGO (spec 002, prompt #55) |
+| RF-41 | Pestaña «Documentos y pagos»: licencia (número, foto, vencimiento > hoy), SOAT (foto, vencimiento > hoy), revisión técnico-mecánica (foto y vencimiento; obligatoria si el vehículo tiene 5 años o más, si no se muestra el motivo); errores bajo cada campo, Enviar solo con 3 pestañas válidas, guardado estructurado sin números de cuenta ni tarjeta | ENCARGO (spec 002, prompt #55) |
+| RF-42 | Modelo de `trips` con método de pago, estado de pago y escritores definidos; reglas de `drivers` y `trips` como texto en `docs/seguridad.md` | ENCARGO (spec 002, prompt #55); F1 §6 |
+| RF-43 | Backend de pagos con Mercado Pago Checkout Pro: `/health`, `/payments/checkout`, `/payments/sync`, `/webhooks/mercadopago`; monto tomado del documento del viaje, webhook idempotente verificado contra la API | ENCARGO (spec 002, prompt #55); F1 §4 |
+| RF-44 | Pantalla «Cobro y resumen» con estado en Chip y texto, `onSnapshot`, «Verificar pago», «Reintentar pago», «Confirmar efectivo recibido» y estados de carga, error, sin conexión y backend caído | ENCARGO (spec 002, prompt #55) |
+| RF-45 | El método de pago se ve en la tarjeta de solicitud y en la solicitud a pantalla completa | ENCARGO (spec 002, prompt #55) |
+| RF-46 | Saldo puro y probado, puede ser negativo («Saldo a favor de la plataforma»), visible en Ganancias | ENCARGO (spec 002, prompt #55) |
+| RF-47 | Historial con filtros Hoy/Semana/Mes/Rango (hora Colombia, semana lunes a domingo), filtro por método en cliente, consulta solo por `createdAt`, FlatList, 20 por página con «Cargar más» | ENCARGO (spec 002, prompt #55); F1 §6 |
+| RF-48 | Gráfico de barras dibujado con `View` en el Historial | ENCARGO (spec 002, prompt #55) |
+| RF-49 | Detalle del viaje con ruta planificada de máximo 40 puntos a 4 decimales | ENCARGO (spec 002, prompt #55) |
+| RF-50 | `useEarnings` con 6 métricas más saldo, pruebas puras con el ejemplo del encargo (8,5 km, 22 min) y límites de semana y mes en UTC−5 | ENCARGO (spec 002, prompt #55) |
+| RF-51 | `docs/omisiones-y-limites.md` enlazado desde el README | ENCARGO (spec 002, prompt #55) |
+| RF-52 | Ruta planificada simplificada y guardada en el viaje (≤40 puntos, 4 decimales) | ENCARGO (spec 002, prompt #55) |
 
 ## Requisitos no funcionales (RNF)
 | ID | Texto | Fuente |
@@ -71,6 +85,8 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | RNF-15 | Credenciales: nunca en logs ni en almacenamiento propio, campos limpiados al salir, contraseña oculta con botón accesible, autocompletado y teclado de correo, sin doble envío | ENCARGO (spec 002); F1 §2, §3 (RNF-04) |
 | RNF-16 | Reglas de Firestore de `drivers`, `driverLocations` y `trips` exigen sesión con proveedor `password`; texto solo en `docs/seguridad.md`, Anderson las publica tras validar la app | ENCARGO (spec 002) |
 | RNF-17 | Pantallas de autenticación y confirmación de sesión con el sistema de diseño: etiquetas, errores con ícono y texto en región viva `polite`, foco en el primer error, 44 x 44, 200 % sin recorte, teclado sin tapar, sin `Alert`; README y arquitectura actualizados | ENCARGO (spec 002); F1 §8 |
+| RNF-18 | Backend de pagos: secretos solo en `backend/.env` y `backend/secrets/` (fuera de Git), `.env.example` solo con nombres, `fetch` nativo, solo `firebase-admin` como dependencia nueva, límite por usuario, cuerpo limitado, sin registrar tokens ni cabeceras, errores genéricos, CORS cerrado | ENCARGO (spec 002, prompt #55); F1 §4 |
+| RNF-19 | Todo lo nuevo usa el sistema de diseño (tokens, Card, Chip, DataRow, ScreenHeader, Icon, SkeletonBlock, Inter), sin valores fijos, sin `Alert`, textos en `labels.js` | ENCARGO (spec 002, prompt #55) |
 
 ## Entrega (ENT)
 | ID | Texto | Fuente |
@@ -104,6 +120,6 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | 007-historial | RF-26 a RF-28, RNF-10 | — |
 | 008-perfil-config | RF-29 | — |
 | 009-entrega | ENT-01 a ENT-08 | — |
-| 002-funcionalidad-final (Borrador; el número 002 convive con 002-disponibilidad-ubicacion, a decidir por Anderson) | RF-31 a RF-38, RNF-14 a RNF-17 (extiende RF-29, RNF-04) | RF-31: T-55, T-56, T-75; RNF-14: T-57, T-58, T-59, T-60, T-75; RF-32: T-61, T-62, T-75; RF-33: T-63, T-64, T-66, T-67, T-76; RF-34: T-63, T-64, T-66, T-76; RF-35: T-63, T-64, T-68; RF-36: T-64, T-69; RF-37: T-64, T-65, T-70, T-71; RF-38: T-72; RNF-15: T-63, T-64, T-66, T-67, T-68; RNF-16: T-73; RNF-17: T-66, T-67, T-68, T-71, T-74, T-75, T-76; RNF-04 (extensión): T-65, T-70 |
+| 002-funcionalidad-final (Borrador; el número 002 convive con 002-disponibilidad-ubicacion, a decidir por Anderson) | RF-31 a RF-52, RNF-14 a RNF-19 (extiende RF-29, RNF-04) | RF-31: T-55, T-56, T-75; RNF-14: T-57, T-58, T-59, T-60, T-75; RF-32: T-61, T-62, T-75; RF-33: T-63, T-64, T-66, T-67, T-76; RF-34: T-63, T-64, T-66, T-76; RF-35: T-63, T-64, T-68; RF-36: T-64, T-69; RF-37: T-64, T-65, T-70, T-71; RF-38: T-72; RNF-15: T-63, T-64, T-66, T-67, T-68; RNF-16: T-73; RNF-17: T-66, T-67, T-68, T-71, T-74, T-75, T-76; RNF-04 (extensión): T-65, T-70. Lote final R5 a R10 (prompt #55): RF-39: T-79, T-80, T-112; RF-40: T-77, T-78, T-112; RF-41: T-81, T-82, T-83, T-84, T-112; RF-42: T-90, T-91, T-93, T-95, T-97; RF-43: T-85, T-86, T-87, T-88, T-89, T-90; RF-44: T-94, T-95, T-96, T-97, T-113; RF-45: T-98, T-113; RF-46: T-99, T-100, T-108, T-114; RF-47: T-101, T-102, T-105, T-106, T-114; RF-48: T-103, T-104, T-106, T-114; RF-49: T-109, T-110, T-114; RF-50: T-107, T-108, T-114; RF-51: T-111; RF-52: T-91, T-92, T-93; RNF-18: T-85 a T-90, T-95, T-115; RNF-19: T-80, T-83, T-96, T-100, T-104 a T-106, T-108, T-110, T-112 a T-114; RF-38 (cierre): T-115; trazabilidad: T-116, T-117 |
 
 Nota: RNF-06 completo (FCM, Firestore, geolocalización) queda repartido entre 002 y 003; RNF-01 y RNF-13 se cubren con T-01.
