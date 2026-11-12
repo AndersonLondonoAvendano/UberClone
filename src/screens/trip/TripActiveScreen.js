@@ -32,6 +32,7 @@ import { labels } from '../../constants/labels';
 import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
+import { useRequestAddresses } from '../../hooks/useRequestAddresses';
 import { TRIP_PHASE } from '../../services/trip/tripController';
 import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
 import { fillLabel, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
@@ -50,6 +51,8 @@ const FINISH_ERROR_TEXT = {
 export function TripActiveScreen({ navigation }) {
   const { trip, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
   const { driverProfile } = useAppState();
+  // AI-assisted: see docs/AI_LOG.md #61 (D-125: resolved street of the current target)
+  const addresses = useRequestAddresses(trip?.request);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
   const [working, setWorking] = useState(false);
@@ -322,7 +325,7 @@ export function TripActiveScreen({ navigation }) {
           {trip.target?.address ? (
             <View style={styles.personRow}>
               <Icon name={toDestinationSide ? 'location' : 'radio-button-on'} size={iconSize.md} tint={color.textMuted} />
-              <Text style={[styles.body, styles.flex]}>{trip.target.address}</Text>
+              <Text style={[styles.body, styles.flex]}>{toDestinationSide ? addresses.destination : addresses.origin}</Text>
             </View>
           ) : null}
           {trip.routeLoading ? <Text style={styles.muted}>{labels.trip.routeLoading}</Text> : null}

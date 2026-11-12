@@ -723,4 +723,16 @@ Decisión: etiqueta «Correo de cobros» y ayuda «Correo asociado a tu cuenta d
 Alternativa: renombrar el campo (descartada: migración y reglas); nombrar «Stripe» (descartada: el correo no se usa en su checkout).
 Impacto: `labels.js`, `DocumentsScreen`, Perfil. RF-66.
 
+### D-124 — Propina y calificación SIMULADAS al terminar el viaje; comisión solo sobre la tarifa · Vigente (Anderson, orden a70c, 2026-11-12; RF-39, RF-40)
+Situación: el enunciado pide propina y calificación en el detalle y en Ganancias, pero el pasajero es simulado y no entrega ninguna.
+Decisión: la API simulada genera al terminar el viaje una propina (≈40 % de los viajes, múltiplos de 500 entre 500 y 5.000 COP) y una calificación entera de 1 a 5 (5 al 45 %, 4 al 35 %, 3 al 14 %, 1 o 2 al 6 %). `commission = fare × tasa` (solo sobre la tarifa); `driverEarnings = fare − commission + tip`; por tanto `commission + driverEarnings == fare + tip`. Tarjeta: el backend cobra `fare + tip` leído del documento del viaje (nunca del cuerpo de la petición). Efectivo: el conductor recibe tarifa y propina y el saldo solo descuenta la comisión. Los viajes antiguos sin calificación muestran «Sin calificación». Campos nuevos `tip` y `rating` en el documento (`TRIP_DOC_KEYS`); la regla `validTrip()` cambia y la publica Anderson a mano (D-80).
+Alternativa: comisión también sobre la propina (descartada: la propina es del conductor); no simular (descartada: el detalle y Ganancias quedarían vacíos).
+Impacto: `simulatedFeedback.js`, `mockPassengerApi`, `mappers`, `tripRecord`, `tripDetailView`, `earnings`, `backend/src/chargeAmount.js` y proveedores de cobro, `TripSummaryScreen`, `TripDetailScreen`, `docs/seguridad.md` (BLOQUEANTE antes de probar en el celular). Implementada, pendiente de dispositivo.
+
+### D-125 — Direcciones reales del pasajero con geocodificación inversa de Nominatim · Vigente (Anderson, orden a70c, 2026-11-12; RF-24)
+Situación: las solicitudes simuladas traen coordenadas pero no direcciones legibles.
+Decisión: resolver origen y destino con Nominatim (OpenStreetMap) en segundo plano: máximo 1 petición por segundo (1100 ms entre llamadas), `User-Agent` «UberCloneConductor-ProyectoDeClase/1.0», caché por coordenadas a 4 decimales (solo aciertos), tiempo límite de 4 s, sin bloquear la pantalla. Mientras llega: «Buscando dirección…»; si falla: «Calle cercana (simulada)». Se guarda en `originLabel` y `destinationLabel` (sin cambiar `TRIP_DOC_KEYS` ni las reglas). Privacidad: solo salen coordenadas de prueba, ningún dato personal.
+Alternativa: Google Geocoding (descartada: D-82, sin claves de Google); direcciones inventadas fijas (descartada: no reflejan el mapa).
+Impacto: `src/config/geocoding.js`, `src/services/geocoding/`, `useRequestAddresses`, `useTripRequests`, `TripRequestScreen`, `TripActiveScreen`, `TripSummaryScreen`, `TripContext`. Implementada, pendiente de dispositivo.
+
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.

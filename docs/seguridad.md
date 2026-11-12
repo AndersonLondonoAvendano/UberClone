@@ -1,7 +1,7 @@
 # Seguridad — UberClone Conductor
 
 <!-- AI-assisted: see docs/AI_LOG.md #56 (T-73, reglas consolidadas) -->
-Estado: **un solo texto final de reglas** para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
+Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60), pendiente de publicar a mano por Anderson**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
 
 ## Dónde viven las reglas de Firestore
 - Las reglas **efectivas** son las publicadas en la consola de Firebase (Firestore → Reglas). Anderson las publica a mano.
@@ -40,7 +40,7 @@ Estado: **un solo texto final de reglas** para `drivers` (con `documents`), `dri
 
 **`drivers/{uid}/trips/{tripId}`** (T-46 a T-48, T-91)
 1. **Solo el dueño lee.** Crea el dueño con la cuenta aprobada (se consulta `drivers/{uid}` con `get()`).
-2. **Forma cerrada:** `driverId` (igual al `uid`), `status` (`completed` o `cancelled` al crear), `paymentStatus` (siempre `pending` al crear), `commissionRate` (0 a 1), `category`, `passengerName` (hasta 80), `originLabel` y `destinationLabel` (hasta 200), `distanceKm` (0 a 500), `durationMin` (0 a 1440), `fare`, `commission` y `driverEarnings` enteros no negativos (COP enteros, `commission + driverEarnings == fare`), `paymentMethod` (`cash` o `mercadopago`), `startedAt` (fecha o nulo), `finishedAt` (fecha), `createdAt` (hora del servidor) y `route` opcional (hasta 40 puntos `{lat, lng}`; las reglas no iteran, así que se comprueban el tamaño, el primero y el último punto, D-110).
+2. **Forma cerrada:** `driverId` (igual al `uid`), `status` (`completed` o `cancelled` al crear), `paymentStatus` (siempre `pending` al crear), `commissionRate` (0 a 1), `category`, `passengerName` (hasta 80), `originLabel` y `destinationLabel` (hasta 200), `distanceKm` (0 a 500), `durationMin` (0 a 1440), `fare`, `commission` y `driverEarnings` enteros no negativos (COP enteros, `commission + driverEarnings == fare + tip`), `tip` (entero de 0 a 1.000.000) y `rating` (entero de 1 a 5, o nulo), `paymentMethod` (`cash` o `mercadopago`), `startedAt` (fecha o nulo), `finishedAt` (fecha), `createdAt` (hora del servidor) y `route` opcional (hasta 40 puntos `{lat, lng}`; las reglas no iteran, así que se comprueban el tamaño, el primero y el último punto, D-110).
 3. **Sin coordenadas en vivo:** direcciones en texto (D-87) y, opcionalmente, la ruta planificada.
 4. **Pagos (D-107 a D-110).** En viajes `mercadopago` o `stripe` (D-118, D-121: `create` solo admite `paymentMethod` `cash` o `mercadopago`; `mercadopago` sin `paymentId` significa «tarjeta, pasarela por definir» y el contrato simulado `card` se guarda así. `stripe` lo escribe solo el backend con firebase-admin al cobrar, que no pasa por las reglas; no hace falta republicar), `paymentStatus`, `paymentId` y `status: 'paid'` los escribe **solo el backend** con firebase-admin, que no pasa por estas reglas. En viajes `cash` hay una regla de `update` estrecha: pasar `paymentStatus` de `pending` a `paid` y `status` de `completed` a `paid`, y solo esas dos claves cambian (`paymentMethod` sigue `cash`). Casos denegados (CA-002-59): otro uid, cuenta no aprobada, viaje `mercadopago`, cambiar `fare` u otro campo, volver de `paid` a `pending`, agregar `paymentId`, borrar.
 5. **Sin borrado.** Guardar es idempotente leyendo antes: si el documento ya existe, no se escribe de nuevo.
@@ -204,8 +204,8 @@ service cloud.firestore {
 
       function validTrip() {
         let data = request.resource.data;
-        return data.keys().hasAll(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
-          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route'])
+        return data.keys().hasAll(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
+          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route'])
           && data.driverId == uid
           && data.status in ['completed', 'cancelled']
           && data.paymentStatus == 'pending'
@@ -218,8 +218,11 @@ service cloud.firestore {
           && data.durationMin is number && data.durationMin >= 0 && data.durationMin <= 1440
           && data.fare is int && data.fare >= 0 && data.fare <= 10000000
           && data.commission is int && data.commission >= 0 && data.commission <= data.fare
-          && data.driverEarnings is int && data.driverEarnings >= 0 && data.driverEarnings <= data.fare
-          && data.commission + data.driverEarnings == data.fare
+          // AI-assisted: see docs/AI_LOG.md #61 (D-124): tip in whole COP and rating 1-5 (null when cancelled or not rated).
+          && data.tip is int && data.tip >= 0 && data.tip <= 1000000
+          && (data.rating == null || (data.rating is int && data.rating >= 1 && data.rating <= 5))
+          && data.driverEarnings is int && data.driverEarnings >= 0 && data.driverEarnings <= data.fare + data.tip
+          && data.commission + data.driverEarnings == data.fare + data.tip
           // AI-assisted: see docs/AI_LOG.md #58 (T-151, CA-002-129)
           // Only 'cash' or 'mercadopago' (card, gateway still to be chosen) are created by the app; 'stripe' is written
           // only by the backend (firebase-admin) at checkout (D-121).
@@ -286,6 +289,39 @@ service cloud.firestore {
 | Documento inexistente | Denegado | `resource.data` no existe en `update`; la creación pasa solo por `validSubmission`. |
 
 **Pruebas a repetir en el celular tras publicar.** (1) Cuenta aprobada: editar nombre, celular, color y correo y guardar → el Perfil muestra los datos nuevos. (2) Cuenta aprobada: el mismo flujo con un solo campo. (3) Confirmar en la consola que `accountStatus` sigue `approved`.
+
+## Propina y calificación del viaje (D-124, prompt #61)
+<!-- AI-assisted: see docs/AI_LOG.md #61 -->
+**BLOQUEANTE: publicar antes de probar.** Esta regla NO está publicada. Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado falla con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
+
+**Qué cambia en `validTrip()`.** (1) `tip` y `rating` entran en `hasAll` y `hasOnly` (la app siempre escribe ambos). (2) `tip` entero de 0 a 1.000.000 (holgura sobre el máximo simulado de 5.000). (3) `rating` nulo o entero de 1 a 5. (4) `commission + driverEarnings == fare + tip` y `driverEarnings <= fare + tip`: la comisión solo se calcula sobre la tarifa y la propina va completa al conductor. `commission <= fare` no cambia.
+
+**Razonamiento por casos** (revisión de la regla, no ejecución; la prueba real es el celular tras publicar):
+| Caso | Resultado | Por qué |
+|---|---|---|
+| Viaje nuevo completado con propina 2.000 (XL: 26.900 / 5.380 / 23.520) | Permitido | 5.380 + 23.520 = 28.900 = 26.900 + 2.000; `rating` entero. |
+| Viaje nuevo completado sin propina (19.200 / 26.900) | Permitido | `tip` 0; la identidad vuelve a `commission + driverEarnings == fare`. |
+| Viaje cancelado (tarifa, comisión y ganancia 0) | Permitido | `tip` 0 y `rating` nulo cumplen todas las cláusulas. |
+| Creación sin `tip` o sin `rating` | Denegado | `hasAll`. |
+| `tip` negativo, decimal o mayor de 1.000.000 | Denegado | `tip is int` y límites. |
+| `rating` 0, 6 o decimal | Denegado | Cláusula de rango entero. |
+| `driverEarnings` que no suma con la comisión (por ejemplo, propina que no se refleja) | Denegado | Identidad con `fare + tip`. |
+| Viaje antiguo (guardado sin `tip`/`rating`) leído | Permitido | `read` solo exige la sesión del dueño; `validTrip()` solo aplica a `create`. La app lo muestra «Sin calificación» y «Sin propina». |
+| Confirmar pago en efectivo de un viaje antiguo o nuevo | Permitido | `validCashPayment()` no se toca: el diff solo admite `paymentStatus` y `status`, y `tip`/`rating` no cambian. |
+| Intentar editar `tip` o `rating` de un viaje guardado | Denegado | El `update` solo permite el diff `paymentStatus`/`status`. |
+
+**El backend no se ve afectado por las reglas.** Usa el SDK de administrador (admin SDK), que no pasa por las reglas de Firestore. Lee `fare` y `tip` del documento del viaje y cobra `fare + tip` (`chargeAmount`); nunca el monto del cuerpo de la petición.
+
+## Geocodificación (Nominatim) (D-125, prompt #61)
+
+La app convierte las coordenadas de las solicitudes simuladas en una dirección legible con la geocodificación inversa de Nominatim (OpenStreetMap), un servicio público y sin clave.
+
+- **Qué sale del celular:** solo la latitud y la longitud de los puntos de recogida y destino de la solicitud simulada (coordenadas de prueba generadas cerca de la posición simulada o real del conductor). No se envía ningún dato personal: ni nombre, ni correo, ni teléfono, ni identificadores del conductor o del pasajero.
+- **Identificación:** cada petición lleva el encabezado `User-Agent: UberCloneConductor-ProyectoDeClase/1.0`, como pide la política de uso. Si el sistema del celular no respetara ese encabezado, la petición seguiría funcionando; queda pendiente comprobarlo en el dispositivo.
+- **Límite:** máximo una petición por segundo; el cliente usa una cola con al menos 1,1 s entre peticiones, un caché en memoria por coordenada redondeada a 4 decimales (solo éxitos) y un tiempo límite de unos 4 s por petición, sin reintentos agresivos.
+- **Sin conexión o con error:** nunca bloquea el flujo; la tarjeta cae a «Calle cercana (simulada)».
+- **Qué se guarda:** solo el texto corto de la dirección en `originLabel` y `destinationLabel` (límite de 200 caracteres de las reglas, el texto no pasa de 120). El historial y el detalle leen lo guardado y no llaman al servicio. Las reglas de Firestore no cambian.
+- **Pendiente de producción:** el servicio público no es para uso comercial ni intensivo; en producción se cambiaría por un proveedor propio o de pago, desde el backend si requiere clave.
 
 ## Prueba contra el código real
 Un script temporal fuera del proyecto replica estas reglas cláusula por cláusula en JavaScript y las prueba con los payloads reales de `buildTripRecord`, `buildDocumentsPayload` y el registro. **No es el emulador de Firebase** (no hay Java ni emulador instalados): es una réplica, y la prueba definitiva es la repetición en el celular tras publicar. Resultado y alcance en `docs/progress.md` (T-73).

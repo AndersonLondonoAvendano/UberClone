@@ -6,7 +6,6 @@
 // a fresh, untouched render.
 
 import { StyleSheet, Text, View } from 'react-native';
-import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
@@ -33,6 +32,8 @@ import {
 
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.personalData.fields;
+// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '1').replace('{total}', '3');
 
 export function PersonalDataScreen() {
   const {
@@ -50,7 +51,7 @@ export function PersonalDataScreen() {
     !isValid && (personalData.touched[key] || showErrors) ? FIELDS[key].error : null;
 
   return (
-    <PlaceholderScreen name="personal-data" title={labels.tabs.personalData} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="personal-data" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
@@ -167,8 +168,6 @@ export function PersonalDataScreen() {
           disabled={isLocked}
         />
 
-        {/* AI-assisted: see docs/AI_LOG.md #54 */}
-        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
@@ -30,6 +29,8 @@ import { isValidEmail, isTermsAccepted } from '../../utils/validators';
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.documents.fields;
 const SECTIONS = labels.registration.documents.sections;
+// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '3').replace('{total}', '3');
 
 export function DocumentsScreen() {
   const {
@@ -72,7 +73,7 @@ export function DocumentsScreen() {
   const canSubmit = isRegistrationValid && !isSubmitting && !isAccountPending;
 
   return (
-    <PlaceholderScreen name="documents" title={labels.tabs.documents} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
@@ -265,8 +266,6 @@ export function DocumentsScreen() {
           </Card>
         ) : null}
 
-        {/* AI-assisted: see docs/AI_LOG.md #54 */}
-        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

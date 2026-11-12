@@ -41,6 +41,7 @@ import { labels } from '../../constants/labels';
 import { paymentLabelKey } from '../../services/trip/paymentGateway';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { useTrip } from '../../context/TripContext';
+import { useRequestAddresses } from '../../hooks/useRequestAddresses';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../services/passengerApi';
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
@@ -84,6 +85,8 @@ export function TripRequestScreen({ navigation }) {
   const { startTrip } = useTrip();
   // The card keeps the request it opened with; a later one never replaces it.
   const [request] = useState(() => pendingRequest);
+  // AI-assisted: see docs/AI_LOG.md #61 (D-125: real street, "Buscando dirección…" while it arrives)
+  const addresses = useRequestAddresses(request);
   const [driverPosition] = useState(() => getDriverPosition());
   const [now, setNow] = useState(() => Date.now());
   // Seconds the card opened with: the bar drains from here.
@@ -320,7 +323,7 @@ export function TripRequestScreen({ navigation }) {
               <Icon name="radio-button-on" size={iconSize.lg} tint={color.primary} />
               <View style={[styles.block, styles.flex]}>
                 <Text style={styles.caption}>{labels.trip.pickup}</Text>
-                <Text style={styles.body}>{request.origin.address}</Text>
+                <Text style={styles.body}>{addresses.origin}</Text>
                 {toPickup ? <Text style={[styles.muted, type.numeric]}>{toPickup}</Text> : null}
               </View>
             </View>
@@ -329,7 +332,7 @@ export function TripRequestScreen({ navigation }) {
               <Icon name="location" size={iconSize.lg} tint={color.text} />
               <View style={[styles.block, styles.flex]}>
                 <Text style={styles.caption}>{labels.trip.destination}</Text>
-                <Text style={styles.body}>{request.destination.address}</Text>
+                <Text style={styles.body}>{addresses.destination}</Text>
                 <Text style={[styles.muted, type.numeric]}>
                   {fillLabel(labels.trip.tripLength, {
                     km: formatKm(request.distanceKm),

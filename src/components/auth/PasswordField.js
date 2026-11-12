@@ -1,13 +1,14 @@
 // AI-assisted: see docs/AI_LOG.md #54
-// Password field of the authentication forms: a TextField with the text hidden and, when the screen
-// passes onToggleVisible, a show/hide button (role button, label that tells the state, >= 44 x 44).
-// The password lives only in the state of the screen that renders this field.
+// AI-assisted: see docs/AI_LOG.md #60 (lock icon and the show/hide button inside the field)
+// Password field of the authentication forms: an AuthField with the text hidden and, when the screen
+// passes onToggleVisible, an eye button INSIDE the field (role button, label that tells the state,
+// >= 48 x 48). The password lives only in the state of the screen that renders this field.
 
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { AuthField } from './AuthField';
 import { Icon } from '../Icon';
-import { TextField } from '../registration/TextField';
 import { labels } from '../../constants/labels';
-import { color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
+import { color, iconSize, opacity, radius, touch } from '../../theme/tokens';
 
 const A11Y = labels.auth.a11y;
 
@@ -30,65 +31,56 @@ export function PasswordField({
 }) {
   const toggleLabel = visible ? A11Y.hidePassword : A11Y.showPassword;
 
+  const toggle = onToggleVisible ? (
+    <Pressable
+      testID={toggleTestID}
+      accessibilityRole="button"
+      accessibilityLabel={toggleLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onToggleVisible}
+      style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}
+    >
+      <Icon name={visible ? 'eye-off' : 'eye'} size={iconSize.lg} tint={color.textMuted} />
+    </Pressable>
+  ) : null;
+
   return (
-    <>
-      <TextField
-        testID={testID}
-        errorTestID={errorTestID}
-        label={label}
-        value={value}
-        onChangeText={onChangeText}
-        onBlur={onBlur}
-        errorMessage={errorMessage}
-        disabled={disabled}
-        inputRef={inputRef}
-        announceError
-        inputProps={{
-          secureTextEntry: !visible,
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          autoComplete: isNewPassword ? 'new-password' : 'current-password',
-          textContentType: isNewPassword ? 'newPassword' : 'password',
-          returnKeyType,
-          onSubmitEditing,
-        }}
-      />
-      {onToggleVisible ? (
-        <Pressable
-          testID={toggleTestID}
-          accessibilityRole="button"
-          accessibilityLabel={toggleLabel}
-          accessibilityState={{ disabled }}
-          disabled={disabled}
-          onPress={onToggleVisible}
-          style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}
-        >
-          <Icon name={visible ? 'eye-off' : 'eye'} size={iconSize.lg} tint={color.onPrimarySoft} />
-          <Text style={styles.toggleText}>{toggleLabel}</Text>
-        </Pressable>
-      ) : null}
-    </>
+    <AuthField
+      testID={testID}
+      errorTestID={errorTestID}
+      label={label}
+      icon="lock-closed"
+      value={value}
+      onChangeText={onChangeText}
+      onBlur={onBlur}
+      errorMessage={errorMessage}
+      disabled={disabled}
+      inputRef={inputRef}
+      trailing={toggle}
+      inputProps={{
+        secureTextEntry: !visible,
+        autoCapitalize: 'none',
+        autoCorrect: false,
+        autoComplete: isNewPassword ? 'new-password' : 'current-password',
+        textContentType: isNewPassword ? 'newPassword' : 'password',
+        returnKeyType,
+        onSubmitEditing,
+      }}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   toggle: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
+    alignSelf: 'stretch',
     alignItems: 'center',
-    gap: space[2],
-    minHeight: touch.min,
-    minWidth: touch.min,
-    paddingHorizontal: space[3],
-    borderRadius: radius.full,
-    backgroundColor: color.primarySoft,
+    justifyContent: 'center',
+    minHeight: touch.controlHeight,
+    minWidth: touch.controlHeight,
+    borderRadius: radius.md,
   },
   pressed: {
     opacity: opacity.pressed,
-  },
-  toggleText: {
-    ...type.label,
-    color: color.onPrimarySoft,
-    flexShrink: 1,
   },
 });

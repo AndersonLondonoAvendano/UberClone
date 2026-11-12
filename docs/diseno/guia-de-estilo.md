@@ -58,7 +58,15 @@ hero 40/46 700 · display 28/34 700 · title 20/26 600 · heading 18/24 600 · b
 Un solo componente `Icon` (Ionicons), decorativo, siempre con texto o etiqueta cerca. Tamaños `iconSize`: sm 16, md 20, lg 24. Contorno inactivo, relleno activo. Color por token (`tint`).
 
 ## Menú lateral y pestañas de registro
-Menú: cabecera `primaryDark` con avatar de borde (`avatarSize.md`), nombre, vehículo, placa y píldora de disponibilidad con texto; entradas con ícono y texto, la activa en píldora `primarySoft` con barra `accentWidth`. Pestañas: ícono + etiqueta, la activa en píldora `primarySoft` con ícono relleno y subrayado.
+Menú: cabecera `primaryDark` con avatar de borde (`avatarSize.md`), nombre, vehículo, placa y píldora de disponibilidad con texto; entradas con ícono y texto, la activa en píldora `primarySoft` con barra `accentWidth`.
+
+Pestañas de registro (`AppTabBar`): sin subrayado. Ícono + etiqueta corta de una línea (`type.caption`, `numberOfLines` 1, `adjustsFontSizeToFit`); la activa va en color de marca, `semibold`, ícono relleno y píldora `primarySoft`. Con fuente grande (≥1.15) se apilan en filas. Un botón «Cuenta» al final abre un menú en línea con el correo enmascarado y «Cerrar sesión». El título de cada paso es «Paso N de 3» (sin repetir el nombre de la pestaña).
+
+## Patrones reutilizables (pulido de diseño)
+- **Encabezado compacto (`ScreenHeader`)**: barra con un botón circular de 48 dp en `primarySoft` solo con ícono (`menu` o `chevron-back`, con `accessibilityLabel`), y título que puede ocupar 2 líneas. Sin texto en el botón.
+- **Campo editable por lápiz (`EditableFieldRow`)**: fila de datos con lápiz `create-outline` de 48 dp a la derecha, `accessibilityLabel` «Editar <campo>». Se edita un campo a la vez; los demás lápices quedan deshabilitados (`opacity.disabled`). Los campos de solo lectura no llevan lápiz y comparten una nota de soporte.
+- **Autenticación (`AuthBackdrop`, `AuthField`, `AuthLink`)**: banda `primaryDark` con borde inferior curvo (`radius.xl`), círculo de marca (mismo motivo que el menú), insignia `car`, marca en `type.hero` (una línea, se encoge) y la tarjeta del formulario solapada. Campos con ícono; el ojo de contraseña dentro del campo. Acciones secundarias como enlaces de texto de ≥48 dp (`role link`); el CTA es único.
+- **Paso de incorporación (`WelcomeScreen`)**: lista de 3 pasos con «N de 3 pasos completos» y barra de 3 segmentos, cada paso tocable con estado en texto («Pendiente/Completo») e ícono, un solo CTA (Empezar / Continuar / Revisar y enviar) y «¿No eres tú? Cerrar sesión» con confirmación en línea (sin `Alert`). Estilo Quickstart: sin carrusel.
 
 ## Espaciado, formas y elevación
 - `space`: 2, 4, 8, 12, 16, 24, 32, 48. Margen lateral 16.
@@ -67,7 +75,7 @@ Menú: cabecera `primaryDark` con avatar de borde (`avatarSize.md`), nombre, veh
 - `touch.min` 44, `touch.controlHeight` 48. `motion`: 150/220/400 ms.
 
 ## Componentes
-ScreenHeader (barra elevada, botón píldora con `Icon` y texto), PrimaryButton, SecondaryButton, ScreenState (carga con esqueleto, vacío, error con reintento), Chip (estado con texto, nunca solo color), Card (card | featured | status), DataRow (etiqueta secundaria, valor medio, separador).
+ScreenHeader (barra compacta, botón circular de solo ícono), PrimaryButton, SecondaryButton, ScreenState (carga con esqueleto, vacío, error con reintento), Chip (estado con texto, nunca solo color), Card (card | featured | status), DataRow (etiqueta secundaria, valor medio, separador).
 
 ## Reglas de uso
 1. Todo color sale de un token; sin hex sueltos.

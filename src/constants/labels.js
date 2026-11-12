@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #11
+// AI-assisted: see docs/AI_LOG.md #61
 // AI-assisted: see docs/AI_LOG.md #13
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #15
@@ -15,6 +16,36 @@
 
 export const labels = {
   appName: 'UberClone Conductor',
+  // AI-assisted: see docs/AI_LOG.md #60 (registration welcome, short tab names and account menu)
+  registrationFlow: {
+    tabShort: { personalData: 'Datos', vehicle: 'Vehículo', documents: 'Documentos' },
+    stepOf: 'Paso {n} de {total}',
+    welcome: {
+      title: 'Completa tu perfil de conductor',
+      intro:
+        'Para recibir viajes necesitas completar 3 pasos. Cuando los envíes, revisamos tu cuenta y, si todo está bien, la aprobamos.',
+      progress: '{n} de {total} pasos completos',
+      estimate: 'Tiempo estimado: unos 10 minutos',
+      stepPending: 'Pendiente',
+      stepComplete: 'Completo',
+      start: 'Empezar',
+      continue: 'Continuar',
+      review: 'Revisar y enviar',
+      steps: {
+        personalData: { title: 'Datos personales', hint: 'Nombre, documento, contacto y foto' },
+        vehicle: { title: 'Vehículo', hint: 'Placa, marca, modelo y foto' },
+        documents: { title: 'Documentos', hint: 'Licencia, SOAT y correo de cobros' },
+      },
+      signedInAs: 'Estás con {email}. ¿No eres tú?',
+      signedInAsA11y: 'Sesión iniciada con {email}',
+    },
+    account: {
+      open: 'Cuenta',
+      a11yOpen: 'Cuenta: ver correo y cerrar sesión',
+      a11yClose: 'Cerrar el menú de cuenta',
+      signedInAs: 'Sesión iniciada con {email}',
+    },
+  },
   tabs: {
     personalData: 'Datos personales',
     vehicle: 'Vehículo',
@@ -76,6 +107,9 @@ export const labels = {
     paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', stripe: 'Stripe', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
+    // AI-assisted: see docs/AI_LOG.md #61 (D-124: tip and total charged in the summary)
+    tip: 'Propina',
+    totalCharged: 'Total cobrado',
     net: 'Tu ganancia',
     countdown: 'Vence en {s} s',
     countdownA11y: 'La solicitud vence en {s} segundos',
@@ -106,6 +140,9 @@ export const labels = {
     remaining: '{km} km · {min} min',
     remainingCaption: 'restantes',
     routeLoading: 'Calculando la ruta…',
+    // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address by reverse geocoding)
+    addressSearching: 'Buscando dirección…',
+    addressFallback: 'Calle cercana (simulada)',
     approxRoute: 'Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles.',
     // AI-assisted: see docs/AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
     startRide: 'Pasajero a bordo',
@@ -319,6 +356,9 @@ export const labels = {
       rating: 'Calificación',
       ratingValue: '★ {rating}',
       ratingA11y: 'Calificación {rating} de 5',
+      // AI-assisted: see docs/AI_LOG.md #61 (D-124)
+      noRating: 'Sin calificación',
+      noRatingA11y: 'Calificación: sin calificación',
       durationValue: '{minutes} min',
       distanceValue: '{km} km',
       // AI-assisted: see docs/AI_LOG.md #58 (T-150: the gateway name is shown)
@@ -349,6 +389,7 @@ export const labels = {
     payoutEmail: 'Correo de cobros',
     payoutEmailHelp: 'Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión.',
     account: 'Estado de la cuenta',
+    accountRow: 'Estado',
     accountStatus: { pending: 'Pendiente de aprobación', approved: 'Aprobada' },
     missing: 'Sin dato',
     emptyTitle: 'Aún no hay datos de tu perfil',
@@ -362,6 +403,10 @@ export const labels = {
       cancel: 'Cancelar',
       retry: 'Reintentar',
       editHint: 'Abre la edición de nombre, celular, color del vehículo y correo de cobros.',
+      // Per-field pencil: the accessible label is "<editField> <field name>" (for example "Editar nombre").
+      editField: 'Editar',
+      editFieldHint: 'Abre la edición de este dato. Solo se edita un dato a la vez.',
+      editBusyHint: 'Guarda o cancela la edición en curso para editar otro dato.',
       saveHint: 'Guarda los cambios de tu perfil.',
       cancelHint: 'Descarta los cambios y vuelve a ver tu perfil.',
       retryHint: 'Vuelve a intentar guardar los cambios.',
@@ -447,11 +492,12 @@ export const labels = {
     sharedValueEmpty: 'Todavía no escribiste nada',
   },
   auth: {
+    brand: 'UberClone', tagline: 'Conduce y gana a tu ritmo',
     login: {
       title: 'Iniciar sesión',
       submit: 'Iniciar sesión',
       submitting: 'Entrando…',
-      forgotLink: 'Recuperar contraseña',
+      forgotLink: 'Recuperar contraseña', signUpPrompt: '¿Aún no tienes cuenta?',
       signUpLink: 'Crear cuenta',
     },
     signUp: {

@@ -1,9 +1,11 @@
 // AI-assisted: see docs/AI_LOG.md #57 (T-109)
+// AI-assisted: see docs/AI_LOG.md #61
 // AI-assisted: see docs/AI_LOG.md #58 (T-150: the method row names the gateway, Stripe included)
 // Pure presentation of a saved trip for the detail screen (RF-49, RF-54). No network, no React:
 // it only reads the document already loaded. Missing data never throws:
 // - tip: a positive number is shown as pesos, otherwise "Sin propina";
-// - rating: only when the trip has a numeric rating;
+// - rating: always an object { value, text, a11y }; value is the whole 1-5 rating or null ("Sin calificación",
+//   also for legacy trips saved before D-124);
 // - route: the saved simplified route as [{ lat, lng }] or null (no route, a single point or invalid
 //   coordinates), and then routeUnavailableText says so;
 // - status: legacy trips (no paymentMethod and no paymentStatus) get the neutral "Cobro simulado" chip.
@@ -63,7 +65,7 @@ function methodOf(trip) {
 
 // Returns { rows, status, rating, route, routeUnavailableText }.
 // rows: [{ key, label, value }] in display order (duration, distance, commission, tip, method).
-// status: { label, tone, icon } for the shared Chip. rating: { text, a11y } or null.
+// status: { label, tone, icon } for the shared Chip. rating: { value, text, a11y } (value null = no rating).
 export function tripDetailView(trip) {
   const source = trip && typeof trip === 'object' ? trip : {};
   const detail = labels.history.detail;
@@ -72,7 +74,7 @@ export function tripDetailView(trip) {
   const commission = isNumber(source.commission) && source.commission >= 0 ? source.commission : 0;
   const tip = isNumber(source.tip) && source.tip > 0 ? source.tip : 0;
   const route = validDetailRoute(source.route);
-  const ratingText = isNumber(source.rating) ? String(Math.round(source.rating * 10) / 10).replace('.', ',') : null;
+  const ratingValue = isNumber(source.rating) && source.rating >= 1 && source.rating <= 5 ? Math.round(source.rating) : null;
 
   return {
     rows: [
@@ -83,9 +85,14 @@ export function tripDetailView(trip) {
       { key: 'method', label: detail.method, value: methodOf(source) },
     ],
     status: statusOf(source),
-    rating: ratingText
-      ? { text: fillLabel(detail.ratingValue, { rating: ratingText }), a11y: fillLabel(detail.ratingA11y, { rating: ratingText }) }
-      : null,
+    rating:
+      ratingValue !== null
+        ? {
+            value: ratingValue,
+            text: fillLabel(detail.ratingValue, { rating: ratingValue }),
+            a11y: fillLabel(detail.ratingA11y, { rating: ratingValue }),
+          }
+        : { value: null, text: detail.noRating, a11y: detail.noRatingA11y },
     route,
     routeUnavailableText: route ? null : detail.routeUnavailable,
   };

@@ -2,6 +2,8 @@
 // Stripe adapter for the provider interface. The amount comes only from trip.fare; whatever the
 // caller sends is never used. A session that does not match the trip (reference, amount, currency)
 // is treated as "no payment for this trip" (null).
+// AI-assisted: see docs/AI_LOG.md #61 (amount = fare + tip via chargeAmount)
+import { chargeAmount } from '../chargeAmount.js';
 import { isStripeSessionId, mapStripeSession, StripeError, toStripeUnitAmount } from '../stripe.js';
 
 const IDEMPOTENCY_BUCKET_MS = 60_000;
@@ -18,7 +20,7 @@ export function createStripeProvider({ client, currency = 'cop', copPerUsd, maxA
     // state can be read later. The Idempotency-Key makes a double tap reuse the same session inside the
     // same minute, while a later retry creates a new one.
     async createCheckout({ tripId, uid, trip, publicBaseUrl }) {
-      const converted = toStripeUnitAmount(trip.fare, amountOptions);
+      const converted = toStripeUnitAmount(chargeAmount(trip), amountOptions);
       if (converted === null) throw new StripeError(400);
       const returnUrl = `${publicBaseUrl}/payments/return`;
       const idempotencyKey = `uc-${tripId}-${Math.floor(now() / IDEMPOTENCY_BUCKET_MS)}`;
@@ -52,7 +54,7 @@ export function createStripeProvider({ client, currency = 'cop', copPerUsd, maxA
     async getPaymentState({ tripId, trip, sessionId }) {
       const id = sessionId ?? trip.paymentId;
       if (!isStripeSessionId(id)) return null;
-      const converted = toStripeUnitAmount(trip.fare, amountOptions);
+      const converted = toStripeUnitAmount(chargeAmount(trip), amountOptions);
       if (converted === null) return null;
       const session = await client.getCheckoutSession(id);
       const mapped = mapStripeSession(session, {

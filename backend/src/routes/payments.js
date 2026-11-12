@@ -2,6 +2,7 @@
 // GET /payments/providers, POST /payments/checkout and POST /payments/sync. The amount always comes
 // from the trip document; anything else in the body is ignored. The gateway is a provider from the
 // registry; without one (R8 callers) Mercado Pago is built from the injected mp client.
+import { chargeAmount } from '../chargeAmount.js';
 import { ERRORS, send as defaultSend } from '../middleware.js';
 import { createMercadoPagoProvider } from '../providers/mercadopago.js';
 import { createProviderRegistry } from '../providers/registry.js';
@@ -13,8 +14,10 @@ export function validTripId(value) {
   return typeof value === 'string' && TRIP_ID.test(value);
 }
 
+// AI-assisted: see docs/AI_LOG.md #61 (the charged amount is fare + tip, from the trip document)
 function validAmount(trip, maxAmount) {
-  return Number.isInteger(trip.fare) && trip.fare > 0 && trip.fare <= maxAmount;
+  const amount = chargeAmount(trip);
+  return Number.isInteger(amount) && amount > 0 && amount <= maxAmount;
 }
 
 export function createPaymentsHandlers({ store, mp, config, registry }) {

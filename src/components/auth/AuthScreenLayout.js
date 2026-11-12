@@ -1,15 +1,18 @@
 // AI-assisted: see docs/AI_LOG.md #54
-// Frame shared by the three authentication screens: safe area, header, and a keyboard-aware scroll
-// area so the focused field, its error and the main button stay above the keyboard. The content
-// grows in height with the text size (no fixed heights). Same keyboard pattern as PlaceholderScreen.
+// AI-assisted: see docs/AI_LOG.md #60 (no header: brand band, overlapping form card, centred content)
+// Frame shared by the three authentication screens: the brand band (AuthBackdrop) under the status bar
+// and a keyboard-aware scroll area so the focused field, its error and the main button stay above the
+// keyboard. The children (card and links) are centred and overlap the lower edge of the band. The
+// content grows in height with the text size (no fixed heights). Same keyboard pattern as PlaceholderScreen.
 
 import { useEffect, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScreenHeader } from '../ScreenHeader';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AuthBackdrop } from './AuthBackdrop';
 import { color, space } from '../../theme/tokens';
 
-export function AuthScreenLayout({ testID, title, leading = null, onLeadingPress, children }) {
+export function AuthScreenLayout({ testID, children }) {
+  const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -28,17 +31,18 @@ export function AuthScreenLayout({ testID, title, leading = null, onLeadingPress
   }, []);
 
   return (
-    <SafeAreaView testID={testID} style={styles.screen}>
-      <ScreenHeader title={title} leading={leading} onLeadingPress={onLeadingPress} />
+    <View testID={testID} style={styles.screen}>
       <KeyboardAvoidingView style={styles.avoider} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: space[4] + keyboardHeight }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + space[4] + keyboardHeight }]}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {children}
+          <AuthBackdrop topInset={insets.top} />
+          <View style={styles.content}>{children}</View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -50,10 +54,13 @@ const styles = StyleSheet.create({
   avoider: {
     flex: 1,
   },
-  content: {
+  scroll: {
     flexGrow: 1,
+  },
+  // The negative margin pulls the card over the curved band; the band gives it room at the bottom.
+  content: {
+    marginTop: -(space[7] + space[3]),
     paddingHorizontal: space[4],
-    paddingVertical: space[4],
-    gap: space[5],
+    gap: space[3],
   },
 });

@@ -49,8 +49,11 @@ export function isValidVehicleCategory(value) {
   return VEHICLE_CATEGORY_OPTIONS.some((option) => option.value === value);
 }
 
+// AI-assisted: see docs/AI_LOG.md #62
+// Keeps only ASCII letters and digits (drops spaces, hyphens, etc.) and uppercases, so the value
+// written back to the controlled input is stable and does not fight the Android keyboard composition.
 export function normalizePlate(value) {
-  return typeof value === 'string' ? value.trim().toUpperCase() : '';
+  return typeof value === 'string' ? value.replace(/[^A-Za-z0-9]/g, '').toUpperCase() : '';
 }
 
 export function isValidPlate(normalizedValue) {

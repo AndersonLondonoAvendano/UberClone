@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #61
 // Simulated passenger API (default adapter). It speaks only the internal contract shape
 // (contract.js) and never knows HTTP or the real API's shape. Everything lives in memory.
 // - While subscribed it emits one request at a time, every MOCK_EMIT_MIN_MS–MOCK_EMIT_MAX_MS, near
@@ -30,6 +31,7 @@ import {
   createPassengerApiError,
   isTripFinished,
 } from './contract';
+import { generateFeedback } from './simulatedFeedback';
 
 // Fictitious passengers (no real people).
 const PASSENGER_NAMES = ['Lucía Restrepo', 'Mateo Gil', 'Valentina Ríos', 'Samuel Ortiz', 'Mariana Duque', 'Tomás Vélez'];
@@ -91,6 +93,8 @@ export function createMockPassengerApi({
     const dropoff = offset(pickup, between(MOCK_DESTINATION_MIN_KM, MOCK_DESTINATION_MAX_KM));
     const straightKm = haversineDistanceM([pickup.lng, pickup.lat], [dropoff.lng, dropoff.lat]) / 1000;
     const distanceKm = round(straightKm * MOCK_ROUTE_FACTOR, 1);
+    // D-124: the passenger's tip and rating of the driver; the app only shows them once the trip is completed.
+    const { tip, rating } = generateFeedback(random);
     return {
       id: `mock-${createdAt}-${sequence}`,
       passenger: { name: pick(PASSENGER_NAMES), rating: round(between(4, 5), 1) },
@@ -100,6 +104,8 @@ export function createMockPassengerApi({
       durationMin: Math.max(1, Math.round((distanceKm / MOCK_AVERAGE_SPEED_KMH) * 60)),
       category: pick(TRIP_CATEGORIES),
       paymentMethod: pick(PAYMENT_METHODS),
+      tip,
+      rating,
       createdAt,
       expiresAt: createdAt + MOCK_REQUEST_TTL_MS,
     };

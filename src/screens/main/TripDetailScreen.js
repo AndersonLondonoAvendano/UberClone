@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+// AI-assisted: see docs/AI_LOG.md #61 (D-124: the rating row shows five stars or "Sin calificación")
 // Trip detail (RF-49, RF-54), opened from a History row with the saved trip as the route param. The
 // planned route is drawn from the simplified route saved with the trip on a read-only map: no route
 // request and no extra tiles beyond what the map already uses. Without a valid route it shows
@@ -15,12 +16,15 @@ import { DataRow } from '../../components/DataRow';
 import { TripMap } from '../../components/map/TripMap';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { ScreenState } from '../../components/ScreenState';
+import { Icon } from '../../components/Icon';
 import { DETAIL_MAP_HEIGHT } from '../../config/map';
 import { labels } from '../../constants/labels';
 import { routeBounds, routeToCoordinates } from '../../services/map/routeBounds';
 import { tripDetailView } from '../../services/trip/tripDetailView';
-import { borderWidth, color, radius, space, type } from '../../theme/tokens';
+import { borderWidth, color, iconSize, radius, space, type } from '../../theme/tokens';
 import { formatDateTime } from '../../utils/format';
+
+const STAR_POSITIONS = [1, 2, 3, 4, 5];
 
 export function TripDetailScreen({ navigation, route: screen }) {
   const trip = screen?.params?.trip ?? null;
@@ -82,11 +86,23 @@ export function TripDetailScreen({ navigation, route: screen }) {
                 <Text style={styles.statusLabel}>{labels.history.detail.status}</Text>
                 <Chip testID="trip-detail-status" label={view.status.label} tone={view.status.tone} icon={view.status.icon} />
               </View>
-              {view.rating ? (
-                <View testID="trip-detail-rating" accessible accessibilityLabel={view.rating.a11y}>
-                  <DataRow label={labels.history.detail.rating} value={view.rating.text} />
-                </View>
-              ) : null}
+              <View testID="trip-detail-rating" accessible accessibilityLabel={view.rating.a11y} style={styles.ratingRow}>
+                <Text style={styles.ratingLabel}>{labels.history.detail.rating}</Text>
+                {view.rating.value !== null ? (
+                  <View style={styles.stars}>
+                    {STAR_POSITIONS.map((position) => (
+                      <Icon
+                        key={position}
+                        name={position <= view.rating.value ? 'star' : 'star-outline'}
+                        size={iconSize.md}
+                        tint={position <= view.rating.value ? color.warning : color.textMuted}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.ratingNone}>{view.rating.text}</Text>
+                )}
+              </View>
               {view.rows.map((row, index) => (
                 <DataRow
                   key={row.key}
@@ -126,5 +142,18 @@ const styles = StyleSheet.create({
     gap: space[3],
     paddingVertical: space[2],
   },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: space[3],
+    paddingVertical: space[3],
+    borderBottomWidth: borderWidth.thin,
+    borderBottomColor: color.borderSubtle,
+  },
+  ratingLabel: { ...type.small, color: color.textMuted, flexShrink: 1 },
+  ratingNone: { ...type.bodyStrong, color: color.text, flexShrink: 1, textAlign: 'right' },
+  stars: { flexDirection: 'row', gap: space[1] },
   statusLabel: { ...type.small, color: color.textMuted, flexShrink: 1 },
 });

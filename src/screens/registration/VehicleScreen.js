@@ -5,7 +5,6 @@
 // RegistrationFormContext. Same error-display rule as Datos personales (DP-08).
 
 import { StyleSheet, Text, View } from 'react-native';
-import { AccountActions } from '../../components/auth/AccountActions';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
@@ -30,6 +29,8 @@ import {
 
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.vehicle.fields;
+// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '2').replace('{total}', '3');
 
 export function VehicleScreen() {
   const { vehicle, setVehicleField, touchVehicleField, visitedTabs, isLocked } = useRegistrationForm();
@@ -41,7 +42,7 @@ export function VehicleScreen() {
     !isValid && (vehicle.touched[key] || showErrors) ? FIELDS[key].error : null;
 
   return (
-    <PlaceholderScreen name="vehicle" title={labels.tabs.vehicle} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="vehicle" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
@@ -75,6 +76,14 @@ export function VehicleScreen() {
           onChangeText={(value) => setVehicleField('plate', value)}
           onBlur={() => touchVehicleField('plate')}
           maxLength={6}
+          // AI-assisted: see docs/AI_LOG.md #62 (T-174: no autocorrect/suggestions on the plate)
+          inputProps={{
+            autoCapitalize: 'characters',
+            autoCorrect: false,
+            autoComplete: 'off',
+            spellCheck: false,
+            importantForAutofill: 'no',
+          }}
           errorMessage={errorFor('plate', isValidPlate(vehicle.plate))}
           disabled={isLocked}
         />
@@ -152,8 +161,6 @@ export function VehicleScreen() {
           disabled={isLocked}
         />
 
-        {/* AI-assisted: see docs/AI_LOG.md #54 */}
-        <AccountActions variant="registration" />
       </View>
     </PlaceholderScreen>
   );

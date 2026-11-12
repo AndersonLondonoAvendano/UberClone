@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text link)
 // Create-account screen (RF-33). Email, password and confirmation live only in this component's
 // state and are cleared when the screen loses focus and after success. The password requirements
 // are always visible and their state is shown with icon + text. After success the auth gate (T-69)
@@ -7,19 +8,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { AuthField } from '../../components/auth/AuthField';
 import { AuthFormError } from '../../components/auth/AuthFormError';
+import { AuthLink } from '../../components/auth/AuthLink';
 import { AuthScreenLayout } from '../../components/auth/AuthScreenLayout';
 import { PasswordField } from '../../components/auth/PasswordField';
 import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { SecondaryButton } from '../../components/SecondaryButton';
-import { TextField } from '../../components/registration/TextField';
 import { labels } from '../../constants/labels';
 import { signUpWithEmail } from '../../services/authService';
 import { mapAuthError } from '../../utils/authErrors';
 import { firstInvalidField, passwordRequirements, validateSignUp } from '../../utils/authValidators';
-import { color, iconSize, space, type } from '../../theme/tokens';
+import { color, iconSize, radius, space, type } from '../../theme/tokens';
 
 const TEXT = labels.auth;
 const FIELD_ORDER = ['email', 'password', 'confirmation'];
@@ -105,25 +106,21 @@ export function SignUpScreen({ navigation }) {
   const requirements = passwordRequirements(password);
 
   return (
-    <AuthScreenLayout
-      testID="screen-signup"
-      title={TEXT.signUp.title}
-      leading="back"
-      onLeadingPress={() => navigation.goBack()}
-    >
+    <AuthScreenLayout testID="screen-signup">
       <Card style={styles.card}>
+        <Text style={styles.title}>{TEXT.signUp.title}</Text>
         <AuthFormError testID="signup-error-form" message={formError} />
-        <TextField
+        <AuthField
           testID="signup-field-email"
           errorTestID="signup-error-email"
           label={TEXT.fields.email.label}
+          icon="mail"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           errorMessage={fieldErrors.email}
           disabled={submitting}
           inputRef={emailRef}
-          announceError
           inputProps={{
             autoCapitalize: 'none',
             autoCorrect: false,
@@ -191,7 +188,7 @@ export function SignUpScreen({ navigation }) {
           accessibilityHint={submitting ? TEXT.a11y.submitting : undefined}
         />
       </Card>
-      <SecondaryButton
+      <AuthLink
         testID="signup-link-login"
         label={TEXT.signUp.loginLink}
         onPress={() => navigation.navigate('Login')}
@@ -204,9 +201,18 @@ export function SignUpScreen({ navigation }) {
 const styles = StyleSheet.create({
   card: {
     alignSelf: 'stretch',
+    padding: space[5],
+    gap: space[4],
+  },
+  title: {
+    ...type.display,
+    color: color.text,
   },
   requirements: {
     gap: space[2],
+    padding: space[3],
+    borderRadius: radius.md,
+    backgroundColor: color.surfaceMuted,
   },
   requirementsTitle: {
     ...type.label,

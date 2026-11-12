@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #61
 // Internal contract of the passenger API (port and adapters). Models,
 // operations and errors the app depends on; adapters (mock, http) implement it. Nothing here calls
 // anything: it only documents shapes and exports constants and light validators.
@@ -13,6 +14,8 @@
 //   durationMin: number,
 //   category: 'economico' | 'xl' | 'premium',
 //   paymentMethod: 'card' | 'cash',  (#59: 'card' = tarjeta, pasarela por definir; legacy 'mercadopago' is still accepted)
+//   tip?: number,     (#61, D-124: whole COP >= 0, goes entirely to the driver; shown only in the trip summary)
+//   rating?: number,  (#61, D-124: whole 1-5, the passenger's rating of the driver; shown only after the trip)
 //   createdAt: number,
 //   expiresAt: number,
 // }} TripRequest
@@ -93,6 +96,8 @@ export function isValidTripRequest(request) {
     !!request.passenger &&
     typeof request.passenger.name === 'string' &&
     (request.passenger.rating === undefined || isFiniteNumber(request.passenger.rating)) &&
+    (request.tip === undefined || (Number.isInteger(request.tip) && request.tip >= 0)) &&
+    (request.rating === undefined || (Number.isInteger(request.rating) && request.rating >= 1 && request.rating <= 5)) &&
     isPlace(request.origin) &&
     isPlace(request.destination) &&
     isFiniteNumber(request.distanceKm) &&

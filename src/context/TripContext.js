@@ -23,6 +23,7 @@ import { createTripLocationSource } from '../services/location';
 import { cancelTrip, releaseTrip, reportDriverLocation, reportTripStatus } from '../services/passengerApi';
 import { getRoute } from '../services/routing';
 import { buildStraightLineRoute } from '../services/routing/straightLine';
+import { withResolvedAddresses } from '../services/geocoding/requestAddresses';
 import { createTripController } from '../services/trip/tripController';
 import { saveTrip } from '../services/tripRepository';
 import { trackTripSave } from '../services/trip/saveQueue';
@@ -106,7 +107,7 @@ export function TripProvider({ children }) {
         const record = buildTripRecord({
           driverId,
           tripId: final.tripId,
-          request: final.request,
+          request: withResolvedAddresses(final.request), // AI-assisted: see docs/AI_LOG.md #61 (D-125)
           status: SAVED_STATUS.CANCELLED,
           startedAt: final.startedAt,
           finishedAt: final.finishedAt,
