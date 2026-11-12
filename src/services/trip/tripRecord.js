@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see docs/AI_LOG.md #61
 // Pure mapping of a finished trip to the document saved in drivers/{uid}/trips/{tripId} (T-46, T-93).
 // Amounts come from calculateFare (the same call the summary screen uses), so what is saved is
 // exactly what the driver saw. NO real driver position is saved: only address labels, distance,
@@ -39,6 +40,8 @@ export const TRIP_DOC_KEYS = [
   'fare',
   'commission',
   'driverEarnings',
+  'tip',
+  'rating',
   'paymentMethod',
   'startedAt',
   'finishedAt',
@@ -54,6 +57,10 @@ const round = (value, decimals) => {
   const factor = 10 ** decimals;
   return Math.round((Number(value) || 0) * factor) / factor;
 };
+// AI-assisted: see docs/AI_LOG.md #61 (D-124)
+// tip: whole COP >= 0 (anything else is 0). rating: whole 1-5 (anything else is null: no rating).
+export const tipOf = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
+export const ratingOf = (value) => (Number.isInteger(value) && value >= 1 && value <= 5 ? value : null);
 const toDate = (value) => (value == null ? null : new Date(value));
 
 // The request asks for 'card' (legacy 'mercadopago') or 'cash'. 'card' is saved as 'mercadopago' (= tarjeta, pasarela por definir, #59). The saved method is one of
@@ -76,8 +83,10 @@ export function routeForRecord(route) {
 export function buildTripRecord({ driverId, tripId, request, status, startedAt = null, finishedAt, route = null }) {
   if (!driverId || !tripId || !request) throw new Error('trip-record: missing data');
   const completed = status === SAVED_STATUS.COMPLETED;
+  // The tip is part of driverEarnings (fare - commission + tip) but never of fare or commission.
+  const tip = completed ? tipOf(request.tip) : 0;
   const fare = completed
-    ? calculateFare({ distanceKm: request.distanceKm, durationMin: request.durationMin, category: request.category })
+    ? calculateFare({ distanceKm: request.distanceKm, durationMin: request.durationMin, category: request.category, tip })
     : { fare: 0, commission: 0, driverEarnings: 0 };
   const record = {
     driverId,
@@ -93,6 +102,8 @@ export function buildTripRecord({ driverId, tripId, request, status, startedAt =
     fare: fare.fare,
     commission: fare.commission,
     driverEarnings: fare.driverEarnings,
+    tip,
+    rating: completed ? ratingOf(request.rating) : null,
     // The rule requires 'cash' or 'mercadopago' even on a cancelled trip.
     paymentMethod: paymentMethodOf(request),
     startedAt: toDate(startedAt),

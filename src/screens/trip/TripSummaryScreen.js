@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #61 (D-124: the summary shows the tip and the total charged = fare + tip)
 // AI-assisted: see docs/AI_LOG.md #58 (T-147, T-148: one "Cobrar con ..." button per configured gateway; verify uses the trip's gateway)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
@@ -36,6 +37,7 @@ import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
 import { useChargeProviders } from '../../hooks/useChargeProviders';
 import { useTripPayment } from '../../hooks/useTripPayment';
+import { retryMissingAddresses, withResolvedAddresses } from '../../services/geocoding/requestAddresses';
 import { requestCheckoutUrl, syncPayment } from '../../services/paymentsService';
 import { createPaymentActions } from '../../services/trip/paymentActions';
 import { hasChosenGateway } from '../../services/trip/paymentGateway';
@@ -43,7 +45,7 @@ import { CHARGE_TONE, chargeButtons, chargePanel, RELOAD_PROVIDERS, serviceError
 import { PAYMENT_ACTION, PAYMENT_CHIP } from '../../services/trip/paymentView';
 import { TRIP_PAYMENT_ERROR } from '../../services/trip/tripPaymentSubscription';
 import { classifySaveError, SAVE_ERROR } from '../../services/trip/saveRetry';
-import { buildTripRecord, isCardMethod, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS } from '../../services/trip/tripRecord';
+import { buildTripRecord, isCardMethod, paymentMethodOf, SAVED_PAYMENT, SAVED_STATUS, tipOf } from '../../services/trip/tripRecord';
 import { trackTripSave } from '../../services/trip/saveQueue';
 import { confirmCashPayment, saveTrip } from '../../services/tripRepository';
 import { color, iconSize, space, type } from '../../theme/tokens';
@@ -78,7 +80,13 @@ const MESSAGE_LOOK = {
 
 function fareOf(request) {
   try {
-    return calculateFare({ distanceKm: request.distanceKm, durationMin: request.durationMin, category: request.category });
+    // The tip of the request goes entirely to the driver: it is in driverEarnings, not in fare or commission.
+    return calculateFare({
+      distanceKm: request.distanceKm,
+      durationMin: request.durationMin,
+      category: request.category,
+      tip: tipOf(request.tip),
+    });
   } catch {
     return null;
   }
@@ -100,9 +108,17 @@ export function TripSummaryScreen({ navigation }) {
   const shown = shownRef.current;
   const request = shown?.request ?? null;
   const fare = useMemo(() => (request ? fareOf(request) : null), [request]);
+  const tip = request ? tipOf(request.tip) : 0;
 
   // Leaving the summary in any way (button or back) releases the trip and resumes availability.
   useEffect(() => endTrip, [endTrip]);
+
+  // AI-assisted: see docs/AI_LOG.md #61
+  // D-125: one more try for an address that failed while the trip ran; quiet and never blocking.
+  const requestForRetry = request;
+  useEffect(() => {
+    if (requestForRetry) retryMissingAddresses(requestForRetry);
+  }, [requestForRetry]);
 
   const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
 
@@ -125,7 +141,7 @@ export function TripSummaryScreen({ navigation }) {
       const record = buildTripRecord({
         driverId,
         tripId: shown.tripId,
-        request: shown.request,
+        request: withResolvedAddresses(shown.request), // AI-assisted: see docs/AI_LOG.md #61 (D-125: saved text is the resolved street)
         status: SAVED_STATUS.COMPLETED,
         startedAt: shown.startedAt,
         finishedAt: shown.finishedAt ?? Date.now(),
@@ -291,6 +307,8 @@ export function TripSummaryScreen({ navigation }) {
             {fare ? (
               <>
                 <Row label={labels.trip.fare} value={formatCop(fare.fare)} />
+                {tip > 0 ? <Row label={labels.trip.tip} value={`+ ${formatCop(tip)}`} /> : null}
+                {tip > 0 ? <Row label={labels.trip.totalCharged} value={formatCop(fare.fare + tip)} /> : null}
                 <Row
                   label={fillLabel(labels.trip.commission, { pct: commissionPercent(COMMISSION_RATE) })}
                   value={`- ${formatCop(fare.commission)}`}

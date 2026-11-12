@@ -1,6 +1,8 @@
 // AI-assisted: see docs/AI_LOG.md #58
 // Mercado Pago adapter for the provider interface. Wraps createMercadoPagoClient without changing
 // its behavior: same reference (the trip id), same notification URL and same status mapping.
+// AI-assisted: see docs/AI_LOG.md #61 (amount = fare + tip via chargeAmount)
+import { chargeAmount } from '../chargeAmount.js';
 import { mapPaymentStatus, paymentMatchesTrip } from '../mercadopago.js';
 
 export function createMercadoPagoProvider({ client }) {
@@ -12,7 +14,7 @@ export function createMercadoPagoProvider({ client }) {
       const { url } = await client.createPreference({
         tripId,
         uid,
-        amount: trip.fare,
+        amount: chargeAmount(trip),
         currency,
         notificationUrl: `${publicBaseUrl}/webhooks/mercadopago`,
       });

@@ -1,8 +1,9 @@
 // AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see docs/AI_LOG.md #61
 // Pure period totals for the earnings screen (T-47). Day, week and month limits use Colombian
 // time (UTC-5), never the device time zone. The week starts on MONDAY (Colombian calendar) and ends the next Monday at 00:00
-// (exclusive). Completed and paid trips add up (cash confirmation turns a trip into paid); cancelled ones are ignored. Tips do not exist in this
-// app, so the net earning is the saved driverEarnings (fare minus commission).
+// (exclusive). Completed and paid trips add up (cash confirmation turns a trip into paid); cancelled ones are ignored. The net earning is the saved
+// driverEarnings (fare minus commission plus the simulated tip, D-124).
 
 import { TRIP_STATUS } from '../constants/tripStatus';
 import { isCardMethod } from '../services/trip/tripRecord';

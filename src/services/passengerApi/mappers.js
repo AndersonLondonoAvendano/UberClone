@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see docs/AI_LOG.md #61
 // The ONLY file that knows the real passenger API's shape. The rest of the app sees only the
 // internal models of contract.js. ASSUMPTION until the real API arrives: the field names below are
 // a guess (a flat JSON close to the internal model, with snake_case alternatives). When the API is
@@ -45,9 +46,23 @@ function toPaymentMethod(value) {
   return method === 'mercadopago' ? 'card' : method;
 }
 
+// AI-assisted: see docs/AI_LOG.md #61
+// Optional feedback fields (D-124): a legacy request without them gives undefined (the key is left out).
+function toTip(value) {
+  const tip = toNumber(value);
+  return Number.isInteger(tip) && tip >= 0 ? tip : undefined;
+}
+
+function toRating(value) {
+  const rating = toNumber(value);
+  return Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : undefined;
+}
+
 export function toTripRequest(raw = {}) {
   const passenger = raw.passenger ?? {};
   const createdAt = toTime(raw.createdAt ?? raw.created_at);
+  const tip = toTip(raw.tip);
+  const rating = toRating(raw.rating ?? raw.driverRating ?? raw.driver_rating);
   return {
     id: String(raw.id ?? raw.requestId ?? raw.request_id ?? ''),
     passenger: {
@@ -61,6 +76,8 @@ export function toTripRequest(raw = {}) {
     category: String(raw.category ?? '').toLowerCase(),
     // AI-assisted: see docs/AI_LOG.md #55 (legacy "card" is the same as "mercadopago")
     paymentMethod: toPaymentMethod(raw.paymentMethod ?? raw.payment_method),
+    ...(tip !== undefined ? { tip } : {}),
+    ...(rating !== undefined ? { rating } : {}),
     createdAt,
     expiresAt: toTime(raw.expiresAt ?? raw.expires_at),
   };

@@ -2115,3 +2115,193 @@ editables). Sin recap de pasos.
 - Archivos y commit: `src/utils/profileEdit.js`, `profileEditFlow.js`, `src/services/profileUpdater.js`, `driverRepository.js`, `src/hooks/useProfileEdit.js`, `ProfileScreen.js`, `TextField.js`, `DocumentsScreen.js`, `HomeScreen.js`, `labels.js`, 4 pruebas en `scripts/tests/`, y docs (spec, plan, decisiones, requisitos, backlog, seguridad, progress, omisiones). Sin commit; lo hace Anderson.
 - Verificación (la completa Anderson): 
 - Aprendizaje (lo escribe Anderson):
+
+### Entrada #61
+- Fecha: 2026-11-12
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Auditoría del enunciado, propina y calificación simuladas (D-124), direcciones reales con Nominatim (D-125), README y `.env.example`.
+- Prompt textual:
+````
+PROMPT — Auditoría del enunciado + calificación y propina simuladas + direcciones reales + README
+
+MODO DE TRABAJO (misma metodología que el pulido de diseño)
+- Sin spec, sin plan, sin tareas T-nnn nuevas, sin tocar backlog.md. Defines tú las
+  tareas internas, las implementas, las verificas y las auditas.
+- Usa los agentes: implementer (implementa), verifier DISTINTO del implementer
+  (criterios y regresiones) y design-auditor (lo visual del detalle y el Historial).
+  El implementer no aprueba su propio trabajo. Si el verifier o el auditor RECHAZA,
+  DETENTE y repórtalo. Los verifiers no editan docs.
+- Usa las skills de diseño disponibles para la parte visual.
+- Paso 0 ÚNICO: al terminar, crea UNA entrada en docs/AI_LOG.md copiando ESTE PROMPT
+  textual. Deja "Aprendizaje" vacío (lo escribe Anderson) y llena "Archivos y commit"
+  con los archivos tocados (el hash lo pone Anderson después de commitear).
+
+REGLAS DURAS
+- No leas ni imprimas .env, backend/.env ni backend/secrets/*. Cero secretos en chat,
+  código, docs o README.
+- Sin dependencias nuevas, sin tocar app.json ni código nativo, sin Alert, sin push, sin
+  commit (Anderson commitea). SHOW_DEV_TOOLS debe seguir en false. firestore.rules sigue
+  fuera de git (D-80): si hay que cambiar reglas, deja el texto completo en
+  docs/seguridad.md y dime qué publicar; NO lo publiques tú.
+- Tokens de src/theme/tokens.js, iconos con src/components/Icon.js, fuente Inter, áreas
+  táctiles ≥ 48 dp, accessibilityLabel en lo nuevo, que no se rompa con fuente al 200 %.
+- No cambies sesiones/resetSession, estados de cuenta ni decisiones D-93…D-123 salvo lo
+  que pidan explícitamente las tareas de abajo.
+
+TAREA 0 — AUDITORÍA DE CUMPLIMIENTO (solo lectura, hazla PRIMERO)
+Lee docs/enunciado-taller.pdf (si no existe, dímelo y sigue con docs/requisitos.md).
+Construye la tabla requisito → estado → evidencia (archivo:línea o test) con estados
+Cumplido / Parcial / Omitido (documentado) / No encontrado. Cubre: registro (campos y
+validaciones de las 3 pestañas, Enviar solo con las tres completas, errores bajo el
+campo, sin Alert), estados de cuenta, pantallas 1–7, los 7 estados del viaje con sus
+nombres exactos en status, hooks obligatorios y AsyncStorage solo preferencias/sesión,
+pasarela (flujo de 6 pasos, seguridad, .env.example sin valores, efectivo y saldo),
+tarifa (calculateFare pura, 8,5 km y 22 min = 19.200 / 26.900, commissionRate,
+pricing.js), Ganancias (6 métricas hoy/semana/mes), Historial (FlatList, filtros,
+paginación, estado vacío, detalle con ruta, duración, distancia, comisión, propina y
+calificación), modelo de datos de trips (nombres del PDF vs reales) y la sección 7.
+Comprueba también: capacidad de pasajeros (XL ≥ 6), foto del vehículo, género,
+revisión técnico-mecánica según año del vehículo, checkbox de términos con la comisión
+visible, último estado de disponibilidad en AsyncStorage y .env.example en la raíz.
+Cuenta los marcadores "// AI-assisted: see docs/AI_LOG.md #N" y las entradas del
+AI_LOG con campos vacíos. "Omitido (documentado)" solo si está en
+docs/omisiones-y-limites.md. Guarda la tabla en docs/auditoria-enunciado-2026-11-12.md.
+Esta tarea no cambia código. Sus hallazgos que no estén cubiertos por las tareas
+siguientes se listan en el informe final, NO los implementes.
+
+TAREA A — CALIFICACIÓN Y PROPINA ALEATORIAS EN LAS SOLICITUDES SIMULADAS
+Contrato simulado del pasajero (el único archivo que conoce la forma de la API es
+mappers.js; respeta eso):
+1. Cada solicitud simulada genera, por viaje, una propina y una calificación finales:
+   - tip: entero en pesos, múltiplo de 500, entre 0 y 5.000; probabilidad ~40 % de que
+     sea > 0 y el resto 0.
+   - rating: entero 1–5 con sesgo realista (mayoría 4–5; 1–2 poco frecuentes).
+   - Inyecta el generador aleatorio como dependencia (o semilla) para que los tests
+     sean deterministas.
+2. Se ven al completar el viaje (como si el pasajero calificara y diera propina al
+   terminar), no antes. Viajes cancelados: rating = null, tip = 0.
+3. Persistencia: el registro del viaje guarda tip y rating con los nombres del PDF.
+4. Reglas de dinero (decisión D-124, regístrala Vigente en docs/decisiones.md):
+   - La comisión se calcula solo sobre la tarifa (calculateFare ya recibe tip; revisa
+     que lo respete y que 8,5 km / 22 min sin propina siga dando 19.200 y 26.900).
+   - driverEarnings = tarifa − comisión + propina (la propina va completa al conductor).
+   - Cobro con tarjeta: el monto cobrado = tarifa + propina. REVISA el backend
+     (backend/src/routes/payments.js y los providers): el monto debe seguir saliendo del
+     documento del viaje en Firestore, nunca del body, y debe incluir la propina de
+     forma consistente. Si hoy cobra solo la tarifa, corrígelo con tests. Efectivo: el
+     conductor recibe tarifa + propina en mano y se le descuenta solo la comisión del
+     saldo.
+   - Verifica que Ganancias (Propinas), Saldo e Historial sigan cuadrando con esto.
+5. UI:
+   - Resumen del viaje: muestra Propina (si > 0) y el total cobrado.
+   - Detalle del viaje: fila "Calificación" con estrellas (Icon star/star-outline con
+     tokens) y accessibilityLabel "Calificación N de 5"; si rating es null, "Sin
+     calificación". La propina sigue como "Sin propina" si es 0.
+   - Opcional, solo si es barato y limpio: estrellitas pequeñas en la fila del Historial.
+6. SEGURIDAD — verifica, no asumas: lee en docs/seguridad.md el texto de reglas de
+   validTrip(). Si valida con una lista cerrada de claves (hasOnly) o tipos, y rating
+   no está permitido, el guardado de TODOS los viajes fallaría. Entonces: deja en
+   docs/seguridad.md el texto completo y actualizado (rating: null o entero 1–5; tip:
+   entero ≥ 0), márcalo "BLOQUEANTE: publicar antes de probar" en tu informe y dime
+   exactamente qué pegar. Verifica también el mismo caso para el backend (admin SDK no
+   se ve afectado por reglas).
+7. Tests unitarios nuevos en scripts/tests: generador determinista, rango y múltiplos
+   de la propina, distribución de rating en [1,5], cancelado sin rating, driverEarnings
+   con propina, monto cobrado = tarifa + propina en backend, y el caso legacy (viajes
+   guardados sin rating/tip siguen mostrándose bien).
+
+TAREA B — DIRECCIONES REALES CON NOMINATIM (reverse geocoding)
+Hoy origen y destino dicen "Calle cercana (simulada)". Sustitúyelo por una dirección
+corta real:
+1. Cliente: función en src/services/ (ej. geocoding/reverseGeocode.js) con fetch a
+   Nominatim (endpoint reverse, format=jsonv2, accept-language=es, zoom 18).
+   Reglas de la política de uso: máximo 1 petición por segundo (cola serializada con
+   ≥ 1,1 s entre llamadas), cabecera User-Agent que identifique la app
+   ("UberCloneConductor-ProyectoDeClase/1.0"), caché en memoria por coordenada
+   redondeada (~4 decimales) para no repetir, timeout corto (≈ 4 s) y sin reintentos
+   agresivos.
+2. Formato de la dirección: corto y legible a partir de los campos del resultado
+   (calle + número si existe, y barrio/sector si existe; ej. "Calle 10 #20-30,
+   Laureles"). Sin direcciones larguísimas.
+3. NO bloquea nada: se resuelve en segundo plano al crear la solicitud; la tarjeta
+   muestra "Buscando dirección…" y luego la dirección; si falla (sin red, timeout,
+   429), cae a la etiqueta actual "Calle cercana (simulada)". Reintenta una sola vez
+   al finalizar el viaje si aún falta, con timeout. La dirección resuelta se guarda en
+   origin.address y destination.address del viaje; el Historial y el detalle SOLO leen
+   lo guardado (nunca llaman a Nominatim al renderizar). Los viajes viejos conservan su
+   texto actual.
+4. Tests: formateo con respuestas de ejemplo, caché, cola con espaciado (con reloj
+   simulado), fallback ante error, y que el cliente respete el límite de 1 req/s.
+5. Privacidad: las coordenadas simuladas están cerca del teléfono de prueba; documenta
+   en docs/seguridad.md y en el README que se envían a un servicio público (Nominatim)
+   y que solo son coordenadas de prueba. Decisión D-125 (Vigente).
+
+TAREA C — README (actualizar al estado real final)
+Reescribe/actualiza README.md, sin secretos ni datos personales reales:
+1. Qué es la app y capturas (solo si ya existen archivos en docs/; no inventes rutas).
+2. Stack y arquitectura breve (app Expo, Firestore, Auth, backend Express, Stripe).
+3. Instalación paso a paso en Windows/PowerShell: requisitos (Node ≥ 20.12, Android),
+   npm install (raíz y backend), crear los .env a partir de .env.example (raíz y
+   backend; SOLO los NOMBRES de variables y para qué sirve cada una), dev build,
+   `npx expo start -c`, cómo levantar backend + cloudflared y cómo apuntar
+   EXPO_PUBLIC_BACKEND_URL (cambia en cada ejecución), `npm run doctor`.
+4. Cómo probar: aprobar una cuenta (campo accountStatus en Firestore), tarjetas de
+   prueba de Stripe (4242… aprobada, 4000 0000 0000 0002 rechazada), pago en efectivo,
+   cuentas A/B.
+5. Seguridad: llaves solo en backend/.env, solo credenciales de prueba, .env ignorado,
+   reglas de Firestore (referencia a docs/seguridad.md, se publican a mano), subida de
+   imágenes con Cloudinary sin firmar y qué implica, Nominatim.
+6. Tabla "Cumplimiento y desviaciones respecto al enunciado" tomada de la auditoría:
+   qué se cumple, qué se desvió y por qué (MapLibre/OpenFreeMap/OSRM en vez de Google
+   Directions/Distance Matrix/react-native-maps; Stripe Checkout Sessions en vez de
+   PaymentIntent+PaymentSheet; Mercado Pago implementado pero NO verificado en
+   dispositivo por no poder crear cuentas de prueba; FCM, idioma es/en y split
+   payments omitidos, con motivo). Honesto, sin maquillar.
+7. Sección "Uso de IA" con enlace a docs/AI_LOG.md y a la versión PDF (nombre del
+   archivo que Anderson generará), indicando que se usaron agentes de Claude Code con
+   roles separados (spec-author, planner, implementer, verifier, design-auditor).
+8. Estructura de carpetas, scripts de pruebas (cómo correrlos) y enlaces a docs/.
+Mantén el tono claro y corto; nada de promesas que el código no cumpla.
+
+TAREA D — MARCADORES AI-assisted (solo si el mapeo es claro, con tope de esfuerzo)
+El PDF pide en el código un comentario en inglés "// AI-assisted: see docs/AI_LOG.md
+#N". Usando el campo "Archivos y commit" de cada entrada del AI_LOG, añade el
+marcador (una línea de comentario, sin cambiar lógica) en los archivos que esa entrada
+lista y que sean de código sustancial. No inventes asociaciones: si un archivo no
+aparece en ninguna entrada, NO le pongas marcador y listalo en el informe para que
+Anderson decida. Tras añadirlos, los tests deben pasar igual.
+
+VERIFICACIÓN (verifier distinto, obligatorio)
+- Tests de scripts/tests: todos pasan; los nuevos cubren lo pedido. check-constitution
+  sin empeorar la línea base (12–13 errores conocidos). grep: Alert, colores/tamaños
+  literales nuevos, SHOW_DEV_TOOLS=false, sin secretos (sk_live, sk_test, tokens),
+  git status sin .env/secrets/firestore.rules, README sin valores de variables.
+- Revisa a mano la coherencia de dinero con un ejemplo: viaje XL 8,5 km / 22 min con
+  propina 2.000 → tarifa 26.900, comisión 5.380, ganancia 21.520 + 2.000 = 23.520,
+  cobro con tarjeta 28.900; efectivo: saldo −5.380.
+- design-auditor: detalle del viaje (fila de estrellas, contraste, 200 % de fuente),
+  tarjeta de solicitud con "Buscando dirección…", Historial con direcciones largas.
+  Lo no comprobable sin dispositivo: "pendiente de dispositivo".
+
+DOCS: decisiones.md (D-124, D-125), progress.md (estado "Implementada, pendiente de
+dispositivo", nunca "Validada"), omisiones-y-limites.md (límites de Nominatim, valores
+aleatorios simulados, FCM e idioma siguen omitidos), seguridad.md (reglas y
+privacidad), la entrada de AI_LOG, y actualiza docs/auditoria-enunciado-2026-11-12.md
+con el estado final tras A–D.
+
+ENTREGA
+Informe corto: (1) resumen de la auditoría con huecos ordenados por impacto y esfuerzo,
+SIN implementarlos; (2) decisiones de A, B, C, D; (3) si hay texto de reglas que
+publicar (BLOQUEANTE o no); (4) archivos tocados; (5) resultado del verifier y del
+auditor; (6) checklist de dispositivo para Anderson: viaje con tarjeta con propina
+(cobro = tarifa + propina en Stripe), viaje en efectivo con propina (saldo), detalle
+con estrellas y "Sin calificación" en un viaje viejo, dirección real en solicitud,
+resumen e Historial, comportamiento sin red (cae a "Calle cercana (simulada)"), Ganancias
+con propinas, cuenta A→B sin mezcla. Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Auditoría del enunciado con brechas ordenadas; propina y calificación simuladas con cobro `fare + tip` desde el documento del viaje y regla `validTrip()` BLOQUEANTE en `docs/seguridad.md`; direcciones con Nominatim (1 req/s, caché, respaldo «Calle cercana (simulada)»); README reescrito y `.env.example` con `EXPO_PUBLIC_BACKEND_URL`. Verifier: aprobada en lo estático; auditor de diseño: aprobado con observaciones.
+- Usado / modificado / descartado: Usado el patrón de la API simulada y de `tripRecord`. Modificado el cobro del backend (monto desde Firestore). Descartado: comisión sobre la propina y Google Geocoding.
+- Archivos y commit: `backend/src/chargeAmount.js`, `backend/src/routes/payments.js`, `backend/src/providers/stripe.js`, `backend/src/providers/mercadopago.js`, `backend/src/mercadopago.js`, `src/services/passengerApi/` (`simulatedFeedback.js`, `mockPassengerApi.js`, `mappers.js`, `contract.js`), `src/services/trip/tripRecord.js`, `tripDetailView.js`, `src/services/geocoding/`, `src/config/geocoding.js`, `src/hooks/useRequestAddresses.js`, `useTripRequests.js`, `src/context/TripContext.js`, `TripDetailScreen.js`, `TripActiveScreen.js`, `TripRequestScreen.js`, `TripSummaryScreen.js`, `src/constants/labels.js`, `src/utils/earnings.js`, pruebas en `scripts/tests/` (`tipFeedback`, `reverseGeocode`, `tripDetailView`), `.env.example`, `README.md`, y docs (`decisiones`, `progress`, `omisiones-y-limites`, `seguridad`, `auditoria-enunciado-2026-11-12`, `diseno/auditoria-propina-direcciones-2026-11-12`). Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):

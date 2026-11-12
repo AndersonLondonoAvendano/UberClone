@@ -7,6 +7,7 @@
 // `clearPendingRequest(id)` frees the slot once the driver accepted, rejected or left the card.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { resolveRequestAddresses } from '../services/geocoding/requestAddresses';
 import { isValidTripRequest, subscribeToRequests } from '../services/passengerApi';
 import { createPendingRequestGate } from '../services/trip/pendingRequest';
 
@@ -39,6 +40,8 @@ export function useTripRequests({ enabled, getDriverPosition }) {
       (request) => {
         if (!active || !isValidTripRequest(request)) return;
         setError(null);
+        // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address in the background, never blocks the offer)
+        resolveRequestAddresses(request);
         setLastRequest(request);
         gateRef.current?.offer(request);
       },

@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #11
+// AI-assisted: see docs/AI_LOG.md #61
 // AI-assisted: see docs/AI_LOG.md #13
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #15
@@ -106,6 +107,9 @@ export const labels = {
     paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', stripe: 'Stripe', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
+    // AI-assisted: see docs/AI_LOG.md #61 (D-124: tip and total charged in the summary)
+    tip: 'Propina',
+    totalCharged: 'Total cobrado',
     net: 'Tu ganancia',
     countdown: 'Vence en {s} s',
     countdownA11y: 'La solicitud vence en {s} segundos',
@@ -136,6 +140,9 @@ export const labels = {
     remaining: '{km} km · {min} min',
     remainingCaption: 'restantes',
     routeLoading: 'Calculando la ruta…',
+    // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address by reverse geocoding)
+    addressSearching: 'Buscando dirección…',
+    addressFallback: 'Calle cercana (simulada)',
     approxRoute: 'Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles.',
     // AI-assisted: see docs/AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
     startRide: 'Pasajero a bordo',
@@ -349,6 +356,9 @@ export const labels = {
       rating: 'Calificación',
       ratingValue: '★ {rating}',
       ratingA11y: 'Calificación {rating} de 5',
+      // AI-assisted: see docs/AI_LOG.md #61 (D-124)
+      noRating: 'Sin calificación',
+      noRatingA11y: 'Calificación: sin calificación',
       durationValue: '{minutes} min',
       distanceValue: '{km} km',
       // AI-assisted: see docs/AI_LOG.md #58 (T-150: the gateway name is shown)

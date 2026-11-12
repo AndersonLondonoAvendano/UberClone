@@ -31,8 +31,9 @@ assert.equal(rowOf(a, 'commission'), '$ 2.500');
 assert.equal(rowOf(a, 'tip'), '$ 1.000');
 assert.equal(rowOf(a, 'method'), 'Efectivo');
 assert.equal(a.status.label, 'Pagado');
-assert.equal(a.rating.text, '★ 4,9');
-assert.match(a.rating.a11y, /4,9 de 5/);
+assert.equal(a.rating.value, 5);
+assert.equal(a.rating.text, '★ 5');
+assert.match(a.rating.a11y, /Calificación 5 de 5/);
 assert.deepEqual(a.route, route);
 assert.equal(a.routeUnavailableText, null);
 
@@ -42,11 +43,13 @@ assert.equal(rowOf(b, 'tip'), 'Sin propina');
 assert.equal(rowOf(b, 'method'), 'Tarjeta'); // #59: no paymentId, the gateway is not chosen yet
 assert.equal(rowOf(tripDetailView({ ...full, paymentMethod: 'mercadopago', paymentId: 'p1' }), 'method'), 'Tarjeta (Mercado Pago)'); // CA-002-125: named once chosen
 assert.equal(b.status.label, 'Pago pendiente');
-assert.equal(b.rating, null);
+assert.equal(b.rating.value, null);
+assert.equal(b.rating.text, 'Sin calificación');
 assert.equal(b.route, null);
 assert.equal(b.routeUnavailableText, 'Ruta no disponible');
 assert.equal(rowOf(tripDetailView({ ...full, tip: 0 }), 'tip'), 'Sin propina');
-assert.equal(tripDetailView({ ...full, rating: 'x' }).rating, null);
+assert.equal(tripDetailView({ ...full, rating: 'x' }).rating.value, null);
+assert.equal(tripDetailView({ ...full, rating: 3 }).rating.a11y, 'Calificación 3 de 5');
 
 // Legacy trip (no paymentMethod and no paymentStatus): neutral "Cobro simulado" chip (CA-002-94, CA-002-106).
 const c = tripDetailView({ status: 'completed', fare: 8000, durationMin: 10, distanceKm: 3 });
