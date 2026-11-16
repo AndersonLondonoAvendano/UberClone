@@ -1,6 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #58
-// Stripe adapter for the provider interface. The amount comes only from trip.fare; whatever the
-// caller sends is never used. A session that does not match the trip (reference, amount, currency)
+// Stripe adapter for the provider interface. The amount is the trip's fare plus tip, read from
+// Firestore (never from the request body); whatever the caller sends is never used. A session that does not match the trip (reference, amount, currency)
 // is treated as "no payment for this trip" (null).
 // AI-assisted: see docs/AI_LOG.md #61 (amount = fare + tip via chargeAmount)
 import { chargeAmount } from '../chargeAmount.js';

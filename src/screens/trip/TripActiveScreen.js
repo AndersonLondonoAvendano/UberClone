@@ -33,6 +33,8 @@ import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
 import { useRequestAddresses } from '../../hooks/useRequestAddresses';
+import { canOfferCancel } from '../../services/trip/cancelRule';
+import { exitCopy } from '../../services/trip/exitCopy';
 import { TRIP_PHASE } from '../../services/trip/tripController';
 import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
 import { fillLabel, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
@@ -49,7 +51,7 @@ const FINISH_ERROR_TEXT = {
 };
 
 export function TripActiveScreen({ navigation }) {
-  const { trip, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
+  const { trip, arrive, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
   const { driverProfile } = useAppState();
   // AI-assisted: see docs/AI_LOG.md #61 (D-125: resolved street of the current target)
   const addresses = useRequestAddresses(trip?.request);
@@ -81,9 +83,12 @@ export function TripActiveScreen({ navigation }) {
     navigation.setOptions({ gestureEnabled: !active });
   }, [navigation, active]);
 
+  // AI-assisted: see docs/AI_LOG.md #66 (in_progress cannot be cancelled: leaving opens the safe exit)
+  const cancelOffered = Boolean(trip) && canOfferCancel(trip.status);
   usePreventRemove(active, ({ data }) => {
     if (leavingRef.current) navigation.dispatch(data.action);
-    else setConfirmCancel(true);
+    else if (cancelOffered) setConfirmCancel(true);
+    else setConfirmExit(true);
   });
 
   const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
@@ -96,6 +101,11 @@ export function TripActiveScreen({ navigation }) {
     leavingRef.current = true;
     navigation.replace('TripSummary');
   }, [completed, navigation]);
+
+  // AI-assisted: see docs/AI_LOG.md #66
+  const handleArrive = useCallback(() => {
+    arrive();
+  }, [arrive]);
 
   const handleStartRide = useCallback(async () => {
     setWorking(true);
@@ -163,11 +173,17 @@ export function TripActiveScreen({ navigation }) {
   const atPickup = trip.phase === TRIP_PHASE.AT_PICKUP;
   const toDestinationSide = trip.phase === TRIP_PHASE.TO_DESTINATION || trip.phase === TRIP_PHASE.AT_DESTINATION;
   const atDestination = trip.phase === TRIP_PHASE.AT_DESTINATION;
+  // AI-assisted: see docs/AI_LOG.md #66 ("Llegué" exists only while the driver is arriving)
+  const canArrive = trip.status === TRIP_STATUS.DRIVER_ARRIVING && trip.phase === TRIP_PHASE.TO_PICKUP;
   const busy = working || trip.finishing;
   const finishErrorText = trip.finishError ? FINISH_ERROR_TEXT[trip.finishError] ?? FINISH_ERROR_TEXT.network : null;
   // The main button waits for the arrival; its reason is visible text, not only an accessibility hint.
   const mainReady = toDestinationSide ? atDestination : atPickup;
-  const mainHint = toDestinationSide ? labels.trip.finishRideHint : labels.trip.startRideHint;
+  // AI-assisted: see docs/AI_LOG.md #66 (H-1: while driver_arriving the hint names the action that unlocks)
+  const mainHint = toDestinationSide ? labels.trip.finishRideHint : canArrive ? labels.trip.arriveFirstHint : labels.trip.startRideHint;
+
+  // AI-assisted: see docs/AI_LOG.md #66 (C2c: the exit text says what really happens in this state)
+  const exitText = exitCopy({ status: trip.status, atDestination, serverError: Boolean(trip.finishError || trip.cancelError) });
 
   let actions;
   if (confirmExit) {
@@ -181,9 +197,9 @@ export function TripActiveScreen({ navigation }) {
       >
         <View style={styles.confirmHead}>
           <Icon name="warning" size={iconSize.lg} tint={color.onWarningSoft} />
-          <Text style={[styles.title, styles.flex, styles.onWarning]}>{labels.trip.exitQuestion}</Text>
+          <Text style={[styles.title, styles.flex, styles.onWarning]}>{exitText.question}</Text>
         </View>
-        <Text style={[styles.body, styles.onWarning]}>{labels.trip.exitMessage}</Text>
+        <Text style={[styles.body, styles.onWarning]}>{exitText.message}</Text>
         <SecondaryButton
           testID="trip-active-exit-confirm-yes"
           label={labels.trip.exitConfirm}
@@ -252,6 +268,15 @@ export function TripActiveScreen({ navigation }) {
             {trip.finishing ? labels.trip.finishing : labels.trip.working}
           </Text>
         ) : null}
+        {canArrive ? (
+          <PrimaryButton
+            testID="trip-active-arrive"
+            label={labels.trip.arrive}
+            accessibilityHint={labels.trip.arriveHint}
+            onPress={handleArrive}
+            disabled={busy}
+          />
+        ) : null}
         {toDestinationSide ? (
           <PrimaryButton
             testID="trip-active-finish"
@@ -267,6 +292,7 @@ export function TripActiveScreen({ navigation }) {
             accessibilityHint={labels.trip.startRideHint}
             onPress={handleStartRide}
             disabled={!atPickup || busy}
+            quietDisabled={canArrive}
           />
         )}
         {!mainReady ? (
@@ -274,13 +300,17 @@ export function TripActiveScreen({ navigation }) {
             {mainHint}
           </Text>
         ) : null}
-        <SecondaryButton
-          testID="trip-active-cancel"
-          label={labels.trip.cancel}
-          variant="danger"
-          onPress={() => setConfirmCancel(true)}
-          disabled={busy}
-        />
+        {cancelOffered ? (
+          <SecondaryButton
+            testID="trip-active-cancel"
+            label={labels.trip.cancel}
+            variant="danger"
+            onPress={() => setConfirmCancel(true)}
+            disabled={busy}
+          />
+        ) : (
+          <SecondaryButton testID="trip-active-exit" label={labels.trip.exitTrip} onPress={askExit} disabled={busy} />
+        )}
       </View>
     );
   }

@@ -9,7 +9,7 @@ export function createMercadoPagoProvider({ client }) {
   return {
     id: 'mercadopago',
 
-    // The amount always comes from trip.fare, never from a caller-supplied value.
+    // The amount is fare + tip read from Firestore, never from a caller-supplied value.
     async createCheckout({ tripId, uid, trip, currency, publicBaseUrl }) {
       const { url } = await client.createPreference({
         tripId,

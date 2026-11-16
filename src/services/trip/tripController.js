@@ -298,7 +298,8 @@ export function createTripController({
     return true;
   }
 
-  function arrive() {
+  // Automatic arrival (distance threshold, end of the walk) and the manual "Llegué" share this.
+  function handleArrival() {
     stopMovement();
     if (state.phase === TRIP_PHASE.TO_PICKUP) {
       set({ phase: TRIP_PHASE.AT_PICKUP, remainingM: 0, remainingS: 0 });
@@ -322,7 +323,7 @@ export function createTripController({
     if (!moving) return;
     const nearTarget = hasArrived(position, state.target, config.ARRIVAL_THRESHOLD_M);
     const nearRouteEnd = patch.remainingM !== undefined && patch.remainingM <= config.ARRIVAL_THRESHOLD_M;
-    if (nearTarget || nearRouteEnd) arrive();
+    if (nearTarget || nearRouteEnd) handleArrival();
   }
 
   function startMovement() {
@@ -349,7 +350,7 @@ export function createTripController({
       // The simulated walk reached the end of the polyline: that is the target.
       onEnd: () => {
         if (!active()) return;
-        if (state.phase === TRIP_PHASE.TO_PICKUP || state.phase === TRIP_PHASE.TO_DESTINATION) arrive();
+        if (state.phase === TRIP_PHASE.TO_PICKUP || state.phase === TRIP_PHASE.TO_DESTINATION) handleArrival();
       },
     });
     if (active()) stopSource = stop;
@@ -400,7 +401,7 @@ export function createTripController({
     stopMovement();
     set({ phase, target, route: null, remainingM: null, remainingS: null, routeApproximate: false });
     if (state.position && hasArrived(state.position, target, config.ARRIVAL_THRESHOLD_M)) {
-      arrive();
+      handleArrival();
       return;
     }
     const route = await loadRoute(target);
@@ -415,6 +416,18 @@ export function createTripController({
     start() {
       changeStatus(TRIP_STATUS.DRIVER_ARRIVING);
       return beginLeg(TRIP_PHASE.TO_PICKUP, request.origin);
+    },
+
+    // AI-assisted: see docs/AI_LOG.md #66
+    // Manual "Llegué" (RE-07): only while driver_arriving on the pickup leg. It needs no position or
+    // loaded route. It goes through the same guard as the automatic detection, so whichever comes
+    // first makes the single driver_arrived transition and report; the other one does nothing.
+    arrive() {
+      if (disposed || state.finished) return false;
+      if (state.status !== TRIP_STATUS.DRIVER_ARRIVING || state.phase !== TRIP_PHASE.TO_PICKUP) return false;
+      if (!canTransition(state.status, TRIP_STATUS.DRIVER_ARRIVED)) return false;
+      handleArrival();
+      return state.status === TRIP_STATUS.DRIVER_ARRIVED;
     },
 
     startRide() {
@@ -468,6 +481,9 @@ export function createTripController({
     // AI-assisted: see docs/AI_LOG.md #44 (timeout, single flight, final status published)
     async cancel() {
       if (state.finished || cancelling || disposed) return false;
+      // AI-assisted: see docs/AI_LOG.md #66
+      // RE-08: an ongoing ride cannot be cancelled; the API is not called and nothing changes.
+      if (!canTransition(state.status, TRIP_STATUS.CANCELLED)) return false;
       if (completedResult === 'delivered') {
         complete();
         return false;

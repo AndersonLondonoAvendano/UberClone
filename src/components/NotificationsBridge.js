@@ -16,7 +16,7 @@ import { useAvailability } from '../context/AvailabilityContext';
 import { getNotifications } from '../services/notifications';
 import { ARRIVAL, OPEN_INTENT, decideRequestOpen, resolveOpenIntent, shouldNavigateToRequest } from '../services/trip/requestNavigation';
 import { HOME_ROUTE } from '../services/trip/requestPresentation';
-import { INTENT_DECISION, resolveIntent } from '../services/notifications/eligibility';
+import { INTENT_DECISION, isDriverAvailable, mergeNotice, resolveIntent } from '../services/notifications/eligibility';
 import { createIntentFlow } from '../services/notifications/intentFlow';
 import { pendingIntent } from '../services/notifications/pendingIntent';
 import { logPushEvent } from '../services/notifications/safeLog';
@@ -25,16 +25,18 @@ import { color, radius, space, type } from '../theme/tokens';
 
 export function NotificationsBridge({ currentRoute = null, getNavigation = () => null }) {
   const { driverId, accountStatus } = useAppState();
-  const { onTrip, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
+  const { onTrip, isAvailable, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
   const insets = useSafeAreaInsets();
   const [notice, setNotice] = useState(null);
+  // A2 (D-181): single slot; a notice shown while another is visible is dropped (no repeat, no stack).
+  const showNotice = useCallback((text) => setNotice((prev) => mergeNotice(prev, text)), []);
   // AI-assisted: see docs/AI_LOG.md #64 (D-149): a tap that was offered (or promoted) and still has to open
   // the full-screen request; resolved once the pending request is visible to this component.
   const [openIntent, setOpenIntent] = useState(null);
 
   // Latest values for the long-lived subscriptions (no resubscribe on every change).
   const latest = useRef({});
-  latest.current = { driverId, accountStatus, onTrip, offerPushRequest, pendingRequest };
+  latest.current = { driverId, accountStatus, onTrip, isAvailable, offerPushRequest, pendingRequest };
 
   const decide = useCallback((intent) => {
     const { driverId: uid, accountStatus: status, onTrip: busy } = latest.current;
@@ -49,14 +51,19 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
   const handle = useCallback(
     async (intent, request) => {
       const decision = decide(intent);
-      if (decision === INTENT_DECISION.EXPIRED) setNotice(labels.trip.pushExpired);
+      if (decision === INTENT_DECISION.EXPIRED) showNotice(labels.trip.pushExpired);
       else if (decision === INTENT_DECISION.OPEN) {
-        // T-199: the offer waits for the route lookup; it expires there too (same notice as above).
+        // A2 (D-181): not Disponible -> brief notice, nothing offered (checked after expiry).
+        if (!isDriverAvailable(latest.current.isAvailable)) {
+          showNotice(labels.trip.unavailableNotice);
+          return;
+        }
+        // The offer returns after the route lookup; it may expire there too (same notice as above).
         const offered = await latest.current.offerPushRequest(request);
-        if (!offered && Date.now() >= request.expiresAt) setNotice(labels.trip.pushExpired);
+        if (!offered && Date.now() >= request.expiresAt) showNotice(labels.trip.pushExpired);
       }
     },
-    [decide],
+    [decide, showNotice],
   );
 
   // Evaluates the parked tap intent (stored without judging it) only when the gate is ready: a session
@@ -69,6 +76,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
           uid: latest.current.driverId,
           accountStatus: latest.current.accountStatus,
           onTrip: latest.current.onTrip,
+          available: latest.current.isAvailable,
         }),
         offer: async (request) => {
           const hasSamePending = latest.current.pendingRequest?.id === request.id;
@@ -81,10 +89,11 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
           });
           return offered;
         },
-        showExpired: () => setNotice(labels.trip.pushExpired),
+        showExpired: () => showNotice(labels.trip.pushExpired),
+        showUnavailable: () => showNotice(labels.trip.unavailableNotice),
         log: (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) }),
       }),
-    [],
+    [showNotice],
   );
   // Fire-and-forget callers: the evaluation is async (T-199) and must never leave an unhandled rejection.
   const takeParked = useCallback(() => flow.evaluate().catch(() => {}), [flow]);

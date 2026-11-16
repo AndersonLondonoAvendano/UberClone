@@ -117,6 +117,35 @@ export async function fetchTripsInRangeWith(
   return { trips, truncated: true };
 }
 
+// AI-assisted: see docs/AI_LOG.md #66
+// Every saved trip of the driver for the balance (B1, D-182): createdAt descending, pages of pageSize with
+// startAfter, hard cap maxDocs (truncated = true when the cap was reached and there may be more). One
+// field only, so no composite index. Cost: one read per trip returned (at most maxDocs per call).
+// Returns { trips, truncated }; a Firestore error propagates (the caller must never show 0 on error).
+export async function fetchAllTripsWith(fns, tripsCollection, { pageSize = TRIPS_RANGE_PAGE_SIZE, maxDocs = TRIPS_RANGE_MAX_DOCS } = {}) {
+  const trips = [];
+  let cursor = null;
+  while (trips.length < maxDocs) {
+    const size = Math.min(pageSize, maxDocs - trips.length);
+    const constraints = [fns.orderBy('createdAt', 'desc'), fns.limit(size)];
+    if (cursor) constraints.push(fns.startAfter(cursor));
+    const { docs } = await fns.getDocs(fns.query(tripsCollection, ...constraints));
+    for (const item of docs) trips.push({ id: item.id, ...item.data() });
+    if (docs.length < size) return { trips, truncated: false };
+    cursor = docs[docs.length - 1];
+  }
+  // AI-assisted: see docs/AI_LOG.md #66 (C2b: exactly maxDocs trips is not truncated; one extra read tells
+  // whether there is anything after the cap)
+  const probeConstraints = [fns.orderBy('createdAt', 'desc'), fns.limit(1)];
+  if (cursor) probeConstraints.push(fns.startAfter(cursor));
+  const { docs: more } = await fns.getDocs(fns.query(tripsCollection, ...probeConstraints));
+  return { trips, truncated: more.length > 0 };
+}
+
+export function fetchAllTrips(uid, { pageSize = TRIPS_RANGE_PAGE_SIZE, maxDocs = TRIPS_RANGE_MAX_DOCS } = {}) {
+  return fetchAllTripsWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { pageSize, maxDocs });
+}
+
 // start and end are epoch ms ([start, end)); returns { trips, truncated }.
 export function fetchTripsInRange(uid, { start, end, pageSize = TRIPS_RANGE_PAGE_SIZE, maxDocs = TRIPS_RANGE_MAX_DOCS }) {
   return fetchTripsInRangeWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { start, end, pageSize, maxDocs });

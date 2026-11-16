@@ -4,7 +4,13 @@
 // including the passenger API contract and its adapters, reads them from here.
 
 export const TRIP_STATUS = {
+  // AI-assisted: see docs/AI_LOG.md #66
+  // Implicit state: the request offered to the driver with no decision yet. Constant and origin of
+  // transitions only; it is never written to Firestore.
+  REQUESTED: 'requested',
   ACCEPTED: 'accepted',
+  // The driver declined the request or it expired. Terminal; a constant here, saved by a later task.
+  REJECTED: 'rejected',
   DRIVER_ARRIVING: 'driver_arriving',
   // The driver reached the pickup point and waits for the passenger (T-44).
   DRIVER_ARRIVED: 'driver_arrived',

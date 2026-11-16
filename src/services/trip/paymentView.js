@@ -29,7 +29,9 @@ export const PAYMENT_ACTION = {
 const NONE = { chip: PAYMENT_CHIP.UNAVAILABLE, actions: [] };
 
 export function paymentView(trip) {
-  if (!trip || typeof trip !== 'object' || trip.status === TRIP_STATUS.CANCELLED) return NONE;
+  // AI-assisted: see docs/AI_LOG.md #66 (T-232: a rejected request was never driven, it has nothing to charge)
+  if (!trip || typeof trip !== 'object') return NONE;
+  if (trip.status === TRIP_STATUS.CANCELLED || trip.status === TRIP_STATUS.REJECTED) return NONE;
   const paid = trip.status === TRIP_STATUS.PAID;
   if (trip.paymentMethod === SAVED_PAYMENT.CASH) {
     const collected = paid || trip.paymentStatus === PAYMENT_STATUS.PAID;

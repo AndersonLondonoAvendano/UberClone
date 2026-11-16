@@ -58,6 +58,15 @@ export function createPendingRequestGate({
     release(id) {
       if (pending && (id === undefined || pending.id === id)) clear();
     },
+    // AI-assisted: see docs/AI_LOG.md #66
+    // Replaces the pending request with a newer copy of the SAME id (final route metrics). The expiry timer
+    // and the seen ids are untouched. Returns true when it replaced something.
+    update(request) {
+      if (!pending || !request || pending.id !== request.id) return false;
+      pending = request;
+      onChange(pending);
+      return true;
+    },
     get() {
       return pending;
     },

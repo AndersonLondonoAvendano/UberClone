@@ -118,7 +118,13 @@ export const labels = {
     reject: 'Rechazar',
     rejectHint: 'Rechaza la solicitud y vuelve a Inicio',
     working: 'Un momento…',
+    // AI-assisted: see docs/AI_LOG.md #66 (A1: metrics in progress; A2: request while not available)
+    calculating: 'Calculando…',
+    calculatingA11y: 'Calculando distancia, duración y tarifa',
+    unavailableNotice: 'Activa Disponible para recibir solicitudes',
     expired: 'La solicitud expiró',
+    // AI-assisted: see docs/AI_LOG.md #66 (C2d: the driver went "No disponible" with a request open)
+    closedUnavailable: 'Cancelada: ya no estás disponible',
     // AI-assisted: see docs/AI_LOG.md #64 (T-183: a notification opened after its request had expired)
     pushExpired: 'La solicitud expiró',
     backingHome: 'Volviendo a Inicio…',
@@ -133,7 +139,7 @@ export const labels = {
     rejectCardHint: 'Rechaza la solicitud y te quedas en esta pantalla',
     phase: {
       starting: 'Preparando el viaje…',
-      toPickup: 'En camino al pasajero',
+      toPickup: 'Conductor llegando',
       atPickup: 'Llegaste al punto de recogida',
       toDestination: 'En camino al destino',
       atDestination: 'Llegaste al destino',
@@ -147,8 +153,12 @@ export const labels = {
     addressFallback: 'Calle cercana (simulada)',
     approxRoute: 'Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles.',
     // AI-assisted: see docs/AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
+    // AI-assisted: see docs/AI_LOG.md #66 (manual arrival, RE-07)
+    arrive: 'Llegué',
+    arriveHint: 'Avisa que ya llegaste al punto de recogida',
     startRide: 'Pasajero a bordo',
     startRideHint: 'Llega al punto de recogida para continuar',
+    arriveFirstHint: 'Toca Llegué cuando estés en el punto de recogida',
     finishRide: 'Finalizar viaje',
     finishRideHint: 'Llega al destino para continuar',
     finishing: 'Avisando al pasajero que el viaje terminó…',
@@ -156,8 +166,14 @@ export const labels = {
     finishErrorTimeout: 'El servidor no respondió a tiempo al finalizar el viaje.',
     finishErrorRejected: 'El servidor no aceptó el final del viaje. Puedes salir del viaje.',
     exitTrip: 'Salir del viaje',
-    exitQuestion: '¿Salir del viaje sin la confirmación del servidor?',
-    exitMessage: 'El viaje se cierra en este teléfono y vuelves a Inicio. El pasajero puede no recibir el aviso.',
+    // AI-assisted: see docs/AI_LOG.md #66 (C2c: the text depends on the state, see services/trip/exitCopy.js)
+    exitQuestionServer: '¿Salir del viaje sin la confirmación del servidor?',
+    exitQuestionInProgress: '¿Salir del viaje en curso?',
+    exitQuestionPlain: '¿Salir del viaje?',
+    exitMessageCancelled:
+      'El viaje queda cancelado y sin cobro. Vuelves a Inicio y el pasajero puede no recibir el aviso.',
+    exitMessageAtDestination:
+      'El viaje se cierra en este teléfono y no se registra el cobro. Vuelves a Inicio y el pasajero puede no recibir el aviso.',
     exitConfirm: 'Sí, salir',
     exitKeep: 'Quedarme aquí',
     reportError: 'No pudimos avisar el cambio al pasajero. Revisa tu conexión.',
@@ -285,6 +301,7 @@ export const labels = {
     count: 'Viajes completados',
     tripsTitle: 'Viajes del periodo',
     weekNote: 'La semana empieza el lunes.',
+    truncatedNote: 'Hay más viajes de los que se pueden mostrar; los totales pueden ser parciales.',
     emptyTitle: 'Aún no hay viajes en este periodo',
     emptyMessage: 'Cuando completes un viaje y confirmes el cobro, aparece aquí.',
     errorMessage: 'No pudimos traer tus ganancias. Revisa tu conexión e inténtalo de nuevo.',
@@ -301,12 +318,19 @@ export const labels = {
     average: 'Promedio por viaje',
     metricsTitle: 'Resumen del periodo',
     balanceCreditHint: 'Debes esta cantidad a la plataforma por la comisión de los viajes en efectivo.',
+    // AI-assisted: see docs/AI_LOG.md #66 (B1: balance over every trip; partial when the read hit its cap)
+    balancePartial: 'Saldo parcial: se leyeron los {count} viajes más recientes.',
+    balanceErrorMessage: 'No pudimos traer tu saldo. Revisa tu conexión e inténtalo de nuevo.',
+    // AI-assisted: see docs/AI_LOG.md #66 (C2a: no driver session, nothing to read)
+    balanceNoSessionTitle: 'Saldo no disponible',
+    balanceNoSessionMessage: 'Inicia sesión para ver tu saldo con la plataforma.',
   },
   history: {
     emptyTitle: 'Todavía no tienes viajes',
     emptyMessage: 'Tus viajes completados y cancelados aparecen aquí cuando termines uno.',
     errorMessage: 'No pudimos traer tu historial. Revisa tu conexión e inténtalo de nuevo.',
-    status: { completed: 'Completado', cancelled: 'Cancelado' },
+    // AI-assisted: see docs/AI_LOG.md #66 (T-230: one label for a declined or expired request)
+    status: { completed: 'Completado', cancelled: 'Cancelado', rejected: 'Rechazado' },
     cancelledAmounts: 'Sin cobro',
     fare: 'Tarifa',
     net: 'Tu ganancia',

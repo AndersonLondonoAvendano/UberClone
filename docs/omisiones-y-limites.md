@@ -90,3 +90,35 @@ Estados: **hecho** (implementado y aprobado en lo estático), **parcial**, **omi
 - **Solo Android:** iOS queda fuera de alcance (requiere APNs y cuenta de Apple Developer de pago, y no hay equipo para probarlo).
 - **Pendientes de dispositivo (FCM):** `ReferenceError: logPushEvent` en el dev client (causa probable: bundle obsoleto, no confirmada; recargar con `npx expo start -c`); desaparición del aviso de navegación anidada tras renombrar el Drawer a `MainHome` (D-148); resto de la lista de comprobación en dispositivo (T-192; el archivo `docs/checklist-dispositivo-fcm.md` aún no existe).
 - **O-03 abierta (decide Anderson):** unificar «La solicitud expiró» (`labels.trip.pushExpired`) y «La solicitud venció» (`labels.trip.expired`). Sin cambio hasta que decida. El diseño de S5 sigue «Pendiente» (auditor, ronda 2; faltan la decisión de O-03 y las capturas).
+
+## Límites del lote L2: estados, modelo y saldo (spec 005; D-181 a D-186 aprobadas salvo objeción, 2026-11-16)
+<!-- AI-assisted: see docs/AI_LOG.md #66 -->
+Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson); nada de esto está validado en el celular (No verificado en dispositivo). La spec 005 sigue en Borrador; este texto se ajusta si Anderson cambia las decisiones.
+
+**Desviaciones del esquema del enunciado (RE-13, D-186).** No se corrigen; se explican:
+| ID | Se pide | Qué se hace | Por qué |
+|---|---|---|---|
+| L2-1 | Colección `trips` | Colección `drivers/{uid}/trips` | Cada conductor solo lee y escribe lo suyo con una regla simple por `uid`; mover la colección rompería los viajes guardados y las reglas. |
+| L2-2 | Categoría `economy` | Clave `economico` en `category` (la ya guardada) | Es la clave de los viajes existentes; renombrarla obligaría a migrar. El objeto `economy` nuevo (montos) no cambia esa clave. |
+| L2-3 | `completedAt` | Se escribe `completedAt` (solo en `completed`) Y se conserva `finishedAt` con el mismo instante | Ganancias, Historial y las reglas usan `finishedAt`; quitarlo rompería esas lecturas. |
+| L2-4 | Estado `requested` | Existe en la máquina de estados, pero NO se escribe en Firestore (D-183) | No hay app de pasajero en este repo que cree el documento; la solicitud sin decisión solo vive en memoria. |
+
+**Salida segura fuera de la máquina (RE-08, D-184).** «Salir del viaje» (`abandon()`) cierra el viaje en local como `cancelled` (o `completed` si ya estaba en el destino) cuando la API no confirma. Es un límite documentado, no una transición de la máquina: desde `in_progress` cancelar se rechaza, pero esta salida conserva su comportamiento.
+
+**Coste de lecturas del saldo (RE-01 a RE-03, D-182).** El saldo se lee al enfocar Ganancias y al reintentar, por páginas de 500 con tope duro de 5000 documentos. Firestore cobra una lectura por documento devuelto (un agregado cobraría 1 lectura por cada 1.000 entradas de índice, mínimo 1). Coste por apertura aproximado: N lecturas (N = viajes del conductor que devuelve la consulta; todos si no filtra por `paymentStatus`), máximo 5000. Cuota gratuita: 50.000 lecturas por día. Si se alcanza el tope, el saldo se muestra como parcial (`truncated`), nunca como completo. Esto reemplaza el límite de «200 viajes» del saldo (D-170 parcialmente reemplazada); Ganancias por rango no cambia.
+
+**Coste extra de persistir rechazos (RE-06, D-183).** Cada solicitud rechazada o vencida que se llegó a mostrar suma una escritura y una lectura (comprobación de existencia, para la idempotencia). Los viajes `rejected` también salen en las lecturas por rango (Ganancias) y paginadas (Historial), así que aumentan las lecturas aunque no sumen dinero. La escritura es de mejor esfuerzo y con tiempo límite: si falla, el rechazo no deja rastro. Una solicitud que nunca se mostró (por ejemplo, con «No disponible», D-181) no deja documento.
+
+**Otros límites.** No hay «siguiente conductor» tras un rechazo (no existe backend de despacho ni app de pasajero). Guardar coordenadas de origen y destino (`origin`/`destination`) agrega datos del pasajero y está sujeto a la confirmación de privacidad de Anderson (D-185). Guardar cualquier viaje depende de que Anderson publique a mano la regla `validTrip()` de `docs/seguridad.md`; sin eso el guardado falla y la app lo muestra como «no se pudo guardar».
+
+**Historial sin filtro por estado (T-231, RE-09).** El Historial filtra solo por periodo y por método de pago (en el cliente); no existe un filtro por estado, así que no se añadió un chip «Rechazados» (se evita crear un filtro nuevo en la misma tarea). Los viajes `rejected` salen en la lista con su etiqueta «Rechazado» y, con el filtro de método, bajo «Todos», «Tarjeta» o «Efectivo» según su `paymentMethod`. Pendiente de decisión de Anderson si se quiere un filtro por estado.
+
+**Límites añadidos en el cierre de L2 (2026-11-16).**
+- **Saldo sin caché, hasta 10 consultas por visita:** el saldo se recalcula en cada apertura de Ganancias y en cada reintento, con hasta 10 consultas secuenciales de 500 documentos (tope de 5000). No hay caché a propósito: el coste de lectura está acotado (máximo 5000 lecturas por visita) y una caché podría mostrar un saldo viejo como si fuera actual.
+- **Tope de 5000 exacto (C2b):** con exactamente 5000 viajes el saldo ya no se marca como parcial; se hace una lectura de sondeo extra (1 documento) para saber si hay más. Solo con más de 5000 sale `truncated`. `fetchTripsInRangeWith` (Ganancias por rango) conserva el criterio anterior y no se tocó.
+- **Documentos sin `createdAt`:** la paginación usa `orderBy('createdAt')`, y Firestore deja fuera los documentos que no tienen ese campo; un viaje antiguo sin `createdAt` no entra al saldo ni al Historial paginado.
+- **`declineWiring.test.mjs` usa expresiones regulares:** comprueba que la tarjeta y la pantalla llaman al mismo punto de rechazo leyendo el código fuente; no ejecuta el flujo de React. Se acepta porque no hay entorno de render en el proyecto (sin dependencias nuevas); el flujo real queda para la prueba en el celular.
+- **`acceptRequest` con «ya tomada/vencida» no guarda `rejected`:** no fue una decisión del conductor ni un vencimiento propio, así que no queda documento (también anotado en D-183).
+- **Saldo sin sesión (C2a):** sin `driverId` Ganancias muestra «Saldo no disponible» en vez de quedarse cargando.
+- **Salir del viaje (C2c):** a mitad de viaje el texto dice que queda cancelado y sin cobro; se guarda como `cancelled` con montos 0. En el destino se cierra como completado en el teléfono sin registrar el cobro.
+- **Chip «Rechazados» (T-231) OMITIDO:** decisión de Anderson (2026-11-16); los `rejected` salen en la lista con su etiqueta, sin filtro por estado.

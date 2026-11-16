@@ -19,6 +19,17 @@ export function resolveIntent(intent, { session, accountApproved, onTrip, now })
   return INTENT_DECISION.OPEN;
 }
 
+// A2 (D-181): a request is offered only while the driver is Disponible. undefined counts as available
+// so callers that do not track it keep the D-133/D-146 behavior.
+export function isDriverAvailable(available) {
+  return available !== false;
+}
+
+// Single-slot notice: a second notice while one is visible is dropped (no repeat, no stack).
+export function mergeNotice(previous, next) {
+  return previous ?? next;
+}
+
 // Fixed, content-free reason code for an 'ignore' decision (dev logs only; never a uid or a name).
 export function ignoreReason(intent, { session, accountApproved, onTrip }) {
   if (!intent) return 'no-intent';

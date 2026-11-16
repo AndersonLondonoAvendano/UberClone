@@ -128,9 +128,16 @@ export function AvailabilityProvider({ children }) {
     lastRequest,
     error: requestsError,
     clearPendingRequest,
-    offerPushRequest,
+    offerPushRequest: offerPushRequestUnchecked,
     pushOffered,
   } = useTripRequests({ enabled: watching, getDriverPosition });
+
+  // A2 (D-181), defense in depth: a push request is never offered while the driver is not Disponible.
+  // AI-assisted: see docs/AI_LOG.md #66
+  const offerPushRequest = useCallback(
+    (request, options) => (isAvailableRef.current ? offerPushRequestUnchecked(request, options) : Promise.resolve(false)),
+    [offerPushRequestUnchecked],
+  );
 
   const blockForServices = useCallback(() => {
     blockedRef.current = true;

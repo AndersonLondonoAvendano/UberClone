@@ -128,9 +128,9 @@ Método: lectura del código corregido (`SwitchTrack.js`, `AvailabilitySwitch.js
 | Causa `testNeedsOn` | `textMuted` sobre `bg` #EEF2F1 | 6,46:1 | 4,5:1 | Cumple |
 | Chip neutro (Desactivadas) | `text` sobre `surfaceMuted` | > 14:1 (alto) | 4,5:1 | Cumple |
 | Chip éxito (Activadas) | `onSuccessSoft` sobre `successSoft` | 6,78:1 | 4,5:1 | Cumple |
-| Contador urgente, texto | `onPrimary` sobre `primary` | 6,08:1 | 4,5:1 (y 3:1 por ser 20 px semibold) | Cumple |
+| Contador urgente, texto (diseño actual, D-150: sin bloque relleno) | `danger` sobre `surface` | 6,54:1 | 4,5:1 | Cumple |
 | Contador no urgente, texto | `primary` sobre `surface` | 6,08:1 | 4,5:1 | Cumple |
-| Barra urgente: relleno sobre pista | `onPrimary` sobre `primary` | 6,08:1 | 3:1 | Cumple |
+| Barra urgente: relleno sobre pista | `danger` sobre `primarySoft` | 5,50:1 | 3:1 | Cumple |
 | Pista encendida sobre fondo | `success` sobre `bg` | 4,54:1 | 3:1 | Cumple |
 | Pista apagada sobre fondo / sobre tarjeta | `border` sobre `bg` / `surface` | 3,45:1 / 3,90:1 | 3:1 | Cumple |
 | Pulgar sobre pista | `surface` sobre `success` / `border` | 5,13:1 / 3,90:1 | 3:1 | Cumple |

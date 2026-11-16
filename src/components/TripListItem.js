@@ -10,6 +10,7 @@ import { labels } from '../constants/labels';
 import { PAYMENT_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { color, iconSize, opacity, space, touch, type } from '../theme/tokens';
 import { legacyPaymentChip } from '../services/trip/legacyTrip';
+import { REJECTED_CHIP } from '../services/trip/tripDetailView';
 import { fillLabel, formatCop, formatDateTime } from '../utils/format';
 import { Card } from './Card';
 import { Chip } from './Chip';
@@ -32,10 +33,15 @@ function TripListItemBase({ trip, onOpen }) {
   // AI-assisted: see docs/AI_LOG.md #57 (T-123, RF-54)
   // A legacy trip (no paymentMethod and no paymentStatus) gets the neutral chip with the TEXT
   // "Cobro simulado" instead of "Pago sin estado"; every other trip keeps its real state.
-  const legacyChip = cancelled ? null : legacyPaymentChip(trip);
+  // AI-assisted: see docs/AI_LOG.md #66 (T-230: «Rechazado», its own icon, "Sin cobro", no "Cobro simulado" chip)
+  const rejected = trip.status === TRIP_STATUS.REJECTED;
+  const noCharge = cancelled || rejected;
+  const legacyChip = noCharge ? null : legacyPaymentChip(trip);
   const statusText = cancelled
     ? labels.history.status.cancelled
-    : (legacyChip?.label ?? labels.history.paymentStatus[paymentStatus] ?? labels.history.paymentUnknown);
+    : rejected
+      ? labels.history.status.rejected
+      : (legacyChip?.label ?? labels.history.paymentStatus[paymentStatus] ?? labels.history.paymentUnknown);
   const date = formatDateTime(trip.createdAt ?? trip.finishedAt) || labels.history.dateUnknown;
   const category = labels.registration.vehicleCategory[trip.category];
   const origin = trip.originLabel;
@@ -44,7 +50,7 @@ function TripListItemBase({ trip, onOpen }) {
   const a11y =
     fillLabel(labels.history.itemA11y, { status: statusText, date, passenger: trip.passengerName, origin, destination }) +
     (category ? fillLabel(labels.history.itemCategory, { category }) : '') +
-    (cancelled
+    (noCharge
       ? ` ${labels.history.cancelledAmounts}.`
       : fillLabel(labels.history.itemA11yAmounts, { fare: formatCop(trip.fare), net: formatCop(trip.driverEarnings) }));
 
@@ -60,8 +66,8 @@ function TripListItemBase({ trip, onOpen }) {
         <Text style={styles.muted}>{date}</Text>
         <Chip
           label={statusText}
-          tone={cancelled ? 'danger' : (legacyChip?.tone ?? chipStyle?.tone ?? 'neutral')}
-          icon={cancelled ? 'close-circle' : (legacyChip?.icon ?? chipStyle?.icon)}
+          tone={cancelled ? 'danger' : rejected ? REJECTED_CHIP.tone : (legacyChip?.tone ?? chipStyle?.tone ?? 'neutral')}
+          icon={cancelled ? 'close-circle' : rejected ? REJECTED_CHIP.icon : (legacyChip?.icon ?? chipStyle?.icon)}
         />
       </View>
       <View style={styles.route}>
@@ -75,7 +81,7 @@ function TripListItemBase({ trip, onOpen }) {
         </View>
       </View>
       {category ? <Text style={styles.muted}>{`${labels.trip.category}: ${category}`}</Text> : null}
-      {cancelled ? (
+      {noCharge ? (
         <Text style={styles.muted}>{labels.history.cancelledAmounts}</Text>
       ) : (
         <View>

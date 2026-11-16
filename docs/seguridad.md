@@ -202,12 +202,34 @@ service cloud.firestore {
           && (route.size() == 0 || (validPoint(route[0]) && validPoint(route[route.size() - 1])));
       }
 
+      // The economy map mirrors the top-level amounts (spec 005, D-185).
+      function validEconomy(e, data) {
+        return e is map
+          && e.keys().hasOnly(['fare', 'commission', 'tip', 'driverEarnings'])
+          && e.keys().hasAll(['fare', 'commission', 'tip', 'driverEarnings'])
+          && e.fare == data.fare && e.commission == data.commission
+          && e.tip == data.tip && e.driverEarnings == data.driverEarnings;
+      }
+
+      // A place is { lat, lng, address }; coordinates may be null when the request did not carry them (spec 005, D-185).
+      function validPlace(p) {
+        return p is map
+          && p.keys().hasOnly(['lat', 'lng', 'address'])
+          && p.keys().hasAll(['address'])
+          && p.address is string && p.address.size() <= 200
+          && (!('lat' in p) || p.lat == null || (p.lat is number && p.lat >= -90 && p.lat <= 90))
+          && (!('lng' in p) || p.lng == null || (p.lng is number && p.lng >= -180 && p.lng <= 180));
+      }
+
       function validTrip() {
         let data = request.resource.data;
         return data.keys().hasAll(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
-          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route'])
+          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route', 'passengerId', 'completedAt', 'economy', 'origin', 'destination'])
           && data.driverId == uid
-          && data.status in ['completed', 'cancelled']
+          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-183): 'rejected' is new; 'requested' is never written.
+          && data.status in ['completed', 'cancelled', 'rejected']
+          // Cancelled and rejected trips carry no money and no rating.
+          && (data.status == 'completed' || (data.fare == 0 && data.commission == 0 && data.driverEarnings == 0 && data.tip == 0 && data.rating == null))
           && data.paymentStatus == 'pending'
           && data.commissionRate is number && data.commissionRate >= 0 && data.commissionRate <= 1
           && data.category is string && data.category.size() > 0 && data.category.size() <= 20
@@ -230,7 +252,15 @@ service cloud.firestore {
           && (data.startedAt == null || data.startedAt is timestamp)
           && data.finishedAt is timestamp
           && data.createdAt == request.time
-          && (!('route' in data) || validRoute(data.route));
+          && (!('route' in data) || validRoute(data.route))
+          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-185): additive optional fields.
+          && (!('passengerId' in data) || data.passengerId == null || (data.passengerId is string && data.passengerId.size() > 0 && data.passengerId.size() <= 128))
+          && (!('completedAt' in data)
+            || (data.status == 'completed' && data.completedAt == data.finishedAt)
+            || (data.status != 'completed' && data.completedAt == null))
+          && (!('economy' in data) || validEconomy(data.economy, data))
+          && (!('origin' in data) || validPlace(data.origin))
+          && (!('destination' in data) || validPlace(data.destination));
       }
 
       // Narrow cash rule (D-108): only paymentStatus and status change, pending/completed -> paid,
@@ -333,6 +363,51 @@ Estado: **NO VERIFICADO**. Este documento no afirma que la regla esté publicada
 **Qué debes ver**
 - Éxito: el documento existe con `tip` (número entero, p. ej. 2000), `rating` (entero 1 a 5), `fare`, `commission` y `driverEarnings` con `commission + driverEarnings = fare + tip`, y la app muestra el resumen sin error de permiso.
 - Fallo: el viaje no se guarda y la app muestra un error de guardado; en el registro del dispositivo aparece `permission-denied`. Significa que la regla publicada es la anterior o que el paso 2 se pegó incompleto: repite los pasos 1 a 4.
+
+## Estados del viaje y campos nuevos: `validTrip()` ampliada (spec 005, RE-13, D-183, D-185, D-186; T-218)
+<!-- AI-assisted: see docs/AI_LOG.md #66 -->
+Estado: **NO VERIFICADO. BLOQUEANTE (CA-005-26): esta regla NO está publicada y NO se asume publicada.** La publica Anderson a mano; ni el agente ni el repositorio publican nada, y `firestore.rules` (copia local ignorada por Git) no se crea ni se edita desde aquí. Sin publicarla, la app que escribe los campos nuevos puede fallar al guardar TODOS los viajes por `hasOnly` (como en G-01). Decisiones en Propuesta; la spec 005 es Borrador.
+
+**El texto pegable** es el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), con `validTrip()` ya actualizada y las funciones nuevas `validEconomy()` y `validPlace()` (los números de línea citados en la sección anterior ya no coinciden; vale el texto). Pega el bloque entero, no solo la función.
+
+**Qué cambia, solo de forma aditiva.** Todo lo anterior se conserva (`hasAll` sin cambios, comisión, propina, calificación, `paymentMethod`, `route`, `createdAt == request.time`, `validCashPayment()`).
+1. `status in ['completed', 'cancelled', 'rejected']`. `requested` nunca se escribe.
+2. `cancelled` y `rejected`: `fare`, `commission`, `driverEarnings` y `tip` en 0 y `rating` nulo. Antes la regla no lo exigía a los cancelados (la app ya los guardaba así).
+3. Claves nuevas solo en `hasOnly` (opcionales, así un guardado sin ellas sigue valiendo): `passengerId`, `completedAt`, `economy`, `origin`, `destination`.
+4. `passengerId`: ausente, nulo o texto de 1 a 128.
+5. `completedAt`: ausente; en `completed`, igual a `finishedAt`; en otro estado, nulo.
+6. `economy`: mapa con exactamente `fare`, `commission`, `tip`, `driverEarnings`, iguales a los de nivel superior.
+7. `origin` y `destination`: mapa con `address` (texto de hasta 200) y `lat`/`lng` opcionales o nulos, dentro de rango. Si Anderson rechaza D-185 (privacidad de coordenadas), se quitan `origin` y `destination` de `hasOnly`, de las dos últimas cláusulas y la función `validPlace()`.
+
+**Casos esperados** (revisión de la regla, no ejecución: sin emulador, NO VERIFICADO; la prueba real es el celular tras publicar):
+| Caso | Resultado | Por qué |
+|---|---|---|
+| `completed` con la solicitud de ejemplo (19.200 / 3.840 / 15.360), `economy` espejo, `completedAt == finishedAt`, `origin`/`destination` con `lat`, `lng`, `address` | Permitido | Todas las cláusulas se cumplen. |
+| `completed` sin ninguno de los campos nuevos (cliente anterior) | Permitido | Los campos nuevos son opcionales. |
+| `cancelled` con montos 0, `tip` 0, `rating` nulo, `completedAt` ausente o nulo | Permitido | Cumple la cláusula de montos en cero. |
+| `rejected` con montos 0, `tip` 0, `rating` nulo, `finishedAt` y `createdAt == request.time` | Permitido | Estado admitido y montos en cero. |
+| `rejected` con `fare`, `commission`, `driverEarnings` o `tip` mayor que 0 | Denegado | Cláusula de montos en cero. |
+| `rejected` o `cancelled` con `rating` distinto de nulo | Denegado | Cláusula de `rating`. |
+| `status: 'requested'` o cualquier otro estado | Denegado | `status in [...]`. |
+| `completedAt` en un `cancelled` o `rejected` con valor no nulo | Denegado | Cláusula de `completedAt`. |
+| `completed` con `completedAt` distinto de `finishedAt` | Denegado | Cláusula de `completedAt`. |
+| `economy` con montos distintos a los de nivel superior o con claves extra | Denegado | `validEconomy()`. |
+| `origin` sin `address`, con clave extra, o `lat` fuera de -90 a 90 | Denegado | `validPlace()`. |
+| Clave no listada (por ejemplo `passengerName2`) | Denegado | `hasOnly`. |
+| Confirmar cobro en efectivo de un `completed` | Permitido | `validCashPayment()` no cambia. |
+| Intentar pasar un `rejected` o `cancelled` a pagado | Denegado | `validCashPayment()` exige `status == 'completed'`. |
+
+### Lista de comprobación de publicación (la hace Anderson, ANTES de cualquier prueba en el celular)
+1. Abre la consola de Firebase, Firestore Database, pestaña **Reglas**.
+2. Borra todo el editor y pega el bloque completo de «Texto final de las reglas» de este archivo (de `rules_version` a la última llave). Comprueba que `function validTrip()` contiene `'rejected'` y que existen `validEconomy` y `validPlace`.
+3. Pulsa **Publicar** y espera la confirmación de la consola.
+4. Reinicia la app (ciérrala del todo y ábrela).
+5. Completa un viaje simulado: debe guardarse sin error de permiso.
+6. Cancela otro viaje antes de iniciarlo: debe guardarse con montos 0.
+7. Rechaza una solicitud (o deja vencer otra) tras mostrarla: debe guardarse con estado `rejected`.
+8. En la consola, Firestore Database, Datos, `drivers/{uid}/trips`: revisa los tres documentos. Esperado: `status` correcto; `rejected` y `cancelled` con `fare`, `commission`, `driverEarnings`, `tip` en 0 y `rating` nulo; el completado con `economy`, `completedAt` igual a `finishedAt`, `origin` y `destination`.
+9. Anota fecha y resultado en `docs/progress.md` o en tu mensaje. Si un guardado falla con `permission-denied`, la regla publicada es la anterior o se pegó incompleta: repite los pasos 1 a 4.
+10. Actualiza también tu copia local `firestore.rules` con el mismo texto (no se versiona).
 
 ## Geocodificación (Nominatim) (D-125, prompt #61)
 

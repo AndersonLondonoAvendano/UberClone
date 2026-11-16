@@ -175,7 +175,8 @@ export function TripSummaryScreen({ navigation }) {
     : null;
   const saveFailure = save.state === SAVE.ERROR ? labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric'] : null;
   const blockingIssue = saveFailure ?? (listenerIssue ? `${listenerIssue.title}. ${listenerIssue.message}` : null);
-  const cancelled = savedTrip?.status === TRIP_STATUS.CANCELLED;
+  // AI-assisted: see docs/AI_LOG.md #66 (T-232: a rejected record is not charged either)
+  const cancelled = savedTrip?.status === TRIP_STATUS.CANCELLED || savedTrip?.status === TRIP_STATUS.REJECTED;
   const method = cancelled ? null : savedTrip?.paymentMethod ?? payment;
   const isCard = isCardMethod(method);
   // AI-assisted: see docs/AI_LOG.md #58 (undefined until the backend answers or if it fails: the panel acts as before Stripe)

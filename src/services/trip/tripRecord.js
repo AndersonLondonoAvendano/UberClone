@@ -16,7 +16,9 @@ import { PAYMENT_STATUS, TRIP_STATUS } from '../../constants/tripStatus';
 import { calculateFare } from '../../utils/fare';
 import { simplifyRoute } from './simplifyRoute';
 
-export const SAVED_STATUS = { COMPLETED: TRIP_STATUS.COMPLETED, CANCELLED: TRIP_STATUS.CANCELLED };
+// AI-assisted: see docs/AI_LOG.md #66
+// REJECTED: a request the driver declined or that expired. 'requested' is never saved.
+export const SAVED_STATUS = { COMPLETED: TRIP_STATUS.COMPLETED, CANCELLED: TRIP_STATUS.CANCELLED, REJECTED: TRIP_STATUS.REJECTED };
 // 'transfer' and 'none' are legacy values: they are only READ (shown as "No disponible"), never written.
 // AI-assisted: see docs/AI_LOG.md #58 (T-145: 'stripe' is READ from the backend write, never written by the app)
 export const SAVED_PAYMENT = { CASH: 'cash', MERCADOPAGO: 'mercadopago', STRIPE: 'stripe', TRANSFER: 'transfer', NONE: 'none' };
@@ -47,6 +49,12 @@ export const TRIP_DOC_KEYS = [
   'finishedAt',
   'createdAt',
   'route',
+  // Additive fields; none of the keys above is removed or renamed.
+  'passengerId',
+  'completedAt',
+  'economy',
+  'origin',
+  'destination',
 ];
 
 export const MAX_NAME_LENGTH = 80;
@@ -76,6 +84,12 @@ export function routeForRecord(route) {
   return simplified ? simplified.map(([lat, lng]) => ({ lat, lng })) : null;
 }
 
+// { lat, lng, address } only with numeric coordinates; null otherwise (nothing is invented).
+function pointForRecord(point, max) {
+  if (!point || !Number.isFinite(point.lat) || !Number.isFinite(point.lng)) return null;
+  return { lat: point.lat, lng: point.lng, address: text(point.address, max) };
+}
+
 // status: SAVED_STATUS value. startedAt / finishedAt: epoch ms (startedAt may be null when the
 // ride never started). route: planned route points ([lat, lng] pairs or { lat, lng }), optional;
 // without a usable route the document is saved without the key. Returns the document without
@@ -90,7 +104,7 @@ export function buildTripRecord({ driverId, tripId, request, status, startedAt =
     : { fare: 0, commission: 0, driverEarnings: 0 };
   const record = {
     driverId,
-    status: completed ? SAVED_STATUS.COMPLETED : SAVED_STATUS.CANCELLED,
+    status: completed ? SAVED_STATUS.COMPLETED : status === SAVED_STATUS.REJECTED ? SAVED_STATUS.REJECTED : SAVED_STATUS.CANCELLED,
     paymentStatus: SAVED_PAYMENT_STATUS.PENDING,
     commissionRate: COMMISSION_RATE,
     category: request.category,
@@ -109,6 +123,15 @@ export function buildTripRecord({ driverId, tripId, request, status, startedAt =
     startedAt: toDate(startedAt),
     finishedAt: toDate(finishedAt ?? Date.now()),
   };
+  // Additive fields (RE-10): economy mirrors the top-level amounts; completedAt only when completed.
+  record.economy = { fare: fare.fare, commission: fare.commission, tip, driverEarnings: fare.driverEarnings };
+  if (completed) record.completedAt = record.finishedAt;
+  const passengerId = request.passengerId ?? request.passenger?.id;
+  if (typeof passengerId === 'string' && passengerId.trim()) record.passengerId = text(passengerId, MAX_NAME_LENGTH);
+  const origin = pointForRecord(request.origin, MAX_LABEL_LENGTH);
+  const destination = pointForRecord(request.destination, MAX_LABEL_LENGTH);
+  if (origin) record.origin = origin;
+  if (destination) record.destination = destination;
   const savedRoute = completed ? routeForRecord(route) : null;
   if (savedRoute) record.route = savedRoute;
   return record;

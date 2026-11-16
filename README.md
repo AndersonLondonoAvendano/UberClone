@@ -92,6 +92,7 @@ npm test   # toda la suite (Windows y POSIX)
 node --import ./scripts/tests/helpers/registerSrcLoader.mjs scripts/tests/fare.test.mjs   # un solo archivo
 node scripts/check-constitution.mjs
 ```
+Requiere Node 21.3 o superior (`engines` en `package.json`); el script `test` silencia solo los avisos DEP0205 y MODULE_TYPELESS_PACKAGE_JSON del cargador de pruebas.
 Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, ganancias, historial, cobro, propina y calificación, geocodificación, etc.); se ejecutan igual con el cargador `registerSrcLoader.mjs`.
 
 ## Notificaciones push (FCM)

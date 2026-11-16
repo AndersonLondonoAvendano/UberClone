@@ -4,7 +4,7 @@
 // it is evaluated only once the gate is ready (a session exists and the account status is resolved).
 // Ready: discard silently if foreign/unapproved/on a trip, "expired" if late, otherwise offer it.
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
-import { INTENT_DECISION, ignoreReason, resolveIntent } from './eligibility';
+import { INTENT_DECISION, ignoreReason, isDriverAvailable, resolveIntent } from './eligibility';
 import { requestFromIntent } from './pushRequest';
 
 export const FLOW_RESULT = {
@@ -13,15 +13,17 @@ export const FLOW_RESULT = {
   DROPPED: 'dropped',
   EXPIRED: 'expired',
   ADOPTED: 'adopted',
+  UNAVAILABLE: 'unavailable', // eligible request but the driver is not Disponible (A2, D-181)
 };
 
-// getState() -> { uid, accountStatus, onTrip }; offer(request) -> boolean | Promise<boolean>; showExpired(); log(code).
+// getState() -> { uid, accountStatus, onTrip, available }; offer(request) -> boolean | Promise<boolean>;
+// showExpired(); showUnavailable(); log(code). `available` undefined counts as available (older callers).
 // evaluate() is async (T-199): it resolves to a FLOW_RESULT once the offer (and its route lookup) finished.
-export function createIntentFlow({ intents, getState, offer, showExpired, now = () => Date.now(), log = () => {} }) {
+export function createIntentFlow({ intents, getState, offer, showExpired, showUnavailable = () => {}, now = () => Date.now(), log = () => {} }) {
   return {
     async evaluate() {
       if (!intents.peek()) return FLOW_RESULT.NONE;
-      const { uid, accountStatus, onTrip } = getState();
+      const { uid, accountStatus, onTrip, available } = getState();
       if (!uid || accountStatus === ACCOUNT_STATUS.LOADING) {
         log('gate-pending');
         return FLOW_RESULT.PENDING;
@@ -45,6 +47,12 @@ export function createIntentFlow({ intents, getState, offer, showExpired, now = 
         return FLOW_RESULT.EXPIRED;
       }
       if (decision === INTENT_DECISION.OPEN) {
+        // A2 (D-181): checked after expiry, so a late request still says "expired".
+        if (!isDriverAvailable(available)) {
+          showUnavailable();
+          log('intent-dropped:not-available');
+          return FLOW_RESULT.UNAVAILABLE;
+        }
         const request = requestFromIntent(intent, ctx.now);
         // T-199: offer may wait for the route lookup (<= 2.5 s); the intent was already taken above, so a
         // second evaluate() during the wait finds nothing and cannot offer twice.

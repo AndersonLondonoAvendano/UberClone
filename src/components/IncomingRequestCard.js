@@ -22,7 +22,9 @@ import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { useTrip } from '../context/TripContext';
-import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../services/passengerApi';
+import { PASSENGER_API_ERROR, acceptRequest } from '../services/passengerApi';
+import { DECLINE_REASON, declineRequest, markRequestAccepted } from '../services/trip/declineRequestApp';
+import { CLOSED_REASON, closedReasonText, requestClosedReason } from '../services/trip/requestClosed';
 import { haversineDistanceM } from '../services/routing/straightLine';
 import {
   HOME_ROUTE,
@@ -32,7 +34,8 @@ import {
   secondsUntil,
 } from '../services/trip/requestPresentation';
 import { badgeSize, borderWidth, color, elevation, iconSize, maxFontScale, opacity, radius, space, touch, type } from '../theme/tokens';
-import { calculateFare } from '../utils/fare';
+import { canDecide, decisionWindowStart, displayFare, isMetricsPending } from '../services/trip/requestMetrics';
+import { SkeletonBlock } from './ScreenState';
 import { countdownAnnouncement, fillLabel, formatCop, formatKmFromMeters, formatMinutesFromSeconds } from '../utils/format';
 import { Card } from './Card';
 import { Icon } from './Icon';
@@ -47,14 +50,6 @@ const EXPIRY_TOLERANCE_MS = 1500;
 const URGENT_SECONDS = 10; // same threshold as TripRequestScreen
 const toLngLat = (point) => [point.lng, point.lat];
 const formatRating = (rating) => String(Math.round(rating * 10) / 10).replace('.', ',');
-
-function fareOf(request) {
-  try {
-    return calculateFare({ distanceKm: request.distanceKm, durationMin: request.durationMin, category: request.category });
-  } catch {
-    return null;
-  }
-}
 
 function errorMessage(error) {
   switch (error?.code) {
@@ -72,8 +67,11 @@ function errorMessage(error) {
 // currentRoute: focused drawer screen name. getNavigation: returns a navigation object that can
 // reach the drawer screens (kept by MainDrawer).
 export function IncomingRequestCard({ currentRoute, getNavigation }) {
-  const { accountStatus } = useAppState();
-  const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId } = useAvailability();
+  const { accountStatus, driverId } = useAppState();
+  const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId, isAvailable } = useAvailability();
+  // AI-assisted: see docs/AI_LOG.md #66 (C2d): read inside the effect below without re-running it
+  const isAvailableRef = useRef(isAvailable);
+  isAvailableRef.current = isAvailable;
   const { startTrip } = useTrip();
   const insets = useSafeAreaInsets();
   const { height: windowHeight, fontScale } = useWindowDimensions();
@@ -112,15 +110,32 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     const shown = shownRef.current;
     if (visible) {
       const same = shown?.id === pendingRequest.id;
-      shownRef.current = { id: pendingRequest.id, expiresAt: pendingRequest.expiresAt, handled: same ? shown.handled : false };
+      shownRef.current = {
+        id: pendingRequest.id,
+        expiresAt: pendingRequest.expiresAt,
+        request: pendingRequest,
+        handled: same ? shown.handled : false,
+      };
       return;
     }
     const gone = !pendingRequest || pendingRequest.id !== shown?.id;
-    if (shown && !shown.handled && gone && Date.now() >= shown.expiresAt - EXPIRY_TOLERANCE_MS) {
-      setNotice(labels.trip.expired);
+    if (shown && !shown.handled && gone) {
+      const reason = requestClosedReason({
+        available: isAvailableRef.current,
+        remainingMs: shown.expiresAt - Date.now(),
+        toleranceMs: EXPIRY_TOLERANCE_MS,
+      });
+      if (reason === CLOSED_REASON.UNAVAILABLE) {
+        // AI-assisted: see docs/AI_LOG.md #66 (C2d: released because the driver went "No disponible")
+        setNotice(closedReasonText(reason));
+      } else if (Date.now() >= shown.expiresAt - EXPIRY_TOLERANCE_MS) {
+        setNotice(labels.trip.expired);
+        // AI-assisted: see docs/AI_LOG.md #66 (T-229: expired by its own deadline, same decline path; already released)
+        declineRequest({ uid: driverId, request: shown.request, reason: DECLINE_REASON.EXPIRED, release: false });
+      }
     }
     shownRef.current = null;
-  }, [visible, pendingRequest]);
+  }, [visible, pendingRequest, driverId]);
 
   const markHandled = useCallback(() => {
     if (shownRef.current) shownRef.current.handled = true;
@@ -175,26 +190,33 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   }, [requestId, entrance]);
 
   // D-137: the 15 s window starts the first time the request is shown.
+  // AI-assisted: see docs/AI_LOG.md #66 (A1: while the metrics are pending nothing is marked; the window
+  // starts with the final data, and the clock is refreshed at that moment)
+  const metricsPending = isMetricsPending(request);
   useEffect(() => {
-    if (request) markShown(request.id, Date.now());
+    if (!request) return;
+    const startAt = decisionWindowStart(request, Date.now());
+    if (startAt === null) return;
+    markShown(request.id, startAt);
+    setNow(startAt);
   }, [request]);
 
-  const secondsLeft = request ? secondsUntil(decisionDeadline(request, now), now) : null;
+  const secondsLeft = !request ? null : metricsPending ? requestTotalSeconds(request) : secondsUntil(decisionDeadline(request, now), now);
 
   // When the window closes without a decision, reject quietly, free the slot and tell the driver.
   useEffect(() => {
-    if (!request || secondsLeft !== 0 || working) return;
+    if (!request || metricsPending || secondsLeft !== 0 || working) return;
     const clock = Date.now();
     if (secondsUntil(decisionDeadline(request, clock), clock) > 0) return; // stale tick, not really over
     markHandled();
     setNotice(labels.trip.expired);
-    rejectRequest(request.id).catch(() => {
-      // It expires by itself on the passenger side; the driver stays where they are anyway.
-    });
+    // AI-assisted: see docs/AI_LOG.md #66 (T-229: one decline path; saves `rejected`, releases the request)
+    declineRequest({ uid: driverId, request, reason: DECLINE_REASON.EXPIRED });
     clearPendingRequest(request.id);
-  }, [request, secondsLeft, working, markHandled, clearPendingRequest]);
+  }, [request, metricsPending, secondsLeft, working, markHandled, clearPendingRequest, driverId]);
 
-  const fare = useMemo(() => (request ? fareOf(request) : null), [request]);
+  // R-084: no fare until the final distance and duration exist (null while pending).
+  const fare = useMemo(() => displayFare(request), [request]);
   const toPickup = useMemo(() => {
     if (!request) return null;
     const position = getDriverPosition();
@@ -205,12 +227,13 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   }, [request, getDriverPosition]);
 
   const handleAccept = useCallback(async () => {
-    if (!request || working) return;
+    if (!request || !canDecide(request, { working })) return;
     markHandled();
     setWorking(true);
     setError(null);
     try {
       const trip = await acceptRequest(request.id);
+      markRequestAccepted(request.id); // AI-assisted: see docs/AI_LOG.md #66 (first decision wins)
       clearPendingRequest(request.id);
       startTrip(trip);
       // AI-assisted: see docs/AI_LOG.md #49 (the card never shows while TripRequest is open, so there is none to replace)
@@ -230,17 +253,14 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   }, [request, working, markHandled, clearPendingRequest, startTrip, getNavigation]);
 
   const handleReject = useCallback(async () => {
-    if (!request || working) return;
+    if (!request || !canDecide(request, { working })) return;
     markHandled();
     setWorking(true);
-    try {
-      await rejectRequest(request.id);
-    } catch {
-      // It expires by itself on the passenger side; the driver stays where they are anyway.
-    }
+    // AI-assisted: see docs/AI_LOG.md #66 (T-229: never throws, never blocks the UI)
+    declineRequest({ uid: driverId, request, reason: DECLINE_REASON.REJECTED });
     clearPendingRequest(request.id);
     if (mountedRef.current) setWorking(false);
-  }, [request, working, markHandled, clearPendingRequest]);
+  }, [request, working, markHandled, clearPendingRequest, driverId]);
 
   const handleDismiss = useCallback(() => {
     if (!request) return;
@@ -322,6 +342,10 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
                 <Text maxFontSizeMultiplier={maxFontScale} style={styles.fareValue}>{formatCop(fare.fare)}</Text>
               </View>
             </Card>
+          ) : metricsPending ? (
+            <View testID="incoming-request-calculating" accessible accessibilityLabel={labels.trip.calculatingA11y} style={styles.pendingBlock}>
+              <SkeletonBlock height={space[6]} />
+            </View>
           ) : null}
           <View style={styles.passengerRow}>
             <View style={styles.badge}>
@@ -355,24 +379,27 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
             testID="incoming-request-countdown"
             style={styles.countdown}
             accessible
-            accessibilityLabel={fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
+            accessibilityLabel={metricsPending ? labels.trip.calculatingA11y : fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
           >
             {/* AI-assisted: see docs/AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
             <View style={styles.countdownRow}>
               <View style={[styles.urgentSlot, { width: urgentIconSize, height: urgentIconSize }]}>
-                {urgent ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
+                {urgent && !metricsPending ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
               </View>
-              <Text maxFontSizeMultiplier={maxFontScale} style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
-                {fillLabel(labels.trip.countdown, { s: secondsLeft })}
+              <Text
+                maxFontSizeMultiplier={maxFontScale}
+                style={[styles.countdownText, urgent && !metricsPending && styles.countdownTextUrgent, metricsPending && styles.countdownTextPending]}
+              >
+                {metricsPending ? labels.trip.calculating : fillLabel(labels.trip.countdown, { s: secondsLeft })}
               </Text>
             </View>
             <View style={styles.track}>
-              <View style={[styles.fill, urgent && styles.fillUrgent, { flex: progress }]} />
-              <View style={{ flex: 1 - progress }} />
+              <View style={[styles.fill, urgent && !metricsPending && styles.fillUrgent, { flex: metricsPending ? 0 : progress }]} />
+              <View style={{ flex: metricsPending ? 1 : 1 - progress }} />
             </View>
           </View>
           <View style={styles.announcer} accessibilityLiveRegion="polite">
-            <Text>{countdownAnnouncement(secondsLeft, labels.trip.countdownA11y)}</Text>
+            <Text>{metricsPending ? labels.trip.calculatingA11y : countdownAnnouncement(secondsLeft, labels.trip.countdownA11y)}</Text>
           </View>
           {error ? (
             <Card variant="status" tone="danger" style={styles.errorCard}>
@@ -389,7 +416,8 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
                 label={labels.trip.accept}
                 accessibilityHint={labels.trip.acceptHint}
                 onPress={handleAccept}
-                disabled={working}
+                disabled={working || metricsPending}
+                quietDisabled={metricsPending} // AI-assisted: see docs/AI_LOG.md #66 (H-3)
               />
             </View>
             <View style={styles.flex}>
@@ -398,7 +426,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
                 label={labels.trip.reject}
                 accessibilityHint={labels.trip.rejectCardHint}
                 onPress={handleReject}
-                disabled={working}
+                disabled={working || metricsPending}
               />
             </View>
           </View>
@@ -553,6 +581,12 @@ const styles = StyleSheet.create({
   },
   countdownTextUrgent: {
     color: color.danger,
+  },
+  countdownTextPending: {
+    color: color.textMuted,
+  },
+  pendingBlock: {
+    paddingVertical: space[1],
   },
   track: {
     flexDirection: 'row',

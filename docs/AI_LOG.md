@@ -3020,5 +3020,126 @@ mapa; (7) Ganancias; (8) `npm test`. Y recuerda que el caso de la app cerrada se
 RELEASE. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-4". Sin recapitular pasos.
 ````
 - Resumen de la respuesta (2–3 líneas): Parte A (el toque abre la pantalla completa, contador sin bloque, icono de urgencia H-1) y lote L1 (B1 métricas OSRM, B2 ganancias por rango, B3–B6) implementados, cada parte con un verifier distinto: todas «Verificada estáticamente», ninguna «Validada» (falta el celular). `npm test` 159/159; `check-constitution` 14 errores (línea base). La spec 004 sigue en Borrador; D-149, D-150, D-151, D-160, D-170 y D-180 en Propuesta.
+- Pulidos posteriores a STOP-4 (se hicieron en el lote L2, entrada #66): A1 pantalla de solicitud inmediata con «calculando»; A2 solicitud con «No disponible» no se ofrece y muestra aviso; A3 silenciar avisos de `npm test` y `engines`; A4 aviso de tope en Ganancias, texto de auditoría FCM y comentarios del backend.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #66 — Cierre de brechas del taller — lote L2
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar STOP-4 (lote L1 y Parte A de FCM validados en dispositivo), pulir (retraso al tocar la notificación, solicitud con «No disponible», ruido de `npm test`, menores) e implementar el lote L2 del plan de cierre: saldo sin tope de 200, estados del viaje que faltan, campos aditivos del modelo y no contaminar Ganancias, saldo, Historial, Detalle ni pago.
+- Prompt (textual):
+````
+PROMPT — Cierre de STOP-4 + LOTE L2 (estados del viaje y modelo de datos) + pulidos
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lote L2" con ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Verificación" y "Aprendizaje" para Anderson; el hash lo pone él.
+   Los pulidos de la Parte A se registran como líneas añadidas a la entrada del lote L1.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 13:47, build de desarrollo)
+- STOP-4 validado: el toque de la notificación abre la pantalla completa desde otra pantalla; Rechazar
+  y vencer devuelven a la pantalla anterior; Aceptar lleva al viaje; el contador ya no parece botón;
+  distancia y duración reales (OSRM) coherentes con la ruta; Ganancias, Historial y Detalle coinciden.
+  npm test: 159/159 en PowerShell. Regístralo como "Validada en dispositivo por Anderson" en
+  progress.md y backlog (lote L1 y Parte A de FCM).
+- Hallazgo 1: hay un retraso perceptible entre el toque y la aparición de la pantalla completa.
+- Hallazgo 2: con el conductor en "No disponible" y la ubicación desactivada, Anderson pudo aceptar
+  una solicitud e iniciar el viaje. La ubicación desactivada NO se trata (el viaje es simulado).
+
+METODOLOGÍA Y REGLAS (iguales a las del lote anterior)
+Roles separados: implementer implementa, verifier DISTINTO verifica cada parte, design-auditor
+distinto audita lo visual, spec-author y planner para la Parte B. Quien implementa no aprueba; si un
+revisor rechaza, DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos en docs, README ni logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+Sin git stash, reset ni checkout de archivos. Sin Alert. Textos en src/constants/labels.js. Tokens de
+diseño. D-93…D-180 vigentes salvo lo que esta tarea cambie y declare. firestore.rules fuera de git
+(reglas solo como texto en docs/seguridad.md para que Anderson las publique a mano). No se añaden
+dependencias ni se toca app.json ni código nativo. No puedes compilar ni probar en el dispositivo.
+
+PARTE A — Pulidos (sin spec nueva)
+A1. Retraso al tocar la notificación. Mide primero (logs solo de desarrollo, con códigos fijos y sin
+    datos personales) dónde se va el tiempo entre el toque y la pantalla: llamada OSRM de B1 (timeout
+    2,5 s), geocodificación Nominatim, espera de la puerta de sesión. Luego aplica lo mínimo que lo
+    quite sin romper las reglas de D-133/D-137/D-146 y B1:
+    - La pantalla completa de "Solicitud entrante" se abre de inmediato con la información que ya
+      tiene el mensaje (pasajero, categoría) y un estado "calculando" (esqueleto) en distancia,
+      duración y tarifa; los botones quedan inactivos hasta que haya datos finales.
+    - La ventana de decisión de 15 s empieza cuando los datos finales se muestran, no antes (D-137).
+    - La tarifa no cambia después de aparecer (R-084, B1): no la muestres hasta tener distancia y
+      duración finales.
+    - Si OSRM falla o vence, usa el respaldo ya existente y sigue; nunca dejes la pantalla en
+      "calculando" más de ≈ 3 s.
+    - Dirección "Buscando dirección…": que no bloquee nada y que se resuelva sola.
+    Pruebas puras del orden (pantalla antes que datos, ventana tras datos, respaldo) y cifras reales.
+A2. Solicitud con el conductor "No disponible". Decisión: una solicitud (por toque de push, push
+    recibida o mock) solo se ofrece/acepta si el conductor está "Disponible". Si llega o se toca con
+    "No disponible": no se ofrece y se muestra un aviso breve y no bloqueante "Activa Disponible para
+    recibir solicitudes" (labels.js; sin Alert). Mantén toda la elegibilidad de D-133/D-146 y declara
+    la decisión nueva (D-181…). El aviso no debe repetirse ni apilarse. Pruebas puras sobre
+    eligibility/intentFlow para los dos estados (Disponible / No disponible) y el aviso.
+A3. Ruido de `npm test`. En el script "test" de package.json silencia SOLO los avisos DEP0205 y
+    MODULE_TYPELESS_PACKAGE_JSON (por ejemplo con la bandera --no-warnings de Node, comprobando que
+    funciona en Node ≥ 21). NO añadas "type": "module" a package.json. Añade "engines": {"node":
+    ">=21"} o una nota en el README. Confirma 159/159 (o más) en verde.
+A4. Menores del informe anterior: (a) Ganancias muestra un aviso discreto si el periodo supera el tope
+    de 5.000 viajes (flag truncated ya existente); (b) docs/diseno/auditoria-fcm-2026-11-16.md líneas
+    ≈131-132 describe onPrimary sobre primary: actualízalo al diseño vigente; (c) comentarios
+    obsoletos "trip.fare" en backend/src/providers/stripe.js (≈2), providers/mercadopago.js (≈12) y
+    backend/src/stripe.js (≈10): corrígelos (solo comentarios; el cobro es tarifa + propina leída de
+    Firestore, nunca del cuerpo).
+
+PARTE B — LOTE L2 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md)
+SDD ligera: spec-author escribe specs/005-estados-modelo/spec.md y planner el plan.md (cortos, con
+CA-nnn verificables y T-nnn que continúan la numeración), y CONTINÚAS con la implementación sin
+detenerte a pedir aprobación, rebanada por rebanada con su verifier.
+B1. Saldo sin tope de 200 (D-170). Hoy el saldo se calcula con los últimos 200 viajes. Debe calcularse
+    sobre TODOS los viajes de la cuenta (saldo = ganancias de tarjeta aprobadas − comisiones de
+    efectivo), con lectura paginada como en Ganancias o, si es más barato y seguro, con un agregado
+    acotado documentado. Pruebas con más de 200 viajes y sin romper las cifras validadas en
+    dispositivo. Declara el coste de lecturas y el cambio de decisión (D-170 → nueva).
+B2. Estados del viaje que faltan (G-07, R-xxx del plan). Revisa en el plan y en el enunciado
+    (docs/enunciado-taller.pdf) los estados exigidos: solicitado, aceptado, rechazado, conductor
+    llegando, en curso, finalizado, cancelado. Implementa solo los que faltan y de forma ADITIVA,
+    sin romper los viajes ya guardados: al menos "rechazado" (si el conductor rechaza o la solicitud
+    vence se registra con un estado propio, sin ganancia ni pago, visible en el Historial con su
+    etiqueta y color AA) y "conductor llegando" (paso entre aceptar e iniciar el viaje, con acción
+    "Llegué" y texto claro). "Solicitado" puede quedar como estado de la solicitud previa a la
+    decisión si ya existe de forma implícita: documéntalo. Cada estado nuevo con su etiqueta en
+    labels.js, filtro/chip si el Historial ya filtra por estado, y tests de la máquina de estados
+    (transiciones válidas e inválidas).
+B3. Campos aditivos del modelo (G-11). Añade a los viajes, sin romper los existentes (lecturas con
+    valores por defecto, como legacyTrip.js): passengerId, completedAt, economy como objeto con
+    {fare, commission, tip, driverEarnings} si el enunciado lo pide, y origen/destino como
+    {lat, lng, address}. Mantén los campos actuales (compatibilidad) y documenta cualquier
+    desviación del enunciado en docs/omisiones-y-limites.md. Actualiza el texto de validTrip() en
+    docs/seguridad.md para que acepte los campos nuevos y los estados nuevos, y deja la lista de
+    comprobación para que Anderson publique las reglas a mano. No asumas que ya está publicada.
+B4. Con los estados nuevos, comprueba que Ganancias, saldo, Historial, Detalle y el pago no se
+    contaminen: rechazado y vencido no suman ganancia ni comisión; cancelado sigue con rating nulo.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: pantalla antes que datos, ventana de 15 s tras datos, tarifa estable, no ofrecer con "No
+disponible", aviso sin apilar. Parte B: trazabilidad a CA-nnn, máquina de estados, compatibilidad con
+viajes antiguos, totales con más de 200 viajes, reglas en docs/seguridad.md. design-auditor para las
+etiquetas/colores de los estados nuevos y la pantalla "Conductor llegando". Pruebas completas
+(npm test) y check-constitution (base 14 errores) sin regresión; cita cifras reales. "Validada" solo
+con evidencia de Anderson; el resto "Implementada, pendiente de dispositivo".
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-181…), hallazgos de los verifiers, cifras de
+pruebas y constitución, pasos manuales para Anderson (publicar reglas de Firestore con el texto
+exacto, comprobar en consola) y el CHECKLIST STOP-5 de dispositivo, solo JavaScript, sin recompilar:
+(1) tocar la notificación: la pantalla aparece al instante con "calculando" y luego los datos, sin
+cambiar la tarifa; (2) con "No disponible", enviar una prueba y tocarla: aviso y no se ofrece; con
+"Disponible" funciona; (3) rechazar y vencer: aparece "Rechazado" en Historial sin ganancia;
+(4) aceptar → "Conductor llegando" → "Llegué" → iniciar → finalizar → cobro; (5) un viaje en efectivo y
+uno con tarjeta de prueba siguen igual; (6) saldo y Ganancias coherentes; (7) viajes antiguos se ven
+bien; (8) npm test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-5". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Lote L2 cerrado sin rechazos pendientes: Parte A (retraso al tocar, solo «Disponible», ruido de `npm test`, menores), B1 saldo sobre todos los viajes, B2 estados `rejected` y «Conductor llegando», B3 campos aditivos y B4 sin contaminación. `paymentView` ya excluye `rejected` con un test que falla sin esa línea. Menores C2a-C2d corregidos, C3 documentado, D-181…D-186 aprobadas salvo objeción. 245/245 pruebas, check-constitution 14 errores (base). Nada «Validada»: pendiente de dispositivo.
+
+#### Adenda de cierre (prompt «Cierre de T-232 y de los menores del LOTE L2», 2026-11-16 14:13)
+Decisiones de Anderson: aprobar el arreglo de `paymentView.js`; omitir el chip «Rechazados» (T-231); aceptar D-185 (coordenadas); pasar D-181…D-186 a «Aprobada salvo objeción» reconciliando D-181. Tareas: C1 `paymentView` + test real de no contaminación; C2 `useBalance` sin sesión, 5.000 exactos sin truncar, `exitCopy` por estado, «Cancelada: ya no estás disponible»; C3 límites en omisiones-y-limites.md; C4 segunda ronda del design-auditor (Pendiente de dispositivo); C5 cifras reales.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

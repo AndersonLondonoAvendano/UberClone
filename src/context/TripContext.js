@@ -142,6 +142,8 @@ export function TripProvider({ children }) {
 
   const actions = useMemo(
     () => ({
+      // AI-assisted: see docs/AI_LOG.md #66
+      arrive: () => call('arrive'),
       startRide: () => call('startRide'),
       finish: () => call('finish'),
       cancel: () => call('cancel'),

@@ -3316,3 +3316,387 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 
 ## Fase 5 — Entrega
 (vacío)
+
+> Nota 2026-11-16 (STOP-4): las tareas T-196 a T-215 (lote L1) y la Parte A de FCM quedan **Validadas en dispositivo por Anderson** (evidencia en `docs/progress.md`). Los hallazgos del toque lento y de la solicitud con «No disponible» pasan al lote L2 (spec 005).
+
+## Lote L2 — spec 005 Estados, modelo y saldo (T-216 a T-240; plan: `specs/005-estados-modelo/plan.md`)
+
+> La spec 005 sigue en Borrador; Anderson ordenó continuar sin esperar su aprobación (no la sustituye). Anclas provisionales: RF-13 (estados y modelo), RF-24 (saldo), RF-54 (reglas). **BLOQUEANTE CA-005-26:** la regla `validTrip()` nueva debe publicarla Anderson a mano (T-238) antes de cualquier prueba en el celular (T-239); sin ella el guardado de TODOS los viajes puede fallar por `hasOnly`. Prueba común: `node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/<archivo>.test.mjs` y `npm test`.
+
+### T-216 — Decisiones D-181 a D-186 en `docs/decisiones.md` (Propuesta)
+- Spec: spec 005 (§8; gobierno)
+- Requisitos: RE-01 a RE-16 (ancla RF-13)
+- Depende de: ninguna
+- Archivos: `docs/decisiones.md`
+- Hacer: copiar D-182 a D-186 de la sección 8 de la spec con estado «Propuesta»; añadir D-181 «La solicitud solo se ofrece con Disponible (A2)»: una notificación o solicitud que llega sin Disponible no se muestra ni deja documento. No marcar nada «Vigente».
+- Criterios: CA-005-04 (declaración de coste en D-182), CA-005-14.
+- Hecho cuando: seis decisiones nuevas, todas «Propuesta», con requisitos referenciados.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-217 — B3: `docs/omisiones-y-limites.md` (desviaciones y coste de lecturas)
+- Spec: spec 005 (RE-03, RE-04, RE-13; CA-005-04, CA-005-23)
+- Requisitos: RE-03, RE-04, RE-13 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `docs/omisiones-y-limites.md`
+- Hacer: listar las cuatro desviaciones (colección `drivers/{uid}/trips`; categoría `economico`; `finishedAt` junto a `completedAt`; `requested` no persistido), el límite de `abandon()` fuera de la máquina, el coste de lecturas del saldo (fórmula, tope 5000, 50.000 gratis/día) y el coste extra de persistir rechazos.
+- Criterios: CA-005-04, CA-005-23.
+- Hecho cuando: las cuatro desviaciones y la declaración de coste están con su ID.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-218 — B3: `validTrip()` completo y lista de publicación en `docs/seguridad.md` (BLOQUEANTE CA-005-26)
+- Spec: spec 005 (RE-13; CA-005-23, 24, 26)
+- Requisitos: RE-13 (ancla RF-54)
+- Depende de: T-216
+- Archivos: `docs/seguridad.md`
+- Hacer: texto completo actualizado de `validTrip()` (estado `rejected`; claves nuevas en `hasAll`/`hasOnly`: `passengerId`, `completedAt`, `economy`, `origin`, `destination`; montos 0 y `rating` nulo en `rejected` y `cancelled`; `completedAt` ausente o nulo fuera de `completed`) y lista de comprobación: pegar completo, Publicar, reiniciar, guardar un completado, un cancelado y un rechazado y ver los documentos en la consola. Casos esperados aceptado/rechazado. Estado «NO VERIFICADO»; no se asume publicada; no se crea `firestore.rules`. Si Anderson rechaza D-185 se retiran `origin`/`destination`.
+- Criterios: CA-005-23, 24, 26.
+- Hecho cuando: el bloque es pegable sin ambigüedad y la lista va antes de la prueba en celular.
+- Qué debe ver Anderson en el celular: nada hasta T-238.
+- Validación: verifier distinto (T-236).
+- Riesgo: medio (una regla mal escrita bloquea todos los guardados).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-219 — B1: lectura paginada de todos los viajes (`fetchAllTrips`)
+- Spec: spec 005 (RE-01, RE-02, RE-03; CA-005-01, 02, 03, 04, 05)
+- Requisitos: RE-01, RE-02, RE-03 (ancla RF-24)
+- Depende de: T-216
+- Archivos: `src/services/tripRepository.js`, `scripts/tests/fetchAllTrips.test.mjs` (nuevo)
+- Hacer: plan §3.1. `fetchAllTrips`/`fetchAllTripsWith` con páginas de 500, `startAfter`, tope 5000 y `truncated`; sin tocar `fetchTripsInRange`, `fetchTripsPage` ni `listenToTrips`. Tests con repositorio falso: 250 viajes (150 tarjeta, 100 efectivo) suman el saldo esperado con `computeBalance`; cancelados, `rejected`, sin método, legacy y tarjeta no aprobada no cambian el saldo; más de 5000 documentos corta en el tope con `truncated`; contador de lecturas ≤ tope.
+- Criterios: CA-005-01, 02, 03, 04, 05.
+- Hecho cuando: la prueba pasa, `npm test` no cambia de resultado en lo existente y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-233).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-220 — B1: el saldo de Ganancias usa todos los viajes y avisa si es parcial
+- Spec: spec 005 (RE-01, RE-02; CA-005-03, 06)
+- Requisitos: RE-01, RE-02 (ancla RF-24)
+- Depende de: T-219
+- Archivos: `src/hooks/useBalance.js` (nuevo), `src/screens/main/EarningsScreen.js`, `scripts/tests/balanceView.test.mjs` (nuevo)
+- Hacer: el saldo sale de `fetchAllTrips` + `computeBalance` (lectura al enfocar y al reintentar; cargando, vacío, error con reintento; error nunca muestra 0). Si `truncated`, texto honesto «Saldo parcial: se leyeron los N viajes más recientes» (texto en `labels.js` o el archivo de textos vigente). Ganancias de periodo sin cambios. Cubre cargando/vacío/error.
+- Criterios: CA-005-03 (presentación), CA-005-06 (**No verificado en dispositivo**).
+- Hecho cuando: el test de presentación pasa y la pantalla arranca sin avisos de efectos sin limpiar.
+- Qué debe ver Anderson en el celular: saldo igual al cálculo manual con más de 200 viajes. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-233); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: el aviso de saldo parcial usa tokens de `DESIGN.md` y no se confunde con un saldo completo.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-221 — B2: constantes `REQUESTED`/`REJECTED` y `canTransition` tabular
+- Spec: spec 005 (RE-04, RE-05; CA-005-07, 16)
+- Requisitos: RE-04, RE-05 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `src/constants/tripStatus.js`, `src/services/passengerApi/contract.js` (solo `isTripFinished`), `src/services/trip/tripMachine.js`, `scripts/tests/tripMachineTable.test.mjs` (nuevo)
+- Hacer: plan §3.2. Añadir `REQUESTED` y `REJECTED` (no renombrar nada); `rejected`, `cancelled` y `paid` terminales; `canTransition` con tabla explícita igual a la sección 4 de la spec; entradas nulas o desconocidas, falso. Test tabular que recorre todas las parejas.
+- Criterios: CA-005-07 y la parte de constante de CA-005-16.
+- Hecho cuando: el test tabular pasa, `npm test` sigue verde y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio (la máquina es el núcleo del viaje).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-222 — B2: cancelar solo antes de `in_progress`; `abandon()` intacto
+- Spec: spec 005 (RE-08; CA-005-08, 09)
+- Requisitos: RE-08 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/services/trip/tripController.js`, `scripts/tests/tripCancelRule.test.mjs` (nuevo)
+- Hacer: plan §3.5. `cancel()` respeta `canTransition`; en `in_progress` no llama a la API ni cambia el estado; permitido desde `accepted`, `driver_arriving`, `driver_arrived`. Test que fija el resultado actual de `abandon()` en todas sus fases. Reportar si la UI ofrece cancelar en `in_progress` (no se edita aquí; D-10 queda fuera).
+- Criterios: CA-005-08, 09.
+- Hecho cuando: los tests nuevos y los existentes del controlador pasan.
+- Qué debe ver Anderson en el celular: nada hasta T-239.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-223 — B2: acción `arrive()` («Llegué») idempotente en el controlador
+- Spec: spec 005 (RE-07; CA-005-15)
+- Requisitos: RE-07 (ancla RF-13)
+- Depende de: T-222
+- Archivos: `src/services/trip/tripController.js`, `scripts/tests/tripArrive.test.mjs` (nuevo)
+- Hacer: plan §3.4. `arrive()` solo desde `driver_arriving`; una sola transición y un solo reporte a la API si coincide con la detección automática; sin validación de proximidad ni dependencia de la ubicación o de la ruta cargada; en otro estado no hace nada.
+- Criterios: CA-005-15.
+- Hecho cuando: el test con API falsa pasa (acción manual, detección, ambas a la vez, estado equivocado).
+- Qué debe ver Anderson en el celular: nada hasta T-224.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-224 — B2: botón «Llegué» en la pantalla del viaje (conductor llegando)
+- Spec: spec 005 (RE-07; CA-005-15, CA-005-D3)
+- Requisitos: RE-07 (ancla RF-13)
+- Depende de: T-223
+- Archivos: `src/screens/trip/TripActiveScreen.js` (o el componente de acciones que ya renderiza «Iniciar viaje»), `src/constants/labels.js`
+- Hacer: mostrar «Llegué» solo en `driver_arriving`, con el botón primario existente, área táctil ≥ 48 dp, sin cambiar el orden visual de las demás acciones, sin dependencias nuevas; al pulsarla llama a `arrive()`; luego se habilita iniciar. Estado nativo: **probar en el celular** (T-239).
+- Criterios: CA-005-D3, CA-005-15. **No verificado en dispositivo**.
+- Hecho cuando: la pantalla arranca y el botón aparece solo en `driver_arriving`; lectura contra `DESIGN.md`.
+- Qué debe ver Anderson en el celular: tras aceptar, «Llegué» pasa a «conductor llegó» y habilita iniciar. **No verificado en dispositivo**.
+- Notas: la etiqueta `phase.toPickup` se mantiene como «Conductor llegando» (es el nombre de estado pedido). En `in_progress` «Cancelar viaje» no se ofrece (`canOfferCancel`) y se muestra «Salir del viaje».
+- Validación: verifier distinto (T-234); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: botón primario, área ≥ 48 dp, orden de acciones intacto.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-225 — B3: helper de lectura con defaults (`readTrip`)
+- Spec: spec 005 (RE-11; CA-005-20, 21)
+- Requisitos: RE-11 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `src/services/trip/legacyTrip.js`, `scripts/tests/readTrip.test.mjs` (nuevo)
+- Hacer: plan §3.8. Defaults de la spec RE-11; con `economy` y montos de nivel superior mandan los de nivel superior; fixtures de viajes antiguos comparados con la salida previa. No cambia ninguna pantalla aún (el consumo es mínimo y opcional).
+- Criterios: CA-005-20, 21.
+- Hecho cuando: el test pasa y `npm test` sigue verde.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-235).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-226 — B2/B3: `buildTripRecord` guarda `rejected` y `TRIP_DOC_KEYS` base
+- Spec: spec 005 (RE-06, RE-15, RE-16; CA-005-10, 16, 19)
+- Requisitos: RE-06, RE-15 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/services/trip/tripRecord.js`, `scripts/tests/tripRecordRejected.test.mjs` (nuevo)
+- Hacer: `SAVED_STATUS.REJECTED`; un `rejected` y un `cancelled` salen con `fare`, `commission`, `driverEarnings`, `tip` en 0, `rating` nulo, `finishedAt` del cierre y `route` ausente; `buildTripRecord` nunca produce `status: 'requested'`. Los viajes `completed`/`cancelled` se construyen igual que antes (test de regresión).
+- Criterios: CA-005-10 (constructor), 16, 19 (parte de montos).
+- Hecho cuando: la prueba pasa y el constructor previo no cambia de salida.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-235).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-227 — B3: campos aditivos en el registro (`passengerId`, `completedAt`, `economy`, `origin`, `destination`)
+- Spec: spec 005 (RE-10, RE-12; CA-005-18, 19, 22)
+- Requisitos: RE-10, RE-12 (ancla RF-13)
+- Depende de: T-226, T-218
+- Archivos: `src/services/trip/tripRecord.js`, `scripts/tests/tripRecordFields.test.mjs` (nuevo)
+- Hacer: plan §3.7. Añadir los campos a `TRIP_DOC_KEYS` sin quitar ninguno; ejemplo 8,5 km / 22 min Económico: `economy` = `{ fare: 19200, commission: 3840, tip: 0, driverEarnings: 15360 }`; `completedAt` = `finishedAt` solo en `completed`; `origin`/`destination` = `{ lat, lng, address }` con coordenadas de la solicitud (sin inventar si faltan); `passengerId` si la solicitud lo trae. Privacidad D-185: si Anderson la rechaza, solo se escriben las direcciones. Test que compara la lista de claves con la previa.
+- Criterios: CA-005-18, 19, 22.
+- Hecho cuando: la prueba pasa y la lista previa sigue contenida en la nueva.
+- Qué debe ver Anderson en el celular: nada hasta T-239 (con la regla publicada, T-238).
+- Validación: verifier distinto (T-235).
+- Riesgo: medio (si la regla no está publicada, el guardado falla; ver BLOQUEANTE).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-228 — B2: servicio `declineRequest` idempotente y de mejor esfuerzo
+- Spec: spec 005 (RE-06; CA-005-10, 12, 13)
+- Requisitos: RE-06 (ancla RF-13)
+- Depende de: T-226
+- Archivos: `src/services/trip/declineRequest.js` (nuevo), `src/services/tripRepository.js` (solo una función de guardado idempotente por id), `scripts/tests/declineRequest.test.mjs` (nuevo)
+- Hacer: plan §3.6. Comprueba existencia por id, escribe una sola vez, tiempo límite 5 s, nunca rechaza ni bloquea; si ya fue aceptada, se ignora. Tests con repositorio falso: rechazo guarda `rejected` con montos 0; dos notificaciones, una escritura; fallo o falta de respuesta, sin error. (Edita `tripRepository.js` después de T-219.)
+- Criterios: CA-005-10, 12, 13.
+- Hecho cuando: las pruebas pasan con contador de escrituras.
+- Qué debe ver Anderson en el celular: nada hasta T-239.
+- Validación: verifier distinto (T-235).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-229 — B2: conectar rechazo y vencimiento (15 s / `expiresAt`) a `declineRequest`
+- Spec: spec 005 (RE-06; CA-005-11, 14)
+- Requisitos: RE-06 (ancla RF-13)
+- Depende de: T-228
+- Archivos: `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`, `src/services/passengerApi/mockPassengerApi.js`, `scripts/tests/declineWiring.test.mjs` (nuevo)
+- Hacer: llamar a `declineRequest` (motivo `rejected` o `expired`) donde hoy se llama `rejectRequest` y donde vence la solicitud mostrada; una solicitud que no se mostró (D-181: sin Disponible) no escribe. Sin cambiar los textos ni el flujo visible; limpiar temporizadores en el retorno del efecto. Probar en el celular.
+- Criterios: CA-005-11, 14, 17 (**No verificado en dispositivo**).
+- Hecho cuando: los tests pasan con reloj inyectado y la app arranca.
+- Qué debe ver Anderson en el celular: rechazar una y dejar vencer otra deja dos documentos `rejected`. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235).
+- Riesgo: alto (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A (sin cambios visibles).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-230 — B2: «Rechazado» en etiquetas, ítem del Historial y Detalle
+- Spec: spec 005 (RE-09, RE-14; CA-005-D1, D2, 27)
+- Requisitos: RE-09, RE-14 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/constants/labels.js`, `src/components/TripListItem.js`, `src/services/trip/tripDetailView.js`, `scripts/tests/rejectedView.test.mjs` (nuevo)
+- Hacer: una sola etiqueta «Rechazado» (rechazo y vencimiento) con icono y color distintos de «Cancelado», contraste ≥ 4,5:1 con tokens de `DESIGN.md` (cálculo anotado), montos «sin cobro», sin chip «Cobro simulado», anuncio accesible con el texto. Un viaje `completed` con `paymentStatus: 'rejected'` NO se muestra como «Rechazado».
+- Criterios: CA-005-D1, D2, 27 (parte de vista). D2: **No verificado en dispositivo**.
+- Hecho cuando: el test de vista pasa y la lista arranca.
+- Qué debe ver Anderson en el celular: un rechazado en el Historial con texto, icono y color propios. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235); auditoría T-237.
+- Riesgo: bajo.
+- Diseño hecho cuando: contraste AA registrado y distinción por texto e icono.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-231 — B2: filtro/chip «Rechazados» en el Historial
+- Spec: spec 005 (RE-09; CA-005-D2, 17)
+- Requisitos: RE-09 (ancla RF-13)
+- Depende de: T-230
+- Archivos: `src/screens/main/HistoryScreen.js`, `src/components/HistoryFilters.js`
+- Hacer: añadir el filtro/chip por estado (Todos / Rechazados u opción equivalente) sin romper filtros de periodo y método; paginación de 20 por página intacta; mantiene cargando, vacío y error.
+- Criterios: CA-005-D2, 17. **No verificado en dispositivo**.
+- Hecho cuando: la pantalla arranca y el filtro cambia la lista; lectura contra `DESIGN.md`.
+- Qué debe ver Anderson en el celular: el filtro muestra solo rechazados. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: chip con tokens, área táctil ≥ 48 dp, coherente con los filtros actuales.
+- Diseño: Pendiente
+- Estado: Implementada
+- Nota (2026-11-16): chip «Rechazados» OMITIDO por decisión de Anderson; ver `docs/omisiones-y-limites.md`. No hay código de filtro; los `rejected` salen con su etiqueta.
+
+### T-232 — B4: no contaminación (tests de ganancias, saldo, cobro)
+- Spec: spec 005 (RE-14, RE-15, RE-16; CA-005-05, 25, 27)
+- Requisitos: RE-14, RE-15, RE-16 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `scripts/tests/noContamination.test.mjs` (nuevo); `src/utils/earnings.js` solo si el test expone un fallo
+- Hacer: con conjuntos `completed`, `paid`, `cancelled` y `rejected` del mismo periodo, las seis métricas, hoy/semana/mes y el saldo ignoran `rejected` y `cancelled` (iguales al conjunto sin ellos); un `rejected` con `paymentStatus: 'pending'` no ofrece cobro; un `completed` con `paymentStatus: 'rejected'` sigue siendo completado con cobro rechazado.
+- Criterios: CA-005-05, 25, 27.
+- Hecho cuando: la prueba pasa y `npm test` sigue verde.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+- Nota (2026-11-16): `paymentView.js` ahora también excluye `rejected` (CA-005-27); `noContamination.test.mjs` llama a `paymentView` con rechazados (mercadopago y efectivo, `pending`) y vencidos, y falla si se quita `REJECTED`.
+
+### T-233 — B1: verificación independiente del saldo (CA-005-01 a 05)
+- Spec: spec 005 (RE-01 a RE-03)
+- Requisitos: RE-01, RE-02, RE-03 (ancla RF-24)
+- Depende de: T-219, T-220
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee diff y tests, comprueba contador de lecturas, tope, `truncated`, textos de coste (D-182, `omisiones-y-limites.md`) y que `fetchTripsInRange`/`fetchTripsPage` no cambiaron; `npm test`; `check-constitution`.
+- Criterios: CA-005-01 a 05.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-234 — B2: verificación independiente de la máquina, cancelar y «Llegué»
+- Spec: spec 005 (RE-05, RE-07, RE-08)
+- Requisitos: RE-05, RE-07, RE-08 (ancla RF-13)
+- Depende de: T-221, T-222, T-223, T-224
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto compara `canTransition` con la tabla de la spec §4, comprueba que cancelar en `in_progress` no llama a la API, que `abandon()` no cambió y que la acción «Llegué» es única; `npm test`; `check-constitution`.
+- Criterios: CA-005-07, 08, 09, 15.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas; lo visual queda «No verificado en dispositivo».
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-235 — B2/B3: verificación independiente de rechazo, registro y lectura
+- Spec: spec 005 (RE-06, RE-09, RE-10 a RE-12, RE-15)
+- Requisitos: RE-06, RE-09 a RE-12, RE-15 (ancla RF-13)
+- Depende de: T-225, T-226, T-227, T-228, T-229, T-230, T-231
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto comprueba idempotencia, tiempo límite, que un `rejected` nunca tiene monto positivo ni `requested` se escribe (`grep`), que `TRIP_DOC_KEYS` conserva los campos previos y que `readTrip` no cambia los viajes antiguos; `npm test`; `check-constitution`.
+- Criterios: CA-005-10 a 14, 16, 18 a 22.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-236 — B3/B4: verificación independiente de documentos y no contaminación
+- Spec: spec 005 (RE-13, RE-14; CA-005-23, 24, 25, 27)
+- Requisitos: RE-13, RE-14 (ancla RF-13)
+- Depende de: T-216, T-217, T-218, T-232
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto lee `decisiones.md` (D-181 a D-186 «Propuesta»), `omisiones-y-limites.md` y `seguridad.md` contra los casos de CA-005-24 (ejecución en el emulador solo si existe; si no, «NO VERIFICADO»), y corre el test de no contaminación.
+- Criterios: CA-005-23, 24, 25, 27.
+- Hecho cuando: lectura con archivo:línea; la regla sigue sin afirmarse publicada.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-237 — Auditoría de diseño: «Rechazado», colores, «Conductor llegando» con «Llegué» y saldo parcial
+- Spec: spec 005 (RE-09, RE-07, RE-02; CA-005-D1, D2, D3)
+- Requisitos: RE-02, RE-07, RE-09 (ancla RF-13)
+- Depende de: T-220, T-224, T-230, T-231
+- Archivos: ninguno (design-auditor; informe de ronda y campo Diseño)
+- Hacer: el agente principal carga las skills de diseño y las pasa al `design-auditor`; revisa etiqueta y color de «Rechazado» frente a «Cancelado» (contraste ≥ 4,5:1 con script temporal sobre tokens), icono y anuncio accesible, filtro/chip del Historial, pantalla «Conductor llegando» con «Llegué» (botón primario, ≥ 48 dp, orden de acciones) y el aviso de saldo parcial. Máximo dos rondas; hallazgos al `implementer`.
+- Criterios: CA-005-D1, D2, D3.
+- Hecho cuando: Diseño «Aprobado» (o «N/A») en T-220, T-224, T-230 y T-231, con el cálculo de contraste anotado.
+- Qué debe ver Anderson en el celular: capturas de Historial con un rechazado y de «Llegué» (T-239).
+- Validación: design-auditor (solo lo visual).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-238 — Anderson publica la regla `validTrip()` a mano (BLOQUEANTE CA-005-26)
+- Spec: spec 005 (RE-13; CA-005-26)
+- Requisitos: RE-13 (ancla RF-54)
+- Depende de: T-218, T-236
+- Archivos: ninguno
+- Hacer: Anderson sigue la lista de comprobación de `docs/seguridad.md` (pegar completo, Publicar, reiniciar la app) ANTES de cualquier prueba del celular de esta spec. El agente no publica reglas. Informar fecha y resultado.
+- Criterios: CA-005-26. **No verificado en dispositivo** hasta el resultado.
+- Hecho cuando: Anderson confirma «publicada» o reporta el error.
+- Qué debe ver Anderson en el celular: nada todavía.
+- Validación: Anderson.
+- Riesgo: alto (sin la regla, el guardado de todos los viajes puede fallar).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-239 — Prueba en el celular del lote L2 (Anderson)
+- Spec: spec 005 (RE-01, RE-06, RE-07, RE-09; CA-005-06, 17, 26, D2, D3)
+- Requisitos: RE-01, RE-06, RE-07, RE-09 (anclas RF-24, RF-13)
+- Depende de: T-233, T-234, T-235, T-237, T-238
+- Archivos: ninguno
+- Hacer: con la regla publicada: (1) saldo de un conductor con más de 200 viajes (o datos sembrados) igual al cálculo manual; (2) rechazar una solicitud y dejar vencer otra: ambas «Rechazado» en el Historial y con su documento en la consola; (3) pulsar «Llegué» y completar el flujo; (4) guardar un completado, un cancelado y un rechazado; (5) comprobar TalkBack/VoiceOver del ítem «Rechazado». Reportar «Pega aquí el resultado de la prueba en el celular».
+- Criterios: CA-005-06, 17, 26, D2, D3. **No verificado en dispositivo** hasta que Anderson responda.
+- Hecho cuando: Anderson confirma cada punto con fecha y evidencia.
+- Qué debe ver Anderson en el celular: lo descrito arriba. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-240 — Cierre del lote L2: `docs/progress.md` y trazabilidad
+- Spec: spec 005 (RE-01 a RE-16; todos los CA)
+- Requisitos: RE-01 a RE-16 (anclas RF-13, RF-24, RF-54)
+- Depende de: T-233, T-234, T-235, T-236, T-237
+- Archivos: `docs/progress.md`
+- Hacer: registrar en la tabla de CA de `docs/progress.md` cada CA-005-01 a 27 y D1 a D3 con evidencia, dejando «No verificado en dispositivo» CA-005-06, 17, 26 y D2/D3 hasta T-239; confirmar que la fila de la spec 005 en la matriz de `docs/requisitos.md` coincide con estas tareas; `node scripts/check-constitution.mjs` sin errores nuevos. No aprueba nada propio.
+- Criterios: todos los CA de la spec 005.
+- Hecho cuando: cada CA tiene fila y la matriz coincide con el backlog.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente

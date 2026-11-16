@@ -18,6 +18,8 @@ import { createPendingRequestGate } from '../services/trip/pendingRequest';
 import { refineRequestMetrics } from '../services/notifications/pushRequest';
 import { getRouteMetrics } from '../services/routing/routeMetrics';
 import { PUSH_OFFER_RESULT, offerPushRefined } from '../services/trip/pushOffer';
+import { logPushTiming } from '../services/notifications/safeLog';
+import { REQUEST_METRICS_CAP_MS } from '../config/trip';
 
 export function useTripRequests({ enabled, getDriverPosition }) {
   const [lastRequest, setLastRequest] = useState(null);
@@ -87,19 +89,29 @@ export function useTripRequests({ enabled, getDriverPosition }) {
   const offerPushRequest = useCallback(async (request, options) => {
     const gate = gateRef.current;
     if (!gate || !isValidTripRequest(request)) return false;
+    const startedAt = Date.now();
+    const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
     // AI-assisted: see docs/AI_LOG.md #64 (gate first, then adopt; a duplicate never touches the mock)
+    // AI-assisted: see docs/AI_LOG.md #66 (A1: shown at once with `metricsPending`; the final copy follows)
     const result = await offerPushRefined({
       gate,
       request,
       tap: options?.tap === true,
       inFlight: inFlightRef.current,
+      capMs: REQUEST_METRICS_CAP_MS,
       refine: (candidate) => refineRequestMetrics(candidate, getRouteMetrics()),
       isCurrent: () => gateRef.current === gate,
-      onOffered: (refined) => {
-        resolveRequestAddresses(refined);
+      onOffered: (preliminary) => {
+        logPushTiming('offer-shown', Date.now() - startedAt, { isDev, log: console.log });
+        resolveRequestAddresses(preliminary);
         setError(null);
-        setLastRequest(refined);
+        setLastRequest(preliminary);
         setPushOffered(true);
+      },
+      onFinal: (final, { capped }) => {
+        const code = capped ? 'metrics-capped' : final.estimated ? 'metrics-estimated' : 'metrics-final';
+        logPushTiming(code, Date.now() - startedAt, { isDev, log: console.log });
+        setLastRequest(final);
       },
       adopt: (candidate) => {
         const adopted = adoptPushRequest(candidate);

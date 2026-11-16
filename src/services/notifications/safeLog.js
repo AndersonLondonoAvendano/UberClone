@@ -24,3 +24,11 @@ export function logPushEvent(code, { isDev = false, log } = {}) {
   if (isDev !== true || typeof log !== 'function') return;
   log(`[push] ${code}`);
 }
+
+// AI-assisted: see docs/AI_LOG.md #66
+// Dev-only timing trace (A1): a fixed code plus elapsed milliseconds, e.g. `[push] metrics-final ms=840`.
+// Only a code and a number: no token, name, address or coordinates.
+export function logPushTiming(code, ms, { isDev = false, log } = {}) {
+  if (isDev !== true || typeof log !== 'function' || !Number.isFinite(ms)) return;
+  log(`[push] ${code} ms=${Math.round(ms)}`);
+}

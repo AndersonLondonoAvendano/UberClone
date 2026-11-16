@@ -33,6 +33,12 @@ export const PUBLISH_MAX_ATTEMPTS = 2;
 // How long the request card shows "La solicitud expiró" before going back to Home.
 export const EXPIRED_NOTICE_MS = 2500;
 
+// AI-assisted: see docs/AI_LOG.md #66
+// A request that arrives by push is shown at once with its passenger and category; distance, duration and
+// fare stay in "calculando" until the real route answers. This is the longest it may stay there (a little
+// above the 2,5 s OSRM timeout): after it the message values are used and the request is marked estimated.
+export const REQUEST_METRICS_CAP_MS = 3000;
+
 // AI-assisted: see docs/AI_LOG.md #44
 // Each reportTripStatus or cancelTrip attempt gives up after this long (offline requests may never
 // settle by themselves), and "Finalizar viaje" waits at most FINISH_TIMEOUT_MS before showing the

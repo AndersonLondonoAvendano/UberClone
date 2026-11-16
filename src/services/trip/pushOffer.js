@@ -4,6 +4,7 @@
 // duplicate never touches the mock and a refused request never stays pending. Pure: dependencies injected.
 
 import { OFFER_RESULT } from './pendingRequest';
+import { withCap, withMetricsPending, withoutMetricsPending } from './requestMetrics';
 
 // adopt(request) returns true when the adapter accepted it. Returns true only when it became pending.
 export function offerPushThroughGate({ gate, adopt, request }) {
@@ -37,11 +38,16 @@ export function offerPushWithArrival({ gate, adopt, request, tap = false, now = 
   return offerPushThroughGate({ gate, adopt, request }) ? PUSH_OFFER_RESULT.OFFERED : PUSH_OFFER_RESULT.REJECTED;
 }
 
-// RC-01/RC-02 (T-199): the request is refined (one route lookup) BEFORE it reaches the gate. While the
-// lookup runs, the same request id is shared through `inFlight`, so a second message or tap joins the same
-// promise (no second lookup, no duplicate). Expiry is checked again after the wait; the gate and the adapter
-// only ever see the refined copy. Returns a Promise of PUSH_OFFER_RESULT (never rejects).
-// refine(request) -> Promise<request>; onOffered(refined) runs once, only when it became pending.
+// A1 (RC-01/RC-02, R-084, supersedes the T-199 order "refine, then offer"): the request reaches the gate AT
+// ONCE with what the message carries (passenger, category) and `metricsPending: true`, so the full screen
+// opens without waiting for the route. In the background the request is refined (one route lookup, at most
+// `capMs`; after it the message values are used, marked `estimated`). The final copy is then adopted by the
+// adapter and replaces the pending one (`gate.update`); only then do the fare and the 15 s window exist.
+// While the lookup runs, the same request id is shared through `inFlight`, so a second message or tap joins
+// the same promise (no second lookup, no duplicate). Expiry is checked again after the wait.
+// Returns a Promise of PUSH_OFFER_RESULT (never rejects), settled when the final data is in (or it failed).
+// refine(request) -> Promise<request>; onOffered(preliminary) runs once, at once, when it became pending;
+// onFinal(final, { capped }) runs once when the final copy replaced the pending one.
 export function offerPushRefined({
   gate,
   adopt,
@@ -52,6 +58,10 @@ export function offerPushRefined({
   now = Date.now,
   isCurrent = () => true,
   onOffered = () => {},
+  onFinal = () => {},
+  capMs = 3000,
+  setTimer,
+  clearTimer,
 }) {
   const shared = inFlight.get(request.id);
   if (shared) return shared;
@@ -64,17 +74,49 @@ export function offerPushRefined({
   if (pending && pending.expiresAt > now()) return Promise.resolve(PUSH_OFFER_RESULT.REJECTED); // busy
 
   const run = (async () => {
-    let refined = request;
+    // Shown at once: the gate only dedupes and the adapter is NOT touched yet (it adopts the final copy).
+    const preliminary = withMetricsPending(request);
+    if (gate.offer(preliminary) !== OFFER_RESULT.OFFERED) return PUSH_OFFER_RESULT.REJECTED;
+    onOffered(preliminary);
+
+    const fallback = { ...withoutMetricsPending(request), estimated: true };
+    let capped = false;
+    let refined = fallback;
     try {
-      refined = await refine(request);
+      const marker = Symbol('cap');
+      const outcome = await withCap(refine(withoutMetricsPending(request)), capMs, marker, { setTimer, clearTimer });
+      if (outcome === marker) capped = true;
+      else refined = outcome;
     } catch {
-      refined = request;
+      refined = fallback;
     }
-    if (!isCurrent()) return PUSH_OFFER_RESULT.REJECTED;
-    if (refined.expiresAt <= now()) return PUSH_OFFER_RESULT.EXPIRED;
-    const result = offerPushWithArrival({ gate, adopt, request: refined, tap, now });
-    if (result === PUSH_OFFER_RESULT.OFFERED) onOffered(refined);
-    return result;
+    const final = withoutMetricsPending(refined);
+    if (!isCurrent()) {
+      gate.release(request.id);
+      return PUSH_OFFER_RESULT.REJECTED;
+    }
+    const stillPending = gate.get();
+    if (!stillPending || stillPending.id !== request.id) {
+      // Decided, released or expired while the route was being looked up.
+      return final.expiresAt <= now() ? PUSH_OFFER_RESULT.EXPIRED : PUSH_OFFER_RESULT.REJECTED;
+    }
+    if (final.expiresAt <= now()) {
+      gate.release(request.id);
+      return PUSH_OFFER_RESULT.EXPIRED;
+    }
+    let adopted = false;
+    try {
+      adopted = adopt(final) === true;
+    } catch {
+      adopted = false;
+    }
+    if (!adopted) {
+      gate.release(request.id);
+      return PUSH_OFFER_RESULT.REJECTED;
+    }
+    gate.update(final);
+    onFinal(final, { capped });
+    return PUSH_OFFER_RESULT.OFFERED;
   })().finally(() => {
     inFlight.delete(request.id);
   });

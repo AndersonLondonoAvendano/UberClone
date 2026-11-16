@@ -68,7 +68,8 @@ export function computeBalance(trips) {
   if (!Array.isArray(trips)) return 0;
   for (const trip of trips) {
     if (!trip || typeof trip !== 'object') continue;
-    if (trip.status === TRIP_STATUS.CANCELLED) continue;
+    // AI-assisted: see docs/AI_LOG.md #66 (T-232: a declined or expired request is never owed or earned)
+    if (trip.status === TRIP_STATUS.CANCELLED || trip.status === TRIP_STATUS.REJECTED) continue;
     if (isCardMethod(trip.paymentMethod)) {
       if (trip.paymentStatus !== 'approved') continue;
       balance += amount(trip.driverEarnings);
