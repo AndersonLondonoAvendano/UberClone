@@ -17,3 +17,10 @@ export function logTokenInDev(label, token, { isDev = false, log } = {}) {
   if (isDev !== true || typeof log !== 'function') return;
   log(`${label}: ${maskToken(token)}`);
 }
+
+// Dev-only push flow trace: a fixed reason code, e.g. `[push] intent-adopted`. Never a token, body,
+// name or uid. Reaches `adb logcat -s ReactNativeJS:V` because console.log goes through React Native.
+export function logPushEvent(code, { isDev = false, log } = {}) {
+  if (isDev !== true || typeof log !== 'function') return;
+  log(`[push] ${code}`);
+}

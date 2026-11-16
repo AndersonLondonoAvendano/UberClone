@@ -35,7 +35,7 @@ Alcance: contraste de `docs/UberClone — Versión Conductor.pdf` con el reposit
 | Último estado de disponibilidad guardado en AsyncStorage | **No encontrado** | `AvailabilityContext` usa `useState(false)` solo en memoria; `buildSessionResetDeps.js:8` afirma que la app no tiene claves propias; **no aparece en omisiones** |
 | Geolocalización | Parcial | Funciona con `expo-location` (`src/services/location/gpsLocationSource.js`, `distanceInterval` 10 m), no con `@react-native-community/geolocation`; la sustitución no está en la tabla de Sustituciones |
 | Firestore en tiempo real | Cumplido | `driverLocationPublisher.js`, `driverLocationWriter.js`, suscripciones en `tripPaymentSubscription` |
-| FCM | Omitido (documentado) | Omisiones fila 1 |
+| FCM | Cumplido (Android); actualizado 2026-11-16 | Evidencia D de Anderson (heads-up con sonido en dispositivo; en build release, app cerrada → solicitud con cuenta de 15 s). iOS fuera de alcance (APNs/cuenta de pago). Límites en Omisiones fila 1 (dev client, sin ubicación en segundo plano, disparo simulado) |
 | Directions / Google Maps | Omitido (documentado) como sustitución | OSRM y MapLibre (Sustituciones, D-82) |
 
 ## 3. Cobro (pasarela)

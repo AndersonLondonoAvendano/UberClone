@@ -436,6 +436,8 @@ export const labels = {
     switchHint: 'Activa o desactiva las notificaciones de solicitudes de viaje.',
     stateOn: 'Activadas',
     stateOff: 'Desactivadas',
+    stateEnabling: 'Activando…',
+    stateDisabling: 'Desactivando…',
     explainBody:
       'Te avisaremos cuando llegue una solicitud de viaje aunque la app esté en segundo plano. El sistema te pedirá permiso.',
     explainContinue: 'Continuar',

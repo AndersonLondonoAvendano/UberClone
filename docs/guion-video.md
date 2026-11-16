@@ -79,6 +79,26 @@ Los textos son para leerlos con calma y en primera persona; si te pasas de tiemp
 - **Digo:** «Cierro sesión. Lo que no cubre esta entrega: iOS no está verificado y las notificaciones push se omitieron. Gracias.»
 - **Si no cabe:** quita la mención de límites del video y deja la lista completa en `docs/omisiones-y-limites.md`.
 
+## Demo de notificaciones push (T-193): 75 s, máximo 90 s
+<!-- AI-assisted: see docs/AI_LOG.md #64 -->
+
+Estado: guion sin ensayar; la demo con envío real está **pendiente de dispositivo**. **Graba con la build RELEASE**: con el dev client, tocar la notificación con la app cerrada no entrega la solicitud (límite del dev launcher, ver `docs/omisiones-y-limites.md`). El APK release lleva la URL del backend incrustada al compilar, así que el backend y su túnel deben estar activos y alcanzables antes de grabar. Solo Android.
+
+| Paso | Se ve | Digo | Tiempo |
+|---|---|---|---|
+| 1 | Configuración → Notificaciones: se activa el interruptor y se concede el permiso | «Activo las notificaciones; la app registra este dispositivo en mi backend.» | 0:15 |
+| 2 | «Enviar solicitud de prueba» con retraso de 10 s | «Pido una solicitud de prueba: el pasajero está simulado y el backend la envía por FCM.» | 0:10 |
+| 3 | Cerrar la app por completo (quitarla de recientes); pantalla de inicio del celular | «Cierro la app del todo.» | 0:10 |
+| 4 | Llega la notificación heads-up con sonido | «Llega el aviso emergente aunque la app esté cerrada.» | 0:15 |
+| 5 | Tocar la notificación; la app abre la tarjeta de solicitud con el temporizador de 15 s | «Al tocarlo se abre la solicitud, con tarifa, distancia y la cuenta de 15 segundos para decidir.» | 0:20 |
+| 6 | Aceptar o dejar vencer («La solicitud expiró») | Decir solo lo que se vea. | 0:05 |
+
+Total: 75 s (margen de 15 s hasta 90 s). Di claramente que la solicitud es simulada y que no hay ubicación en segundo plano.
+
+**Cómo encaja en los 5 minutos:** esta demo reemplaza la escena 4 (0:25). Para no pasar de 5:00 recorta: escena 3 a 0:15 (-10 s), escena 7 a 0:45 (-10 s) y omite las escenas 9 y 10 (-30 s). Cuenta: 285 - 25 + 75 - 10 - 10 - 30 = 285 s = 4:45. Si en el ensayo la demo pasa de 75 s, quita primero el paso 6 y recorta el texto del paso 5.
+
+**Plan B:** si la notificación no llega, no depures en cámara: muestra una toma grabada antes (rotulada «Grabado antes del video») o di que la demostración quedó pendiente.
+
 ## Datos ficticios a preparar
 
 - **Cuenta A (aprobada):** correo y contraseña de prueba, con la cuenta ya aprobada en Firestore. No uses datos personales reales ni tu correo habitual.

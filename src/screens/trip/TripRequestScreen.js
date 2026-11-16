@@ -310,7 +310,7 @@ export function TripRequestScreen({ navigation }) {
               </View>
               <View style={styles.flex}>
                 <Text style={styles.caption}>{labels.trip.passenger}</Text>
-                <Text testID="trip-request-passenger" style={styles.title}>
+                <Text testID="trip-request-passenger" style={styles.title} numberOfLines={2} ellipsizeMode="tail">
                   {request.passenger?.name}
                 </Text>
               </View>

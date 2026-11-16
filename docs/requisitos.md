@@ -104,6 +104,8 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 | RNF-24 | Lógica pura separada y probada con `node:test` e inyección (Propuesta) | ENCARGO (spec 003) |
 | RNF-25 | Dependencias solo de `scripts/dependencies.json`; cambios descritos y hechos en Fase 2 con autorización (Propuesta) | ENCARGO (spec 003) |
 
+**R-113 (enunciado §7, FCM): Cumplido (Android).** Evidencia D (Anderson, 2026-11-16): en dispositivo la notificación aparece como heads-up con sonido; en build release, con la app cerrada, al tocarla se abre la solicitud con la cuenta de 15 s y, vencido el plazo, «La solicitud expiró». Evidencia T: pruebas `node:test` de `scripts/tests/` (intención pendiente, ventana de decisión, símbolos libres, entrada headless, plugin del canal) y verificación estática de S1 a S5. iOS: fuera de alcance (requiere APNs y cuenta de Apple Developer de pago; sin equipo para probarlo). Límites: con el dev client, tocar con la app cerrada no entrega la solicitud (límite del dev launcher, no del código); sin ubicación ni disponibilidad en segundo plano (D-130); el disparo es simulado (`POST /notifications/test-request`). Pendiente de dispositivo: segundo plano en dev client (inconcluso), checklist completo, aceptar desde el aviso. Ver `docs/omisiones-y-limites.md`.
+
 ## Requisitos no funcionales (RNF)
 | ID | Texto | Fuente |
 |---|---|---|

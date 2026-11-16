@@ -132,7 +132,7 @@ Estados: Cumplido / Parcial / Omitido documentado / No cumplido / Desviación do
 | R-110 | Desviación documentada | T | tripRepository.js:14,47; D-86 | drivers/{uid}/trips en vez de trips |
 | R-111 | Cumplido | T | HistoryScreen.js | Estado vacío |
 | R-112 | Cumplido | T | tripRepository.js:59-86 | 20 por página + Cargar más |
-| R-113 | No cumplido | T | backend/src/admin.js:6-8; package.json | Sin FCM, sin google-services.json |
+| R-113 | Cumplido (Android) — actualizado 2026-11-16 | D+T | spec 003, `src/services/notifications/`, `backend/src/routes/notifications.js` | Evidencia D: Anderson (heads-up con sonido en dispositivo; en build release, app cerrada → solicitud con cuenta de 15 s). iOS fuera de alcance. Límites: dev client no entrega con app cerrada; sin ubicación en segundo plano; disparo simulado |
 | R-114 | Parcial | T | driverRepository.js:16; tripRepository.js:37,48; useTripPayment.js:2 | onSnapshot en viaje y conductor; ubicación solo se escribe (driverLocationPublisher.js:18) |
 | R-115 | Parcial | D | gpsLocationSource.js:71-75; config/location.js:16-17 | expo-location (equivalente) con distanceInterval 10 m sin timeInterval; no es @react-native-community/geolocation |
 | R-116 | Desviación documentada | D | package.json:7; D-82 | MapLibre + OpenFreeMap en vez de react-native-maps |
@@ -251,7 +251,7 @@ Horas son estimaciones de trabajo; no hay fecha límite dada, el nombre del arch
 | L2 Estados y modelo | G-07, G-11, G-16 (documentar) | 10–14 | Rechazar, vencer, cancelar, ver estados en Firestore |
 | L3 Idioma | G-05, G-18 | 18–22 | Cambio es/en en todas las pantallas y tras reiniciar |
 | L4 Pagos | G-09, G-10 | 8–12 | Stripe 4242; MP con usuario de prueba |
-| L5 FCM (opcional) | G-04 | 16–20 | Notificación con la app cerrada |
+| L5 FCM (opcional) | G-04 | 16–20 | Notificación con la app cerrada. Hecho en Android (2026-11-16, validado en release por Anderson); pendiente: checklist completo y demo T-193 |
 | L6 Google (opcional) | G-03 | 6–10 | Conteo de llamadas |
 | L7 Proceso y entrega | G-08, G-12, G-13, G-14, G-19, G-20, G-21, G-23 | 14–18 | Video y checklist final |
 

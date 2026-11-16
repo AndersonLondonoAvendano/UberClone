@@ -143,6 +143,11 @@ Formato: Dado/Cuando/Entonces. «Cómo se verifica» entre paréntesis. Los núm
 - Geocodificador sin respuesta: se usa su fallback (D-125, D-138).
 - Más de 500 tokens de un uid: lotes de 500 (no esperable aquí).
 
+## Comportamiento vigente (documentado, sin cambio de alcance)
+- Al tocar la notificación con la app abierta en otra pantalla (no Home), la solicitud se muestra como tarjeta emergente (`IncomingRequestCard`, montada en `MainDrawer`).
+- Al tocarla estando en Home, la solicitud se muestra en pantalla completa (`TripRequest`, abierta desde `HomeScreen`).
+- En ambos casos la ventana de decisión es de 15 s desde que se muestra (D-137). Ya está implementado; esta nota solo lo registra. Estado: pendiente de dispositivo salvo el arranque en frío en release (validado por Anderson, 2026-11-16).
+
 ## Seguridad
 Abuso del endpoint: guard + límite propio + 0–60 s + plantilla fija + solo tokens del llamante. Suplantación de uid: el uid sale del ID token. Colección `pushTokens` cerrada a los clientes (reglas por defecto). Payload sin datos personales, sin tarifa ni direcciones (`targetUid` es un identificador opaco de la propia cuenta). Errores genéricos. Sin secretos en registros. Cuenta de servicio no leída. Token FCM tratado como secreto: nunca registrado completo (solo los primeros 8 caracteres y su longitud, en `__DEV__`, por instrucción de Anderson en S1). El cambio de reglas, si alguno, solo como texto en `docs/seguridad.md` (no lo toca esta spec).
 

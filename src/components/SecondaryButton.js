@@ -4,7 +4,7 @@
 // variant 'danger' only changes the text color (destructive actions such as cancelling a trip).
 
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { borderWidth, color, opacity, radius, space, touch, type } from '../theme/tokens';
+import { borderWidth, color, maxFontScale, opacity, radius, space, touch, type } from '../theme/tokens';
 
 export function SecondaryButton({ testID, label, onPress, disabled = false, accessibilityHint, variant = 'default', style }) {
   return (
@@ -18,7 +18,9 @@ export function SecondaryButton({ testID, label, onPress, disabled = false, acce
       onPress={onPress}
       style={({ pressed }) => [styles.button, style, pressed && styles.pressed, disabled && styles.disabled]}
     >
-      <Text style={[styles.label, variant === 'danger' && styles.danger]}>{label}</Text>
+      <Text maxFontSizeMultiplier={maxFontScale} style={[styles.label, variant === 'danger' && styles.danger]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

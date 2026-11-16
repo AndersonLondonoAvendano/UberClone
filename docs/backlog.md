@@ -2811,7 +2811,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: N/A
 - Estado: Implementada
 
-### T-183 — S3: puente de notificaciones en la rama MAIN y aviso «La solicitud expiró»
+### T-183 — S3: puente de notificaciones en la rama MAIN y aviso «La solicitud expiró» — Evidencia de dispositivo de Anderson (2026-11-16, build release): con la app cerrada, tocar la notificación abre la solicitud y, vencido el plazo, «La solicitud expiró» (cierra STOP-2c); en el dev client NO entrega la solicitud (límite del dev launcher). Estado de la tarea sin cambio; resto «pendiente de dispositivo»
 - Spec: spec 003 (RF-75, RF-76, RF-77, D-133, D-137, CA-003-09, CA-003-21, CA-003-30, CA-003-D1)
 - Requisitos: RF-75, RF-76, RF-77
 - Depende de: T-180, T-181, T-182
@@ -2916,7 +2916,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: Pendiente
 - Estado: Pendiente
 
-### T-190 — S6: verificación estática total de la spec 003
+### T-190 — S6: verificación estática total de la spec 003 — Nota 2026-11-16: `withRequestsChannel.test.mjs` ahora usa el fixture versionado `scripts/tests/fixtures/MainApplication.template.kt` y ya no depende de `android/`; falta el `verifier` distinto
 - Spec: spec 003 (RF-67, RF-68 en configuración, RF-70 a RF-76, RF-79 a RF-85, RNF-21, RNF-22, RNF-24, RNF-25; CA-003-01, CA-003-05 a CA-003-17, CA-003-19 a CA-003-25, CA-003-27 a CA-003-30, CA-003-D1)
 - Requisitos: RF-67, RF-68, RF-70, RF-71, RF-72, RF-73, RF-74, RF-75, RF-76, RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85, RNF-21, RNF-22, RNF-24, RNF-25
 - Depende de: T-176, T-186, T-188, T-195
@@ -2944,7 +2944,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-192 — S6: lista de comprobación en dispositivo
 - Spec: spec 003 (RF-68, RF-69, RF-70, RF-71, RF-74, RF-76, RF-77, RF-78, RNF-23; CA-003-02, CA-003-03, CA-003-04, CA-003-09, CA-003-26, CA-003-30, CA-003-D2)
@@ -2961,7 +2961,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: N/A
 - Estado: Pendiente
 
-### T-193 — S6: demo final y cierre (STOP-4)
+### T-193 — S6: demo final y cierre (STOP-4) — Nota 2026-11-16: guion de demo de 60 a 90 s en `docs/guion-video.md` (grabar con la build release); la demo con envío real y la lista siguen pendientes de Anderson
 - Spec: spec 003 (RF-67 extremo a extremo, RF-72, RF-77, RF-78, RF-81 a RF-84 con envío real; CA-003-18, CA-003-26, CA-003-28)
 - Requisitos: RF-67, RF-72, RF-77, RF-78, RF-81, RF-82, RF-83, RF-84
 - Depende de: T-189, T-190, T-191, T-192
@@ -2991,7 +2991,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: N/A
 - Estado: Implementada
 
-### T-195 — S3: conectar la ventana de 15 s a la tarjeta y a la pantalla de solicitud
+### T-195 — S3: conectar la ventana de 15 s a la tarjeta y a la pantalla de solicitud — Evidencia de dispositivo de Anderson (2026-11-16, build release): la solicitud abierta desde la notificación muestra el temporizador de 15 s. Estado de la tarea sin cambio; resto «pendiente de dispositivo»
 - Spec: spec 003 (RF-77, RNF-22, RNF-23, D-137, CA-003-28, CA-003-29)
 - Requisitos: RF-77, RNF-22, RNF-23
 - Depende de: T-194 (se ejecuta justo después de T-194, antes de T-178)

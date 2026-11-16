@@ -1,7 +1,8 @@
 // AI-assisted: see docs/AI_LOG.md #47
 // AI-assisted: see docs/AI_LOG.md #49
+// AI-assisted: see docs/AI_LOG.md #64 (the drawer route is MainHome so it no longer repeats the trip stack's Home)
 // How an incoming request is presented (T-54). Pure: no React, no navigation, no timers.
-// 'fullscreen' on Home, 'card' (bottom card) on any other drawer screen, 'none' otherwise.
+// 'fullscreen' on the drawer's home (MainHome), 'card' (bottom card) on any other drawer screen, 'none' otherwise.
 // While the full-screen request is open (even hidden behind another tab) the card never shows.
 
 export const PRESENTATION = {
@@ -13,7 +14,9 @@ export const PRESENTATION = {
 import { REQUEST_DECISION_WINDOW_MS } from '../../config/passengerApi';
 
 const APPROVED = 'approved';
-const HOME_ROUTE = 'Home';
+// Name of the drawer screen that holds the trip stack. The stack has its own 'Home' screen: the names
+// must differ so React Navigation does not warn about nested screens with the same name.
+export const HOME_ROUTE = 'MainHome';
 const TRIP_ROUTE_PREFIX = 'Trip';
 
 // currentRoute: name of the focused drawer screen (null/undefined when unknown).

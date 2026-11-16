@@ -8,10 +8,10 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { addChannelToMainApplication } = require('../../plugins/withRequestsChannel.js');
 
-const fixture = readFileSync(new URL('../../android/app/src/main/java/com/andersonlondono/uberclone/MainApplication.kt', import.meta.url), 'utf8');
+const fixture = readFileSync(new URL('./fixtures/MainApplication.template.kt', import.meta.url), 'utf8');
 const count = (text, part) => text.split(part).length - 1;
 
-// Real MainApplication.kt: block right after super.onCreate(), imports added, channel details present.
+// Versioned clean template (no dependency on the generated android/ folder): block right after super.onCreate(), imports added, channel details present.
 const out = addChannelToMainApplication(fixture);
 assert.ok(out.includes('"solicitudes"') && out.includes('"Solicitudes de viaje"'));
 assert.ok(out.includes('IMPORTANCE_HIGH') && out.includes('enableVibration(true)') && out.includes('Build.VERSION_CODES.O'));

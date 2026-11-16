@@ -28,7 +28,7 @@ import {
   type,
 } from '../theme/tokens';
 
-// Home is intentionally not listed: it is the initial route and the way back.
+// MainHome is intentionally not listed: it is the initial route and the way back.
 const ITEMS = [
   {
     route: 'Profile',

@@ -5,10 +5,11 @@
 // AI-assisted: see docs/AI_LOG.md #47
 // AI-assisted: see docs/AI_LOG.md #48 (indentation)
 // AI-assisted: see docs/AI_LOG.md #49 (swipe blocked while the full-screen request is open)
+// AI-assisted: see docs/AI_LOG.md #64 (drawer home renamed to HOME_ROUTE = 'MainHome')
 // The incoming-request bottom card (T-54) is mounted once here, above the drawer and inside the
 // providers; it follows the focused drawer screen through screenListeners.
-// Main drawer: Home (the trip stack, not listed in the panel) plus Profile, History, Earnings and
-// Settings. Back from any destination returns to Home. Each screen draws its own header, so the
+// Main drawer: MainHome (the trip stack, not listed in the panel) plus Profile, History, Earnings and
+// Settings. Back from any destination returns to MainHome. Each screen draws its own header, so the
 // navigator header is hidden.
 // MapTest is a development-only screen: it is registered only while SHOW_DEV_TOOLS is on, it is not
 // listed in the drawer panel, and its module (which loads the native map) is required lazily, so
@@ -24,6 +25,7 @@ import { NotificationsBridge } from '../components/NotificationsBridge';
 import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { AvailabilityProvider, useAvailability } from '../context/AvailabilityContext';
 import { TripProvider } from '../context/TripContext';
+import { HOME_ROUTE } from '../services/trip/requestPresentation';
 import { EarningsScreen } from '../screens/main/EarningsScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
@@ -53,7 +55,7 @@ function DrawerBody() {
     [requestScreenId],
   );
   // AI-assisted: see docs/AI_LOG.md #47
-  const [currentRoute, setCurrentRoute] = useState('Home');
+  const [currentRoute, setCurrentRoute] = useState(HOME_ROUTE);
   const navigationRef = useRef(null);
   const getNavigation = useCallback(() => navigationRef.current, []);
   const screenListeners = useCallback(
@@ -69,13 +71,13 @@ function DrawerBody() {
   return (
     <View style={styles.root}>
       <Drawer.Navigator
-        initialRouteName="Home"
+        initialRouteName={HOME_ROUTE}
         backBehavior="initialRoute"
         screenOptions={screenOptions}
         drawerContent={renderDrawerContent}
         screenListeners={screenListeners}
       >
-        <Drawer.Screen name="Home" component={TripStack} />
+        <Drawer.Screen name={HOME_ROUTE} component={TripStack} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
         <Drawer.Screen name="History" component={HistoryScreen} />
         {/* AI-assisted: see docs/AI_LOG.md #57 (T-110): opened from History, not listed in the panel */}

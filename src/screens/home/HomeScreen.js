@@ -34,7 +34,7 @@ import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
 import { useAvailability } from '../../context/AvailabilityContext';
-import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
+import { HOME_ROUTE, PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
 import { color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 
 const HINT_BY_LOCATION_STATUS = {
@@ -97,7 +97,7 @@ export function HomeScreen({ navigation }) {
     // Full screen only while Home is the screen in front; elsewhere the bottom card shows it, and
     // coming back to Home with the request still pending opens it here with the real time left.
     if (!focused) return;
-    if (decideRequestPresentation('Home', onTrip, ACCOUNT_STATUS.APPROVED, true) !== PRESENTATION.FULLSCREEN) return;
+    if (decideRequestPresentation(HOME_ROUTE, onTrip, ACCOUNT_STATUS.APPROVED, true) !== PRESENTATION.FULLSCREEN) return;
     if (announcedIdRef.current === pendingRequest.id) return;
     announcedIdRef.current = pendingRequest.id;
     setDevMessage(null);

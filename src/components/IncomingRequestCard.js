@@ -2,8 +2,9 @@
 // AI-assisted: see docs/AI_LOG.md #48
 // AI-assisted: see docs/AI_LOG.md #49
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: raised sheet, icon close, highlighted earnings)
+// AI-assisted: see docs/AI_LOG.md #64 (S5 design fixes: long names, font scale cap, 48 dp close, urgent countdown)
 // Incoming request as a bottom card (T-54), shown while the driver is on a drawer screen other than
-// Home. It is mounted once in MainDrawer, above the drawer, and reads the same pending request as
+// MainHome. It is mounted once in MainDrawer, above the drawer, and reads the same pending request as
 // the full screen (AvailabilityContext), so both show the same countdown (from expiresAt).
 // Accept -> TripActive. Reject -> the card closes and the driver stays. The close icon only hides the card: the
 // request expires by itself. It never shows while the full-screen request is open (#49).
@@ -24,12 +25,13 @@ import { useTrip } from '../context/TripContext';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../services/passengerApi';
 import { haversineDistanceM } from '../services/routing/straightLine';
 import {
+  HOME_ROUTE,
   PRESENTATION,
   decideRequestPresentation,
   requestTotalSeconds,
   secondsUntil,
 } from '../services/trip/requestPresentation';
-import { badgeSize, borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
+import { badgeSize, borderWidth, color, elevation, iconSize, maxFontScale, opacity, radius, space, touch, type } from '../theme/tokens';
 import { calculateFare } from '../utils/fare';
 import { countdownAnnouncement, fillLabel, formatCop, formatKmFromMeters, formatMinutesFromSeconds } from '../utils/format';
 import { Card } from './Card';
@@ -42,6 +44,7 @@ const ENTRANCE_MS = 200;
 const ENTRANCE_OFFSET = 24;
 const MAX_HEIGHT_RATIO = 0.7;
 const EXPIRY_TOLERANCE_MS = 1500;
+const URGENT_SECONDS = 10; // same threshold as TripRequestScreen
 const toLngLat = (point) => [point.lng, point.lat];
 const formatRating = (rating) => String(Math.round(rating * 10) / 10).replace('.', ',');
 
@@ -209,7 +212,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
       clearPendingRequest(request.id);
       startTrip(trip);
       // AI-assisted: see docs/AI_LOG.md #49 (the card never shows while TripRequest is open, so there is none to replace)
-      getNavigation()?.navigate('Home', { screen: 'TripActive' });
+      getNavigation()?.navigate(HOME_ROUTE, { screen: 'TripActive' });
     } catch (cause) {
       if (!mountedRef.current) return;
       const gone = cause?.code === PASSENGER_API_ERROR.ALREADY_TAKEN || cause?.code === PASSENGER_API_ERROR.EXPIRED;
@@ -257,7 +260,9 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   }
 
   const progress = Math.min(1, secondsLeft / requestTotalSeconds(request));
+  const urgent = secondsLeft <= URGENT_SECONDS;
   const name = request.passenger?.name ?? '';
+  const titleText = fillLabel(labels.trip.newRequest, { name });
   const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;
   // #59: "Tarjeta" until a gateway is chosen (a request never has a paymentId).
   const paymentLabel = request.paymentMethod ? (labels.trip.paymentMethod[paymentLabelKey({ method: request.paymentMethod })] ?? null) : null;
@@ -273,8 +278,15 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.flex} accessibilityLiveRegion="polite">
-              <Text testID="incoming-request-title" style={styles.title}>
-                {fillLabel(labels.trip.newRequest, { name })}
+              <Text
+                testID="incoming-request-title"
+                style={styles.title}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                maxFontSizeMultiplier={maxFontScale}
+                accessibilityLabel={titleText}
+              >
+                {titleText}
               </Text>
             </View>
             <Pressable
@@ -301,11 +313,11 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
             >
               <View style={styles.flex}>
                 <Text style={styles.caption}>{labels.trip.net}</Text>
-                <Text style={styles.net}>{formatCop(fare.driverEarnings)}</Text>
+                <Text maxFontSizeMultiplier={maxFontScale} style={styles.net}>{formatCop(fare.driverEarnings)}</Text>
               </View>
               <View style={styles.fareColumn}>
                 <Text style={styles.caption}>{labels.trip.fare}</Text>
-                <Text style={styles.fareValue}>{formatCop(fare.fare)}</Text>
+                <Text maxFontSizeMultiplier={maxFontScale} style={styles.fareValue}>{formatCop(fare.fare)}</Text>
               </View>
             </Card>
           ) : null}
@@ -339,13 +351,15 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
         <View style={styles.footer}>
           <View
             testID="incoming-request-countdown"
-            style={styles.countdown}
+            style={[styles.countdown, urgent && styles.countdownUrgent]}
             accessible
             accessibilityLabel={fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
           >
-            <Text style={styles.countdownText}>{fillLabel(labels.trip.countdown, { s: secondsLeft })}</Text>
-            <View style={styles.track}>
-              <View style={[styles.fill, { flex: progress }]} />
+            <Text maxFontSizeMultiplier={maxFontScale} style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
+              {fillLabel(labels.trip.countdown, { s: secondsLeft })}
+            </Text>
+            <View style={[styles.track, urgent && styles.trackUrgent]}>
+              <View style={[styles.fill, urgent && styles.fillUrgent, { flex: progress }]} />
               <View style={{ flex: 1 - progress }} />
             </View>
           </View>
@@ -430,8 +444,8 @@ const styles = StyleSheet.create({
     color: color.text,
   },
   close: {
-    width: touch.min,
-    height: touch.min,
+    width: touch.controlHeight,
+    height: touch.controlHeight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -506,13 +520,26 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0,
   },
+  // In the last 10 s the block fills with color.primary, the same urgent pattern as TripRequestScreen
+  // (no red). The padding is constant so the card does not jump when it turns urgent.
   countdown: {
     gap: space[2],
+    paddingVertical: space[2],
+    paddingHorizontal: space[3],
+    borderRadius: radius.md,
+    backgroundColor: color.surface,
+  },
+  countdownUrgent: {
+    backgroundColor: color.primary,
   },
   countdownText: {
-    ...type.label,
+    ...type.title,
     ...type.numeric,
     color: color.primary,
+    textAlign: 'center',
+  },
+  countdownTextUrgent: {
+    color: color.onPrimary,
   },
   track: {
     flexDirection: 'row',
@@ -521,8 +548,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: color.primarySoft,
   },
+  trackUrgent: {
+    backgroundColor: color.primary,
+  },
   fill: {
     backgroundColor: color.primary,
+  },
+  fillUrgent: {
+    backgroundColor: color.onPrimary,
   },
   actions: {
     flexDirection: 'row',

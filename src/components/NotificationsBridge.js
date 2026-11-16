@@ -5,7 +5,7 @@
 // A request that already expired shows a brief "La solicitud expiró" notice; anything else that is not
 // eligible is ignored silently. It never imports the Firebase SDK (the notifications service does).
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
@@ -15,9 +15,10 @@ import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { getNotifications } from '../services/notifications';
 import { INTENT_DECISION, resolveIntent } from '../services/notifications/eligibility';
+import { createIntentFlow } from '../services/notifications/intentFlow';
 import { pendingIntent } from '../services/notifications/pendingIntent';
+import { logPushEvent } from '../services/notifications/safeLog';
 import { getRegistrationController } from '../services/notifications/registrationRuntime';
-import { requestFromIntent } from '../services/notifications/pushRequest';
 import { color, radius, space, type } from '../theme/tokens';
 
 export function NotificationsBridge() {
@@ -49,14 +50,24 @@ export function NotificationsBridge() {
     [decide],
   );
 
-  // Takes the parked tap intent (bound to the uid) once there is a session.
-  const takeParked = useCallback(() => {
-    const uid = latest.current.driverId;
-    if (!uid) return;
-    const intent = pendingIntent.take(uid);
-    if (!intent) return;
-    handle(intent, requestFromIntent(intent, Date.now()));
-  }, [handle]);
+  // Evaluates the parked tap intent (stored without judging it) only when the gate is ready: a session
+  // and a resolved account status (D-146). Until then it stays parked.
+  const flow = useMemo(
+    () =>
+      createIntentFlow({
+        intents: pendingIntent,
+        getState: () => ({
+          uid: latest.current.driverId,
+          accountStatus: latest.current.accountStatus,
+          onTrip: latest.current.onTrip,
+        }),
+        offer: (request) => latest.current.offerPushRequest(request),
+        showExpired: () => setNotice(labels.trip.pushExpired),
+        log: (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) }),
+      }),
+    [],
+  );
+  const takeParked = useCallback(() => flow.evaluate(), [flow]);
 
   useEffect(() => {
     let cancel = () => {};
@@ -76,9 +87,9 @@ export function NotificationsBridge() {
     };
   }, [handle, takeParked]);
 
-  // An intent parked before the session or the approved state existed is delivered as soon as they do.
+  // An intent parked before the session or the account status was resolved is evaluated as soon as it is.
   useEffect(() => {
-    if (driverId && accountStatus === ACCOUNT_STATUS.APPROVED) takeParked();
+    takeParked();
   }, [driverId, accountStatus, takeParked]);
 
   // Registers this phone's push token for the signed-in, approved driver (T-184/T-186, D-131): at start,

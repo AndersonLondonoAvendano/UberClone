@@ -2,7 +2,7 @@
 // Notifications service (T-180). It delegates to an adapter (RN Firebase today; an expo-notifications
 // adapter can replace it without touching callers). Screens must not import the SDK.
 // Push tokens are only logged masked (safeLog) and never leave this layer except to the backend client.
-import { logTokenInDev } from './safeLog';
+import { logPushEvent, logTokenInDev } from './safeLog';
 import { parsePushData, parsePushRequest } from './pushRequest';
 
 // `api`: notificationsApi-like { registerToken, unregisterToken }; `intents`: pendingIntent-like { set }.
@@ -54,13 +54,33 @@ export function createNotifications(adapter, { api, intents, now = () => Date.no
     // and `callback()` fires so the bridge can try to take it. Returns a cancel function.
     onNotificationOpened(callback) {
       let cancelled = false;
+      const trace = (code) => logPushEvent(code, { isDev, log });
       const handle = (data) => {
         if (cancelled || !intents) return;
         const parsed = parsePushData(data);
-        if (parsed.ok && intents.set(parsed.intent)) callback();
+        if (!parsed.ok) {
+          trace(`push-rejected:${parsed.reason}`);
+          return;
+        }
+        if (!intents.set(parsed.intent)) {
+          trace('intent-duplicate');
+          return;
+        }
+        trace('intent-stored');
+        callback();
       };
-      const unsubscribe = adapter.onNotificationOpened(handle);
-      adapter.getInitialNotification().then(handle).catch(() => {});
+      const unsubscribe = adapter.onNotificationOpened((data) => {
+        trace('push-opened-received');
+        handle(data);
+      });
+      // Asked once, when the bridge mounts; the answer goes into the same store as the listener.
+      adapter
+        .getInitialNotification()
+        .then((data) => {
+          trace(data ? 'push-initial-received' : 'push-initial-null');
+          if (data) handle(data);
+        })
+        .catch(() => trace('push-initial-error'));
       return () => {
         cancelled = true;
         if (typeof unsubscribe === 'function') unsubscribe();

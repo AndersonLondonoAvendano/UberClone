@@ -18,3 +18,14 @@ export function resolveIntent(intent, { session, accountApproved, onTrip, now })
   if (typeof intent.expiresAt !== 'number' || intent.expiresAt <= now) return INTENT_DECISION.EXPIRED;
   return INTENT_DECISION.OPEN;
 }
+
+// Fixed, content-free reason code for an 'ignore' decision (dev logs only; never a uid or a name).
+export function ignoreReason(intent, { session, accountApproved, onTrip }) {
+  if (!intent) return 'no-intent';
+  const uid = session?.uid;
+  if (!uid) return 'no-session';
+  if (intent.targetUid !== uid) return 'uid-mismatch';
+  if (!accountApproved) return 'not-approved';
+  if (onTrip) return 'on-trip';
+  return 'unknown';
+}
