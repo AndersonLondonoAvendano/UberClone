@@ -87,7 +87,7 @@ function DrawerBody() {
         {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
       </Drawer.Navigator>
       <IncomingRequestCard currentRoute={currentRoute} getNavigation={getNavigation} />
-      <NotificationsBridge />
+      <NotificationsBridge currentRoute={currentRoute} getNavigation={getNavigation} />
     </View>
   );
 }

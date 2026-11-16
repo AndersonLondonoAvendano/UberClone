@@ -6,7 +6,7 @@
 // Monday). Cancelled trips are not summed. Tokens only.
 
 import { DrawerActions } from '@react-navigation/native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
@@ -15,20 +15,24 @@ import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
 import { useEarnings } from '../../hooks/useEarnings';
+import { useEarningsTrips } from '../../hooks/useEarningsTrips';
 import { useTrips } from '../../hooks/useTrips';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
-import { PERIOD } from '../../utils/earnings';
+import { PERIOD, computeBalance } from '../../utils/earnings';
 import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/format';
 
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 
 export function EarningsScreen({ navigation }) {
-  const { status, trips, retry } = useTrips();
+  // AI-assisted: see docs/AI_LOG.md #65 (RC-04: day/week/month come from the range read, not the 200 latest;
+  // the balance keeps its own source, useTrips)
+  const { status, trips: rangeTrips, retry } = useEarningsTrips();
+  const { trips } = useTrips();
   const [period, setPeriod] = useState(PERIOD.DAY);
   // AI-assisted: see docs/AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
-  const earnings = useEarnings(trips);
+  const earnings = useEarnings(rangeTrips);
   const totals = earnings[period];
-  const balance = earnings.balance;
+  const balance = useMemo(() => computeBalance(trips), [trips]);
 
   return (
     <PlaceholderScreen

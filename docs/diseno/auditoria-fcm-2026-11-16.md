@@ -176,3 +176,12 @@ Para pasar a Aprobado hacen falta: (1) que Anderson decida O-03 (unificar a «ve
 Capas: A parcial por lectura (tokens, iconos, sin emojis: cumple); B pendiente (sin capturas); C parcial por lectura; D pendiente; E pendiente de dispositivo.
 
 Diseño: Pendiente (ronda 2: F-01, F-02, F-03 resueltos en código; abiertos O-03 (media) y capa E pendiente de dispositivo)
+
+## Addendum 2026-11-16 (implementer, pulido de la spec 003, AI_LOG #64; no es veredicto del auditor)
+
+Estado: Implementada, **No verificado en dispositivo**. No se toca el campo Diseño; la ronda siguiente la decide el design-auditor.
+- O-03: resuelta. Un solo texto, «La solicitud expiró» (`labels.trip.expired`, `mappers.js`, `mockPassengerApi.js`) (D-151).
+- O-09: `PrimaryButton` con `quietDisabled` usa borde `color.border` (antes `borderSubtle`, 1,40:1) para que se lea la forma.
+- O-10: `maxFontSizeMultiplier={maxFontScale}` en la cuenta regresiva (tarjeta y pantalla), el monto de ganancias y la tarifa de la solicitud.
+- O-11: el interruptor ocupado expone `accessibilityValue` con el texto del chip y una región viva «polite»; el chip no se atenúa y solo la pista queda atenuada. Falta confirmarlo en captura.
+- A2 (cuenta regresiva sin bloque relleno, D-150): contrastes calculados: texto `primary` sobre `surface` 6,08:1; texto `danger` sobre `surface` 6,54:1; barra `primary` sobre pista `primarySoft` 5,12:1; barra `danger` sobre la pista 5,50:1 (mínimo 3:1 para barras).

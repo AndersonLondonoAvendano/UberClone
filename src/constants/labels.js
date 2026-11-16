@@ -118,7 +118,7 @@ export const labels = {
     reject: 'Rechazar',
     rejectHint: 'Rechaza la solicitud y vuelve a Inicio',
     working: 'Un momento…',
-    expired: 'La solicitud venció',
+    expired: 'La solicitud expiró',
     // AI-assisted: see docs/AI_LOG.md #64 (T-183: a notification opened after its request had expired)
     pushExpired: 'La solicitud expiró',
     backingHome: 'Volviendo a Inicio…',

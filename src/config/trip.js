@@ -30,7 +30,7 @@ export const REPORT_MIN_DISTANCE_M = 20;
 export const PUBLISH_DRIVER_LOCATION = true;
 export const PUBLISH_MAX_ATTEMPTS = 2;
 
-// How long the request card shows "La solicitud venció" before going back to Home.
+// How long the request card shows "La solicitud expiró" before going back to Home.
 export const EXPIRED_NOTICE_MS = 2500;
 
 // AI-assisted: see docs/AI_LOG.md #44

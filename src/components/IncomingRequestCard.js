@@ -76,7 +76,9 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId } = useAvailability();
   const { startTrip } = useTrip();
   const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, fontScale } = useWindowDimensions();
+  // The urgent icon follows the text, capped at the same maxFontScale the countdown text uses.
+  const urgentIconSize = Math.round(iconSize.lg * Math.min(Math.max(fontScale, 1), maxFontScale));
 
   const [dismissedId, setDismissedId] = useState(null);
   const [now, setNow] = useState(() => Date.now());
@@ -351,14 +353,20 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
         <View style={styles.footer}>
           <View
             testID="incoming-request-countdown"
-            style={[styles.countdown, urgent && styles.countdownUrgent]}
+            style={styles.countdown}
             accessible
             accessibilityLabel={fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
           >
-            <Text maxFontSizeMultiplier={maxFontScale} style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
-              {fillLabel(labels.trip.countdown, { s: secondsLeft })}
-            </Text>
-            <View style={[styles.track, urgent && styles.trackUrgent]}>
+            {/* AI-assisted: see docs/AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
+            <View style={styles.countdownRow}>
+              <View style={[styles.urgentSlot, { width: urgentIconSize, height: urgentIconSize }]}>
+                {urgent ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
+              </View>
+              <Text maxFontSizeMultiplier={maxFontScale} style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
+                {fillLabel(labels.trip.countdown, { s: secondsLeft })}
+              </Text>
+            </View>
+            <View style={styles.track}>
               <View style={[styles.fill, urgent && styles.fillUrgent, { flex: progress }]} />
               <View style={{ flex: 1 - progress }} />
             </View>
@@ -520,17 +528,22 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0,
   },
-  // In the last 10 s the block fills with color.primary, the same urgent pattern as TripRequestScreen
-  // (no red). The padding is constant so the card does not jump when it turns urgent.
+  // AI-assisted: see docs/AI_LOG.md #64 (D-150): the same pattern as TripRequestScreen: primary text plus a
+  // thin bar over a light track, no filled block (it looked like the "Aceptar" button). In the last 10 s the
+  // text and the bar turn color.danger (no fill). The sizes are constant so the card does not jump.
   countdown: {
     gap: space[2],
-    paddingVertical: space[2],
-    paddingHorizontal: space[3],
-    borderRadius: radius.md,
-    backgroundColor: color.surface,
+    paddingVertical: space[1],
   },
-  countdownUrgent: {
-    backgroundColor: color.primary,
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[2],
+  },
+  urgentSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   countdownText: {
     ...type.title,
@@ -539,23 +552,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   countdownTextUrgent: {
-    color: color.onPrimary,
+    color: color.danger,
   },
   track: {
     flexDirection: 'row',
-    height: space[2],
+    height: space[1],
     borderRadius: radius.full,
     overflow: 'hidden',
     backgroundColor: color.primarySoft,
-  },
-  trackUrgent: {
-    backgroundColor: color.primary,
   },
   fill: {
     backgroundColor: color.primary,
   },
   fillUrgent: {
-    backgroundColor: color.onPrimary,
+    backgroundColor: color.danger,
   },
   actions: {
     flexDirection: 'row',

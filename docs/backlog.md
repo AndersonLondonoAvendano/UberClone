@@ -2913,7 +2913,8 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Validación: design-auditor (solo lo visual); verifier distinto (lo funcional).
 - Riesgo: bajo.
 - Diseño hecho cuando: informe de ronda con veredicto por pantalla.
-- Diseño: Pendiente
+- Diseño: Aprobado parcial (solo lo que demuestra la declaración de Anderson en el celular: interruptor con chip informativo funcionando; tarjeta y pantalla de solicitud operativas, no su aspecto nuevo). Pendiente de dispositivo: contador rediseñado, O-09, O-11 y anuncios, fuente al 200 %, hallazgos H-1 (media), H-2 y H-3 (bajas). Informe: `docs/diseno/auditoria-fcm-ronda2-2026-11-16.md` (tercera pasada: escala a Anderson, sin redondear).
+- Evidencia STOP-3 (2026-11-16): Validada en dispositivo por Anderson solo el interruptor de Notificaciones, el chip informativo «Activadas», la tarjeta emergente, la pantalla de solicitud y la notificación de prueba. Pulido A1/A2/A3 (D-149, D-150, D-151: toque que abre pantalla completa, cuenta regresiva sin bloque, O-03/O-09/O-10/O-11): Implementada, pendiente de dispositivo.
 - Estado: Pendiente
 
 ### T-190 — S6: verificación estática total de la spec 003 — Nota 2026-11-16: `withRequestsChannel.test.mjs` ahora usa el fixture versionado `scripts/tests/fixtures/MainApplication.template.kt` y ya no depende de `android/`; falta el `verifier` distinto
@@ -3005,6 +3006,307 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño hecho cuando: el contador conserva tokens, `labels.js`, anuncio accesible sin saturar y área de 48 dp (lo cubre T-189).
 - Diseño: Pendiente
 - Estado: Implementada
+
+## Spec 004 — Cierre de brechas, lote L1 (plan: `specs/004-cierre-brechas/plan.md`; planificado 2026-11-16; la spec sigue en Borrador: ninguna tarea se ejecuta hasta que Anderson la apruebe; los RC-nn son locales de la spec y cada tarea cita además un ancla provisional RNF/RF existente para C21/C22)
+
+### T-196 — B1: resolver de distancia y duración con OSRM (caché, timeout, respaldo)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01, 02, 03, 04, 05)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/routing/routeMetrics.js` (nuevo), `src/services/routing/osrmRouting.js`, `src/config/routing.js`, `scripts/tests/routeMetrics.test.mjs` (nuevo)
+- Hacer: plan §2 y §3.1-3.3. `createRouteMetrics({ fetchRoute, now, timeoutMs, cacheMax })` con `resolve(origin, destination, fallback)` que nunca rechaza. Caché por par redondeado a 5 decimales, máximo 50, promesa en vuelo compartida, timeout 2500 ms (`ROUTE_METRICS_TIMEOUT_MS`), respuesta inválida o de 0 m / 0 s = respaldo con `estimated: true`. `fetchOsrmRoute` gana `{ timeoutMs }` opcional sin cambiar su uso actual. Pruebas con OSRM falso y reloj inyectado: 8,5 km / 22 min (y tarifa 19.200 / 26.900 con `calculateFare`), timeout, error HTTP, cuerpo inválido, segunda llamada con caché, dos simultáneas = una llamada, caché acotada.
+- Hecho cuando: `node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/routeMetrics.test.mjs` pasa, la ruta del mapa sigue con 8000 ms y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-197 — B1: la solicitud simulada espera las métricas antes de emitirse
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01, 02, 03, 05)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-196
+- Archivos: `src/services/passengerApi/mockPassengerApi.js`, `scripts/tests/mockRouteMetrics.test.mjs` (nuevo)
+- Hacer: plan §3.4. En `emit`, tras reservar el turno (cuenta como `BUSY`), calcular el respaldo actual (haversine × `MOCK_ROUTE_FACTOR`, 25 km/h), esperar `resolve` (inyectable en `createMockPassengerApi`, por defecto el resolver real con `fetchOsrmRoute`) y solo entonces crear `pending`, el vencimiento y llamar a `onRequest`; comprobar que el suscriptor siga vigente. `requestNow` conserva sus cuatro resultados. Pruebas: con OSRM falso 8,5 km / 22 min la solicitud sale con esos valores y `calculateFare` se invoca una sola vez con ellos (CA-004-05); con timeout/error sale el respaldo marcado `estimated`; desuscribirse durante la espera no emite; las pruebas existentes de `mockAdoptRequest` y `pushOffer` siguen pasando.
+- Criterios: CA-004-01, 02, 03, 05 (nivel mock).
+- Hecho cuando: las pruebas pasan y la app arranca con una solicitud simulada que aparece como máximo ≈3 s más tarde.
+- Qué debe ver Anderson en el celular: nada hasta T-201. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-198 — B1: afinar las métricas de una solicitud push (función pura)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-06)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-196
+- Archivos: `src/services/notifications/pushRequest.js`, `scripts/tests/pushRequest.test.mjs`
+- Hacer: plan §2 y §3.5. `refineRequestMetrics(request, resolver)` devuelve una copia con `distanceKm`/`durationMin` de OSRM, o los del mensaje (respaldo de la plantilla del servidor) con `estimated: true`. No toca `mappers.js` ni `calculateFare`. Pruebas con OSRM falso: éxito, fallo, y que la tarifa se calcula con los valores finales.
+- Criterios: CA-004-06.
+- Hecho cuando: las pruebas nuevas y las existentes de `pushRequest` pasan.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-199 — B1: conectar el afinado al flujo push (primer plano y toque de notificación)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-05, 06, 08)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-198
+- Archivos: `src/hooks/useTripRequests.js`, `src/services/notifications/intentFlow.js`, `src/components/NotificationsBridge.js`, `scripts/tests/intentFlow.test.mjs`, `scripts/tests/pushOffer.test.mjs`
+- Hacer: plan §3.5. `offerPushRequest` pasa a asíncrono: afina con el resolver único, vuelve a comprobar el vencimiento y solo entonces pasa por la compuerta y `adoptPushRequest`; `intentFlow.evaluate` y el puente esperan el resultado manteniendo `FLOW_RESULT`. Una llamada OSRM por solicitud (la caché cubre un reintento del mismo mensaje). Probar en el celular con una solicitud de prueba real (build release; el dev client no entrega la solicitud, ver T-183).
+- Criterios: CA-004-05, 06 (integración); CA-004-08 «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y una solicitud push muestra la tarjeta con los valores afinados.
+- Qué debe ver Anderson en el celular: solicitud push con distancia y duración reales (T-201). **No verificado en dispositivo**.
+- Validación: verifier distinto (T-200).
+- Riesgo: medio (cambia la firma de `offerPushRequest` y de `evaluate`).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-200 — B1: verificación independiente (CA-004-01 a 07)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01 a 07)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-197, T-199
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto del implementer. Script propio fuera del proyecto contra la fuente real; suite completa; `grep` de que nada fuera de `mappers.js` y los adaptadores conoce la forma de la API y de que `calculateFare` sigue única (`src/utils/fare.js`); `node scripts/check-constitution.mjs` antes y después sin errores nuevos; lectura de que hay una sola llamada a OSRM por solicitud y ninguna por movimiento ni redibujado.
+- Criterios: CA-004-01 a 07.
+- Hecho cuando: cada CA estático tiene evidencia archivo:línea o salida del script; CA-004-08 queda «No verificado en dispositivo».
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente, pendiente de dispositivo (CA-004-08 pendiente de T-201; spec 004 en Borrador, no «Validada»)
+
+### T-201 — B1: prueba en el celular de distancia, duración y tarifa estables (Anderson)
+- Spec: spec 004 (RC-01; CA-004-08)
+- Requisitos: RC-01 (ancla RNF-24)
+- Depende de: T-200
+- Archivos: ninguno
+- Hacer: con build release, recibir una solicitud simulada y una push; comprobar que la distancia y la duración coinciden con OSRM (±5 %), que la tarifa no cambia tras aparecer y que sin red la solicitud aparece con el respaldo sin texto nuevo.
+- Criterios: CA-004-08. «No verificado en dispositivo» hasta que Anderson responda: «Pega aquí el resultado de la prueba en el celular».
+- Hecho cuando: Anderson confirma o reporta el fallo.
+- Qué debe ver Anderson en el celular: lo descrito arriba. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-202 — B2: lectura de viajes por rango de `finishedAt` con paginación interna
+- Spec: spec 004 (RC-04; CA-004-09, 10, 11)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/tripRepository.js`, `scripts/tests/tripQuery.test.mjs` o `scripts/tests/tripsInRange.test.mjs` (nuevo)
+- Hacer: plan §3.6. `fetchTripsInRangeWith(fns, tripsCollection, { start, end, pageSize = 500, maxDocs = 5000 })` y `fetchTripsInRange(uid, opts)`: `orderBy('finishedAt','desc')` + `where` de rango sobre `finishedAt` + `limit` + `startAfter`, repitiendo hasta página incompleta o tope (`truncated: true`). Nada cambia en `fetchTripsPage` ni `listenToTrips`. Pruebas con repositorio falso: 250 viajes en el periodo suman todos (CA-004-09), periodo vacío = 0 sin error, el número de consultas es el esperado (250 → 1 con 500; con `pageSize` 100 → 3), los argumentos de la consulta solo usan `finishedAt`, y las pruebas de `fetchTripsPage` siguen pasando (CA-004-10).
+- Criterios: CA-004-09, 10, 11 (parte código).
+- Hecho cuando: las pruebas pasan y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-204).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-203 — B2: Ganancias usa el rango y `docs/seguridad.md` dice que no hace falta índice
+- Spec: spec 004 (RC-04; CA-004-09, 11, 12)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-202
+- Archivos: `src/utils/earnings.js`, `src/hooks/useTrips.js` o un hook nuevo `src/hooks/useEarningsTrips.js`, `src/screens/main/EarningsScreen.js`, `docs/seguridad.md`, `scripts/tests/earnings.test.mjs`
+- Hacer: plan §3.6 y §3.7. Función pura que devuelve el rango `[min(inicio de semana, inicio de mes), ahora)` reutilizando `periodRange`. Hook de lectura única (`fetchTripsInRange`) al enfocar y al reintentar, con estados `loading/ready/error` como `useTrips`, y limpieza al desmontar. Las métricas de hoy/semana/mes salen de esos viajes; el saldo (`computeBalance`) conserva su fuente actual y se reporta como fuera de alcance. Sin textos ni estilos nuevos (si hiciera falta un aviso de truncado, la tarea pasa a visual y se avisa). En `docs/seguridad.md`, sección nueva «Consulta de Ganancias por rango»: texto exacto «La consulta de Ganancias usa `orderBy('finishedAt')` y rango sobre `finishedAt` en `drivers/{uid}/trips`: un solo campo, índice automático. NO requiere índice compuesto ni cambios en las reglas; no hay pasos manuales.» Probar en el celular.
+- Criterios: CA-004-09, 11; CA-004-12 «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y Ganancias muestra los totales del rango.
+- Qué debe ver Anderson en el celular: totales de Ganancias de un conductor con más de 200 viajes (o dato sembrado) iguales a los del Historial (T-205). **No verificado en dispositivo**.
+- Validación: verifier distinto (T-204).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A (sin cambios visuales).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-204 — B2: verificación independiente (CA-004-09 a 11)
+- Spec: spec 004 (RC-04; CA-004-09, 10, 11)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-203
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto. Script propio con 250 viajes contra la fuente real; suite completa (paginación del Historial intacta); lectura de que la consulta es una por rango (sin lectura de toda la colección) y de que el texto de `docs/seguridad.md` coincide con el código; `check-constitution`.
+- Criterios: CA-004-09, 10, 11.
+- Hecho cuando: evidencia archivo:línea o salida del script por CA.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente, pendiente de dispositivo (verifier, 2026-11-16: CA-004-09, 10 y 11 ✅ por script y suite; CA-004-12 ⏳ no verificado en dispositivo; NO «Validada»: la spec 004 sigue en Borrador y D-170 en Propuesta; hallazgo menor: `truncated` no se muestra)
+
+### T-205 — B2: prueba en el celular de los totales de Ganancias (Anderson)
+- Spec: spec 004 (RC-04; CA-004-12)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-204
+- Archivos: ninguno
+- Hacer: con un conductor con más de 200 viajes (o dato sembrado por Anderson) comparar hoy/semana/mes de Ganancias con la suma del Historial por los mismos rangos.
+- Criterios: CA-004-12. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson confirma o reporta la diferencia.
+- Qué debe ver Anderson en el celular: totales iguales. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-206 — B3: revisión de los efectos de `TripActiveScreen` (informe)
+- Spec: spec 004 (RC-05; CA-004-13)
+- Requisitos: RC-05 (ancla RF-39)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/screens/trip/TripActiveScreen.js` (solo lectura salvo hallazgo), `specs/004-cierre-brechas/informe-b3.md` (nuevo)
+- Hacer: para cada efecto (`:69`, `:80`, `:94`) y `usePreventRemove` (`:84`) anotar qué crea (suscripción, temporizador, escucha), dónde se libera o por qué no hace falta, con archivo:línea. Lectura previa del plan: `:69` limpia `mountedRef` y libera el viaje; `:80` y `:94` no crean recursos. Si aparece una fuga real, corregir solo ese efecto (cambio mínimo) y probar en el celular; si no, sin cambio de código.
+- Criterios: CA-004-13.
+- Hecho cuando: el informe cubre los tres efectos con evidencia y `check-constitution` no da avisos nuevos.
+- Qué debe ver Anderson en el celular: nada si no hay cambio de código.
+- Validación: verifier distinto (T-207).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-207 — B3: verificación independiente del informe de efectos
+- Spec: spec 004 (RC-05; CA-004-13)
+- Requisitos: RC-05 (ancla RF-39)
+- Depende de: T-206
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee `TripActiveScreen.js` y contrasta cada línea del informe; `check-constitution` antes y después.
+- Criterios: CA-004-13.
+- Hecho cuando: cada afirmación del informe tiene su archivo:línea confirmado o corregido.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-208 — B4: script npm `test` y documentación en el README
+- Spec: spec 004 (RC-06; CA-004-14, 15)
+- Requisitos: RC-06 (ancla RNF-25)
+- Depende de: spec 004 Aprobada
+- Archivos: `package.json`, `README.md`
+- Hacer: plan §3.8. Añadir SOLO la clave `"test": "node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/*.test.mjs"` (confirmar antes la versión de Node y que el glob funciona en PowerShell y `cmd`; ajustar si no). Documentar `npm test` en el README (sin los marcadores que C20 rechaza). Sin dependencias nuevas. Ejecutar `npm test` y anotar el conteo observado y los tests que fallaban (`plateNormalization`, `registrationProgress`, `reverseGeocode`).
+- Criterios: CA-004-14, 15.
+- Hecho cuando: `npm test` pasa completo y `git diff package.json` muestra solo la clave `test`.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-209).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-209 — B4: verificación independiente de `npm test`
+- Spec: spec 004 (RC-06; CA-004-14, 15)
+- Requisitos: RC-06 (ancla RNF-25)
+- Depende de: T-208
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto ejecuta `npm test` y lee `git diff` de `package.json` (solo `test`, sin dependencias) y del README.
+- Criterios: CA-004-14, 15.
+- Hecho cuando: salida de `npm test` y diff pegados como evidencia.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-210 — B5: evaluar y, si es trivial, añadir `timeInterval` a expo-location
+- Spec: spec 004 (RC-07; CA-004-16)
+- Requisitos: RC-07 (ancla RF-39)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/location/gpsLocationSource.js` y `src/config/location.js` (solo si se aplica), `specs/004-cierre-brechas/informe-b5.md` (nuevo)
+- Hacer: plan §3.9. Leer la doc de `expo-location` de la versión 57 (`https://docs.expo.dev/versions/v57.0.0/sdk/location/`) y confirmar plataforma y semántica de `timeInterval` frente a `distanceInterval`. Si es trivial (una constante `GPS_TIME_INTERVAL_MS = 1000` en `config/location.js` y una línea en `watchPositionAsync`) y no cambia la política (`locationPolicy.js`, `throttle.js`) ni los tests, aplicarlo; si no, no tocar y dejar el informe con el motivo. Probar en el celular solo si se tocó.
+- Criterios: CA-004-16. «No verificado en dispositivo» si se tocó.
+- Hecho cuando: hay cambio mínimo con tests de ubicación en verde, o informe que justifica no tocarlo.
+- Qué debe ver Anderson en el celular: si se aplicó, la posición se sigue actualizando con el celular quieto sin alterar el consumo notable. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-211).
+- Riesgo: medio (GPS ya validado en dispositivo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-211 — B5: verificación independiente de `timeInterval`
+- Spec: spec 004 (RC-07; CA-004-16)
+- Requisitos: RC-07 (ancla RF-39)
+- Depende de: T-210
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee el informe y el diff (o su ausencia), corre los tests de ubicación y la suite; deja la parte de GPS real como «No verificado en dispositivo».
+- Criterios: CA-004-16.
+- Hecho cuando: evidencia archivo:línea de la decisión y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada salvo que T-210 haya tocado el código.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-212 — B6: lista de comprobación de `validTrip()` en `docs/seguridad.md`
+- Spec: spec 004 (RC-08; CA-004-17)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: spec 004 Aprobada
+- Archivos: `docs/seguridad.md`
+- Hacer: plan §3.10. Sección «Lista de comprobación: regla `validTrip()` publicada» con pasos numerados: (1) abrir Firestore → Reglas y comparar con el texto vigente de `validTrip()` (`:205`); (2) si difiere, pegar el bloque completo; (3) Publicar; (4) reiniciar la app; (5) completar un viaje simulado con propina y calificación; (6) ver el documento en `drivers/{uid}/trips` con `tip` y `rating`; (7) anotar fecha y resultado. Estado inicial: «NO VERIFICADO». Sin cambiar el texto de la regla ni crear `firestore.rules`.
+- Criterios: CA-004-17.
+- Hecho cuando: el documento contiene la lista sin ambigüedad y no afirma que la regla esté publicada.
+- Qué debe ver Anderson en el celular: nada hasta T-214.
+- Validación: verifier distinto (T-213).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-213 — B6: verificación independiente de la lista de comprobación
+- Spec: spec 004 (RC-08; CA-004-17)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: T-212
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto compara la lista con `docs/seguridad.md:205` y `:295`, confirma que los pasos son ejecutables por Anderson y que no se asume publicada; `check-constitution`.
+- Criterios: CA-004-17.
+- Hecho cuando: lectura con archivo:línea.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-214 — B6: publicar la regla y guardar un viaje con propina y calificación (Anderson, G-01)
+- Spec: spec 004 (RC-08; CA-004-18)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: T-213
+- Archivos: ninguno
+- Hacer: Anderson sigue la lista de T-212 y reporta si el viaje con `tip` y `rating` se guardó. El agente no publica reglas.
+- Criterios: CA-004-18. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson confirma el documento en la consola o reporta el error de permiso.
+- Qué debe ver Anderson en el celular: viaje terminado guardado con propina y calificación. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-215 — Cierre del lote L1: `docs/progress.md` y trazabilidad
+- Spec: spec 004 (RC-01 a RC-08; todos los CA)
+- Requisitos: RC-01 a RC-08 (anclas RNF-24, RNF-25, RF-39, RF-54)
+- Depende de: T-200, T-204, T-207, T-209, T-211, T-213
+- Archivos: `docs/progress.md`
+- Hacer: registrar en la tabla de CA de `docs/progress.md` el resultado de cada CA-004-01 a 18 con su evidencia, dejando «No verificado en dispositivo» los CA-004-08, 12, 18 (y 16 si se tocó el GPS) hasta que Anderson responda; confirmar que la fila de la spec 004 de la matriz de `docs/requisitos.md` coincide con estas tareas; `node scripts/check-constitution.mjs` final sin errores nuevos. No aprueba nada propio.
+- Criterios: todos los CA de la spec 004.
+- Hecho cuando: cada CA tiene fila en `docs/progress.md` y la matriz coincide con el backlog.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada (registro en progress.md; sin verifier propio, solo documentación)
 
 ## Fase 3 — Implementar
 (vacío)

@@ -139,11 +139,13 @@ export function NotificationsSection() {
         accessibilityLabel={labels.notifications.switchLabel}
         accessibilityHint={labels.notifications.switchHint}
         accessibilityState={{ checked: enabled, disabled: busy, busy }}
+        accessibilityValue={{ text: chipLabel }}
         disabled={busy}
         onPress={onSwitchPress}
         style={({ pressed }) => [styles.row, pressed && styles.pressed]}
       >
-        <View style={styles.rowTexts}>
+        {/* AI-assisted: see docs/AI_LOG.md #64 (O-11): the busy state is text ("Activando…") that is announced, not only a dimmed track */}
+        <View style={styles.rowTexts} accessibilityLiveRegion="polite">
           <Text style={styles.rowLabel}>{labels.notifications.switchLabel}</Text>
           <Chip label={chipLabel} tone={enabled && !busy ? 'success' : 'neutral'} />
         </View>

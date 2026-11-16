@@ -84,3 +84,40 @@ const FIRESTORE_FNS = { Timestamp, getDocs, limit, orderBy, query, startAfter, w
 export function fetchTripsPage(uid, { start, end, pageSize = TRIPS_PAGE_SIZE, cursor = null }) {
   return fetchTripsPageWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { start, end, pageSize, cursor });
 }
+
+// AI-assisted: see docs/AI_LOG.md #65
+// Every trip finished inside [start, end) for the earnings totals (RC-04). One field only (finishedAt:
+// orderBy plus range), so the automatic single-field index serves it and no composite index is needed.
+// Reads pages of pageSize with startAfter until a short page or maxDocs (hard cap; truncated = true).
+// Reads are bounded by the range; the history pagination above is untouched.
+export const TRIPS_RANGE_PAGE_SIZE = 500;
+export const TRIPS_RANGE_MAX_DOCS = 5000;
+
+export async function fetchTripsInRangeWith(
+  fns,
+  tripsCollection,
+  { start, end, pageSize = TRIPS_RANGE_PAGE_SIZE, maxDocs = TRIPS_RANGE_MAX_DOCS },
+) {
+  const trips = [];
+  let cursor = null;
+  while (trips.length < maxDocs) {
+    const size = Math.min(pageSize, maxDocs - trips.length);
+    const constraints = [
+      fns.orderBy('finishedAt', 'desc'),
+      fns.where('finishedAt', '>=', fns.Timestamp.fromMillis(start)),
+      fns.where('finishedAt', '<', fns.Timestamp.fromMillis(end)),
+      fns.limit(size),
+    ];
+    if (cursor) constraints.push(fns.startAfter(cursor));
+    const { docs } = await fns.getDocs(fns.query(tripsCollection, ...constraints));
+    for (const item of docs) trips.push({ id: item.id, ...item.data() });
+    if (docs.length < size) return { trips, truncated: false };
+    cursor = docs[docs.length - 1];
+  }
+  return { trips, truncated: true };
+}
+
+// start and end are epoch ms ([start, end)); returns { trips, truncated }.
+export function fetchTripsInRange(uid, { start, end, pageSize = TRIPS_RANGE_PAGE_SIZE, maxDocs = TRIPS_RANGE_MAX_DOCS }) {
+  return fetchTripsInRangeWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { start, end, pageSize, maxDocs });
+}

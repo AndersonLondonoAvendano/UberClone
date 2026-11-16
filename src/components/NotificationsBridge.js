@@ -14,6 +14,8 @@ import { labels } from '../constants/labels';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { getNotifications } from '../services/notifications';
+import { ARRIVAL, OPEN_INTENT, decideRequestOpen, resolveOpenIntent, shouldNavigateToRequest } from '../services/trip/requestNavigation';
+import { HOME_ROUTE } from '../services/trip/requestPresentation';
 import { INTENT_DECISION, resolveIntent } from '../services/notifications/eligibility';
 import { createIntentFlow } from '../services/notifications/intentFlow';
 import { pendingIntent } from '../services/notifications/pendingIntent';
@@ -21,15 +23,18 @@ import { logPushEvent } from '../services/notifications/safeLog';
 import { getRegistrationController } from '../services/notifications/registrationRuntime';
 import { color, radius, space, type } from '../theme/tokens';
 
-export function NotificationsBridge() {
+export function NotificationsBridge({ currentRoute = null, getNavigation = () => null }) {
   const { driverId, accountStatus } = useAppState();
-  const { onTrip, offerPushRequest } = useAvailability();
+  const { onTrip, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
   const insets = useSafeAreaInsets();
   const [notice, setNotice] = useState(null);
+  // AI-assisted: see docs/AI_LOG.md #64 (D-149): a tap that was offered (or promoted) and still has to open
+  // the full-screen request; resolved once the pending request is visible to this component.
+  const [openIntent, setOpenIntent] = useState(null);
 
   // Latest values for the long-lived subscriptions (no resubscribe on every change).
   const latest = useRef({});
-  latest.current = { driverId, accountStatus, onTrip, offerPushRequest };
+  latest.current = { driverId, accountStatus, onTrip, offerPushRequest, pendingRequest };
 
   const decide = useCallback((intent) => {
     const { driverId: uid, accountStatus: status, onTrip: busy } = latest.current;
@@ -42,10 +47,14 @@ export function NotificationsBridge() {
   }, []);
 
   const handle = useCallback(
-    (intent, request) => {
+    async (intent, request) => {
       const decision = decide(intent);
       if (decision === INTENT_DECISION.EXPIRED) setNotice(labels.trip.pushExpired);
-      else if (decision === INTENT_DECISION.OPEN) latest.current.offerPushRequest(request);
+      else if (decision === INTENT_DECISION.OPEN) {
+        // T-199: the offer waits for the route lookup; it expires there too (same notice as above).
+        const offered = await latest.current.offerPushRequest(request);
+        if (!offered && Date.now() >= request.expiresAt) setNotice(labels.trip.pushExpired);
+      }
     },
     [decide],
   );
@@ -61,13 +70,24 @@ export function NotificationsBridge() {
           accountStatus: latest.current.accountStatus,
           onTrip: latest.current.onTrip,
         }),
-        offer: (request) => latest.current.offerPushRequest(request),
+        offer: async (request) => {
+          const hasSamePending = latest.current.pendingRequest?.id === request.id;
+          // The intent exists from the start of the offer (route lookup in progress) and is kept until it settles.
+          setOpenIntent({ id: request.id, hasSamePending, offering: true });
+          const offered = await latest.current.offerPushRequest(request, { tap: true });
+          setOpenIntent((prev) => {
+            if (!prev || prev.id !== request.id) return prev;
+            return offered ? { ...prev, offering: false } : null;
+          });
+          return offered;
+        },
         showExpired: () => setNotice(labels.trip.pushExpired),
         log: (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) }),
       }),
     [],
   );
-  const takeParked = useCallback(() => flow.evaluate(), [flow]);
+  // Fire-and-forget callers: the evaluation is async (T-199) and must never leave an unhandled rejection.
+  const takeParked = useCallback(() => flow.evaluate().catch(() => {}), [flow]);
 
   useEffect(() => {
     let cancel = () => {};
@@ -75,7 +95,7 @@ export function NotificationsBridge() {
     try {
       const notifications = getNotifications();
       unsubscribeForeground = notifications.onForegroundMessage((request, targetUid) =>
-        handle({ targetUid, requestId: request.id, expiresAt: request.expiresAt }, request),
+        handle({ targetUid, requestId: request.id, expiresAt: request.expiresAt }, request).catch(() => {}),
       );
       cancel = notifications.onNotificationOpened(takeParked);
     } catch {
@@ -106,6 +126,37 @@ export function NotificationsBridge() {
     }
     return () => controller.stop();
   }, [driverId, approved]);
+
+  // Opens the full-screen request after a tap, from any drawer screen (D-149). The origin screen is kept
+  // so the request screen returns there when it closes without accepting.
+  useEffect(() => {
+    if (resolveOpenIntent(openIntent, pendingRequest?.id ?? null) !== OPEN_INTENT.OPEN) return;
+    setOpenIntent(null);
+    const decision = decideRequestOpen({
+      arrival: ARRIVAL.TAP,
+      currentRoute,
+      hasSamePending: openIntent.hasSamePending,
+      screenOpen: requestScreenId != null,
+      onTrip,
+      accountStatus,
+    });
+    if (!shouldNavigateToRequest(decision.action)) return;
+    setRequestOrigin(decision.origin);
+    try {
+      getNavigation()?.navigate(HOME_ROUTE, { screen: 'TripRequest' });
+    } catch {
+      setRequestOrigin(null);
+    }
+  }, [openIntent, pendingRequest, currentRoute, requestScreenId, onTrip, accountStatus, getNavigation, setRequestOrigin]);
+
+  // An offered tap whose request vanished (expired, cleared) before it could open is dropped.
+  useEffect(() => {
+    if (resolveOpenIntent(openIntent, pendingRequest?.id ?? null) === OPEN_INTENT.DROP) {
+      const id = setTimeout(() => setOpenIntent(null), 0);
+      return () => clearTimeout(id);
+    }
+    return undefined;
+  }, [openIntent, pendingRequest]);
 
   useEffect(() => {
     if (!notice) return undefined;

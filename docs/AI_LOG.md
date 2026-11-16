@@ -2878,5 +2878,147 @@ avances a S5.
 - Hoy — Usado / modificado / descartado: usado el fixture de plantilla Expo para la prueba del plugin; modificados README, requisitos, auditoría, plan de cierre, decisiones (solo líneas de estado de D-137, D-139, D-145, D-146), backlog, progress, omisiones, spec 003 (sección «Comportamiento vigente», sin cambio de alcance) y guion; descartado dejar la prueba dependiente de `android/` y marcar «Vigente» decisiones sin evidencia (D-127 a D-135 siguen como están). Marca de IA `#64`; no se creó entrada nueva.
 - Hoy — Cifras: suite por defecto 127 pruebas / 124 pasan (fallos conocidos: plateNormalization, registrationProgress, reverseGeocode; `withRequestsChannel` ya pasa); con loader 134/134; constitución 14 errores / 244 advertencias (base 14).
 - Hoy — Archivos y commit (sin hash; según `git status`): docs/{AI_LOG,auditoria-enunciado-2026-11-12,backlog,decisiones,guion-video,omisiones-y-limites,plan-cierre-entrega-2026-11-16,progress,requisitos}.md, README.md, specs/003-notificaciones-fcm/spec.md, scripts/tests/withRequestsChannel.test.mjs, scripts/tests/fixtures/MainApplication.template.kt; en el árbol además, de otros pasos del día: docs/diseno/auditoria-fcm-2026-11-16.md, scripts/tests/{drawerRouteNames,headlessEntry,intentFlow,notificationsFreeSymbols}.test.mjs, index.js, src/components/{AvailabilitySwitch,IncomingRequestCard,NotificationsBridge,PrimaryButton,SecondaryButton,SwitchTrack}.js, src/components/settings/NotificationsSection.js, src/constants/labels.js, src/navigation/{AppDrawerContent,MainDrawer}.js, src/screens/home/HomeScreen.js, src/screens/trip/TripRequestScreen.js, src/services/notifications/{backgroundHandler,eligibility,index,intentFlow,safeLog}.js, src/services/trip/requestPresentation.js, src/theme/tokens.js. Sin commit.
+- Hoy (2026-11-16), Parte A (notificación → pantalla completa + contador + cierre de diseño FCM): D-149 (tocar la notificación abre siempre la solicitud a pantalla completa desde cualquier pantalla del Drawer; una solicitud ya mostrada como tarjeta se promueve sin duplicarla ni reiniciar los 15 s; la llegada pasiva queda como antes; rechazar/vencer/cerrar vuelve a la pantalla de origen; aceptar va al viaje y Atrás no vuelve a la solicitud), D-150 (contador: texto de énfasis más barra fina sobre pista clara, sin bloque relleno, contrastes AA recalculados 6,08 / 6,54 / 5,12 / 5,50, anuncio accesible solo a 10, 5 y 0 s) y D-151 (O-03 «La solicitud expiró», O-09 borde del botón inactivo, O-10 topes de fuente, O-11 valor accesible del interruptor). Elegibilidad D-133/D-146 intacta. Nueva lógica pura en `src/services/trip/requestNavigation.js` con 10 pruebas.
+- Hoy, Parte A — Revisión: verifier distinto aprobó en lo estático (sin hallazgos críticos ni mayores). Design-auditor (sin capturas, solo la declaración textual de Anderson): Diseño «Aprobado parcial» solo para interruptor con chip informativo, tarjeta y pantalla de solicitud operativas; contador nuevo, O-09, O-11 y fuente al 200 % siguen «Pendiente de dispositivo». Hallazgo H-1 (urgente solo por color) enviado al implementer para añadir un icono; H-2 y H-3 esperan captura/TalkBack. Límite conocido documentado: con la app cerrada en el dev client `getInitialNotification` devuelve null; la demo usa la build release. No existe `docs/fcm/capturas/` aunque Anderson dijo haber guardado capturas allí.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #65 — Cierre de brechas del taller — lote L1
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar el lote L1 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md): G-02 distancia/duración reales con OSRM, G-22 Ganancias sobre todos los viajes del periodo, G-15 efectos de TripActive, G-21 script npm test, G-17 timeInterval, G-01 lista de comprobación de validTrip(). Spec 004.
+- Prompt (textual):
+````
+PROMPT — Notificación → pantalla completa + contador + cierre de diseño FCM + LOTE L1 del plan de cierre
+
+0. AI_LOG: la PARTE A se registra como líneas añadidas al resumen de la entrada #64 (no la copies
+   como prompt). Para la PARTE B crea UNA entrada nueva "Cierre de brechas del taller — lote L1"
+   copiando ESTE PROMPT COMPLETO, textual, como "Prompt". Deja "Verificación" y "Aprendizaje"
+   para Anderson; el hash lo pone él.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 12:51, build de desarrollo)
+- STOP-3 pasó: el interruptor de Notificaciones se ve y funciona (chip "Activadas" solo
+  informativo), la tarjeta emergente y la pantalla de solicitud funcionan, la prueba de
+  notificación llega. Las capturas están en docs/fcm/capturas/ (léelas con tus herramientas
+  de imagen). Regístralo en progress.md/backlog como "Validada en dispositivo por Anderson".
+- Observación de diseño: en la tarjeta emergente el bloque "Vence en N s" es un rectángulo
+  verde relleno con texto blanco, visualmente igual al botón "Aceptar": puede confundirse con
+  un control.
+- Mejora pedida: al TOCAR la notificación, la app debe abrir SIEMPRE la pantalla completa de
+  la solicitud, sin importar en qué pantalla estaba la app (hoy, si estaba en Configuración,
+  muestra la tarjeta emergente sobre esa pantalla).
+- Límite conocido (NO intentes arreglarlo): en el dev client, con la app cerrada, el toque de
+  la notificación no entrega la solicitud (getInitialNotification devuelve null; es el dev
+  launcher). En release funciona (validado por Anderson). Documéntalo en
+  docs/omisiones-y-limites.md y en el README: la demostración debe hacerse con el build de
+  release.
+
+METODOLOGÍA Y REGLAS
+- Roles separados: implementer implementa; verifier DISTINTO verifica cada parte;
+  design-auditor distinto audita lo visual; spec-author y planner para la Parte B. Quien
+  implementa no aprueba. Si un revisor rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json. Cero
+  secretos en docs, README ni logs. Sin commit ni push. SHOW_DEV_TOOLS=false. NO hagas git
+  stash, git reset ni checkout de archivos. No puedes compilar ni probar en el dispositivo.
+  Sin Alert. Textos visibles en src/constants/labels.js. Tokens de diseño. D-93…D-147 vigentes
+  salvo lo que esta tarea cambie y declare. firestore.rules fuera de git (cambios de reglas,
+  solo como texto en docs/seguridad.md para que Anderson los publique a mano).
+- Por ahora no se añaden dependencias nuevas ni se toca app.json ni código nativo.
+
+PARTE A — FCM: pulido final (sin spec ni plan nuevos)
+A1. Al tocar la notificación (app en segundo plano o cerrada, y también el caso en que el
+    toque ocurre con la app ya visible), abrir SIEMPRE la pantalla completa de la solicitud
+    ("Solicitud entrante"), navegando desde cualquier pantalla del Drawer.
+    - Se mantiene toda la elegibilidad de D-133/D-146 (sesión, cuenta aprobada, targetUid, sin
+      viaje en curso, expiresAt → "La solicitud expiró", dedupe por requestId, intención
+      ligada al uid). Lo que cambia es la PRESENTACIÓN al adoptar una intención por toque:
+      pantalla completa, no tarjeta emergente.
+    - Si la solicitud ya se estaba mostrando como tarjeta emergente (mismo requestId), el
+      toque la promueve a pantalla completa sin duplicarla y sin reiniciar su temporizador
+      de 15 s.
+    - Las solicitudes que llegan SIN que el usuario toque nada (mock, o push recibido con la
+      app en primer plano) siguen mostrándose como hoy (tarjeta emergente sobre cualquier
+      pantalla, o pantalla completa desde Inicio). No cambies ese comportamiento.
+    - Navegación: usa los nombres únicos vigentes (el Drawer ya usa MainHome). Rechazar,
+      vencer los 15 s o cerrar devuelven al usuario a la pantalla donde estaba, sin pila
+      duplicada; Aceptar lleva al viaje y Atrás desde el viaje no regresa a la solicitud.
+    - Pruebas puras: la decisión de presentación (toque → pantalla completa; llegada pasiva →
+      tarjeta/pantalla según hoy), promoción sin duplicado, y que el estado de navegación no
+      acumule entradas repetidas.
+A2. Contador "Vence en N s": que NO parezca un botón. Hoy es un bloque verde relleno con
+    texto blanco. Usa texto con color de énfasis más una barra de progreso fina sobre una
+    pista clara, sin relleno de bloque, manteniendo contraste AA, el anuncio accesible sin
+    repetir cada segundo, tope de fuente y la prioridad visual del botón Aceptar. Aplica a la
+    tarjeta emergente y a la pantalla completa de solicitud.
+A3. O-03: unifica el mensaje a "La solicitud expiró" (labels.js, donde hoy hay "venció").
+    O-09, O-10, O-11 (hallazgos de baja severidad de la auditoría de diseño): corrígelos si
+    son baratos y sin riesgo (forma de quietDisabled, maxFontSizeMultiplier del contador y los
+    montos de TripRequestScreen, estado busy del switch); si no, déjalos en el informe.
+A4. Cierre de diseño: con las capturas de docs/fcm/capturas/ y la auditoría
+    docs/diseno/auditoria-fcm-2026-11-16.md, el design-auditor deja el Diseño de S5 en
+    "Validada" SOLO para lo que las capturas demuestran; lo no comprobable queda "Pendiente
+    de dispositivo". Actualiza docs/progress.md y docs/diseno/guia-de-estilo.md (patrón del
+    switch con chip informativo y del contador).
+
+PARTE B — LOTE L1 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md)
+Metodología SDD ligera: spec-author escribe specs/004-cierre-brechas/spec.md y planner el
+plan.md (cortos, con criterios de aceptación CA-nnn verificables y tareas T-nnn que continúan
+la numeración vigente), y CONTINÚAS con la implementación sin detenerte a pedir aprobación,
+rebanada por rebanada con su verifier.
+B1. Distancia y duración reales (G-02, R-040, R-090, R-121). Hoy las solicitudes simuladas
+    (mockPassengerApi.js) y las que llegan por push traen distancia/duración inventadas
+    (haversine × 1,3 y 25 km/h en el mock; valores de plantilla en el servidor). Cámbialo
+    para que, al crear la solicitud en la app, la distancia y la duración salgan de UNA llamada
+    a OSRM (origen → destino) con timeout corto (≈ 2–3 s) y caché por par de coordenadas, y
+    SOLO ENTONCES se calcule la tarifa con calculateFare (la función única, R-084) y se muestre
+    la solicitud, de modo que la tarifa no cambie después de aparecer. Si OSRM falla o tarda,
+    usa el cálculo actual como respaldo y márcalo internamente (sin mensaje al usuario). Una
+    llamada por solicitud, nunca por cada movimiento (recomendación de consumo del PDF).
+    Reutiliza el cliente OSRM existente (osrmRouting.js) y respeta que mappers.js es el único
+    archivo que conoce la forma de la API del pasajero. Pruebas con OSRM falso: tiempo de
+    espera, respaldo, caché, una sola llamada por solicitud, y que la tarifa se calcula con los
+    valores finales. El ejemplo 8,5 km / 22 min debe seguir dando 19.200 / 26.900.
+B2. Ganancias sin truncar (G-22, R-088). listenToTrips limita a 200 viajes
+    (tripRepository.js:14,47) y los totales de hoy/semana/mes pueden quedar erróneos. Corrige
+    para que cada periodo se calcule sobre TODOS sus viajes (consulta por rango de fechas con
+    paginación interna o equivalente, sin romper la paginación del Historial ni subir mucho el
+    costo de lecturas). Pruebas con más de 200 viajes simulados. Si el cambio exige un índice
+    compuesto de Firestore o reglas, deja el texto exacto y los pasos manuales para Anderson en
+    docs/seguridad.md y en el informe.
+B3. Efectos de TripActive (G-15, R-039, R-058). Revisa los tres efectos de
+    TripActiveScreen.js (≈ líneas 69, 80, 94): confirma que cada uno devuelve una función de
+    limpieza correcta (temporizadores, suscripciones, seguimiento) y corrige cualquier fuga
+    con pruebas cuando sea posible. Si ya están bien, repórtalo con evidencia archivo:línea.
+B4. Script de pruebas (G-21). Añade el script "test" en package.json (solo el script, sin
+    dependencias) que ejecute toda la suite con el loader de src para que los 3 tests que hoy
+    fallan por imports sin extensión pasen con `npm test`. Documéntalo en el README.
+B5. Si es trivial y sin riesgo, revisa G-17 (timeInterval en expo-location); si no, repórtalo y
+    no lo toques.
+B6. Reglas de Firestore (G-01): lee el texto de validTrip() publicado en docs/seguridad.md y
+    deja en el informe una lista de comprobación para que Anderson confirme en la consola que
+    la regla vigente acepta tip, rating y los campos actuales. No asumas que está publicada.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: elegibilidad intacta, presentación correcta por tipo de llegada, navegación sin pila
+duplicada, contador accesible y no confundible con un botón, textos unificados. Parte B:
+trazabilidad a CA-nnn, tarifa con los valores finales, una llamada OSRM por solicitud,
+totales correctos con más de 200 viajes, limpieza de efectos, `npm test` en verde. Pruebas
+completas y check-constitution (base 14 errores) sin regresión; cita cifras reales. Docs sin
+inflar: "Validada" solo con evidencia de Anderson; el resto "Implementada, pendiente de
+dispositivo".
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-148…), hallazgos de los verifiers,
+cifras de pruebas y constitución, pasos manuales para Anderson (índice o reglas de Firestore si
+los hubiera, comprobación de la regla de trips) y el CHECKLIST STOP-4 de dispositivo, solo
+JavaScript, sin recompilar: (1) app en segundo plano en Configuración, enviar prueba, tocar la
+notificación → pantalla completa; (2) igual desde Historial y Perfil; (3) Rechazar/vencer
+devuelve a la pantalla anterior; (4) Aceptar lleva al viaje; (5) contador que no parezca
+botón y fuente al 200 %; (6) distancia/duración de una solicitud coherentes con la ruta del
+mapa; (7) Ganancias; (8) `npm test`. Y recuerda que el caso de la app cerrada se valida en
+RELEASE. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-4". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Parte A (el toque abre la pantalla completa, contador sin bloque, icono de urgencia H-1) y lote L1 (B1 métricas OSRM, B2 ganancias por rango, B3–B6) implementados, cada parte con un verifier distinto: todas «Verificada estáticamente», ninguna «Validada» (falta el celular). `npm test` 159/159; `check-constitution` 14 errores (línea base). La spec 004 sigue en Borrador; D-149, D-150, D-151, D-160, D-170 y D-180 en Propuesta.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

@@ -112,7 +112,7 @@ export function toPassengerApiError(raw) {
     if (status === 401 || status === 403) {
       return createPassengerApiError(PASSENGER_API_ERROR.UNAUTHORIZED, 'Sesión no autorizada', raw);
     }
-    if (status === 410) return createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud venció', raw);
+    if (status === 410) return createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud expiró', raw);
     if (status === 409) {
       return createPassengerApiError(PASSENGER_API_ERROR.ALREADY_TAKEN, 'Otro conductor tomó el viaje', raw);
     }

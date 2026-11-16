@@ -25,6 +25,15 @@ export function periodRange(period, now = Date.now()) {
   return periodBounds(period, now);
 }
 
+// AI-assisted: see docs/AI_LOG.md #65
+// [start, end) to read from the repository so today, week and month are all complete: from the earlier of the
+// week start and the month start up to now (end is now + 1 ms because the range is exclusive).
+export function earningsReadRange(now = Date.now()) {
+  const week = periodRange(PERIOD.WEEK, now);
+  const month = periodRange(PERIOD.MONTH, now);
+  return { start: Math.min(week.start, month.start), end: now + 1 };
+}
+
 const isEarning = (trip) => trip?.status === TRIP_STATUS.COMPLETED || trip?.status === TRIP_STATUS.PAID;
 
 const amount = (value) => (Number.isFinite(Number(value)) ? Math.round(Number(value)) : 0);

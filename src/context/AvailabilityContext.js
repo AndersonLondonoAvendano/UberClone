@@ -48,6 +48,17 @@ export function AvailabilityProvider({ children }) {
   const isAvailableRef = useRef(false);
   // Bumped by reset(): an enable() that started before a reset must not turn availability back on.
   const resetGenerationRef = useRef(0);
+  // AI-assisted: see docs/AI_LOG.md #64 (D-149): drawer screen the driver was on when a notification tap
+  // opened the request; the request screen returns there when it closes. A ref: it never renders.
+  const requestOriginRef = useRef(null);
+  const setRequestOrigin = useCallback((route) => {
+    requestOriginRef.current = typeof route === 'string' && route !== '' ? route : null;
+  }, []);
+  const takeRequestOrigin = useCallback(() => {
+    const origin = requestOriginRef.current;
+    requestOriginRef.current = null;
+    return origin;
+  }, []);
 
   useEffect(() => {
     isAvailableRef.current = isAvailable;
@@ -218,6 +229,7 @@ export function AvailabilityProvider({ children }) {
     setOnTripState(false);
     setNotice(null);
     setRequestScreenId(null);
+    requestOriginRef.current = null;
     clearPendingRequest();
   }, [clearPendingRequest]);
 
@@ -238,6 +250,8 @@ export function AvailabilityProvider({ children }) {
       pushOffered,
       requestScreenId,
       setRequestScreenId,
+      setRequestOrigin,
+      takeRequestOrigin,
       lastRequest,
       requestsError,
       requestSimulatedTrip,
@@ -262,6 +276,8 @@ export function AvailabilityProvider({ children }) {
       offerPushRequest,
       pushOffered,
       requestScreenId,
+      setRequestOrigin,
+      takeRequestOrigin,
       lastRequest,
       requestsError,
       requestSimulatedTrip,

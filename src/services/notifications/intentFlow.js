@@ -15,10 +15,11 @@ export const FLOW_RESULT = {
   ADOPTED: 'adopted',
 };
 
-// getState() -> { uid, accountStatus, onTrip }; offer(request) -> boolean; showExpired(); log(code).
+// getState() -> { uid, accountStatus, onTrip }; offer(request) -> boolean | Promise<boolean>; showExpired(); log(code).
+// evaluate() is async (T-199): it resolves to a FLOW_RESULT once the offer (and its route lookup) finished.
 export function createIntentFlow({ intents, getState, offer, showExpired, now = () => Date.now(), log = () => {} }) {
   return {
-    evaluate() {
+    async evaluate() {
       if (!intents.peek()) return FLOW_RESULT.NONE;
       const { uid, accountStatus, onTrip } = getState();
       if (!uid || accountStatus === ACCOUNT_STATUS.LOADING) {
@@ -45,9 +46,18 @@ export function createIntentFlow({ intents, getState, offer, showExpired, now = 
       }
       if (decision === INTENT_DECISION.OPEN) {
         const request = requestFromIntent(intent, ctx.now);
-        if (request && offer(request) !== false) {
+        // T-199: offer may wait for the route lookup (<= 2.5 s); the intent was already taken above, so a
+        // second evaluate() during the wait finds nothing and cannot offer twice.
+        const offered = request ? (await offer(request)) !== false : false;
+        if (offered) {
           log('intent-adopted');
           return FLOW_RESULT.ADOPTED;
+        }
+        if (request && now() >= request.expiresAt) {
+          // Expired while the route was being refined.
+          showExpired();
+          log('intent-expired');
+          return FLOW_RESULT.EXPIRED;
         }
         log('intent-dropped:rejected');
         return FLOW_RESULT.DROPPED;

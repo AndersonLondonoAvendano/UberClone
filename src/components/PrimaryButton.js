@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   quiet: {
     backgroundColor: color.surfaceMuted,
     borderWidth: borderWidth.thin,
-    borderColor: color.borderSubtle,
+    borderColor: color.border, // AI-assisted: see docs/AI_LOG.md #64 (O-09: visible outline, the shape reads as a disabled button)
     ...elevation.none,
     shadowOpacity: 0,
     elevation: 0,

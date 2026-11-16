@@ -13,20 +13,20 @@
 // Shows the passenger, the distance and time to the pickup (straight line from the driver position),
 // the trip length, category, payment, the fare split from calculateFare and a countdown to expiresAt.
 // One request at a time: the card keeps the request it opened with. When it expires (or the slot
-// is released without a decision) it shows "La solicitud venció" and goes back to Home.
+// is released without a decision) it shows "La solicitud expiró" and goes back to Home.
 // Accept -> acceptRequest -> the trip starts (TripContext) -> TripActive. Reject -> Home.
 // Leaving the card without deciding rejects the request. Errors are inline text, never Alert.
 //
 // AI-assisted: see docs/AI_LOG.md #44
 // The two numbers the driver decides with are the loudest things on screen: "Tu ganancia" in
 // type.display and color.primary inside the card, and the countdown fixed above the buttons (never
-// scrolled away), also display/primary with a draining bar. In the last 10 s the countdown block
-// fills with color.primary (emphasis, never red). An expired request is rejected quietly and
+// scrolled away) as primary text with a draining bar and no filled block (D-150; the last 10 s use
+// color.danger for text and bar, never a fill). An expired request is rejected quietly and
 // shows one text, labels.trip.expired. No borders or dividers: surface steps and space only.
 
 import { useIsFocused } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
@@ -46,8 +46,9 @@ import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../service
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
 import { decisionDeadline, markShown } from '../../services/trip/decisionWindow';
+import { planLeave } from '../../services/trip/requestNavigation';
 import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
-import { badgeSize, borderWidth, color, iconSize, radius, space, touch, type } from '../../theme/tokens';
+import { badgeSize, borderWidth, color, iconSize, maxFontScale, radius, space, touch, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
 import { countdownAnnouncement, fillLabel, formatCop, formatKm, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
 
@@ -82,8 +83,11 @@ function fareOf(request) {
 }
 
 export function TripRequestScreen({ navigation }) {
-  const { pendingRequest, clearPendingRequest, getDriverPosition, setRequestScreenId } = useAvailability();
+  const { pendingRequest, clearPendingRequest, getDriverPosition, setRequestScreenId, takeRequestOrigin } = useAvailability();
   const { startTrip } = useTrip();
+  // The urgent icon follows the text, capped at the same maxFontScale the countdown text uses.
+  const { fontScale } = useWindowDimensions();
+  const urgentIconSize = Math.round(iconSize.lg * Math.min(Math.max(fontScale, 1), maxFontScale));
   // The card keeps the request it opened with; a later one never replaces it.
   // D-137: the 15 s decision window starts here, the first time the request is shown.
   const [request] = useState(() => {
@@ -134,7 +138,27 @@ export function TripRequestScreen({ navigation }) {
   }, [isFocused, request, expired, decided, error]);
 
   // Every exit goes through here: back to Home inside this stack (popTo: navigate would push a second Home).
-  const leave = useCallback(() => navigation.popTo('Home'), [navigation]);
+  // AI-assisted: see docs/AI_LOG.md #64 (D-149): when a notification tap opened this screen from another
+  // drawer screen, the driver returns to that screen (the origin is consumed once; a hidden screen never
+  // moves the drawer). The drawer navigator is captured now so it can still be used while unmounting.
+  const drawerRef = useRef(navigation.getParent());
+  const leave = useCallback(() => {
+    const plan = planLeave({ origin: takeRequestOrigin(), focused: focusedRef.current });
+    navigation.popTo('Home');
+    if (!plan.drawerRoute) return;
+    try {
+      drawerRef.current?.navigate(plan.drawerRoute);
+    } catch {
+      // The origin is only a courtesy: staying on Home is a valid result.
+    }
+  }, [navigation, takeRequestOrigin]);
+
+  // The origin only matters while this screen is in front: if the driver moves to another screen, drop it.
+  const wasFocusedRef = useRef(false);
+  useEffect(() => {
+    if (isFocused) wasFocusedRef.current = true;
+    else if (wasFocusedRef.current) takeRequestOrigin();
+  }, [isFocused, takeRequestOrigin]);
 
   // AI-assisted: see docs/AI_LOG.md #49
   // While open (focused or hidden behind another tab) the request id is published, so the bottom
@@ -162,18 +186,22 @@ export function TripRequestScreen({ navigation }) {
         setPendingExit(kind);
         return;
       }
-      if (kind === 'trip') navigation.replace('TripActive');
-      else leave();
+      if (kind === 'trip') {
+        takeRequestOrigin(); // accepted: the trip screen is shown, there is no screen to return to
+        navigation.replace('TripActive');
+      } else leave();
     },
-    [navigation, leave],
+    [navigation, leave, takeRequestOrigin],
   );
 
   useEffect(() => {
     if (!isFocused || !pendingExit) return;
     setPendingExit(null);
-    if (pendingExit === 'trip') navigation.replace('TripActive');
-    else leave();
-  }, [isFocused, pendingExit, navigation, leave]);
+    if (pendingExit === 'trip') {
+      takeRequestOrigin();
+      navigation.replace('TripActive');
+    } else leave();
+  }, [isFocused, pendingExit, navigation, leave, takeRequestOrigin]);
 
   // Expired: reject quietly (the passenger side already dropped it), show the notice, then Home.
   const [expiredShown, setExpiredShown] = useState(false);
@@ -205,8 +233,16 @@ export function TripRequestScreen({ navigation }) {
       decidedRef.current = true;
       rejectRequest(current.id).catch(() => {});
       clearPendingRequest(current.id);
+      // Closed with Back or a gesture: still return to the screen the tap came from (D-149).
+      const origin = takeRequestOrigin();
+      if (!origin) return;
+      try {
+        drawerRef.current?.navigate(origin);
+      } catch {
+        // Staying where the navigator left the driver is a valid result.
+      }
     },
-    [clearPendingRequest],
+    [clearPendingRequest, takeRequestOrigin],
   );
 
   const fare = useMemo(() => (request ? fareOf(request) : null), [request]);
@@ -292,7 +328,7 @@ export function TripRequestScreen({ navigation }) {
                 accessibilityLabel={`${labels.trip.net}: ${formatCop(fare.driverEarnings)}`}
               >
                 <Text style={styles.earningsLabel}>{labels.trip.net}</Text>
-                <Text style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
+                <Text maxFontSizeMultiplier={maxFontScale} style={styles.earningsValue}>{formatCop(fare.driverEarnings)}</Text>
               </Card>
               <View style={styles.fareRow}>
                 <FareFigure label={labels.trip.fare} value={formatCop(fare.fare)} />
@@ -360,14 +396,23 @@ export function TripRequestScreen({ navigation }) {
             <>
             <View
               testID="trip-request-countdown"
-              style={[styles.countdown, urgent && styles.countdownUrgent]}
+              style={styles.countdown}
               accessible
               accessibilityLabel={fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
             >
-              <Text style={[styles.countdownText, urgent && styles.countdownTextUrgent]}>
-                {fillLabel(labels.trip.countdown, { s: secondsLeft })}
-              </Text>
-              <View style={[styles.track, urgent && styles.trackUrgent]}>
+              {/* AI-assisted: see docs/AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
+              <View style={styles.countdownRow}>
+                <View style={[styles.urgentSlot, { width: urgentIconSize, height: urgentIconSize }]}>
+                  {urgent ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
+                </View>
+                <Text
+                  maxFontSizeMultiplier={maxFontScale}
+                  style={[styles.countdownText, urgent && styles.countdownTextUrgent]}
+                >
+                  {fillLabel(labels.trip.countdown, { s: secondsLeft })}
+                </Text>
+              </View>
+              <View style={styles.track}>
                 <View style={[styles.fill, urgent && styles.fillUrgent, { flex: progress }]} />
                 <View style={{ flex: 1 - progress }} />
               </View>
@@ -425,7 +470,7 @@ function FareFigure({ label, value }) {
   return (
     <View style={styles.flex} accessible accessibilityLabel={`${label}: ${value}`}>
       <Text style={styles.caption}>{label}</Text>
-      <Text style={[styles.body, type.numeric]}>{value}</Text>
+      <Text maxFontSizeMultiplier={maxFontScale} style={[styles.body, type.numeric]}>{value}</Text>
     </View>
   );
 }
@@ -528,42 +573,44 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0,
   },
-  // The countdown lives in the action bar; in the last 10 s the block fills with color.primary.
+  // AI-assisted: see docs/AI_LOG.md #64 (D-150): the countdown is text plus a thin bar, no filled block, so it
+  // never looks like a button. The "Aceptar" button stays the only filled control. In the last 10 s the text
+  // and the bar turn color.danger (AA on surface, no fill).
   countdown: {
     gap: space[2],
-    paddingVertical: space[2],
-    paddingHorizontal: space[3],
-    borderRadius: radius.md,
-    backgroundColor: color.surface,
+    paddingVertical: space[1],
   },
-  countdownUrgent: {
-    backgroundColor: color.primary,
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[2],
+  },
+  urgentSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   countdownText: {
-    ...type.display,
+    ...type.title,
     ...type.numeric,
     color: color.primary,
     textAlign: 'center',
   },
   countdownTextUrgent: {
-    color: color.onPrimary,
+    color: color.danger,
   },
   track: {
     flexDirection: 'row',
     height: space[1],
     borderRadius: radius.full,
     overflow: 'hidden',
-    backgroundColor: color.bg,
-  },
-  // AI-assisted: see docs/AI_LOG.md #44 (on color.primary: onPrimary fill over a primary track, no opacity)
-  trackUrgent: {
-    backgroundColor: color.primary,
+    backgroundColor: color.primarySoft,
   },
   fill: {
     backgroundColor: color.primary,
   },
   fillUrgent: {
-    backgroundColor: color.onPrimary,
+    backgroundColor: color.danger,
   },
   actions: {
     gap: touch.gap,

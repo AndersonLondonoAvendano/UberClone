@@ -4,7 +4,7 @@
 
 import { OSRM_BASE_URL, ROUTE_TIMEOUT_MS } from '../../config/routing';
 
-export async function fetchOsrmRoute(from, to) {
+export async function fetchOsrmRoute(from, to, { timeoutMs = ROUTE_TIMEOUT_MS } = {}) {
   const [fromLng, fromLat] = from;
   const [toLng, toLat] = to;
   const url =
@@ -12,7 +12,7 @@ export async function fetchOsrmRoute(from, to) {
     '?overview=full&geometries=geojson';
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ROUTE_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { signal: controller.signal });
     if (!response.ok) throw new Error(`OSRM HTTP ${response.status}`);

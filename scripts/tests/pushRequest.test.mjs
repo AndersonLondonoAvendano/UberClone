@@ -85,4 +85,45 @@ assert.deepEqual(parsePushRequest(data({ expiresAt: String(NOW - 1) }), { now: N
 }
 
 assert.equal(requestFromIntent(null, NOW), null);
+
+// T-198 (CA-004-06): refineRequestMetrics with a fake OSRM behind the real resolver.
+{
+  const { refineRequestMetrics } = await import('../../src/services/notifications/pushRequest.js');
+  const { createRouteMetrics } = await import('../../src/services/routing/routeMetrics.js');
+  const { calculateFare } = await import('../../src/utils/fare.js');
+  const base = parsePushRequest(data(), { now: NOW }).request;
+  const resolverWith = (fetchRoute) => createRouteMetrics({
+    fetchRoute, setTimer: () => 0, clearTimer: () => {},
+  });
+
+  // Success: OSRM values replace the template's; the original is untouched; the fare uses the final values.
+  let calls = 0;
+  const ok = resolverWith(async () => { calls += 1; return { distanceM: 8500, durationS: 1320 }; });
+  const refined = await refineRequestMetrics(base, ok);
+  assert.equal(refined.distanceKm, 8.5);
+  assert.equal(refined.durationMin, 22);
+  assert.equal(refined.estimated, undefined);
+  assert.equal(base.distanceKm, 3.4);
+  assert.notEqual(refined, base);
+  assert.equal(isValidTripRequest(refined), true);
+  assert.equal(calculateFare({ distanceKm: refined.distanceKm, durationMin: refined.durationMin, category: refined.category }).fare, 19200);
+  assert.equal(calls, 1);
+  await refineRequestMetrics(base, ok); // same message again: cache, no new call
+  assert.equal(calls, 1);
+
+  // Failure: the message values stay and the copy is marked estimated.
+  const failed = await refineRequestMetrics(base, resolverWith(async () => { throw new Error('OSRM HTTP 500'); }));
+  assert.equal(failed.distanceKm, 3.4);
+  assert.equal(failed.durationMin, 9);
+  assert.equal(failed.estimated, true);
+  assert.equal(isValidTripRequest(failed), true);
+
+  // A resolver that rejects, and a missing resolver, never throw.
+  const rejecting = await refineRequestMetrics(base, { resolve: async () => { throw new Error('boom'); } });
+  assert.equal(rejecting.estimated, true);
+  assert.equal(rejecting.distanceKm, 3.4);
+  assert.equal(await refineRequestMetrics(base, null), base);
+  assert.equal(await refineRequestMetrics(null, ok), null);
+}
+
 console.log('pushRequest: OK');

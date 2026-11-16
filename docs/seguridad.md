@@ -312,6 +312,28 @@ service cloud.firestore {
 
 **El backend no se ve afectado por las reglas.** Usa el SDK de administrador (admin SDK), que no pasa por las reglas de Firestore. Lee `fare` y `tip` del documento del viaje y cobra `fare + tip` (`chargeAmount`); nunca el monto del cuerpo de la petición.
 
+### Lista de comprobación: regla `validTrip()` publicada (spec 004, RC-08, T-212)
+Estado: **NO VERIFICADO**. Este documento no afirma que la regla esté publicada; solo Anderson puede confirmarlo en la consola.
+
+**Texto vigente de `validTrip()`** (el bloque completo está arriba en «Texto final de las reglas», `function validTrip()` en `:205-234`). Las cláusulas que importan para propina y calificación son:
+- `hasAll` y `hasOnly` (`:207-208`) incluyen `'tip'` y `'rating'`.
+- `data.tip is int && data.tip >= 0 && data.tip <= 1000000` (`:222`).
+- `data.rating == null || (data.rating is int && data.rating >= 1 && data.rating <= 5)` (`:223`).
+- `data.commission + data.driverEarnings == data.fare + data.tip` (`:225`) y `data.driverEarnings <= data.fare + data.tip` (`:224`).
+
+**Pasos**
+1. Abre la consola de Firebase, Firestore Database, pestaña **Reglas**, y compara la función `validTrip()` publicada con el texto de arriba. Si la publicada no tiene `'tip'` y `'rating'` en `hasAll` y `hasOnly`, es la versión anterior.
+2. Si difiere (o no estás seguro), borra todo el editor y pega el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), no solo la función.
+3. Pulsa **Publicar** y espera la confirmación de la consola.
+4. Reinicia la app (ciérrala del todo y ábrela).
+5. Completa un viaje simulado con propina (por ejemplo 2.000) y calificación (por ejemplo 4 estrellas), sin cancelar.
+6. En la consola, Firestore Database, Datos: abre `drivers/{uid}/trips`, el documento más reciente.
+7. Anota fecha y resultado en `docs/progress.md` o en tu mensaje.
+
+**Qué debes ver**
+- Éxito: el documento existe con `tip` (número entero, p. ej. 2000), `rating` (entero 1 a 5), `fare`, `commission` y `driverEarnings` con `commission + driverEarnings = fare + tip`, y la app muestra el resumen sin error de permiso.
+- Fallo: el viaje no se guarda y la app muestra un error de guardado; en el registro del dispositivo aparece `permission-denied`. Significa que la regla publicada es la anterior o que el paso 2 se pegó incompleto: repite los pasos 1 a 4.
+
 ## Geocodificación (Nominatim) (D-125, prompt #61)
 
 La app convierte las coordenadas de las solicitudes simuladas en una dirección legible con la geocodificación inversa de Nominatim (OpenStreetMap), un servicio público y sin clave.
@@ -322,6 +344,11 @@ La app convierte las coordenadas de las solicitudes simuladas en una dirección 
 - **Sin conexión o con error:** nunca bloquea el flujo; la tarjeta cae a «Calle cercana (simulada)».
 - **Qué se guarda:** solo el texto corto de la dirección en `originLabel` y `destinationLabel` (límite de 200 caracteres de las reglas, el texto no pasa de 120). El historial y el detalle leen lo guardado y no llaman al servicio. Las reglas de Firestore no cambian.
 - **Pendiente de producción:** el servicio público no es para uso comercial ni intensivo; en producción se cambiaría por un proveedor propio o de pago, desde el backend si requiere clave.
+
+## Consulta de Ganancias por rango (spec 004, RC-04, T-202/T-203, D-170)
+La consulta de Ganancias usa `orderBy('finishedAt')` y rango sobre `finishedAt` en `drivers/{uid}/trips`: un solo campo, índice automático. NO requiere índice compuesto ni cambios en las reglas; no hay pasos manuales.
+- Lectura única por rango (`fetchTripsInRange`): de lunes o día 1 (el que caiga antes) hasta ahora, en páginas de 500 con `startAfter` y tope duro de 5000 documentos. La regla `read` de `trips` ya exige sesión del dueño; no cambia.
+- Si Firestore respondiera con un error de índice (`failed-precondition`), el mensaje trae un enlace para crearlo; sería un fallo inesperado y Anderson debería avisar en vez de crearlo a ciegas. Estado: **No verificado en dispositivo** (CA-004-12).
 
 ## Prueba contra el código real
 Un script temporal fuera del proyecto replica estas reglas cláusula por cláusula en JavaScript y las prueba con los payloads reales de `buildTripRecord`, `buildDocumentsPayload` y el registro. **No es el emulador de Firebase** (no hay Java ni emulador instalados): es una réplica, y la prueba definitiva es la repetición en el celular tras publicar. Resultado y alcance en `docs/progress.md` (T-73).

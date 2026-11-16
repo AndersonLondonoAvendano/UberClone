@@ -9,6 +9,9 @@ export const OSRM_BASE_URL = 'https://router.project-osrm.org';
 // Maximum wait for one OSRM request before it is aborted and treated as a failure.
 export const ROUTE_TIMEOUT_MS = 8000;
 
+// Maximum wait for the distance/duration of a trip request before the estimate is used (RC-01, RC-02).
+export const ROUTE_METRICS_TIMEOUT_MS = 2500;
+
 // Number of points of the straight-line last-resort route (both ends included).
 export const STRAIGHT_LINE_POINTS = 20;
 

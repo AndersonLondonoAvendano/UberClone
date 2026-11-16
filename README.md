@@ -88,7 +88,8 @@ npx expo start -c
 4. **Dos cuentas A y B:** cierra sesión y entra con la otra; no debe verse nada de la primera (Perfil, Ganancias, Historial).
 5. **Pruebas automáticas** (Node plano, sin instalar nada más):
 ```powershell
-node --import ./scripts/tests/helpers/registerSrcLoader.mjs scripts/tests/fare.test.mjs
+npm test   # toda la suite (Windows y POSIX)
+node --import ./scripts/tests/helpers/registerSrcLoader.mjs scripts/tests/fare.test.mjs   # un solo archivo
 node scripts/check-constitution.mjs
 ```
 Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, ganancias, historial, cobro, propina y calificación, geocodificación, etc.); se ejecutan igual con el cargador `registerSrcLoader.mjs`.
@@ -109,7 +110,7 @@ Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, gana
 4. Cierra la app por completo y espera el aviso.
 5. Toca la notificación: se abre la solicitud con el temporizador de 15 s; si pasó su validez, dice «La solicitud expiró».
 
-**Nota importante: dev client frente a release.** Con el development build (dev client), tocar la notificación con la app cerrada NO entrega la solicitud: el lanzador de desarrollo relanza la actividad sin los datos de la notificación (límite del modo desarrollo, no fallo del código). En la build **release** sí funciona. El APK release incrusta `EXPO_PUBLIC_BACKEND_URL` al compilarse (su valor no va en el repositorio), así que debe compilarse con el túnel vigente. Para probar o grabar el arranque en frío usa la build release.
+**Nota importante: dev client frente a release.** Con el development build (dev client), tocar la notificación con la app cerrada NO entrega la solicitud: el lanzador de desarrollo relanza la actividad sin los datos de la notificación (límite del modo desarrollo, no fallo del código). En la build **release** sí funciona. El APK release incrusta `EXPO_PUBLIC_BACKEND_URL` al compilarse (su valor no va en el repositorio), así que debe compilarse con el túnel vigente. Para probar o grabar el arranque en frío usa la build release. Con la app en primer plano o en segundo plano, tocar la notificación abre la solicitud a pantalla completa desde cualquier pantalla del menú (D-149); al rechazar o vencer vuelve a la pantalla donde estabas. **No verificado en dispositivo.**
 
 **Límites.** La app no publica ubicación ni disponibilidad en segundo plano (el conductor decide al abrir la solicitud) y el disparo real de la solicitud está simulado: sale del endpoint de prueba, no de un pasajero real. Más en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).
 

@@ -105,3 +105,24 @@ export function parsePushRequest(data, { now }) {
   if (!request) return { ok: false, reason: PARSE_REASON.INVALID };
   return { ok: true, request, targetUid: intent.targetUid };
 }
+
+// RC-01/RC-02: a push request carries the server template's distance and duration. Before it is offered,
+// replace them with the real route's (one call through the shared resolver, `resolver.resolve`). If the
+// resolver cannot give them, the message values stay and the copy carries `estimated: true` (internal).
+// Returns a Promise of a copy; never rejects. The fare is not computed here: the card runs calculateFare.
+export async function refineRequestMetrics(request, resolver) {
+  if (!request || !request.origin || !request.destination || !resolver || typeof resolver.resolve !== 'function') {
+    return request;
+  }
+  const fallback = { distanceKm: request.distanceKm, durationMin: request.durationMin };
+  let metrics;
+  try {
+    metrics = await resolver.resolve(request.origin, request.destination, fallback);
+  } catch {
+    metrics = { ...fallback, estimated: true };
+  }
+  const { estimated: previousEstimate, ...rest } = request;
+  const refined = { ...rest, distanceKm: metrics.distanceKm, durationMin: metrics.durationMin };
+  if (metrics.estimated) refined.estimated = true;
+  return refined;
+}

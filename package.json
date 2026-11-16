@@ -34,7 +34,8 @@
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "test": "node --test --import ./scripts/tests/helpers/registerSrcLoader.mjs \"scripts/tests/*.test.mjs\""
   },
   "private": true
 }

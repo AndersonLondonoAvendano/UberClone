@@ -6,6 +6,9 @@
 //   the driver's position (given by getDriverPosition). Without a position yet, the tick is skipped.
 // - A request expires after MOCK_REQUEST_TTL_MS; after it expires or is rejected the next one is
 //   scheduled. After an accept nothing is emitted until the trip is completed or cancelled.
+// - RC-01/RC-02: before a request is shown, its distance and duration come from ONE OSRM call (timeout and
+//   cache live in routeMetrics.js). If OSRM fails the straight-line estimate is used and the request
+//   carries `estimated: true` (internal only). The turn is reserved while waiting.
 // - Time, timers and randomness are injectable (createMockPassengerApi) so a script can test it.
 
 import {
@@ -21,6 +24,7 @@ import {
   MOCK_REQUEST_TTL_MS,
   MOCK_ROUTE_FACTOR,
 } from '../../config/passengerApi';
+import { getRouteMetrics } from '../routing/routeMetrics';
 import { haversineDistanceM } from '../routing/straightLine';
 import {
   NEXT_TRIP_STATUS,
@@ -75,10 +79,13 @@ export function createMockPassengerApi({
   random = Math.random,
   log = defaultLog,
   alreadyTakenProbability = MOCK_ALREADY_TAKEN_PROBABILITY,
+  // (origin, destination, fallback) => Promise<{ distanceKm, durationMin, estimated }>; never rejects.
+  resolveMetrics = (origin, destination, fallback) => getRouteMetrics().resolve(origin, destination, fallback),
 } = {}) {
   let subscriber = null; // { onRequest, onError, getDriverPosition }
   let emitTimer = null;
   let pending = null; // { request, expiryTimer }
+  let reserved = false; // a request is waiting for its OSRM metrics
   let activeTripId = null;
   let sequence = 0;
   const trips = new Map();
@@ -95,9 +102,8 @@ export function createMockPassengerApi({
     return { lat: round(point.lat + dLat, 6), lng: round(point.lng + dLng, 6) };
   }
 
-  function buildRequest(driverPosition) {
-    const createdAt = now();
-    sequence += 1;
+  // Everything random about a request; distance, duration, id and times are set once the metrics arrive.
+  function buildDraft(driverPosition) {
     const pickup = offset(driverPosition, between(MOCK_PICKUP_MIN_KM, MOCK_PICKUP_MAX_KM));
     const dropoff = offset(pickup, between(MOCK_DESTINATION_MIN_KM, MOCK_DESTINATION_MAX_KM));
     const straightKm = haversineDistanceM([pickup.lng, pickup.lat], [dropoff.lng, dropoff.lat]) / 1000;
@@ -105,19 +111,33 @@ export function createMockPassengerApi({
     // D-124: the passenger's tip and rating of the driver; the app only shows them once the trip is completed.
     const { tip, rating } = generateFeedback(random);
     return {
-      id: `mock-${createdAt}-${sequence}`,
       passenger: { name: pick(PASSENGER_NAMES), rating: round(between(4, 5), 1) },
       origin: { ...pickup, address: MOCK_ADDRESS },
       destination: { ...dropoff, address: MOCK_ADDRESS },
-      distanceKm,
-      durationMin: Math.max(1, Math.round((distanceKm / MOCK_AVERAGE_SPEED_KMH) * 60)),
+      fallback: {
+        distanceKm,
+        durationMin: Math.max(1, Math.round((distanceKm / MOCK_AVERAGE_SPEED_KMH) * 60)),
+      },
       category: pick(TRIP_CATEGORIES),
       paymentMethod: pick(PAYMENT_METHODS),
       tip,
       rating,
+    };
+  }
+
+  function finishRequest({ fallback, ...draft }, metrics) {
+    const createdAt = now();
+    sequence += 1;
+    const request = {
+      id: `mock-${createdAt}-${sequence}`,
+      ...draft,
+      distanceKm: metrics.distanceKm,
+      durationMin: metrics.durationMin,
       createdAt,
       expiresAt: createdAt + MOCK_REQUEST_TTL_MS,
     };
+    if (metrics.estimated) request.estimated = true;
+    return request;
   }
 
   function clearEmitTimer() {
@@ -132,26 +152,40 @@ export function createMockPassengerApi({
 
   function scheduleNext() {
     clearEmitTimer();
-    if (!subscriber || pending || activeTripId) return;
+    if (!subscriber || pending || activeTripId || reserved) return;
     emitTimer = setTimer(tick, between(MOCK_EMIT_MIN_MS, MOCK_EMIT_MAX_MS));
   }
 
   // Emits a request now if possible; returns one of REQUEST_NOW_RESULT.
   function emit() {
     if (!subscriber) return REQUEST_NOW_RESULT.NOT_SUBSCRIBED;
-    if (pending || activeTripId) return REQUEST_NOW_RESULT.BUSY;
+    if (pending || activeTripId || reserved) return REQUEST_NOW_RESULT.BUSY;
     const position = subscriber.getDriverPosition ? subscriber.getDriverPosition() : null;
     if (!isPosition(position)) return REQUEST_NOW_RESULT.NO_POSITION;
-    const request = buildRequest(position);
-    const expiryTimer = setTimer(() => {
-      if (!pending || pending.request.id !== request.id) return;
-      log('request expired', request.id);
-      pending = null;
-      scheduleNext();
-    }, request.expiresAt - request.createdAt);
-    pending = { request, expiryTimer };
-    log('request emitted', request.id);
-    subscriber.onRequest(request);
+    const owner = subscriber;
+    const draft = buildDraft(position);
+    reserved = true;
+    // The turn stays reserved while the metrics are awaited; a failing injected resolver falls back too.
+    Promise.resolve()
+      .then(() => resolveMetrics(draft.origin, draft.destination, draft.fallback))
+      .catch(() => ({ ...draft.fallback, estimated: true }))
+      .then((metrics) => {
+        reserved = false;
+        if (subscriber !== owner || pending || activeTripId) {
+          scheduleNext(); // unsubscribed (or taken over) while waiting: nothing is emitted
+          return;
+        }
+        const request = finishRequest(draft, metrics);
+        const expiryTimer = setTimer(() => {
+          if (!pending || pending.request.id !== request.id) return;
+          log('request expired', request.id);
+          pending = null;
+          scheduleNext();
+        }, request.expiresAt - request.createdAt);
+        pending = { request, expiryTimer };
+        log('request emitted', request.id, request.estimated ? '(estimated)' : '');
+        owner.onRequest(request);
+      });
     return REQUEST_NOW_RESULT.EMITTED;
   }
 
@@ -169,7 +203,7 @@ export function createMockPassengerApi({
     clearPending();
     if (now() >= request.expiresAt) {
       scheduleNext();
-      throw createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud venció');
+      throw createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud expiró');
     }
     return request;
   }
@@ -276,7 +310,7 @@ export function createMockPassengerApi({
     adoptRequest(request) {
       if (!isValidTripRequest(request)) return ADOPT_RESULT.INVALID;
       if (request.expiresAt <= now()) return ADOPT_RESULT.EXPIRED;
-      if (pending || activeTripId) return ADOPT_RESULT.BUSY;
+      if (pending || activeTripId || reserved) return ADOPT_RESULT.BUSY;
       clearEmitTimer();
       const expiryTimer = setTimer(() => {
         if (!pending || pending.request.id !== request.id) return;
