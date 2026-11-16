@@ -736,3 +736,52 @@ Alternativa: Google Geocoding (descartada: D-82, sin claves de Google); direccio
 Impacto: `src/config/geocoding.js`, `src/services/geocoding/`, `useRequestAddresses`, `useTripRequests`, `TripRequestScreen`, `TripActiveScreen`, `TripSummaryScreen`, `TripContext`. Implementada, pendiente de dispositivo.
 
 Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionalidad-final/spec.md §3.
+
+
+## Decisiones — notificaciones FCM (D-126…D-138)
+
+Origen: `specs/003-notificaciones-fcm/spec.md` §3 e informe `docs/fcm/investigacion.md`. Anderson resolvió D-126…D-136 el 2026-11-16 (prompt #63, Fase 1b). D-137 y D-138 son nuevas y quedan «Propuesta» hasta que Anderson apruebe la spec.
+
+### D-126 — Cliente FCM con RN Firebase y plan B expo-notifications · Aprobada, sujeta al spike (Anderson, 2026-11-16; R-113)
+Decisión: `@react-native-firebase/app` + `messaging` 27.1.1; spike S1 de 3 h máximo como puerta. Pasa a «Vigente» cuando el spike se confirme; si falla, plan B `expo-notifications` detrás de la misma interfaz `src/services/notifications/`. Reemplaza a D-77 y una cláusula de D-52 (declarado en el plan, G2). Compatible con D-24 (archivos de Firebase fuera de Git).
+Alternativa: omitir FCM (descartada: el PDF §7 lo marca obligatorio).
+
+### D-127 — Disparo desde endpoint autenticado del backend · Aprobada, salvo objeción de Anderson (2026-11-16)
+Decisión: el backend envía solo a los dispositivos del llamante, con el middleware `createGuard` existente.
+
+### D-128 — Tokens por dispositivo, solo escritos por backend · Aprobada, salvo objeción de Anderson (2026-11-16; ajustada por D-131)
+Decisión: ningún cliente lee ni escribe tokens; los escribe solo el Admin SDK. Dónde se guardan lo fija D-131 (colección raíz `pushTokens`).
+
+### D-129 — Canal «solicitudes» · Aprobada, salvo objeción de Anderson (2026-11-16)
+Decisión: `messaging_android_notification_channel_id` en `firebase.json`; si S1 no deja importancia alta, añadir `expo-notifications` solo para crear el canal.
+
+### D-130 — «Disponible» en segundo plano · Aprobada con matiz (Anderson, 2026-11-16)
+Decisión: FCM no depende de ubicación ni de `isAvailable`. Matiz: esto aplica al endpoint de **prueba**, porque no es una solicitud real. En un sistema real solo recibiría el aviso un conductor disponible. La app no publica disponibilidad ni ubicación en segundo plano (límite documentado); al tocar el aviso el conductor decide en pantalla.
+Alternativa: poner «Disponible» automáticamente (descartada: solo el conductor decide su disponibilidad).
+
+### D-131 — Titularidad del token con colección raíz `pushTokens` · Aprobada con cambio de diseño (Anderson, 2026-11-16)
+Decisión: sin consultas `collectionGroup` (exigen un índice creado a mano). Colección raíz `pushTokens/{hash}` con `{uid, token, platform, updatedAt}`, id = SHA-256 del token, escrita solo por el backend; el cliente no la lee ni la escribe. Las reglas publicadas la deniegan por defecto: **no hacen falta reglas nuevas ni índices manuales**. Para listar los dispositivos de un uid se usa `where('uid', '==', uid)` sobre `pushTokens` (índice de un solo campo, automático); `drivers/{uid}/fcmTokens` se elimina. Al registrar un token, el backend lo reasigna al uid actual en una **transacción** (se quita del uid anterior).
+Alternativa: `collectionGroup` por `token` (descartada: índice manual).
+
+### D-132 — Copia de `calculateFare` en el backend · RECHAZADA (Anderson, 2026-11-16; R-084, R-067)
+Decisión: el PDF exige UNA sola función `calculateFare`. No se copia al backend ni hay prueba de paridad. El payload y el cuerpo de la notificación NO llevan tarifa: llevan categoría, distancia, duración, coordenadas, `requestId` y `expiresAt`. La app calcula la tarifa al abrir con la función única de `src/utils/fare.js`.
+
+### D-133 — Intención pendiente en la rama MAIN · Aprobada, salvo objeción de Anderson (2026-11-16; se liga al uid, ver hallazgo 2)
+Decisión: intención de navegación en memoria, consumida en la rama MAIN (donde existen los proveedores), no en la raíz. Guarda el uid destino y se descarta si el uid actual no coincide, en `resetSession` y al iniciar sesión otro conductor.
+
+### D-134 — Baja de token en resetSession y clave propia · Aprobada, salvo objeción de Anderson (2026-11-16; corregida por el hallazgo 1)
+Decisión: `notificationsEnabled` y el token local se borran JUNTO con la baja del token, DESPUÉS de la espera de guardados (`waitForTripSaveQueue`) y justo antes de `signOut`, con tope corto de 3 s que nunca bloquea el cierre de sesión; si la espera falla y la sesión continúa, nada de eso cambia. `clearOwnStorage` deja de ser el lugar de esa clave.
+
+### D-135 — Dedupe por requestId · Aprobada, salvo objeción de Anderson (2026-11-16)
+Decisión: conjunto de ids vistos en la compuerta de solicitud pendiente (la compuerta no deduplica por id).
+
+### D-136 — Mantener el temporizador en 30 s · RECHAZADA (Anderson, 2026-11-16)
+Sustituida por D-137.
+
+### D-137 — Temporizador de decisión de 15 s y separación validez/decisión · Aprobada (Anderson, 2026-11-16; Anderson ordenó el diseño el 2026-11-16; R-041; G-06)
+Situación: `MOCK_REQUEST_TTL_MS = 30000` (`src/config/passengerApi.js:17`) y la D-85 (decisiones.md:520, «temporizador (30 s, prompt #43)») contradicen `docs/requisitos.md:25` (RF-11: 15 s, en 0 se rechaza) y el PDF.
+Decisión: el temporizador de decisión pasa a **15 s**, ratificado aquí, y se corrige la cita de D-85. Se separan dos tiempos: (a) **validez de la notificación**: `ttl` y `expiresAt` ≈ 90 s desde el envío; (b) **ventana de decisión**: 15 s que empiezan cuando la solicitud se MUESTRA en pantalla, venga del mock o de la notificación. Si al tocar la notificación ya pasó `expiresAt`, se muestra «La solicitud expiró» sin posibilidad de aceptar.
+Impacto: spec, plan y criterios; en Fase 2 una tarea cambia el origen del conteo (de `expiresAt` de la solicitud a la hora de mostrado).
+
+### D-138 — Dirección no viaja en la notificación · Aprobada (Anderson, 2026-11-16; hallazgo 4; D-125)
+Decisión: la notificación y el payload llevan solo coordenadas; la app resuelve la dirección al abrir con el geocodificador existente (D-125) y su fallback.

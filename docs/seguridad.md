@@ -333,3 +333,10 @@ Un script temporal fuera del proyecto replica estas reglas cláusula por cláusu
 - Configuración pública de cliente (`EXPO_PUBLIC_*`): en `.env` local, ignorado por Git. `.env.example` lleva solo los **nombres** (D-81).
 - El mapa no necesita clave ni variable: MapLibre usa las teselas públicas de OpenFreeMap y las rutas salen del servidor demo público de OSRM. Sus URL son constantes públicas en `src/config/map.js` y `src/config/routing.js` (D-82 Vigente MODIFICADA, prompt #41).
 - Ningún agente de IA lee ni escribe valores de `.env` (CLAUDE.md).
+
+## FCM (propuesta, spec 003; sin reglas nuevas)
+- `pushTokens/{hash}` (colección raíz, D-131; `hash` = SHA-256 del token; campos `uid`, `token`, `platform`, `updatedAt`): acceso denegado a clientes (la regla genérica ya niega lo no listado); la lee y escribe solo el Admin SDK del backend (D-128). Registrar un token lo reasigna al uid actual en una transacción. **No se añade ninguna regla a `firestore.rules`** (sigue fuera de Git, D-24) **ni se crea ningún índice a mano**: se descartó `collectionGroup` y listar los dispositivos de un uid es `where('uid','==',uid)`, índice de un solo campo automático. `drivers/{uid}/fcmTokens` ya no existe.
+- Límite del token: 512 caracteres, coherente con `BODY_LIMIT` ('2kb', `backend/src/config.js:8`).
+- Ni el cuerpo de la notificación ni el payload llevan tarifa (D-132 rechazada) ni direcciones (D-138): solo categoría, distancia, duración, coordenadas, `requestId` y `expiresAt`.
+- Los endpoints de registro, baja y envío de token usan `createGuard` (límite por IP, token, límite por usuario) y envían solo a los dispositivos del llamante (D-127).
+- Nunca se imprime un token completo: solo los primeros 8 caracteres y su longitud, y solo en `__DEV__` (instrucción de Anderson, S1). `google-services.json` y `backend/secrets/` siguen ignorados por Git.

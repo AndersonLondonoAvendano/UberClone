@@ -73,3 +73,10 @@ Estados: **hecho** (implementado y aprobado en lo estático), **parcial**, **omi
 - **Valores aleatorios simulados:** propina y calificación no son repetibles entre ejecuciones; las pruebas fijan el generador.
 - **FCM y selector de idioma:** siguen omitidos (filas 1 y 3).
 - **Reglas de Firestore:** el guardado de un viaje con propina depende de que Anderson publique la regla `validTrip()` actualizada.
+
+## Límites previstos de FCM (spec 003, propuesta; aplican si se aprueba y se implementa)
+- Solo Android; iOS no se entrega (requiere APNs/cuenta de pago).
+- La app no publica disponibilidad ni ubicación en segundo plano (D-130): el aviso llega por FCM y el conductor decide al abrir. El endpoint de prueba avisa sin exigir «Disponible» porque no es una solicitud real; en un sistema real solo recibiría el aviso un conductor disponible.
+- Fabricantes con ahorro de batería agresivo pueden retrasar o matar la entrega (riesgo FR-7).
+- Temporizador: la decisión pasa a 15 s (D-137, cierra G-06) y se cuenta desde que la solicitud se muestra; la notificación vale ≈ 90 s (`ttl`/`expiresAt`). El mock de 30 s deja de ser el tiempo de decisión.
+- `sendEachForMulticast` envía hasta 500 tokens por llamada; la guía de Firebase marca `token` como deprecado a favor de `fid` (riesgo abierto, se confirma en S2).

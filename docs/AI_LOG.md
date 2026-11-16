@@ -2305,3 +2305,351 @@ con propinas, cuenta A→B sin mezcla. Sin recapitular pasos.
 - Archivos y commit: `backend/src/chargeAmount.js`, `backend/src/routes/payments.js`, `backend/src/providers/stripe.js`, `backend/src/providers/mercadopago.js`, `backend/src/mercadopago.js`, `src/services/passengerApi/` (`simulatedFeedback.js`, `mockPassengerApi.js`, `mappers.js`, `contract.js`), `src/services/trip/tripRecord.js`, `tripDetailView.js`, `src/services/geocoding/`, `src/config/geocoding.js`, `src/hooks/useRequestAddresses.js`, `useTripRequests.js`, `src/context/TripContext.js`, `TripDetailScreen.js`, `TripActiveScreen.js`, `TripRequestScreen.js`, `TripSummaryScreen.js`, `src/constants/labels.js`, `src/utils/earnings.js`, pruebas en `scripts/tests/` (`tipFeedback`, `reverseGeocode`, `tripDetailView`), `.env.example`, `README.md`, y docs (`decisiones`, `progress`, `omisiones-y-limites`, `seguridad`, `auditoria-enunciado-2026-11-12`, `diseno/auditoria-propina-direcciones-2026-11-12`). Sin commit; lo hace Anderson.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+### Entrada #62
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM (notificaciones push) — Fase 1: investigación, spec y plan, sin código.
+- Prompt textual:
+````
+PROMPT — FCM (notificaciones push) — FASE 1: investigación, spec y plan (SIN CÓDIGO)
+
+0. ANTES DE TODO: crea la entrada en docs/AI_LOG.md copiando ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Aprendizaje" vacío (lo escribe Anderson). Completa
+   "Archivos y commit" con los archivos que toques; el hash lo pone Anderson.
+
+METODOLOGÍA (SDD, igual que siempre)
+- Roles separados: spec-author escribe la spec; planner escribe el plan y las tareas;
+  un REVISOR distinto contrasta spec y plan contra el código y el PDF. Quien construye
+  no aprueba. Si el revisor rechaza algo, DETENTE y repórtalo.
+- Esta fase NO escribe código ni toca dependencias, app.json, package.json,
+  firestore.rules ni backend. Solo produce documentos. Al terminar, DETENTE y espera la
+  aprobación de Anderson para la Fase 2.
+
+REGLAS DURAS
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs y AI_LOG.
+- Sin commit ni push (Anderson commitea). SHOW_DEV_TOOLS debe seguir en false.
+  firestore.rules sigue fuera de git: cualquier cambio de reglas se deja como texto en
+  docs/seguridad.md para que Anderson lo publique a mano. Sin Alert. Textos visibles
+  en src/constants/labels.js (se tradurá a inglés en un lote futuro).
+- Tokens de diseño, accesibilidad (áreas ≥ 48 dp, accessibilityLabel) y las
+  decisiones D-93…D-125 siguen vigentes salvo lo que esta funcionalidad requiera
+  cambiar, y eso debe quedar explícito en la spec.
+
+CONTEXTO
+El taller (docs/enunciado-taller.pdf, sección 7) marca como OBLIGATORIA a Firebase
+Cloud Messaging (@react-native-firebase/messaging) para "notificar nuevas solicitudes
+con la app en segundo plano". Hoy está omitida (R-113 en
+docs/plan-cierre-entrega-2026-11-16.md, brecha G-04). El pasajero es simulado dentro
+de la app (mockPassengerApi), así que con la app en segundo plano ese código no corre:
+el disparador de la notificación debe vivir en el backend. La app es Expo SDK 57
+(RN 0.86), con build local (npx expo run:android) y carpeta android/ generada e
+ignorada. El backend Express ya usa firebase-admin (backend/src/admin.js). La sesión
+la maneja useSessionReset/resetSession (D-93…D-106), con cambio de cuenta A/B en el
+mismo teléfono.
+
+DECISIONES DE DISEÑO YA TOMADAS (valídalas contra el código y refínalas; si alguna es
+inviable, propón la alternativa con evidencia)
+1. Alcance: SOLO Android. iOS queda fuera (exige cuenta de Apple de pago y APNs);
+   se documenta en omisiones-y-limites.md.
+2. Cliente: preferir @react-native-firebase/app + messaging (es lo que nombra el PDF).
+   TAREA 1 obligatoria: investigar en línea (WebSearch/WebFetch a documentación
+   oficial y repos) la compatibilidad ACTUAL de RN Firebase con Expo SDK 57 y
+   React Native 0.86 (nueva arquitectura, config plugins, versión mínima de
+   firebase-admin, requisitos de google-services.json). Cita 2–3 fuentes. Plan B si
+   hay incompatibilidad: expo-notifications con getDevicePushTokenAsync (token FCM
+   nativo) enviado igual con firebase-admin. Toda la funcionalidad se escribe detrás
+   de una interfaz propia (src/services/notifications/: registrar/dar de baja token,
+   escuchar mensaje en primer plano, escuchar apertura desde notificación, permiso),
+   para cambiar de librería sin tocar pantallas.
+3. Disparador: endpoint nuevo en el backend, autenticado con el ID token de Firebase,
+   que envía una notificación SOLO a los dispositivos registrados del propio uid. El
+   contenido lo arma el servidor con una plantilla fija de solicitud simulada
+   (categoría, distancia, tarifa estimada y requestId, expiresAt); el body del
+   cliente solo puede indicar un retraso acotado (p. ej. 0–60 s). Limitado por
+   usuario (rate limit), sin aceptar tokens ni textos arbitrarios, errores genéricos,
+   log sin secretos. En la app, una sección "Notificaciones" en Configuración con un
+   interruptor y un botón "Enviar solicitud de prueba" (para que la profesora pueda
+   comprobarlo: lo envías, bloqueas el teléfono o sales de la app y llega la
+   notificación).
+4. Tokens: el backend los guarda (admin SDK) en drivers/{uid}/fcmTokens/{id} con
+   token, plataforma y updatedAt, mediante un endpoint autenticado de registro. Así NO
+   se necesitan reglas nuevas para el cliente. Maneja onTokenRefresh, varios
+   dispositivos por conductor y limpieza de tokens inválidos cuando FCM responde
+   registration-token-not-registered.
+5. Sesiones y multicuenta: resetSession agrega un paso "dar de baja el token" (mejor
+   esfuerzo, con timeout corto, sin bloquear el cierre de sesión) y borra el token local,
+   para que las notificaciones de la cuenta A no lleguen a la cuenta B en el mismo
+   teléfono. Al iniciar sesión se registra el token del uid actual. Describe el orden
+   exacto dentro de la secuencia existente sin romper D-93…D-106.
+6. Mensaje FCM: notification + data, prioridad alta en Android, ttl corto
+   (≈ 30–60 s, porque la solicitud vence), canal Android "solicitudes" con
+   importancia alta, título/cuerpo mínimos ("Nueva solicitud de viaje",
+   "Económico · $19.200 · 3,2 km"), sin datos personales innecesarios.
+7. Permiso POST_NOTIFICATIONS (Android 13+): se pide en contexto (al activar el
+   interruptor o al ponerse Disponible por primera vez) con una explicación previa;
+   maneja "denegado" con un enlace a los ajustes del sistema. La preferencia
+   notificationsEnabled se guarda en AsyncStorage (preferencia, no dato sensible; esto
+   además cubre el requisito de AsyncStorage para preferencias).
+8. Comportamiento del cliente: en primer plano, el mensaje entra al mismo flujo de
+   solicitud existente sin duplicar (dedupe por requestId); en segundo plano o cerrada,
+   el toque en la notificación abre la pantalla de solicitud mediante una "intención
+   pendiente" en memoria que consume el gate de Root DESPUÉS de resolver sesión y
+   estado de cuenta (si no hay sesión, no está aprobada o hay un viaje en curso, se
+   ignora de forma segura). Si ya pasó expiresAt, muestra "La solicitud expiró" y no
+   permite aceptar. Respeta el temporizador de 15 s.
+9. Elegibilidad: investiga cómo se publica hoy la disponibilidad al salir de la app
+   (si el seguimiento se detiene y se marca no disponible) y propón la semántica que
+   permita la demostración con la app en segundo plano sin contradecir el PDF; no se
+   implementa ubicación en segundo plano (queda como límite documentado). Para el
+   endpoint de prueba, exige cuenta aprobada.
+10. Seguridad: la service account ya existe en backend/secrets (no se lee); sin
+    llaves nuevas en la app; google-services.json queda en .gitignore y el README debe
+    explicar cómo conseguirlo (consola de Firebase → app Android con el paquete de
+    app.json → descargar). Verifica qué cambia en la política de dependencias
+    (scripts/dependencies.json: pasar a "allowed" las necesarias) y en app.json
+    (plugins y android.googleServicesFile). Esta funcionalidad SÍ está autorizada a
+    tocar app.json y agregar dependencias nativas, pero solo en la Fase 2.
+
+ENTREGABLES DE LA FASE 1 (solo documentos)
+A. Investigación (Tarea 1): conclusión sobre RN Firebase vs expo-notifications con
+   fuentes, versiones exactas recomendadas, riesgos de compatibilidad y criterio de
+   decisión; documento docs/fcm/investigacion.md.
+B. Spec: specs/003-notificaciones-fcm/spec.md (sigue el formato de specs/002):
+   requisitos funcionales y no funcionales numerados, criterios de aceptación CA-nnn
+   verificables, casos límite (token vencido, permiso denegado, cambio de cuenta,
+   solicitud expirada, app cerrada, sin red, varios dispositivos, notificación
+   duplicada, tap con sesión caducada, doble toque), seguridad, accesibilidad, y
+   fuera de alcance (iOS, ubicación en segundo plano, split). Incluye la trazabilidad
+   al PDF (sección 7 y R-113).
+C. Plan: specs/003-notificaciones-fcm/plan.md con tareas T-nnn (continúa la
+   numeración vigente), orden y dependencias, división en rebanadas ejecutables:
+   S1 spike nativo y config (dependencias, app.json, google-services.json, build,
+   obtener y mostrar el token en un log seguro) → S2 backend (endpoints, registro de
+   tokens, envío, rate limit, tests) → S3 cliente (servicio, permiso, canal,
+   registro/baja, primer plano, apertura, intención pendiente) → S4 sesiones y
+   preferencias → S5 UI de Configuración → S6 pruebas, docs y checklist. Para cada
+   rebanada: archivos a tocar, pruebas automáticas (lógica pura con inyección de
+   dependencias: armado del payload, registro de tokens con admin falso, elegibilidad,
+   expiración, dedupe, resolución de la intención de navegación, orden de baja en
+   resetSession, límites del endpoint) y verificación de dispositivo para Anderson.
+   Marca los puntos de parada obligatorios donde Anderson debe recompilar e
+   instalar (npx expo run:android) y probar antes de seguir.
+D. Registro de riesgos y plan B con criterio de activación, y líneas de corte (qué se
+   puede recortar sin dejar de cumplir la sección 7).
+E. Pasos manuales de Anderson, listos para seguir: crear/registrar la app Android en
+   la consola de Firebase con el paquete correcto, descargar google-services.json y
+   dónde ponerlo, confirmar que la API de Cloud Messaging (V1) está habilitada, qué
+   probar al recompilar, y cómo comprobar que llegó la notificación.
+F. Decisiones propuestas D-126… (Propuesta, no Vigente hasta que Anderson apruebe) en
+   docs/decisiones.md, y las dependencias a mover en scripts/dependencies.json
+   descritas (NO modificarlas aún).
+G. Estimación de horas por rebanada y total.
+
+REVISIÓN (revisor distinto)
+Verifica que la spec cubra todo lo que dice el PDF para FCM y R-113, que el plan sea
+coherente con la arquitectura real (nombres de archivos y funciones que existen, p. ej.
+resetSession, gate de Root, backend/src/admin.js, middleware de auth y rate limit),
+que ninguna tarea contradiga D-93…D-125 sin declararlo, y que no haya secretos. Haz
+una muestra de 20 referencias archivo:línea. Corrige lo que no cuadre.
+
+ENTREGA
+Informe corto: conclusión de la investigación (RN Firebase vs plan B), las 5 decisiones
+más importantes que necesitas confirmar, el plan por rebanadas con horas, los pasos
+manuales de Anderson y los riesgos principales. Termina con "ESPERANDO APROBACIÓN DE
+ANDERSON PARA LA FASE 2". Sin recapitular pasos. No escribas código.
+````
+- Resumen de la respuesta (2–3 líneas): Investigación FCM (RN Firebase 27.1.1 con spike S1 y plan B expo-notifications), spec 003 (RF-67…85, RNF-21…25), plan con T-167…T-193 en 6 rebanadas (~23,25 h) y decisiones D-126…D-136 como Propuesta. El revisor distinto RECHAZÓ de forma condicionada (9 hallazgos, 1 mayor: orden de clearOwnStorage vs. espera de guardados); la fase se detuvo sin corregirlos.
+- Usado / modificado / descartado: Usado: investigación, spec y plan. Modificado: referencia D-77/D-52 en plan.md (por el revisor) y párrafo del canal en investigación. Descartado: nada; hallazgos 1–9 del revisor pendientes de decisión.
+- Archivos y commit: docs/fcm/investigacion.md, specs/003-notificaciones-fcm/spec.md, specs/003-notificaciones-fcm/plan.md, docs/backlog.md, docs/requisitos.md, docs/decisiones.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/AI_LOG.md. Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #63
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM — Fase 1b: corregir hallazgos del revisor, ajustar diseño y segunda revisión, sin código.
+- Prompt textual:
+````
+PROMPT — FCM — FASE 1b: corregir hallazgos, ajustar diseño y segunda revisión (SIN CÓDIGO)
+
+0. ANTES DE TODO: crea una entrada NUEVA en docs/AI_LOG.md copiando ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Aprendizaje" vacío. Completa "Archivos y commit" con los
+   archivos que toques; el hash lo pone Anderson.
+
+METODOLOGÍA Y REGLAS (las mismas de la Fase 1)
+- spec-author corrige la spec; planner corrige el plan; un REVISOR DISTINTO del primero
+  y de quien corrige hace la segunda revisión. Quien corrige no aprueba. Si el
+  revisor rechaza, DETENTE y repórtalo.
+- Sigue siendo solo documentos: sin código, sin dependencias, sin app.json, sin
+  package.json, sin firestore.rules, sin backend. No leas .env, backend/.env,
+  backend/secrets/* ni google-services.json. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  Cambios de reglas, si los hubiera, solo como texto en docs/seguridad.md.
+
+DECISIONES DE ANDERSON (D-126…D-136 pasan de "Propuesta" a lo que se indica; actualiza
+docs/decisiones.md con el estado y la justificación de cada una)
+- D-126 (RN Firebase 27.1.1 con plan B expo-notifications, spike S1 de 3 h máx. como
+  puerta): APROBADA, queda "Vigente" al confirmarse el spike; antes, "Aprobada,
+  sujeta al spike".
+- D-130 (FCM no depende de "Disponible"): APROBADA con matiz: aplica al endpoint de
+  prueba porque no es una solicitud real; documenta que en un sistema real solo
+  recibiría un conductor disponible.
+- D-131 (titularidad del token): APROBADA con CAMBIO DE DISEÑO: NO uses consultas de
+  collectionGroup (exigen un índice creado a mano). Usa una colección raíz
+  pushTokens/{hash} con {uid, token, platform, updatedAt}, escrita solo por el backend
+  (el cliente no la lee ni escribe; confirma que las reglas publicadas ya la deniegan
+  por defecto y que NO hacen falta reglas nuevas), y mantiene drivers/{uid}/fcmTokens
+  si el plan lo necesita para listar los dispositivos de un uid, o sustitúyelo por una
+  consulta where(uid) sobre pushTokens. Al registrar un token, el backend lo reasigna
+  al uid actual en una transacción (se quita del uid anterior).
+- D-132 (copiar calculateFare en el backend): RECHAZADA. El PDF exige UNA sola función
+  calculateFare. El payload y el cuerpo de la notificación NO llevan tarifa; llevan
+  categoría, distancia, duración, coordenadas, requestId y expiresAt. La app calcula la
+  tarifa al abrir con la función única. Elimina la copia y la prueba de paridad; cita
+  R-084 y R-067.
+- D-136 (temporizador): RECHAZADA la opción de mantener 30 s. El temporizador de
+  decisión pasa a 15 s (PDF; brecha G-06; corrige la contradicción
+  decisiones.md:520 vs docs/requisitos.md:25 y ratifica con una decisión numerada).
+  Para que funcione con una notificación, separa DOS tiempos: (a) validez de la
+  notificación: ttl y expiresAt ≈ 90 s desde el envío; (b) ventana de decisión: 15 s
+  que empiezan cuando la solicitud se MUESTRA en pantalla, tanto si llega por el mock
+  como por la notificación. Si al tocar la notificación ya pasó expiresAt, muestra
+  "La solicitud expiró". Actualiza spec, plan y criterios de aceptación.
+
+CORRECCIONES A LOS 9 HALLAZGOS DEL REVISOR (corrige spec, plan y docs asociados)
+1. MAYOR: clearOwnStorage (resetSession.js:86) corre antes de la espera de guardados
+   (:90-98). Si esa espera da trip-save-pending, la sesión sigue abierta pero
+   notificationsEnabled ya se borró, y el token sigue activo. Corrección: la preferencia
+   notificationsEnabled y el token local se borran JUNTO con la baja del token, DESPUÉS
+   de la espera de guardados y justo antes de signOut; si la espera falla y la sesión
+   continúa, nada de eso cambia. Añade el criterio de aceptación y la prueba en la
+   tarea correspondiente (T-185).
+2. La intención pendiente de navegación se liga al uid que recibió la notificación
+   (guarda el uid destino); se descarta si el uid actual no coincide, en resetSession y
+   al iniciar sesión otro conductor. Añade criterio y prueba.
+3. Límite del token: 512 caracteres de máximo, coherente con BODY_LIMIT (revisa el
+   valor real y corrígelo en spec y plan; un token FCM mide ≈ 160-170).
+4. DP-60: elimina la dirección fija. La notificación y el payload llevan solo
+   coordenadas; la app resuelve la dirección con el geocodificador existente (D-125)
+   al abrir, con su fallback. Declara que no hay direcciones en el cuerpo de la
+   notificación.
+5. Cita D-24 donde corresponda (G2).
+6. Declara el cambio de firma de createApp y del cableado de backend/src/server.js, y
+   que backend/src/admin.js debe exportar messaging de forma explícita.
+7. Quita la edición condicional de middleware.js: ERRORS.rateLimited ya existe.
+8. Corrige la descripción de sendEachForMulticast (comportamiento real: devuelve un
+   resultado por token, hasta 500 por llamada, y los tokens inválidos se limpian a
+   partir de las respuestas; verifícalo en la documentación del Admin SDK y cita la
+   fuente).
+9. Refuerza la trazabilidad de T-192/T-193 con los RF/CA que verifican.
+
+OTROS AJUSTES
+- Token y permisos: confirma en la spec que la baja de token usa timeout corto y no
+  bloquea el cierre de sesión.
+- Re-estima las horas por rebanada con estos cambios (incluida la tarea del
+  temporizador de 15 s y la ventana de decisión separada de la validez) y actualiza
+  los puntos de parada.
+- Actualiza docs/requisitos.md, docs/omisiones-y-limites.md y docs/seguridad.md solo
+  donde cambie lo dicho. Registra en docs/decisiones.md las decisiones nuevas con
+  número (la del temporizador de 15 s y la separación validez/decisión, y la de
+  pushTokens).
+
+SEGUNDA REVISIÓN (revisor distinto, obligatoria)
+Verifica uno por uno los 9 hallazgos corregidos, que D-132 ya no deje fórmula
+duplicada, que pushTokens no necesite reglas ni índices manuales, que los dos tiempos
+(validez y decisión) sean consistentes en spec, plan y criterios, que no se
+contradiga D-93…D-125 sin declararlo, que la spec siga cubriendo la sección 7 del PDF y
+R-113, y que no haya secretos. Muestra de 20 referencias archivo:línea.
+
+ENTREGA
+Informe corto: veredicto de la segunda revisión, estado de cada uno de los 9 hallazgos
+(corregido / pendiente), las decisiones D-126…D-136 con su estado final, horas por
+rebanada y el total, los pasos manuales de Anderson (M1…M4) y los riesgos que sigan
+abiertos. Termina con "ESPERANDO APROBACIÓN DE ANDERSON PARA LA FASE 2". Sin recapitular
+pasos. No escribas código.
+````
+- Resumen de la respuesta (2–3 líneas): Se corrigieron los 9 hallazgos y se aplicaron D-126…D-136 (D-132 y D-136 rechazadas; nuevas D-137 y D-138) en decisiones, spec, plan, backlog (T-167…T-195), requisitos, seguridad y omisiones. Segunda revisión por un revisor distinto: aprueba con observaciones menores; un defecto medio (T-184/T-185 contra el hallazgo 1) y seis menores se corrigieron después sin nueva revisión.
+- Usado / modificado / descartado: Usado: pushTokens en colección raíz, una sola calculateFare, ventana de decisión 15 s separada de la validez ≈90 s. Descartado: fcmTokens por uid, collectionGroup, copia de calculateFare, temporizador de 30 s, dirección fija en la notificación.
+- Archivos y commit: docs/decisiones.md, docs/requisitos.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/backlog.md, docs/fcm/investigacion.md, docs/AI_LOG.md, specs/003-notificaciones-fcm/spec.md y plan.md. Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #64 — FCM — implementación (rebanadas S1–S6)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM — Fase 2, implementar por rebanadas. Esta entrada recibe S1 y las siguientes.
+- Prompt S1 (textual):
+````
+PROMPT — FCM — FASE 2, REBANADA S1: spike nativo y configuración (T-167…T-170)
+
+0. REGISTRO EN AI_LOG: crea UNA entrada nueva "FCM — implementación (rebanadas S1–S6)" y
+   copia en ella este prompt textual como "Prompt S1". Las rebanadas siguientes se
+   añadirán a esta misma entrada. Deja "Aprendizaje" vacío.
+
+APROBACIONES DE ANDERSON (aplica en docs/decisiones.md)
+- Fase 1b APROBADA. D-126: "Aprobada, sujeta al spike S1". D-130 aprobada con matiz,
+  D-131 aprobada (pushTokens raíz, sin reglas ni índices manuales), D-132 y D-136
+  rechazadas, D-137 y D-138 aprobadas.
+- D-127, D-128, D-129, D-133, D-134, D-135: en tu informe, resume cada una en UNA línea
+  y márcala "Aprobada, salvo objeción de Anderson".
+- Preguntas abiertas de spec §7: resuélvelas tú, documentando cada una con tu
+  recomendación: targetUid va en el payload; con D-137 la validez de 30 s del mock ya
+  no aplica; numeración T-194/T-195, DP-62 y el código exacto de token no registrado
+  (verifícalo en la documentación del Admin SDK).
+
+METODOLOGÍA Y REGLAS
+- implementer implementa; verifier DISTINTO verifica; quien implementa no aprueba. Si el
+  verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json
+  (el plugin de config lo lee durante el build, no tú). Cero secretos en chat, código
+  o docs. Sin commit ni push. SHOW_DEV_TOOLS=false. firestore.rules fuera de git. Sin
+  Alert. Esta rebanada SÍ está autorizada a tocar app.json, package.json y
+  scripts/dependencies.json, solo en lo que el plan §S1 indique.
+- No puedes compilar Android en tu entorno: NO intentes ejecutar el build. Anderson lo
+  hace en su máquina (STOP-1).
+
+ALCANCE: SOLO S1 (T-167…T-170 del plan), nada de S2 en adelante.
+1. Instala/declara las dependencias exactas que decidió la investigación
+   (@react-native-firebase/app y @react-native-firebase/messaging 27.1.1, y cualquiera
+   que el plan exija, como expo-build-properties). Actualiza
+   scripts/dependencies.json (de "proposed" a "allowed") y package-lock.
+2. app.json: plugins de RN Firebase, android.googleServicesFile apuntando al archivo
+   de la raíz, y lo mínimo que exija el plan. Documenta cada cambio.
+3. Verifica que google-services.json está ignorado (.gitignore:46) y que la ruta del
+   plugin coincide.
+4. Crea la capa mínima del spike dentro de src/services/notifications/ (interfaz y
+   adaptador) que pueda: pedir el permiso en Android 13+, obtener el token FCM y
+   registrar el listener de actualización. El token NUNCA se imprime completo: solo los
+   primeros 8 caracteres y su longitud, y solo en __DEV__. Nada de UI nueva todavía.
+5. Pruebas automáticas de lo puro (adaptador con dependencias inyectadas). Sin romper
+   las pruebas existentes; check-constitution sin empeorar la línea base; expo-doctor
+   sin errores nuevos.
+6. Checklist para Anderson (STOP-1), con comandos para PowerShell: cómo reconstruir
+   (npx expo prebuild --clean si hace falta o npx expo run:android), qué ver en el log
+   (adb logcat filtrado), qué señales confirman que S1 pasó y qué señales activan el
+   PLAN B (expo-notifications con getDevicePushTokenAsync) con su criterio de
+   activación del plan.
+7. Si algo exige tocar fuera del alcance de S1, repórtalo en vez de hacerlo.
+
+VERIFICACIÓN (verifier distinto)
+Cambios limitados a lo autorizado, dependencias solo las aprobadas, sin secretos, el
+token no se imprime completo, pruebas y constitución sin regresión, app.json válido
+(npx expo config), y trazabilidad a T-167…T-170 y a los CA de la spec.
+
+ENTREGA
+Informe corto: qué cambió, versiones instaladas, los hallazgos del verifier, las
+decisiones D-127…D-129/D-133…D-135 en una línea cada una, cómo resolviste las preguntas
+abiertas, y el checklist STOP-1 para Anderson. Termina con "ESPERANDO RESULTADO DE
+ANDERSON EN STOP-1". No avances a S2.
+````
+- Resumen de la respuesta (2–3 líneas): S1 implementada (T-167, T-168) y validada parcial por un verifier distinto: RN Firebase 27.1.1 exacta, plugins y googleServicesFile en app.json, firebase.json con canal «solicitudes», capa src/services/notifications con adaptador inyectable, handler en segundo plano y sonda solo en __DEV__; 14 pruebas nuevas. Pendiente STOP-1 (T-169) en el celular.
+- Usado / modificado / descartado: usado: API modular de RN Firebase 27 (los .d.ts no exponen messaging()); modificado: maskToken pasa de «últimos 6» a «primeros 8 + longitud» (docs alineadas); descartado: expo-build-properties y expo-notifications (no requeridos; plan B solo si falla STOP-1). Incidente del implementer: un git stash pop restauró 5 archivos sin seguimiento de un stash antiguo y los borró; stash@{0} intacto.
+- Archivos y commit: scripts/dependencies.json, package.json, package-lock.json, app.json, firebase.json, index.js, App.js, src/services/notifications/**, scripts/tests/notification*.test.mjs, docs (decisiones, backlog, seguridad, spec §7, investigacion, progress). Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):

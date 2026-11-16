@@ -24,11 +24,11 @@
     "expo-location",
     "@expo/vector-icons",
     "expo-font",
-    "@expo-google-fonts/inter"
+    "@expo-google-fonts/inter",
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging"
   ],
   "proposed": [
-    "@react-native-firebase/app",
-    "@react-native-firebase/messaging",
     "@react-native-firebase/firestore",
     "@react-native-community/geolocation",
     "react-native-webview",

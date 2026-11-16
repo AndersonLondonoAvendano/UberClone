@@ -2569,6 +2569,443 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: Pendiente
 - Estado: Pendiente (necesita capturas del celular; el design-auditor no corrió). Diseño: Pendiente
 
+## Spec 003 — Notificaciones push FCM (plan: `specs/003-notificaciones-fcm/plan.md`; regenerado 2026-11-16 tras la revisión 1b de la spec; la spec sigue «Borrador» y D-126, D-127…D-129, D-133…D-135, D-137 y D-138 «Propuesta»: ninguna tarea se ejecuta antes de las compuertas G1 a G4 del plan §0; la numeración sigue a T-166; T-194 y T-195 llevan los números finales para no mover T-185, T-190, T-192 y T-193 que la spec cita, pero se ejecutan en S3 justo después de T-177; orden de S3: T-177, T-194, T-195, T-178, T-179, T-180, T-181, T-182, T-183)
+
+### T-167 — S1: dependencias, `app.json`, `firebase.json` y `.gitignore` para FCM
+- Spec: `specs/003-notificaciones-fcm/spec.md` (RNF-25, RNF-21, RF-68, D-126, D-129, CA-003-17, CA-003-02)
+- Requisitos: RNF-25, RNF-21, RF-68
+- Depende de: ninguna (compuertas G1 a G4 del plan §0)
+- Archivos: `scripts/dependencies.json`, `package.json`, `app.json`, `firebase.json` (nuevo), `.gitignore`
+- Hacer: plan §8 sin variaciones. Mover las dos librerías a «allowed» (27.1.1 exacta), instalarlas, añadir plugins en orden y `android.googleServicesFile`, crear `firebase.json` con `messaging_android_notification_channel_id` = `solicitudes` y comprobar que `google-services.json` ya está en `.gitignore` (`:46`; no se edita salvo que falte). No leer `google-services.json`. Comprobar que el `android.package` de `app.json` es el registrado (M1). `npx expo-doctor` y `check-constitution` antes y después.
+- Criterios: CA-003-17 (`google-services.json` fuera de git). «No verificado en dispositivo»: CA-003-02.
+- Hecho cuando: `npm ls` muestra 27.1.1 en ambas, `expo-doctor` sin errores nuevos, la app sigue arrancando en JS (`npx expo start`); el build nativo lo hace Anderson en T-169.
+- Qué debe ver Anderson en el celular: nada todavía (módulo nativo: probar en el celular en T-169). **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson en T-169.
+- Riesgo: medio (config nativa, C15).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-168 — S1: interfaz mínima, adaptador RN Firebase y handler en segundo plano
+- Spec: spec 003 (RF-67, RF-68, D-126, D-129, CA-003-01)
+- Requisitos: RF-67, RF-68
+- Depende de: T-167
+- Archivos: `src/services/notifications/index.js`, `src/services/notifications/constants.js`, `src/services/notifications/safeLog.js`, `src/services/notifications/adapters/rnFirebaseAdapter.js`, `src/services/notifications/spikeProbe.js` (temporal), `index.js`, `App.js`, `scripts/tests/notificationSafeLog.test.mjs`
+- Hacer: DP-59, DP-73. `safeLog.maskToken` (primeros 8 caracteres y longitud; instrucción de Anderson en S1, reemplaza «últimos 6») con su prueba; adaptador con `getToken` y creación del canal si hace falta; `setBackgroundMessageHandler` en `index.js` antes de `registerRootComponent`; `spikeProbe` pide el permiso (`PermissionsAndroid`, Android 13+) y escribe en log solo `maskToken`, invocado únicamente con `__DEV__` desde `App.js`. Ninguna pantalla importa el SDK.
+- Criterios: CA-003-01 (grep). «No verificado en dispositivo»: token y canal.
+- Hecho cuando: la prueba pasa, el grep de CA-003-01 queda limpio, lint y `check-constitution` pasan y el JS arranca; compilación y token se confirman en T-169.
+- Qué debe ver Anderson en el celular: en T-169. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (módulo nativo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-169 — S1: compuerta del spike (STOP-1), RN Firebase o plan B
+- Spec: spec 003 (RF-68, RF-67, D-126, D-129, CA-003-02)
+- Requisitos: RF-68, RF-67
+- Depende de: T-167, T-168
+- Archivos: ninguno (la decisión y la evidencia las registra el verifier en `docs/progress.md`; el planner no lo edita)
+- Hacer: PUNTO DE PARADA 1. Anderson (M2): `npx expo run:android`; la app arranca; comprueba en el log los primeros 8 caracteres y la longitud del token; envía un mensaje de la consola de Firebase con la app en segundo plano. Criterio del plan §10: se mantiene RN Firebase si (a) compila, (b) arranca con el handler, (c) hay token y (d) el mensaje llega como aviso emergente. Si el heads-up falla por canal, DP-72 (añadir `expo-notifications` solo para el canal, con D-129 Vigente) y repetir. Tope de 3 h de spike; si fallan (a), (b) o (c) sin diagnóstico, se activa T-170. Esperar: «Pega aquí el resultado de la prueba en el celular: <resultado>».
+- Criterios: CA-003-02. «No verificado en dispositivo» hasta el resultado de Anderson.
+- Hecho cuando: Anderson reporta el resultado de (a) a (d) y queda registrada la decisión (RN Firebase o plan B).
+- Qué debe ver Anderson en el celular: la app abre; el log muestra 6 caracteres del token; el mensaje de la consola llega con la app en segundo plano y aparece emergente.
+- Validación: Anderson en el celular; verifier distinto para la decisión.
+- Riesgo: alto (puerta del plan).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-170 — S1 (condicional): adaptador de plan B con `expo-notifications`
+- Spec: spec 003 (RF-67, RF-68, D-126, D-129)
+- Requisitos: RF-67, RF-68
+- Depende de: T-169 (solo si la compuerta activa el plan B)
+- Archivos: `src/services/notifications/adapters/expoNotificationsAdapter.js`, `src/services/notifications/index.js`, `scripts/dependencies.json`, `package.json`, `app.json`
+- Hacer: plan §10 (plan B). Mover `expo-notifications` (~57.0.25) a «allowed» con decisión Vigente, `setNotificationChannelAsync` ANTES de `getDevicePushTokenAsync()`, misma interfaz. El mismo `google-services.json`. Quitar los plugins de RN Firebase solo si la compuerta lo exige. Si la compuerta mantiene RN Firebase y no hay fallo de canal, esta tarea se cierra «No aplica».
+- Criterios: CA-003-01. «No verificado en dispositivo».
+- Hecho cuando: el adaptador cumple la interfaz y Anderson confirma token y llegada tras recompilar (repite STOP-1), o la tarea queda «No aplica».
+- Qué debe ver Anderson en el celular: lo mismo que T-169 con el adaptador B. **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Condicional (solo si falla la compuerta de T-169 o el canal)
+
+### T-171 — S2: `messaging` en `admin.js`, `createApp` y `server.js`, y constantes FCM
+- Spec: spec 003 (RF-79, RF-83, RF-85, D-131, CA-003-23, CA-003-27)
+- Requisitos: RF-79, RF-83, RF-85
+- Depende de: ninguna (compuertas G1, G2)
+- Archivos: `backend/src/admin.js`, `backend/src/server.js`, `backend/src/app.js`, `backend/src/config.js`, `scripts/tests/backendMessagingWiring.test.mjs`
+- Hacer: DP-66, DP-67, DP-69. `admin.js` exporta `messaging` junto a `adminAuth` y `db` (hoy `{ adminAuth, db }`, `admin.js:11`); `server.js` lo desestructura (`:25`) y lo pasa a `createApp` (`:40`); `createApp` (`app.js:16`) cambia de firma y recibe `messaging` inyectable (sin registrar rutas todavía). Constantes en `config.js` (junto a `:8-9`): `TEST_REQUEST_RATE_LIMIT` (`{ max: 5, windowMs: 60000 }`), `FCM_TTL_MS` (90000), `FCM_TTL` (`'90s'`), `FCM_CHANNEL_ID` (`solicitudes`), `TEST_REQUEST_MAX_DELAY_S` (60). Sin `messaging` el servidor arranca y `/health` responde. No hay `fare.js` ni `calculateFare` en `backend/src`. No leer `backend/.env` ni `backend/secrets`.
+- Criterios: CA-003-23 (parte del cableado), CA-003-27 (constantes 90 s).
+- Hecho cuando: la prueba pasa (con y sin `messaging` inyectado, `/health` responde, `admin.js` exporta `messaging`), las pruebas de pagos siguen pasando, el backend arranca igual y `check-constitution` pasa.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-172 — S2: plantilla y mensaje FCM (puro)
+- Spec: spec 003 (RF-82, RF-83, D-137, D-138, CA-003-13, CA-003-14, CA-003-27)
+- Requisitos: RF-82, RF-83
+- Depende de: T-171
+- Archivos: `backend/src/notifications/payload.js`, `scripts/tests/backendNotificationPayload.test.mjs`
+- Hacer: DP-67. Función pura `buildTestRequest({ now, idFactory, targetUid })` (categoría, distancia, duración, coordenadas de origen y destino, `requestId` único, `targetUid`, `expiresAt = now + 90 s`; SIN tarifa ni direcciones) y `buildMessage(token, request)` con `notification` (título «Nueva solicitud de viaje», cuerpo «Económico · 3,2 km · 9 min»), `data` en texto (`type`, `requestId`, `targetUid`, `expiresAt`, `category`, `distanceKm`, `durationMin`, coordenadas), `android.priority = 'high'`, `android.ttl = '90s'`, `channelId` «solicitudes»; sin datos personales. Pruebas de todos los campos y de la ausencia de tarifa y direcciones; grep de `calculateFare` en `backend/src` (cero).
+- Criterios: CA-003-13, CA-003-14, CA-003-27 (`expiresAt` y `ttl` ≈90 s).
+- Hecho cuando: las pruebas pasan y el mensaje no contiene nombre, correo, teléfono, tarifa ni direcciones.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-173 — S2: `pushTokens` con transacción (registro, baja, listado)
+- Spec: spec 003 (RF-79, RF-80, RF-81, D-128, D-131, CA-003-10, CA-003-22, CA-003-24, CA-003-25)
+- Requisitos: RF-79, RF-80, RF-81
+- Depende de: T-171
+- Archivos: `backend/src/notifications/tokenStore.js`, `scripts/tests/backendTokenStore.test.mjs`
+- Hacer: DP-65. Colección raíz `pushTokens/{sha256(token)}` con `{ uid, token, platform: 'android', updatedAt }`, `db` inyectado. `register(uid, token)` con `db.runTransaction` que reasigna al uid que llama; `unregister(uid, token)` en transacción, borra solo si el uid coincide (inexistente o ajeno: misma respuesta); `listForUid(uid)` con `where('uid','==',uid)`; `removeTokens(tokens)` para la limpieza (usado por T-175). `token` válido: texto no vacío de ≤512 caracteres. Sin `collectionGroup`, sin índices, sin reglas. Pruebas con `db` falso transaccional: dos dispositivos del mismo uid, reasignación A→B (A deja de tenerlo y se usó la transacción), baja idempotente, baja de token ajeno no borra y responde igual que inexistente, token vacío/no texto/513 caracteres rechazado y 512 aceptado; grep de `collectionGroup` y `fcmTokens` (cero).
+- Criterios: CA-003-10, CA-003-22, CA-003-24, CA-003-25.
+- Hecho cuando: las pruebas pasan y `firestore.rules` no se toca.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (atención a no filtrar tokens en logs).
+- Riesgo: medio (datos y titularidad).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-174 — S2: rutas `POST/DELETE /notifications/token`
+- Spec: spec 003 (RF-79, CA-003-11, CA-003-22, CA-003-23)
+- Requisitos: RF-79
+- Depende de: T-171, T-173
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `scripts/tests/backendNotificationsRoutes.test.mjs`
+- Hacer: handlers con el `guard` (como `registerPaymentsRoutes`, `payments.js:108-120`): `uid` solo del token de Firebase, cuerpo `{ token }` validado (texto no vacío de ≤512 caracteres), todo lo demás ignorado, errores genéricos con `ERRORS`. Registrar las rutas en `createApp` (el cableado de `messaging` ya está en T-171); sin `messaging` las rutas de envío responden error genérico. Pruebas: 401 sin cabecera válida, `uid` del cuerpo ignorado, 400 por token inválido (vacío, no texto, 513 caracteres), 200 con 512, 200 idempotente, las rutas usan el `messaging` inyectado.
+- Criterios: CA-003-11, CA-003-22, CA-003-23.
+- Hecho cuando: las pruebas pasan y las rutas de pagos siguen pasando (`backendPayments`, `backendProviders`).
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-175 — S2: `POST /notifications/test-request`, límite propio y limpieza de tokens
+- Spec: spec 003 (RF-81, RF-84, RF-85, RF-82, RF-83, CA-003-12, CA-003-15, CA-003-16, CA-003-24)
+- Requisitos: RF-81, RF-84, RF-85
+- Depende de: T-172, T-173, T-174
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `scripts/tests/backendNotificationsRoutes.test.mjs` (`backend/src/middleware.js` NO se edita)
+- Hacer: DP-67, DP-68, DP-69. Exigir `accountStatus = approved`; `delaySeconds` entero 0 a 60 (otro valor: 400 genérico; el resto del cuerpo se ignora); tokens con `listForUid(uid)` (`where('uid','==',uid)`); envío con `messaging.sendEachForMulticast` inyectable en lotes de ≤500; revisar `resp.success` POR ÍNDICE y borrar solo los tokens del índice con error UNREGISTERED (404; `messaging/registration-token-not-registered`, confirmar con un envío real); otros errores no borran; 202 `{ scheduled: true }`; sin tokens: error genérico «sin dispositivos»; límite propio con el segundo `createRateLimiter` (`TEST_REQUEST_RATE_LIMIT`) y `ERRORS.rateLimited` (`middleware.js:30`) → 429 genérico; registros sin tokens, cuerpos ni correos. Confirmar en S2 la advertencia `token` → `fid` (plan §10 FR-10). Pruebas con mensajería y reloj falsos: solo tokens del uid, 501 tokens → 2 lotes (500 + 1), fallo en un índice borra solo ese token, límite 429, grep de logs y de `collectionGroup` (cero), `git diff` de `middleware.js` vacío.
+- Criterios: CA-003-12, CA-003-15, CA-003-16, CA-003-24.
+- Hecho cuando: las pruebas pasan, el envío va solo a tokens del uid, el grep de logs queda limpio y `middleware.js` no cambió.
+- Qué debe ver Anderson en el celular: nada todavía (el envío real es STOP-2). **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: alto (envío y límite).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-176 — S2: verificación estática del backend
+- Spec: spec 003 (RF-79 a RF-85, RNF-21, CA-003-10 a CA-003-16, CA-003-22 a CA-003-25)
+- Requisitos: RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85
+- Depende de: T-175
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`)
+- Hacer: un `verifier` distinto ejecuta toda la suite de `scripts/tests`, `check-constitution`, `expo-doctor` y revisa `git diff`: sin cambios en `firestore.rules` ni `middleware.js`, sin `.env` ni `secrets`, sin token ni cuerpo en logs, rutas de pagos intactas; grep: `collectionGroup`, `fcmTokens`, `fcmTokenOwners` y `calculateFare` ausentes de `backend/src`.
+- Criterios: CA-003-10 a CA-003-16, CA-003-22 a CA-003-25.
+- Hecho cuando: todo pasa y se informa lo pendiente de dispositivo.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-177 — S3: dedupe por `requestId` en la compuerta
+- Spec: spec 003 (RF-75, D-135, CA-003-08)
+- Requisitos: RF-75, RNF-24
+- Depende de: T-169
+- Archivos: `src/services/trip/pendingRequest.js` (`createPendingRequestGate`), `scripts/tests/pendingRequestDedupe.test.mjs`
+- Hacer: DP-63. Conjunto acotado (50) de ids vistos; `offer` devuelve `OFFER_RESULT.DUPLICATE` para un id visto aunque esté liberado o vencido; el comportamiento previo del resto de resultados no cambia. Pruebas: mismo id dos veces, id liberado y re-ofrecido, id vencido, expulsión del más antiguo al pasar de 50, compatibilidad con los resultados existentes.
+- Criterios: CA-003-08.
+- Hecho cuando: las pruebas pasan y el mock (ids únicos) sigue ofreciendo solicitudes.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-178 — S3: lógica pura (payload a solicitud, elegibilidad, expiración, intención con uid)
+- Spec: spec 003 (RF-76, RF-77, RF-78, D-130, D-133, D-137, CA-003-09, CA-003-19, CA-003-20, CA-003-30)
+- Requisitos: RF-76, RF-77, RF-78, RNF-24
+- Depende de: T-177, T-194
+- Archivos: `src/services/notifications/pushRequest.js`, `src/services/notifications/eligibility.js`, `src/services/notifications/pendingIntent.js`, `scripts/tests/pushRequest.test.mjs`, `scripts/tests/notificationEligibility.test.mjs`, `scripts/tests/pendingIntent.test.mjs`
+- Hacer: DP-60, DP-64, DP-77. `parse` convierte el `data` de la notificación en una solicitud que pasa `isValidTripRequest` (`contract.js:91`), con `MOCK_ADDRESS` y las coordenadas del payload, y la tarifa calculada con `calculateFare` al abrir (no viaja en el mensaje), o devuelve un motivo; `canOfferNow`/`resolveIntent` (`open` con tiempo restante según `expiresAt` ≈90 s, `expired`, `ignore` sin sesión, cuenta no aprobada, con viaje en curso o `targetUid` distinto de la sesión); `pendingIntent` con `set(intent)`, `take(currentUid)` (solo entrega si `targetUid` coincide con la sesión y limpia siempre) y `reset()`, y `requestId` ya consumido ignorado. Pruebas de todos los casos límite de la spec §5, de doble toque, de intención de otra cuenta y de tarifa recalculada.
+- Criterios: CA-003-09, CA-003-19, CA-003-20, CA-003-30.
+- Hecho cuando: las pruebas pasan sin React ni SDK.
+- Qué debe ver Anderson en el celular: nada. Apertura real: **No verificado en dispositivo** (T-183).
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-179 — S3: adopción de solicitudes de push en el adaptador mock y el puerto
+- Spec: spec 003 (RF-78, D-130)
+- Requisitos: RF-78
+- Depende de: T-178
+- Archivos: `src/services/passengerApi/mockPassengerApi.js`, `src/services/passengerApi/index.js`, `src/services/passengerApi/httpPassengerApi.js`, `scripts/tests/mockAdoptRequest.test.mjs`
+- Hacer: DP-61. `adoptRequest(request)` fija la solicitud como pendiente con su expiración (`mockPassengerApi.js:155-166` queda sin cambios; `MOCK_REQUEST_TTL_MS = 30000` se conserva como validez del mock); `adoptPushRequest` en el puerto; `not_supported` en HTTP. Pruebas: aceptar una solicitud adoptada, rechazarla, que venza, adoptar mientras hay otra pendiente (rechazo `busy`).
+- Criterios: RF-78 (aceptar desde push).
+- Hecho cuando: las pruebas pasan y el flujo del mock existente no cambia.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-180 — S3: servicio de notificaciones completo (interfaz, adaptador RN Firebase, falso, permiso)
+- Spec: spec 003 (RF-67, RF-68, RF-69, RF-70, CA-003-01, CA-003-03)
+- Requisitos: RF-67, RF-69, RF-70
+- Depende de: T-169, T-168, T-178 (y T-170 si se activó el plan B); `onNotificationOpened` y `getInitialNotification` llenan `pendingIntent.set` con `targetUid` (T-178)
+- Archivos: `src/services/notifications/index.js`, `src/services/notifications/adapters/rnFirebaseAdapter.js`, `src/services/notifications/adapters/fakeAdapter.js`, `src/services/notifications/permissionState.js`, `index.js`, `App.js`, `scripts/tests/notificationPermissionState.test.mjs`
+- Hacer: DP-59. Completar `getPermissionState`, `requestPermission` (`PermissionsAndroid`, Android 13+; en ≤12 `not_required`), `registerToken`, `unregisterToken`, `onForegroundMessage`, `onNotificationOpened` (con `getInitialNotification`, que llena `pendingIntent`), `onTokenRefresh`; quitar `spikeProbe`; adaptador falso programable para pruebas; lógica de estados en `permissionState.js` con pruebas. Grep de CA-003-01.
+- Criterios: CA-003-01, CA-003-03 (lógica). «No verificado en dispositivo»: diálogo del sistema y apertura.
+- Hecho cuando: pruebas, lint y `check-constitution` pasan, el grep queda limpio y la app arranca.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (módulo nativo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-181 — S3: cliente del backend de notificaciones
+- Spec: spec 003 (RF-72, RF-81, CA-003-05)
+- Requisitos: RF-72, RF-81
+- Depende de: T-180, T-175
+- Archivos: `src/services/notifications/notificationsApi.js`, `scripts/tests/notificationsApi.test.mjs`
+- Hacer: DP-70. `registerToken(token)`, `unregisterToken(token)`, `requestTestNotification({ delaySeconds })` como `src/services/trip/paymentsClient.js` (ID token de Firebase, URL de `src/config/backend.js`), sin enviar `uid` ni registrar cuerpos o tokens; errores traducidos a códigos (`offline`, `rate-limited`, `no-devices`, `server`). Pruebas con `fetch` falso.
+- Criterios: CA-003-05 (parte del cliente).
+- Hecho cuando: las pruebas pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-182 — S3: entrada de solicitudes de push al contexto y a Inicio (D-130)
+- Spec: spec 003 (RF-75, RF-78, D-130, D-135)
+- Requisitos: RF-75, RF-78
+- Depende de: T-177, T-178, T-179
+- Archivos: `src/hooks/useTripRequests.js`, `src/context/AvailabilityContext.js`, `src/screens/home/HomeScreen.js`
+- Hacer: DP-62. `offerPushRequest(request)` valida con `isValidTripRequest`, aplica `adoptPushRequest`, ofrece por la compuerta (`DUPLICATE` y `busy` se ignoran) y marca `pushOffered`; el efecto de `HomeScreen.js:92-104` pasa a `(isAvailable || pushOffered)` sin cambiar el camino del mock; `pushOffered` se limpia al liberar la solicitud. No se llama `setAvailable(true)` (aceptar equivale a confirmar «Disponible», DP-62). `offerPushRequest` llama a `resolveRequestAddresses` (`useTripRequests.js:43-44`, D-125) con las coordenadas de la solicitud, con su fallback; el servicio no cambia. Revisión del verifier de que la tarjeta del mock sigue abriendo igual.
+- Criterios: CA-003-08 (integración), RF-78. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y el camino del mock no cambia.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A (sin elementos visuales nuevos; el aviso de expirada es T-183).
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-183 — S3: puente de notificaciones en la rama MAIN y aviso «La solicitud expiró»
+- Spec: spec 003 (RF-75, RF-76, RF-77, D-133, D-137, CA-003-09, CA-003-19, CA-003-20, CA-003-30, CA-003-D1)
+- Requisitos: RF-75, RF-76, RF-77
+- Depende de: T-180, T-181, T-182
+- Archivos: `src/navigation/NotificationsBridge.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`
+- Hacer: DP-64, DP-77. El puente (hijo del `AvailabilityProvider`, `MainDrawer.js:93-97`) escucha `onForegroundMessage` y entrega a `offerPushRequest`; consume `pendingIntent.take(currentUid)` UNA vez cuando hay sesión, cuenta aprobada y sin viaje (una intención de otro uid se descarta); abre la solicitud con la tarifa y la dirección calculadas al abrir (DP-77) y con la ventana de 15 s contada desde que se muestra (T-194/T-195), sin pasar de `expiresAt`; si venció (≈90 s) muestra «La solicitud expiró» en Inicio (clave de `labels.js`, región `polite`, sin `Alert`, sin aceptar). Probar en el celular con el mensaje de la consola o el endpoint: primer plano, segundo plano, cerrada.
+- Criterios: CA-003-09, CA-003-19, CA-003-20, CA-003-30. «No verificado en dispositivo».
+- Hecho cuando: lint, suite y `check-constitution` pasan y la app arranca; la apertura real queda para STOP-2.
+- Qué debe ver Anderson en el celular: con la app en segundo plano, tocar el aviso abre la solicitud con tiempo restante; con una solicitud vencida, «La solicitud expiró». **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson en el celular.
+- Riesgo: alto (navegación y sesión).
+- Diseño hecho cuando: el aviso «La solicitud expiró» usa tokens, `labels.js`, región `polite` y sin `Alert` (lo cubre T-189).
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-184 — S4: preferencia `notificationsEnabled` y `clearOwnStorage` real
+- Spec: spec 003 (RF-71, RF-74, D-134, CA-003-04)
+- Requisitos: RF-71, RF-74
+- Depende de: T-180
+- Archivos: `src/services/notifications/preference.js`, `src/services/session/buildSessionResetDeps.js`, `scripts/tests/notificationPreference.test.mjs`
+- Hacer: DP-59. `get/set/clear` con AsyncStorage inyectable (`notificationsEnabled`, por defecto apagado). SOLO la preferencia: `clearOwnStorage` NO cambia (sigue siendo no-op, y corre antes de la espera de guardados, por eso no puede borrar nada de notificaciones; el borrado de `notificationsEnabled` lo hace T-185, después de la espera y antes de `signOut`, D-134). Pruebas: persistencia, valor por defecto, almacenamiento que falla.
+- Criterios: CA-003-04 (lógica). «No verificado en dispositivo»: reinicio de la app.
+- Hecho cuando: pruebas pasan y `buildSessionResetDeps.js` queda sin cambios en esta tarea.
+- Qué debe ver Anderson en el celular: el interruptor sigue activo tras reiniciar (T-187). **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-185 — S4: paso de baja del token en `resetSession`
+- Spec: spec 003 (RF-73, RF-74, D-133, D-134, CA-003-06, CA-003-07, CA-003-19, CA-003-20)
+- Requisitos: RF-73, RF-74, RNF-24
+- Depende de: T-181, T-184
+- Archivos: `src/services/session/resetSession.js`, `src/services/session/buildSessionResetDeps.js`, `src/context/useSessionReset.js`, `scripts/tests/resetSessionUnregister.test.mjs`
+- Hacer: DP-75. Paso opcional `unregisterNotifications` (baja en el backend + `deleteToken` local + borrado de `notificationsEnabled` + `pendingIntent.reset()`, todo JUNTO) entre `waitForTripSaveQueue` y `signOut` (`resetSession.js:57-111`), con tope de 3 s; su fallo o vencimiento nunca bloquea ni cambia el resultado; con `trip-save-pending` o `trip-in-progress` no se ejecuta; `sign-out-failed` deja la marca para el reintento. Actualizar el comentario de `buildSessionResetDeps.js:8` (`clearOwnStorage` sigue no-op; la preferencia y el token se borran en el paso nuevo, después de la espera de guardados). Pruebas del orden exacto, de que `notificationsEnabled` y el token local NO se borran si la espera da `trip-save-pending` o `trip-in-progress` (la sesión sigue y la preferencia queda intacta), de que se borran antes de `signOut` cuando la espera termina bien, del tope de 3 s con reloj falso y de cada resultado de D-93 a D-106 (`trip-in-progress`, `trip-save-pending`, `sign-out-failed`), y de que la intención pendiente se descarta al cerrar sesión.
+- Criterios: CA-003-06, CA-003-07, CA-003-19, CA-003-20 (parte del reset).
+- Hecho cuando: pruebas pasan, el orden coincide con RF-73 y los resultados existentes no cambian.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: alto (cierre de sesión).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-186 — S4: registro de token al iniciar sesión, en refresh y al apagar (STOP-2)
+- Spec: spec 003 (RF-72, RF-73, CA-003-05, CA-003-07, CA-003-21)
+- Requisitos: RF-72, RF-73
+- Depende de: T-181, T-183, T-184, T-185
+- Archivos: `src/services/notifications/registration.js`, `src/navigation/NotificationsBridge.js`, `src/context/useSessionReset.js`, `scripts/tests/notificationRegistration.test.mjs`
+- Hacer: controlador puro (adaptador y backend inyectados) que registra con sesión + cuenta aprobada + interruptor activo + permiso concedido, vuelve a registrar en `onTokenRefresh`, da de baja al apagar y vuelve a registrar tras `sign-out-failed` (mejor esfuerzo); enlazado en el puente. PUNTO DE PARADA 2: con el backend alcanzable desde el celular, probar de punta a punta (M3). Esperar: «Pega aquí el resultado de la prueba en el celular: <resultado>».
+- Criterios: CA-003-05, CA-003-07. «No verificado en dispositivo» hasta el resultado de Anderson.
+- Hecho cuando: las pruebas pasan y Anderson confirma el aviso de prueba, el toque y el cierre de sesión con otra cuenta en el mismo celular.
+- Qué debe ver Anderson en el celular: el aviso llega al registrar, no llega tras cerrar sesión, llega al volver a entrar.
+- Validación: verifier distinto; Anderson en el celular.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-187 — S5: sección «Notificaciones» en Configuración (interruptor, explicación, estado bloqueado)
+- Spec: spec 003 (RF-69, RF-70, RF-71, RNF-22, RNF-23, CA-003-03, CA-003-04, CA-003-D1 a CA-003-D3)
+- Requisitos: RF-69, RF-70, RF-71, RNF-22, RNF-23
+- Depende de: T-186
+- Archivos: `src/screens/main/SettingsScreen.js`, `src/components/settings/NotificationsSection.js`, `src/constants/labels.js`
+- Hacer: sección con el estilo existente de Configuración; interruptor «Avisos de solicitudes» (`accessibilityRole`, `accessibilityLabel`, `accessibilityState`, ≥48 dp); al activarlo en Android 13+ muestra primero la explicación en pantalla y luego solicita el permiso; denegado: estado «Notificaciones bloqueadas» con texto, icono y botón que abre los ajustes del sistema (`Linking.openSettings`), sin registrar token; textos solo en `labels.js`; tokens de diseño; sin `Alert`; visible con `SHOW_DEV_TOOLS=false`. Probar en el celular.
+- Criterios: CA-003-03, CA-003-04, CA-003-D1, CA-003-D2, CA-003-D3. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, no hay `Alert` ni colores sueltos y el interruptor funciona con el controlador de T-186.
+- Qué debe ver Anderson en el celular: activar → explicación → diálogo del sistema; negar → «Notificaciones bloqueadas» con acceso a ajustes; reiniciar mantiene el interruptor. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor para lo visual.
+- Riesgo: medio.
+- Diseño hecho cuando: ≥48 dp, nombre accesible en interruptor y botones, estado bloqueado con texto además de color, 200 % de texto sin corte, tokens y `labels.js`, sin `Alert`.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-188 — S5: botón «Enviar solicitud de prueba»
+- Spec: spec 003 (RF-71, RF-81, RNF-22, RNF-23, CA-003-D1 a CA-003-D3)
+- Requisitos: RF-71, RNF-22, RNF-23
+- Depende de: T-187, T-175
+- Archivos: `src/components/settings/NotificationsSection.js`, `src/constants/labels.js`
+- Hacer: DP-71. Botón habilitado solo con interruptor activo, permiso concedido y red; llama `requestTestNotification({ delaySeconds: 10 })`; estados ocupado, enviado («Llegará en unos 10 segundos…»), sin red, límite («Espera un momento…»), sin dispositivos; mensajes en línea, una sola región `polite`, ≥48 dp, sin `Alert`. Probar en el celular.
+- Criterios: CA-003-D1, CA-003-D2, CA-003-D3, RF-71. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan y el botón envía y refleja cada estado.
+- Qué debe ver Anderson en el celular: pulsar, pasar la app a segundo plano, ver el aviso en unos 10 s, tocar y abrir la solicitud. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor.
+- Riesgo: medio.
+- Diseño hecho cuando: igual que T-187 para el botón y sus mensajes.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-189 — S5: auditoría de diseño de Notificaciones (STOP-3)
+- Spec: spec 003 (RNF-22, RNF-23, RF-69, RF-70, RF-71, RF-77, CA-003-28, CA-003-29, CA-003-D1 a CA-003-D3)
+- Requisitos: RNF-22, RNF-23, RF-69, RF-70, RF-71, RF-77
+- Depende de: T-183, T-187, T-188, T-195
+- Archivos: `docs/diseno/auditorias/ronda-1-notificaciones.md` (informe, lo escribe el design-auditor)
+- Hacer: el agente principal carga las skills de diseño y llama al `design-auditor` sobre T-183 (aviso «La solicitud expiró»), T-187, T-188 y T-195 (cuenta regresiva de 15 s en `IncomingRequestCard` y `TripRequestScreen`: contador visible y anunciado sin saturar, rechazo al llegar a 0, área de 48 dp): sección, interruptor, explicación, estado bloqueado, botón de prueba, áreas de 48 dp, nombres accesibles, 200 % de texto, tokens, `labels.js`, sin `Alert`; máximo dos rondas (los hallazgos van al `implementer`). PUNTO DE PARADA 3: capturas de Anderson (M4).
+- Criterios: CA-003-D1, CA-003-D2, CA-003-D3, CA-003-28, CA-003-29 (parte visual). «No verificado en dispositivo» hasta las capturas.
+- Hecho cuando: Diseño «Aprobado» en T-183, T-187, T-188 y T-195 o hallazgos enviados al `implementer`.
+- Qué debe ver Anderson en el celular: la sección en normal y al 200 %, el estado bloqueado, el aviso de expirada y la tarjeta de solicitud con su cuenta de 15 s. **No verificado en dispositivo**.
+- Validación: design-auditor (solo lo visual); verifier distinto (lo funcional).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto por pantalla.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-190 — S6: verificación estática total de la spec 003
+- Spec: spec 003 (RF-67, RF-68 en configuración, RF-70 a RF-76, RF-79 a RF-85, RNF-21, RNF-22, RNF-24, RNF-25; CA-003-01, CA-003-05 a CA-003-17, CA-003-19 a CA-003-25, CA-003-27 a CA-003-30, CA-003-D1)
+- Requisitos: RF-67, RF-68, RF-70, RF-71, RF-72, RF-73, RF-74, RF-75, RF-76, RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85, RNF-21, RNF-22, RNF-24, RNF-25
+- Depende de: T-176, T-186, T-188, T-195
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`)
+- Hacer: un `verifier` distinto ejecuta toda la suite, `check-constitution` (antes y después), lint y `expo-doctor`; grep de `@react-native-firebase` fuera de `src/services/notifications/` (cero), de tokens o cuerpos en logs del backend (cero), de `Alert` en la sección (cero); `git ls-files` sin `google-services.json` ni `backend/secrets`; `git diff` de `firestore.rules` y `backend/src/middleware.js` vacío; `git diff` de `scripts/dependencies.json` y `app.json` igual a plan §8; grep de `collectionGroup`, `fcmTokenOwners`, `fcmTokens` y `calculateFare` en `backend/src` (cero); la suite incluye `decisionWindow`, `pendingIntent`, `resetSessionUnregister` y el dedupe.
+- Criterios: CA-003-01, CA-003-05 a CA-003-17, CA-003-19 a CA-003-25, CA-003-27 a CA-003-30, CA-003-D1 (todo lo verificable sin celular).
+- Hecho cuando: todo pasa y se entrega la lista de lo pendiente de celular.
+- Qué debe ver Anderson en el celular: nada. 
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-191 — S6: documentación (README, seguridad y límites)
+- Spec: spec 003 (RNF-21, RNF-25, D-126 a D-138)
+- Requisitos: RNF-25, RNF-21
+- Depende de: T-186
+- Archivos: `README.md`, `docs/seguridad.md`, `docs/omisiones-y-limites.md`
+- Hacer: README: cómo obtener y colocar `google-services.json`, habilitar la API V1, recompilar y probar. `docs/seguridad.md`: sin reglas nuevas, colección `pushTokens` solo del backend (sin `fcmTokenOwners`), titularidad del token por transacción, token solo con 6 caracteres en logs, límite de 5 por minuto. `docs/omisiones-y-limites.md`: solo Android (iOS no cubierto), aviso sin ubicación ni disponibilidad en segundo plano (D-130), solicitud de push simulada con dirección de ejemplo (DP-60), retraso perdido si el backend se reinicia, ahorro de batería de fabricantes, dos tiempos (D-137): validez ≈90 s de la solicitud frente a la ventana de decisión de 15 s del PDF desde que se muestra (el mock conserva 30 s de validez). No editar `requisitos.md` ni `decisiones.md` (los actualiza el agente principal).
+- Criterios: CA-003-17 (documentación).
+- Hecho cuando: los tres documentos reflejan el comportamiento real y no contienen secretos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-192 — S6: lista de comprobación en dispositivo
+- Spec: spec 003 (RF-68, RF-69, RF-70, RF-71, RF-74, RF-76, RF-77, RF-78, RNF-23; CA-003-02, CA-003-03, CA-003-04, CA-003-09, CA-003-26, CA-003-30, CA-003-D2)
+- Requisitos: RF-68, RF-69, RF-70, RF-71, RF-74, RF-76, RF-77, RF-78, RNF-23
+- Depende de: T-186, T-188, T-195
+- Archivos: `docs/checklist-dispositivo-fcm.md` (nuevo)
+- Hacer: lista numerada con qué ver y el resultado por caso: heads-up, permiso (concedido, negado, ajustes), interruptor tras reiniciar, cierre de sesión y otro conductor, toque con app en segundo plano y cerrada, solicitud vencida, doble toque, sin red, límite de 5 por minuto, 200 % de texto, cuenta de 15 s desde que se muestra la tarjeta, tarifa y dirección al abrir (CA-003-30) y que aceptar desde el aviso equivale a «Disponible». Cada fila «No verificado en dispositivo» hasta que Anderson la marque.
+- Criterios: CA-003-02, CA-003-03, CA-003-04, CA-003-09, CA-003-26, CA-003-30, CA-003-D2 (todos «No verificado en dispositivo»).
+- Hecho cuando: el archivo existe con todos los casos de la spec §4 y §5 que solo se ven en el celular.
+- Qué debe ver Anderson en el celular: el contenido del archivo. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-193 — S6: demo final y cierre (STOP-4)
+- Spec: spec 003 (RF-67 extremo a extremo, RF-72, RF-77, RF-78, RF-81 a RF-84 con envío real; CA-003-18, CA-003-26, CA-003-28)
+- Requisitos: RF-67, RF-72, RF-77, RF-78, RF-81, RF-82, RF-83, RF-84
+- Depende de: T-189, T-190, T-191, T-192
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`; Anderson marca `docs/checklist-dispositivo-fcm.md`)
+- Hacer: PUNTO DE PARADA 4. Anderson recorre la lista y la demo completa con envío real del backend: app en segundo plano → aviso emergente → toque → solicitud con tiempo restante y cuenta de 15 s → aceptar. Espera: «Pega aquí el resultado de la prueba en el celular: <resultado>». Ninguna tarea que dependa de dispositivo pasa a «Validada» sin esa evidencia.
+- Criterios: CA-003-18 y repite CA-003-26 y CA-003-28. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson reporta la demo y la lista; el `verifier` cierra el estado de las tareas de dispositivo.
+- Qué debe ver Anderson en el celular: la demo completa de CA-003-18.
+- Validación: Anderson en el celular; verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-194 — S3: ventana de decisión de 15 s (módulo puro y constante)
+- Spec: spec 003 (RF-77, RNF-24, D-137, CA-003-27, CA-003-28, CA-003-29)
+- Requisitos: RF-77, RNF-24
+- Depende de: T-177 (se ejecuta justo después de T-177; lleva el número final para no mover T-185, T-190, T-192 y T-193)
+- Archivos: `src/config/passengerApi.js`, `src/services/trip/decisionWindow.js`, `scripts/tests/decisionWindow.test.mjs`
+- Hacer: DP-76. `REQUEST_DECISION_WINDOW_MS = 15000` en `src/config/passengerApi.js` (junto a `MOCK_REQUEST_TTL_MS = 30000` en `:17`, que se conserva como validez del mock). Módulo puro con reloj inyectable: `markShown(requestId, now)` y `decisionDeadline(request, now) = min(shownAt(request.id) + 15 s, request.expiresAt)`; `remainingMs` nunca negativo. Pruebas con reloj falso: el conteo arranca al mostrarse (no al recibirse), el tope por `expiresAt`, ≈90 s de validez frente a 15 s de decisión, doble llamada a `markShown` conserva el primer instante, solicitud no mostrada.
+- Criterios: CA-003-27, CA-003-28, CA-003-29.
+- Hecho cuando: las pruebas pasan sin React y la app sigue arrancando; el comportamiento del mock no cambia hasta T-195.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-195 — S3: conectar la ventana de 15 s a la tarjeta y a la pantalla de solicitud
+- Spec: spec 003 (RF-77, RNF-22, RNF-23, D-137, CA-003-28, CA-003-29)
+- Requisitos: RF-77, RNF-22, RNF-23
+- Depende de: T-194 (se ejecuta justo después de T-194, antes de T-178)
+- Archivos: `src/services/trip/requestPresentation.js`, `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`
+- Hacer: DP-76. Los consumidores del tiempo restante leen `decisionDeadline` en lugar de la expiración cruda: `requestPresentation.js:26,:29`, `IncomingRequestCard.js:238-239`, `TripRequestScreen.js:93,:113`; `markShown` se llama al montar la tarjeta o la pantalla; al llegar a 0 se usa el rechazo existente (confirmar con Anderson). El mock sigue con `MOCK_REQUEST_TTL_MS = 30000` de validez, de modo que la cuenta visible pasa de 30 s a 15 s. Sin textos ni colores nuevos fuera de `labels.js` y los tokens. Probar en el celular.
+- Criterios: CA-003-28, CA-003-29 (integración). «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y la tarjeta del mock muestra una cuenta de 15 s que termina en rechazo.
+- Qué debe ver Anderson en el celular: la tarjeta de solicitud cuenta 15 s desde que aparece y, al llegar a 0, se rechaza sin aceptar. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor para lo visual (lo cubre T-189).
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: el contador conserva tokens, `labels.js`, anuncio accesible sin saturar y área de 48 dp (lo cubre T-189).
+- Diseño: Pendiente
+- Estado: Pendiente
+
 ## Fase 3 — Implementar
 (vacío)
 
