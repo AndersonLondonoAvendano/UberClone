@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #68
 // AI-assisted: see docs/AI_LOG.md #67
 // English dictionary, account and data sections: earnings, history, profile, settings, notifications,
 // states, placeholder, a11y, actions, forceState, mapTest and demo. Same paths and {params} as es.
@@ -35,7 +36,7 @@ export const enAccount = {
     emptyTitle: "You don't have any trips yet",
     emptyMessage: 'Your completed and cancelled trips show up here once you finish one.',
     errorMessage: "We couldn't load your history. Check your connection and try again.",
-    status: { completed: 'Completed', cancelled: 'Cancelled', rejected: 'Declined' },
+    status: { completed: 'Completed', cancelled: 'Cancelled', rejected: 'Rejected' },
     cancelledAmounts: 'No charge',
     fare: 'Fare',
     net: 'Your earnings',
@@ -188,6 +189,7 @@ export const enAccount = {
     testBody: 'Sends a simulated request to this device to check notifications.',
     testNeedsOn: 'Turn on notifications to send a test request.',
     delayLabel: 'Delay',
+    // Identical to the Spanish output on purpose: "s" is the SI symbol for second in both languages (CA-006-46).
     delayValue: (seconds) => `${seconds} s`,
     delayLess: 'Decrease the delay',
     delayMore: 'Increase the delay',

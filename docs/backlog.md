@@ -3881,7 +3881,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: alto (toca el arranque).
 - Diseño hecho cuando: N/A (sin cambios visibles).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-253 — S3: sugerencia del idioma del registro (solo si no hay preferencia)
 - Spec: spec 006 (RI-08; CA-006-09)
@@ -3911,7 +3911,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: contraste registrado, comprobación visible sin color y área ≥ 48 dp, coherente con Configuración.
 - Diseño: Aprobado (estático, por código, ronda 2): sin depender del color, contraste holgado, ≥ 48 dp, orden coherente, P3-1 corregido. TalkBack/VoiceOver y tamaño real: No verificado en dispositivo (capa E). Informes: `docs/diseno/auditorias/ronda-1-idioma.md`, `docs/diseno/auditorias/ronda-2-idioma.md`.
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-255 — S3: pruebas de no contaminación (cierre de sesión, estado, tarifa, valores guardados)
 - Spec: spec 006 (RI-13, RI-16, RI-23; CA-006-14, 16, 20, 31, 32)
@@ -3956,7 +3956,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A (sin cambios visibles en español).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-258 — S4: migrar `screens/main` y `screens/trip`
 - Spec: spec 006 (RI-15, RI-16, RI-17; CA-006-22, 24, 27)
@@ -3971,7 +3971,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: alto (pantallas críticas de solicitud, viaje y cobro).
 - Diseño hecho cuando: N/A (sin cambios visibles en español).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-259 — S4: migrar `components/**`
 - Spec: spec 006 (RI-15, RI-17; CA-006-22, 24, 27)
@@ -3986,7 +3986,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A (sin cambios visibles en español).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-260 — S4: migrar `navigation`, `context` y `hooks`
 - Spec: spec 006 (RI-15, RI-17; CA-006-22, 24, 27)
@@ -4001,7 +4001,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio (si el navegador se remonta, se pierde estado; el hook solo re-renderiza).
 - Diseño hecho cuando: N/A (sin cambios visibles en español).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-261 — S4: servicios, utilidades y constantes (lectura al llamarse) y notificaciones locales
 - Spec: spec 006 (RI-05, RI-17, RI-18; CA-006-24, 25, 26)
@@ -4016,7 +4016,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
 
 ### T-262 — S5: límites documentados en `docs/omisiones-y-limites.md`
 - Spec: spec 006 (RI-24; CA-006-33, 34)
@@ -4061,7 +4061,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6): cambio instantáneo a inglés, se conserva al reabrir, con solicitud abierta no reinicia contador ni tarifa, todo en inglés, se conserva tras cerrar sesión y entrar de nuevo, fuente al 200 % sin cortes y Detalle con la ruta completa. `npm test`: 337 pruebas, 336 pasan, 0 fallan, 1 omitida (PowerShell). No cubierto: TalkBack (CA-006-13), que sigue sin verificar en dispositivo.
 
 ### T-265 — S6: verificación independiente del módulo, diccionarios y formatos
 - Spec: spec 006 (RI-01 a RI-08, RI-12, RI-19 a RI-22; CA-006-01 a 10, 15, 28, 29, 30)
@@ -4107,3 +4107,83 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
 - Estado: Implementada
+
+## Lote L3b — adenda de la spec 006 (T-268 a T-272; plan: `specs/006-idioma/plan.md`, sección «Adenda L3b»; planificado 2026-11-16)
+<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; estas tareas quedan «Pendiente» y no se empiezan hasta que Anderson la apruebe (P5). Requisitos locales RI-25 a RI-29 (anclas RF-29, RNF-19, RNF-14). No hay decisión nueva (la adenda no propone D-193). Pantallas reales localizadas con búsqueda en `src/`: bienvenida/onboarding = `src/screens/registration/WelcomeScreen.js`; inicio de sesión = `src/screens/auth/LoginScreen.js`; registro de cuenta = `src/screens/auth/SignUpScreen.js` (ambas con `src/components/auth/AuthScreenLayout.js`); pestañas del registro = `src/screens/registration/PersonalDataScreen.js`, `VehicleScreen.js`, `DocumentsScreen.js` (las tres con `src/components/PlaceholderScreen.js`, montadas en `src/navigation/RegistrationTabs.js`). `ForgotPasswordScreen.js` también es previa a la sesión pero la adenda no la lista; queda fuera de CA-006-35 (si el control va en `AuthScreenLayout` la recibirá sin coste; el implementer lo anota).
+
+### T-268 — L3b-B1/B2: «Reject», «I've arrived», «Rejected» y comentario de `delayValue`
+- Spec: spec 006, adenda L3b (RI-26, RI-27; CA-006-43, 44, 45, 46)
+- Requisitos: RI-26, RI-27 (ancla RNF-19)
+- Depende de: T-267
+- Archivos: `src/i18n/dictionaries/en/trip.js` (líneas 28, 29, 45, 59, 63, 119), `src/i18n/dictionaries/en/account.js` (líneas 38 y 191), `src/i18n/dictionaries/es.js` (comentario junto a `delayValue`, línea 488), `scripts/tests/i18nEnglishWording.test.mjs` (nuevo)
+- Hacer: en `en`: `trip.reject` = «Reject», `rejectHint` y `rejectCardHint` con «Rejects…», `trip.arrive` = «I've arrived», `arriveFirstHint` = «Tap I've arrived when you are at the pickup point», el estado rechazado del viaje y `status.rejected` del historial = «Rejected»; revisar con búsqueda que ninguna otra cadena `en` diga «Decline/Declined» o «I arrived» para la acción (los avisos «Payment declined» de tarjeta NO se tocan, CA-006-44). Añadir un comentario junto a las dos definiciones de `delayValue` (`es.js` y `en/account.js`): salida idéntica `"{seconds} s"` a propósito porque «s» es el símbolo SI de segundo. Prueba nueva: recorre el diccionario `en` y falla ante «Decline», «Declined» o «I arrived» (excepción explícita y comentada para el aviso de pago de tarjeta si existe); comprueba `delayValue(15)` igual en `es` y `en`. Sin tocar `src/services/trip/declineRequest.js`.
+- Criterios: CA-006-43, CA-006-44, CA-006-45 (`npm test`, paridad CA-006-01/02 intacta), CA-006-46 (lectura de ambos comentarios y de la nota a CA-006-07).
+- Hecho cuando: la prueba nueva y la de paridad pasan, `check-constitution` sin errores nuevos y `git diff` solo toca esos archivos.
+- Qué debe ver Anderson en el celular: en inglés, el botón «Reject», el botón «I've arrived» y el estado «Rejected» (se confirma en T-272).
+- Validación: verifier distinto; `npm test` y `node scripts/check-constitution.mjs`.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (solo textos; el largo en inglés lo cubre T-271).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-269 — L3b-B3/B4: zona horaria inyectable en `format.js` y `applySuggestion` sin pisar la elección del usuario
+- Spec: spec 006, adenda L3b (RI-28, RI-29; CA-006-47, 48, 49, 50)
+- Requisitos: RI-28, RI-29 (anclas RNF-19, RF-29)
+- Depende de: T-267
+- Archivos: `src/utils/format.js` (`formatDateTime`, `formatClock`, `toValidDate` y su uso de `getHours/getDate…`), `src/i18n/applySuggestion.js`, `scripts/tests/formatLanguage.test.mjs`, `scripts/tests/languageSuggestion.test.mjs`, `docs/omisiones-y-limites.md` (solo con la aprobación de Anderson, puntos 3 y 4 de la adenda)
+- Hacer: (B3) `formatDateTime` y `formatClock` aceptan un parámetro opcional de desplazamiento o zona (por ejemplo `{ utcOffsetMinutes }`) que, si falta, usa la hora local del teléfono como hoy; sin `Intl` nuevo ni dependencias. Comentario en el código de que se muestra la hora local del teléfono, no la de Colombia. Pruebas: mismo instante con UTC-5 y UTC+0 produce horas distintas y correctas en `es` y `en`; sin zona inyectada sigue igual. (B4) en `applySuggestion`, volver a leer el almacenamiento o comprobar el idioma activo tras la espera de `preference.get()` y no llamar a `store.init` si el usuario ya cambió el idioma durante ese `await`; prueba con almacenamiento falso que difiere la lectura y ejecuta `setLanguage` entre medias (idioma final = el elegido). Si el implementer concluye que no es trivial y seguro, sustituye CA-006-49 por el límite escrito en `docs/omisiones-y-limites.md` y lo informa a Anderson (no se omite en silencio). Añadir al mismo documento el límite de la hora local (CA-006-47) solo si Anderson lo aprobó.
+- Criterios: CA-006-47 (lectura), CA-006-48, CA-006-49 (o su límite documentado), CA-006-50 (las pruebas de CA-006-09 siguen pasando sin cambiar sus entradas ni salidas).
+- Hecho cuando: pruebas nuevas y existentes pasan, `check-constitution` sin errores nuevos, sin dependencias nuevas.
+- Qué debe ver Anderson en el celular: nada nuevo; las horas del historial siguen en hora local (se mira en T-272).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (toca la resolución inicial del idioma; RI-25f/RI-06 no puede cambiar).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-270 — L3b-A: selector de idioma sin sesión en bienvenida, inicio de sesión, registro de cuenta y pestañas del registro
+- Spec: spec 006, adenda L3b (RI-25a a RI-25f; CA-006-35 a 42)
+- Requisitos: RI-25a, RI-25b, RI-25c, RI-25d, RI-25e, RI-25f (anclas RF-29, RNF-14, RNF-19)
+- Depende de: T-268 (textos finales en inglés), T-254 (`LanguageSection`), T-243 (`languageStore`), T-253
+- Archivos: `src/components/settings/LanguageSection.js` (variante compacta por prop, sin segunda lógica de guardado) o un envoltorio nuevo `src/components/settings/LanguageSwitch.js` que lo importe; `src/screens/registration/WelcomeScreen.js`; `src/components/auth/AuthScreenLayout.js` (cubre `LoginScreen.js` y `SignUpScreen.js`; alternativa: tocar las dos pantallas); `src/components/PlaceholderScreen.js` o las tres pantallas `PersonalDataScreen.js`, `VehicleScreen.js`, `DocumentsScreen.js` (el implementer elige el punto con menos archivos, sin que `SettingsScreen.js` y las demás pantallas de `PlaceholderScreen` muestren el control dos veces); `src/i18n/dictionaries/es.js` y `en/*.js` solo si la clave del título no es reutilizable (mismo texto «Idioma / Language» en ambos); `scripts/tests/languageNoSession.test.mjs` (nuevo)
+- Hacer: añadir el control compacto en un sitio discreto (pie o encabezado, sin competir con el botón principal ni tapar el teclado) en las cinco pantallas listadas. Reutiliza `LanguageSection`/`setLanguage`; sin `AsyncStorage` ni `appLanguage` fuera de `src/i18n`; sin repositorios de Firestore; sin tocar `RegistrationFormContext` ni la resolución del idioma inicial. Pruebas nuevas: (CA-006-35) estática que recorre las pantallas y falla si alguna no incluye el control (ya sea directo o por el layout compartido), con la lista exacta de archivos arriba; (CA-006-36) propiedades: rol `radio`, `selected` solo en la activa, indicador no solo color, altura ≥ `touch.controlHeight` (48 dp) y contraste con script temporal fuera del proyecto; (CA-006-37) búsqueda de `appLanguage`/`AsyncStorage` en el control y las pantallas; (CA-006-38) almacenamiento falso: elegir `en` guarda `appLanguage = 'en'` y la nueva resolución devuelve `en`; (CA-006-39) repositorio falso sin llamadas; (CA-006-40) el estado del contexto de registro (valores, pestaña activa, progreso) es igual antes y después del cambio y la pantalla no se remonta; (CA-006-42) paridad de la clave del título con el mismo texto en `es` y `en`; (CA-006-41) las pruebas de CA-006-08/09 pasan sin modificarse. Casos límite: el fallo de guardado muestra el aviso de CA-006-17 sin romper el formulario; toques rápidos dejan el último idioma. Paso final «probar en el celular»: lo ejecuta Anderson en T-272.
+- Criterios: CA-006-35, 36, 37, 38, 39, 40, 41, 42. **No verificado en dispositivo**: tamaño táctil real, lector de pantalla y el comportamiento visual de CA-006-40 (T-272).
+- Hecho cuando: pruebas nuevas y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` vacío en `backend/`, `firestore.rules`, `validProfileEdit` y `package.json`; el proyecto arranca.
+- Qué debe ver Anderson en el celular: el control «Idioma / Language» en las cinco pantallas antes de iniciar sesión (T-272).
+- Validación: verifier distinto; `design-auditor` en T-271.
+- Riesgo: medio (toca el layout de pantallas con teclado y el flujo de registro).
+- Diseño hecho cuando: informe de ronda de T-271 con veredicto.
+- Diseño: Aprobado (estático por código, ronda 1, `docs/diseno/auditorias/ronda-1-idioma-sin-sesion.md`; capa E pendiente: No verificado en dispositivo)
+- Nota de implementación (2026-11-16): variante `compact` de `LanguageSection` (misma lógica `setLanguage`); punto único en `AuthScreenLayout` (Login, SignUp y también ForgotPasswordScreen, que lo hereda gratis por el layout compartido, decisión: se deja incluida), `WelcomeScreen` como último bloque, y `PlaceholderScreen` con prop `showLanguageSwitch` solo en las tres pestañas (Configuración conserva su sección completa y no activa la prop). Prueba: `scripts/tests/languageNoSession.test.mjs`. Marca IA #68.
+- Estado: Implementada
+
+### T-271 — L3b-A: auditoría de diseño del control de idioma sin sesión
+- Spec: spec 006, adenda L3b (RI-25b, RI-25c; CA-006-36, CA-006-D4)
+- Requisitos: RI-25b, RI-25c (ancla RNF-14)
+- Depende de: T-270
+- Archivos: ninguno (design-auditor; informe de ronda y campo Diseño de T-270)
+- Hacer: el agente principal carga las skills de diseño y las pasa al `design-auditor`; revisa con el arnés (`scripts/visual-audit.mjs`) y capturas, en es y en, y con fuente al 200 %: ubicación del control, tamaño (≥ 48 dp), inglés largo, que no compita con el botón principal, no tape campos ni el teclado y no recorte texto en bienvenida, inicio de sesión, registro de cuenta y las tres pestañas del registro. Máximo dos rondas; hallazgos al `implementer`. Lo que solo se ve en el celular queda **No verificado en dispositivo**.
+- Criterios: CA-006-D4 (y la parte visual de CA-006-36).
+- Hecho cuando: informe de ronda con veredicto y Diseño «Aprobado» o «N/A» en T-270.
+- Qué debe ver Anderson en el celular: capturas al 200 % en inglés (T-272).
+- Validación: design-auditor (solo lo visual).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-272 — L3b: prueba en el celular (Anderson)
+- Spec: spec 006, adenda L3b (RI-25e, RI-26, RI-28; CA-006-35d, CA-006-D4, CA-006-36, CA-006-40, CA-006-43)
+- Requisitos: RI-25b, RI-25e, RI-26, RI-28 (anclas RNF-14, RF-29, RNF-19)
+- Depende de: T-268, T-269, T-270, T-271
+- Archivos: ninguno
+- Hacer: con la build de desarrollo: (1) abrir la app sin sesión y ver el control en bienvenida, inicio de sesión, registro de cuenta y las tres pestañas del registro; (2) a mitad de un registro con campos escritos, cambiar de idioma y comprobar que se conservan lo escrito y la pestaña; (3) reiniciar la app y comprobar que el idioma sigue; (4) con teclado abierto, que el control no tapa el botón principal; (5) fuente al 200 % en inglés y TalkBack/VoiceOver sobre el control; (6) en inglés, ver «Reject», «I've arrived» y «Rejected»; (7) ver la hora de un viaje del Historial en hora local. Reportar con «Pega aquí el resultado de la prueba en el celular».
+- Criterios: CA-006-35d, CA-006-D4 (capturas), CA-006-36 (táctil y lector), CA-006-40 (visual). **No verificado en dispositivo** hasta que Anderson confirme con fecha y evidencia.
+- Hecho cuando: Anderson confirma cada punto o reporta el fallo.
+- Qué debe ver Anderson en el celular: lo descrito arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente

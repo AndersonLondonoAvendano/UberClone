@@ -3,6 +3,7 @@
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #35
 // AI-assisted: see docs/AI_LOG.md #38
+// AI-assisted: see docs/AI_LOG.md #68
 // Placeholder screen: safe-area frame, header, provisional state selector and content area.
 // The selector (force-content|loading|empty|error) is provisional until each screen has real data,
 // and only renders while SHOW_DEV_TOOLS is on. With it off, kind never leaves INITIAL_KIND
@@ -27,18 +28,22 @@ import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { color, space, touch, type } from '../theme/tokens';
 import { ScreenHeader } from './ScreenHeader';
 import { ScreenState } from './ScreenState';
+import { LanguageSection } from './settings/LanguageSection';
 
 const KINDS = ['content', 'loading', 'empty', 'error'];
 const INITIAL_KIND = 'content';
 const DEFAULT_SAFE_EDGES = ['top', 'bottom'];
 
 // safeEdges: edges the screen keeps clear of system bars. Screens above a tab bar pass ['top'].
+// showLanguageSwitch: only the registration tabs (before sign-in is complete) turn it on (T-270); Settings
+// keeps its own full LanguageSection, so it never shows two controls.
 export function PlaceholderScreen({
   name,
   title,
   leading,
   onLeadingPress,
   safeEdges = DEFAULT_SAFE_EDGES,
+  showLanguageSwitch = false,
   children,
 }) {
   useLanguage();
@@ -106,6 +111,7 @@ export function PlaceholderScreen({
           ) : (
             <ScreenState kind={kind} onRetry={handleRetry} />
           )}
+          {showLanguageSwitch ? <LanguageSection compact /> : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68
 // "Idioma / Language" section of Settings (T-254; RI-10, RI-11, RI-12, RI-14). Two radio options, each
 // written in its own language; the active one shows a check icon plus the text "Active" (never only colour).
 // The choice is saved on the phone by setLanguage, never on a server. If the save fails the language still
@@ -19,7 +20,9 @@ const OPTIONS = [
   { code: 'en', nameKey: 'optionEn', testID: 'language-option-en' },
 ];
 
-export function LanguageSection() {
+// compact: smaller variant for the screens before sign-in (T-270; RI-25). Same radio group and same
+// setLanguage; only the presentation changes (small title, two options side by side, no "Active" text).
+export function LanguageSection({ compact = false }) {
   const { language } = useLanguage();
   const [saveFailed, setSaveFailed] = useState(false);
   const mounted = useRef(true);
@@ -40,11 +43,15 @@ export function LanguageSection() {
   const text = labels.settings.language;
 
   return (
-    <View style={styles.stack} testID="language-section">
-      <Text style={styles.section} accessibilityRole="header">
+    <View style={styles.stack} testID={compact ? 'language-section-compact' : 'language-section'}>
+      <Text style={compact ? styles.sectionCompact : styles.section} accessibilityRole="header">
         {text.title}
       </Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel={text.groupLabel} style={styles.stack}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={text.groupLabel}
+        style={compact ? styles.rowCompact : styles.stack}
+      >
         {OPTIONS.map((option) => {
           const selected = language === option.code;
           const name = text[option.nameKey];
@@ -56,13 +63,18 @@ export function LanguageSection() {
               accessibilityLabel={name}
               accessibilityState={{ selected, checked: selected }}
               onPress={() => onSelect(option.code)}
-              style={({ pressed }) => [styles.option, selected && styles.optionActive, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.option,
+                compact && styles.optionCompact,
+                selected && styles.optionActive,
+                pressed && styles.pressed,
+              ]}
             >
               <Text style={[styles.name, selected && styles.nameActive]}>{name}</Text>
               {selected ? (
                 <View style={styles.check}>
                   <Icon name="checkmark-circle" size={iconSize.lg} tint={color.primary} />
-                  <Text style={styles.activeText}>{text.active}</Text>
+                  {compact ? null : <Text style={styles.activeText}>{text.active}</Text>}
                 </View>
               ) : null}
             </Pressable>
@@ -95,6 +107,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     backgroundColor: color.surface,
   },
+  sectionCompact: { ...type.label, color: color.textMuted },
+  rowCompact: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
+  optionCompact: { flexGrow: 1, flexBasis: 0, minWidth: touch.controlHeight * 2 },
   optionActive: { borderColor: color.primary, backgroundColor: color.primarySoft },
   name: { ...type.body, color: color.text, flexShrink: 1 },
   nameActive: { ...type.bodyStrong, color: color.onPrimarySoft },

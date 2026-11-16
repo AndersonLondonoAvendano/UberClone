@@ -3264,5 +3264,132 @@ y registro en inglés; (8) Detalle del viaje: la ruta y los marcadores se ven co
 Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-6". Sin recapitular pasos.
 ````
 - Resumen de la respuesta (2–3 líneas): Cierre de L2 con la evidencia de Anderson, Parte A (íconos, aviso escalado, Ganancias por rango sin tope, encuadre del mapa del Detalle) y Parte B: módulo i18n propio es/en (D-187…D-192, Propuesta), selector en Configuración con preferencia por dispositivo, migración de todas las pantallas, componentes, navegación y servicios, y límites declarados. Verificado estáticamente por verifiers distintos y design-auditor (2 rondas); `npm test` 337/336 pasan/1 omitida, check-constitution 14 errores (base). Todo «Implementada, pendiente de dispositivo» (T-264, STOP-6).
+- Evento del proceso (añadido en el lote L3b, 2026-11-16): el design-auditor RECHAZÓ T-263 en la ronda 1 (`docs/diseno/auditorias/ronda-1-idioma.md`, Diseño «Rechazado») por hallazgos visuales del inglés con fuente grande. Se hizo UNA ronda de corrección con el implementer y el design-auditor volvió a revisar (`ronda-2-idioma.md`, Diseño «Aprobado»). Se siguió AGENTS.md P4 (corrección y segunda ronda) en lugar de la regla antigua del prompt «ante un rechazo, DETENTE», y se declaró así; el prompt del lote L3b formaliza esta regla.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #68 — Cierre de brechas del taller — lotes L3b, L4 y L7
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Registrar el lote L3 como validado en dispositivo, añadir el selector de idioma al inicio (sin sesión), corregir los menores del informe de L3, documentar la evidencia de pagos (L4) y hacer la parte de proceso del cierre documental (L7).
+- Prompt (textual):
+````
+PROMPT — LOTE L3b + L4 + L7 (parte de proceso): selector de idioma al inicio, pagos, cierre documental
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lotes L3b, L4 y L7" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de la Parte B se añaden a la entrada #67 (lote L3).
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 15:59, STOP-6 del lote L3)
+- Idioma: cambia al instante a inglés, se conserva al cerrar y abrir la app, con una solicitud abierta
+  no reinicia el contador ni cambia la tarifa, todas las pantallas y mensajes en inglés sin texto en
+  español, se conserva al cerrar sesión e iniciar otra, fuente al 200 % sin cortes, Detalle con la ruta
+  completa. npm test en PowerShell: 337 pruebas, 336 pasan, 0 fallan, 1 omitida.
+- Registra el lote L3 y la Parte A del lote anterior en progress.md, backlog y omisiones-y-limites.md
+  como "Validada en dispositivo por Anderson". La Parte B del lote L3 (límites a, b, c) sigue
+  documentada tal cual.
+- Mejora pedida por Anderson: poder cambiar el idioma desde el onboarding (hoy solo en Configuración,
+  que requiere sesión; el onboarding hereda el idioma ya elegido pero no deja cambiarlo).
+
+REGLAS (iguales) Y UNA AJUSTADA
+Implementer implementa, verifier DISTINTO verifica cada parte, design-auditor distinto para lo
+visual, spec-author y planner para lo que lleve spec. Quien implementa no aprueba. Ante un rechazo de
+un revisor: regístralo como evento en la bitácora (qué se rechazó y por qué), haz UNA ronda de
+corrección con un implementer y vuelve a verificar con un verifier distinto del que implementó (puede
+ser el mismo revisor que rechazó); si hay un segundo rechazo, DETENTE y repórtalo. No leas ni imprimas
+.env, backend/.env, backend/secrets/* ni google-services.json. Cero secretos en docs, README ni logs.
+Sin commit ni push. Sin git stash, reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin Alert.
+Sin dependencias nuevas, sin tocar app.json ni código nativo. firestore.rules fuera de git; el texto
+publicado de las reglas no cambia con este lote. No puedes probar en dispositivo. No dejes procesos de
+fondo. Textos solo en el módulo de idioma (es y en con paridad).
+
+PARTE A — Selector de idioma al inicio (sin spec larga: una nota en specs/006-idioma/ como adenda y
+tareas T-nnn que continúan la numeración)
+A1. Un control compacto «Idioma / Language» con dos opciones (Español | English), accesible (rol
+    radio, estado seleccionado, ≥ 48 dp, no depende solo del color), SIN sesión, visible en:
+    bienvenida/onboarding, inicio de sesión, registro de cuenta y las pestañas del registro de
+    conductor (en un sitio discreto del encabezado o del pie, que no compita con el botón principal).
+    Reutiliza el componente y el módulo de idioma existentes; no dupliques lógica.
+A2. Cambiar el idioma ahí actualiza la pantalla al instante, NO borra lo escrito en formularios ni
+    reinicia el progreso del registro, y se guarda con la misma preferencia local (sin Firestore). El
+    orden de resolución del idioma inicial no cambia.
+A3. Pruebas: el control aparece en las pantallas listadas (heurística o prueba de importación), el
+    cambio persiste, los formularios conservan su estado, y paridad es/en intacta. Design-auditor:
+    ubicación, tamaño, inglés largo y fuente al 200 %; lo no comprobable queda «Pendiente de
+    dispositivo».
+
+PARTE B — Menores del informe del lote L3
+B1. Unifica los textos en inglés con la decisión de Anderson: «Reject» (no «Decline») y «I've
+    arrived» (no «I arrived»); revisa el resto del inglés por coherencia entre botones, avisos y
+    estados («Rejected» para el estado).
+B2. delayValue(15): que el valor en pantalla respete el idioma donde difiera, o documenta en
+    CA-006-07 por qué es idéntico en ambos (queda explicado en un comentario y en la spec).
+B3. format.js usa la hora local del teléfono: acepta una zona horaria inyectable para pruebas y
+    documenta el comportamiento real (la app muestra la hora del teléfono). Añade una prueba con zona
+    inyectada.
+B4. applySuggestion puede pisar un cambio de idioma hecho durante el arranque: si es trivial y seguro,
+    evita que lo haga cuando el usuario ya eligió; si no, déjalo como límite documentado.
+B5. Registra en la bitácora (#67) el rechazo y la corrección de T-263 como evento del proceso.
+
+PARTE C — LOTE L4: pagos (documental; sin código nuevo salvo que una prueba lo exija)
+C1. Crea docs/pagos-evidencia.md con lo que Anderson validó en dispositivo, por fecha y sin secretos:
+    pago con tarjeta de prueba de Stripe aprobado, rechazado y pendiente; efectivo con «Confirmar
+    cobro»; propina y calificación simuladas; saldo y Ganancias coherentes; Detalle con «Pago
+    aprobado» y «Tarjeta (Stripe)». Enlaza a las capturas existentes y a las decisiones D-xxx
+    relevantes (monto leído de Firestore, comisión del 20 % solo sobre la tarifa).
+C2. Mercado Pago: decisión recomendada y registrada: «implementado, no verificado con usuarios de
+    prueba»; Stripe es la pasarela verificada de punta a punta. Déjalo así en README,
+    omisiones-y-limites.md y en el guion del video, sin afirmar que Mercado Pago funciona. Si algún
+    texto de la app o de la documentación lo presenta como verificado, corrígelo.
+C3. Comprueba que ningún documento mezcla la tarjeta de prueba con datos reales y que el texto de
+    «Pago de prueba: no se mueve dinero real» sigue visible donde corresponde.
+
+PARTE D — LOTE L7 (parte de proceso que puede hacer un agente)
+D1. Auditoría de la bitácora docs/AI_LOG.md: lista (tabla en docs/auditoria-bitacora-2026-11-16.md)
+    las entradas a las que les falten campos obligatorios (Verificación, Aprendizaje, hashes,
+    Usado/modificado/descartado) y cuáles las completa solo Anderson. Rellena TÚ únicamente lo que
+    sea objetivo y verificable: la tabla de hashes de commit sacada de `git log` (solo lectura),
+    relacionando cada commit con su entrada; nunca escribas «Aprendizaje» ni «Verificación» por
+    Anderson.
+D2. Marcador colgante #62: o apunta a una entrada que exista o corrige el marcador; reduce el error
+    C18 de check-constitution y reporta la nueva cifra real (base 14).
+D3. README: sección «Uso de IA» que explique el criterio de qué se registra en la bitácora (trabajo
+    sustancial se registra, agrupando funciones grandes en una entrada; consultas triviales y pulidos
+    menores no) y cómo se verifica (verifier distinto, design-auditor, el constructor no aprueba, se
+    detiene ante un rechazo). Revisa el README contra el enunciado: instalación, variables de entorno
+    (solo nombres), backend, túnel, build local de APK (con la nota de que la URL del backend se
+    graba al compilar), pruebas (`npm test`, Node ≥ 21), idioma, FCM y su limitación en el dev client.
+D4. Barrido de secretos solo sobre lo versionado: `git grep` de patrones de claves (sk_live, sk_test
+    con valor, AIza, private_key, tokens largos, correos y teléfonos personales) y reporta SOLO ruta y
+    número de línea, NUNCA el valor. No leas .env, backend/.env, backend/secrets ni google-services.json.
+D5. Guion del video (docs/guion-video.md, máx. 5 min): actualízalo con lo que existe hoy: onboarding
+    con selector de idioma, solicitud por notificación (release), rechazo/vencimiento, estados del
+    viaje, cobro en efectivo y con tarjeta de Stripe, Historial/Ganancias/saldo, cambio a inglés,
+    Mercado Pago como no verificado. Indica la duración por escena y el plan B si la tarjeta falla.
+D6. Checklist de entrega final en docs/checklist-entrega-final.md con casillas, separando lo que hace
+    Anderson: PDF de la bitácora, video, limpieza de datos de prueba con datos reales en
+    Firestore/Auth/Cloudinary, cerrar el túnel de cloudflared, compilar el APK de release con la URL
+    final del backend y copiarlo fuera del repo, PR final a main con merge commit y autorrevisión,
+    verificación de las reglas publicadas y de que firestore.rules local es copia. Con el enlace al
+    plan de cierre y a cada lote cerrado.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: control visible sin sesión, formularios intactos, paridad. B: textos y pruebas. C y D:
+exactitud documental (nada afirmado sin evidencia, ningún secreto, hashes iguales a git log, cifras de
+check-constitution reales). Pruebas completas (npm test) y check-constitution (base 14 errores) sin
+regresión; cita cifras reales. «Validada» solo con evidencia de Anderson.
+
+ENTREGA
+Informe corto: qué se hizo por parte, hallazgos de los verifiers, cifras reales, la lista de lo que
+solo Anderson puede completar (bitácora, PDF, video, limpieza, túnel, APK, PR) y el CHECKLIST STOP-7,
+solo JavaScript, sin recompilar: (1) en la bienvenida y en el inicio de sesión cambiar el idioma sin
+perder lo escrito; (2) en el registro de conductor cambiar de idioma a mitad: los campos y el
+progreso se conservan; (3) el inglés muestra «Reject» e «I've arrived»; (4) fuente al 200 % con el
+control visible; (5) npm test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-7". Sin recapitular
+pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Lote L3b + L4 + L7 (proceso) implementado: selector de idioma sin sesión (Partes A/B, con auditoría de diseño ronda 1), pagos documentales, auditoría de la bitácora, README, guion (4:50) y checklist. El verifier documental rechazó una vez; una ronda de corrección y un segundo verifier aprobó. Cifras finales: `npm test` 358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores (base), 341 advertencias. Nada «Validada»: pendiente STOP-7.
+- Evento del proceso: el verifier documental rechazó Partes C/D (2 mayores: omisiones-y-limites.md omisión #3 de idioma obsoleta y estado inconsistente del toque de notificación entre README y omisiones; 3 menores: duración 4:45 vs 4:50, afirmación amplia en guion, referencia a checklist inexistente). Una ronda de corrección con implementer.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

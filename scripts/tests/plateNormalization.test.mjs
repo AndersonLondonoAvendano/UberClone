@@ -1,4 +1,3 @@
-// AI-assisted: see docs/AI_LOG.md #62
 // Tests for normalizePlate / isValidPlate (T-174, RF-67). Run:
 //   node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/plateNormalization.test.mjs
 import assert from 'node:assert/strict';

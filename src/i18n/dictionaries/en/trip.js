@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #68
 // AI-assisted: see docs/AI_LOG.md #67
 // English dictionary, trip section (request, active trip, summary, charge). Same paths and {params} as es.
 export const enTrip = {
@@ -25,8 +26,8 @@ export const enTrip = {
     countdownA11y: 'The request expires in {s} seconds',
     accept: 'Accept',
     acceptHint: 'Accepts the trip and opens the route to the passenger',
-    reject: 'Decline',
-    rejectHint: 'Declines the request and returns to Home',
+    reject: 'Reject',
+    rejectHint: 'Rejects the request and returns to Home',
     working: 'One moment…',
     calculating: 'Calculating…',
     calculatingA11y: 'Calculating distance, duration and fare',
@@ -41,8 +42,8 @@ export const enTrip = {
     errorGeneric: 'Something went wrong. Try again.',
     newRequest: 'New request from {name}',
     dismiss: 'Close',
-    dismissHint: 'Hides the card without declining; the request expires on its own',
-    rejectCardHint: 'Declines the request and you stay on this screen',
+    dismissHint: 'Hides the card without rejecting; the request expires on its own',
+    rejectCardHint: 'Rejects the request and you stay on this screen',
     phase: {
       starting: 'Getting the trip ready…',
       toPickup: 'Driver on the way',
@@ -56,11 +57,11 @@ export const enTrip = {
     addressSearching: 'Looking up address…',
     addressFallback: 'Nearby street (simulated)',
     approxRoute: 'Approximate route: no connection to the routing server, so the straight line does not follow the streets.',
-    arrive: 'I arrived',
+    arrive: "I've arrived",
     arriveHint: 'Lets the passenger know you reached the pickup point',
     startRide: 'Passenger on board',
     startRideHint: 'Reach the pickup point to continue',
-    arriveFirstHint: 'Tap I arrived when you are at the pickup point',
+    arriveFirstHint: "Tap I've arrived when you are at the pickup point",
     finishRide: 'End trip',
     finishRideHint: 'Reach the destination to continue',
     finishing: 'Letting the passenger know the trip ended…',
@@ -116,7 +117,7 @@ export const enTrip = {
     paymentChip: {
       approved: 'Approved',
       pending: 'Pending',
-      rejected: 'Declined',
+      rejected: 'Rejected',
       cash: 'Cash',
       unavailable: 'Unavailable',
     },

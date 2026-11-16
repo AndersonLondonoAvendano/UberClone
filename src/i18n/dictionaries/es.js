@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #68
 // AI-assisted: see docs/AI_LOG.md #11
 // AI-assisted: see docs/AI_LOG.md #61
 // AI-assisted: see docs/AI_LOG.md #13
@@ -485,6 +486,7 @@ export const es = {
     testBody: 'Envía una solicitud simulada a este dispositivo para comprobar las notificaciones.',
     testNeedsOn: 'Activa las notificaciones para enviar una solicitud de prueba.',
     delayLabel: 'Retraso',
+    // Identical to the English output on purpose: "s" is the SI symbol for second in both languages (CA-006-46).
     delayValue: (seconds) => `${seconds} s`,
     delayLess: 'Reducir el retraso',
     delayMore: 'Aumentar el retraso',

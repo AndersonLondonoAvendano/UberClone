@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
 // AI-assisted: see docs/AI_LOG.md #27
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
@@ -76,7 +77,7 @@ export function DocumentsScreen() {
   const canSubmit = isRegistrationValid && !isSubmitting && !isAccountPending;
 
   return (
-    <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)

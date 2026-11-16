@@ -2,7 +2,7 @@
 
 App móvil del conductor (React Native + Expo, development build, iOS y Android) con backend Node/Express y Firestore. Taller "Taller: Uber - clone". Metodología Spec-Driven Development; ver [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md).
 
-**Estado actual (2026-11-12, pendiente de validar en el celular):** inicio de sesión con correo y contraseña y cierre de sesión (ver [docs/arquitectura-sesiones.md](docs/arquitectura-sesiones.md)), registro con documentos, Inicio con mapa y solicitudes, viaje, cobro con tarjeta con Stripe o Mercado Pago (ambos en modo de prueba, ninguno validado en el celular), efectivo y saldo, Ganancias (6 métricas, propinas y saldo) e Historial con filtros, paginación y detalle de viaje con mapa de solo lectura (ruta simplificada guardada, propina y calificación de 1 a 5 estrellas). La propina y la calificación son **simuladas** (D-124) y las direcciones del pasajero se resuelven con Nominatim (D-125); ambos puntos están «Implementada, pendiente de dispositivo». Las auditorías de diseño (rondas 1 y 2) y las verificaciones funcionales son estáticas. **Nada de esto está «Validado»: falta la evidencia en el celular.**
+**Estado actual (2026-11-16):** inicio de sesión con correo y contraseña, registro con documentos, Inicio con mapa y solicitudes (también por notificación FCM en Android), viaje con estados, cobro con tarjeta con Stripe (verificada de punta a punta en modo de prueba) o efectivo, saldo, Ganancias, Historial con detalle de viaje e idioma español/inglés. Mercado Pago está implementado, pero **no verificado con usuarios de prueba**; ver [docs/pagos-evidencia.md](docs/pagos-evidencia.md). La propina y la calificación son **simuladas** (D-124) y las direcciones del pasajero se resuelven con Nominatim (D-125). Lo validado en el celular por Anderson consta en [docs/progress.md](docs/progress.md); lo que no, figura como «No verificado en dispositivo» o «Pendiente de dispositivo». Checklist de cierre: [docs/checklist-entrega-final.md](docs/checklist-entrega-final.md).
 
 Documentos para la entrega:
 - [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md): guía paso a paso del cobro con Stripe en modo de prueba (cuenta, clave, tarjetas de prueba, verificación y tabla de fallos).
@@ -18,10 +18,10 @@ Documentos para la entrega:
 - **Backend (`backend/`):** Node/Express con el SDK admin de Firebase. Crea el cobro (Stripe Checkout Sessions o Mercado Pago Checkout Pro), recibe webhooks y es el único que marca un viaje como `paid`. El monto del cobro sale del viaje guardado en Firestore (tarifa + propina), nunca del cuerpo de la petición.
 - **Pasajero simulado:** una API simulada genera las solicitudes (`src/services/passengerApi/`); `mappers.js` es el único archivo que conoce su forma.
 - **Direcciones:** geocodificación inversa con Nominatim (`src/services/geocoding/`).
-- Los textos visibles están en `src/constants/labels.js` y los estilos salen de `src/theme/tokens.js`.
+- Los textos visibles están en el módulo de idioma `src/i18n/` (diccionarios `es` y `en`, accesibles con `labels`) y los estilos salen de `src/theme/tokens.js`.
 
 ## Requisitos
-- Node.js **≥ 20.12** y npm (el `package.json` lo declara en `engines`).
+- Node.js **≥ 21.3** y npm para la app y las pruebas (`engines` del `package.json` de la raíz); el backend (`backend/package.json`) pide **≥ 20.12**.
 - Una cuenta de Firebase (Firestore) y una de Cloudinary, cada una con sus credenciales propias.
 - Para compilar el development build: Android Studio (Android) o Xcode en macOS (iOS). Los builds nativos (`expo run:*`, `prebuild`, `eas`) los hace una persona, no un agente de IA.
 - Un dispositivo o emulador — este proyecto no usa Expo Go; requiere development build (`expo-dev-client`).
@@ -111,7 +111,7 @@ Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, gana
 4. Cierra la app por completo y espera el aviso.
 5. Toca la notificación: se abre la solicitud con el temporizador de 15 s; si pasó su validez, dice «La solicitud expiró».
 
-**Nota importante: dev client frente a release.** Con el development build (dev client), tocar la notificación con la app cerrada NO entrega la solicitud: el lanzador de desarrollo relanza la actividad sin los datos de la notificación (límite del modo desarrollo, no fallo del código). En la build **release** sí funciona. El APK release incrusta `EXPO_PUBLIC_BACKEND_URL` al compilarse (su valor no va en el repositorio), así que debe compilarse con el túnel vigente. Para probar o grabar el arranque en frío usa la build release. Con la app en primer plano o en segundo plano, tocar la notificación abre la solicitud a pantalla completa desde cualquier pantalla del menú (D-149); al rechazar o vencer vuelve a la pantalla donde estabas. **No verificado en dispositivo.**
+**Nota importante: dev client frente a release.** Con el development build (dev client), tocar la notificación con la app cerrada NO entrega la solicitud: el lanzador de desarrollo relanza la actividad sin los datos de la notificación (límite del modo desarrollo, no fallo del código). En la build **release** sí funciona. El APK release incrusta `EXPO_PUBLIC_BACKEND_URL` al compilarse (su valor no va en el repositorio), así que debe compilarse con el túnel vigente. Para probar o grabar el arranque en frío usa la build release. **Validado en dispositivo por Anderson (2026-11-16):** en la build release, con la app cerrada, tocar la notificación abre la solicitud con la cuenta de 15 s y, vencido el plazo, «La solicitud expiró». **No verificado en dispositivo:** con la app en primer o segundo plano, tocar la notificación abre la solicitud a pantalla completa desde cualquier pantalla del menú (D-149) y, al rechazar o vencer, vuelve a la pantalla donde estabas.
 
 **Límites.** La app no publica ubicación ni disponibilidad en segundo plano (el conductor decide al abrir la solicitud) y el disparo real de la solicitud está simulado: sale del endpoint de prueba, no de un pasajero real. Más en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).
 
@@ -127,12 +127,14 @@ curl -X POST <BACKEND_URL>/notifications/unregister -H "Authorization: Bearer <I
 ```
 Errores genéricos: 401 sin sesión, 400 datos inválidos o cuenta no aprobada, 404 sin dispositivos registrados, 429 límite (5 por minuto, o ya hay un envío diferido pendiente), 502 si FCM falla en un envío inmediato, 500 si el backend no tiene mensajería. Detalles de seguridad en [docs/seguridad.md](docs/seguridad.md).
 
-## Cómo probar los endpoints de notificaciones cuando el cliente (S3) esté listo
-Con el backend en marcha y un conductor con . Todos los valores entre  son placeholders: el ID token sale de la sesión de Firebase de la app y el token FCM, del dispositivo; no los pegues en chats ni en archivos del repositorio.
-\Errores genéricos: 401 sin sesión, 400 datos inválidos o cuenta no aprobada, 404 sin dispositivos registrados, 429 límite (5 por minuto, o ya hay un envío diferido pendiente), 502 si FCM falla en un envío inmediato, 500 si el backend no tiene mensajería. Detalles de seguridad en [docs/seguridad.md](docs/seguridad.md).
+## Build release local (APK) y URL del backend
+Para probar la notificación con la app cerrada y para grabar el video se usa una build **release** de Android. Se compila en local (a cargo de una persona, no de un agente) con `npx expo run:android --variant release`, con `EXPO_PUBLIC_BACKEND_URL` ya apuntando a la URL vigente del túnel. **Esa URL se graba en el APK al compilar**: si el túnel cambia, hay que recompilar. El APK final se copia fuera del repositorio (no se versiona). Esta build requiere `google-services.json` (ver FCM).
+
+## Idioma (español / inglés)
+La interfaz está en español e inglés. Idioma inicial: el guardado por el usuario; si no hay, el sugerido por el registro; si no, el del teléfono (en o es); si no, español. El selector «Idioma / Language» está disponible sin sesión (bienvenida, inicio de sesión, registro de cuenta y pestañas del registro de conductor) y en Configuración. La preferencia se guarda **en el teléfono** (no en Firestore) y se conserva al cerrar sesión. No se traducen el texto de la notificación push (lo arma el backend en español), las direcciones de Nominatim, los nombres simulados de pasajeros ni Stripe Checkout. Las horas se muestran en la hora local del teléfono. Detalle: [specs/006-idioma/spec.md](specs/006-idioma/spec.md).
 
 ## Cobro: Stripe o Mercado Pago (modo de prueba) y efectivo
-El backend admite **dos pasarelas de prueba** y la app ofrece un botón por cada una que esté configurada; si ninguna lo está, la app lo dice. Stripe usa Checkout Sessions con `STRIPE_SECRET_KEY` (solo clave de prueba) en `backend/.env`; sigue [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md). Mercado Pago no pudo probarse (no se pudieron crear cuentas de prueba): está implementado y **No verificado en dispositivo**. Ninguna pasarela está validada en el celular, y el backend aún no se ha ejecutado por HTTP real (falta `npm install` en `backend/`). El efectivo no usa pasarela.
+El backend admite **dos pasarelas de prueba** y la app ofrece un botón por cada una que esté configurada; si ninguna lo está, la app lo dice. Stripe usa Checkout Sessions con `STRIPE_SECRET_KEY` (solo clave de prueba) en `backend/.env`; sigue [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md). Mercado Pago implementado, no verificado con usuarios de prueba (no se pudieron crear cuentas de prueba); Stripe es la pasarela verificada de punta a punta (validada en dispositivo por Anderson, ver [docs/pagos-evidencia.md](docs/pagos-evidencia.md)). El efectivo no usa pasarela.
 
 El cobro con tarjeta con Mercado Pago usa **Checkout Pro en modo de prueba**: el backend crea la preferencia con el importe leído del viaje en Firestore y la app abre el enlace; el resultado llega por webhook o por `/payments/sync` al volver a la app. No se cobra dinero real. El pago en efectivo lo confirma el conductor con «Confirmar efectivo recibido». El viaje se guarda en Firestore (`drivers/{uid}/trips/{tripId}`, sin coordenadas, montos en COP enteros). Ganancias e Historial leen esos viajes y Ganancias muestra el saldo con la plataforma. Detalles, límites y prueba manual en [docs/pagos.md](docs/pagos.md). La regla de Firestore de `trips` está en [docs/seguridad.md](docs/seguridad.md) y la publica el humano en la consola.
 
@@ -153,9 +155,9 @@ Auditoría completa en [docs/auditoria-enunciado-2026-11-12.md](docs/auditoria-e
 |---|---|---|
 | Google Maps y Directions | MapLibre + OpenFreeMap + OSRM (sin claves) | D-82: sin tarjeta ni claves de Google |
 | PaymentIntent + PaymentSheet | Stripe Checkout Sessions (página alojada) | Mismo cobro en modo de prueba sin SDK nativo de pago |
-| Mercado Pago | Implementado, **No verificado en dispositivo** | No se pudieron crear cuentas de prueba |
-| Notificaciones push (FCM) | Omitido | Requiere SDK nativo y credenciales; el pasajero es simulado |
-| Idioma español/inglés | Se guarda la preferencia; interfaz solo en español | Alcance |
+| Mercado Pago | Implementado, no verificado con usuarios de prueba; Stripe es la pasarela verificada de punta a punta | No se pudieron crear cuentas de prueba |
+| Notificaciones push (FCM) | Implementado solo en Android; la solicitud la dispara un endpoint de prueba, no un pasajero real | iOS exige APNs y cuenta de Apple de pago; con el dev client el toque en frío no entrega la solicitud (ver «Notificaciones push») |
+| Idioma español/inglés | Interfaz en español e inglés, con selector sin sesión y en Configuración | Límites: texto de la notificación push, direcciones de Nominatim y Stripe Checkout (ver [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md)) |
 | Pagos divididos (split) | Omitido | Fuera del alcance de la entrega |
 | Propina y calificación reales | Simuladas (D-124) | No existe app de pasajero |
 
@@ -167,7 +169,7 @@ Lo que la entrega no hace, o hace con otra herramienta, con su razón técnica e
 - `src/components/` — componentes compartidos (incluye elementos provisionales de desarrollo, ver [Herramientas de desarrollo](#herramientas-de-desarrollo-show_dev_tools) más abajo).
 - `src/context/` — estado compartido (`AppStateContext`, `RegistrationFormContext`).
 - `src/services/` — acceso a Firebase/Firestore y Cloudinary.
-- `src/constants/labels.js` — todos los textos visibles (español).
+- `src/i18n/` — módulo de idioma: diccionarios `es` y `en` y `labels`; `src/constants/labels.js` lo reexporta.
 - `src/hooks/`, `src/utils/`, `src/config/`, `src/theme/` — hooks (`useDriverLocation`, `useTripRequests`, `useEarnings`), funciones puras (`fare.js`, `earnings.js`), configuración y tokens de diseño.
 - `backend/` — servidor Node/Express, independiente de la app.
 - `scripts/` — `check-constitution.mjs` y pruebas en `scripts/tests/`.
@@ -177,7 +179,11 @@ Lo que la entrega no hace, o hace con otra herramienta, con su razón técnica e
 Algunas pantallas incluyen paneles provisionales solo para desarrollo: el selector «Estado de la pantalla» (fuerza contenido/cargando/vacío/error en una pantalla), el «Simulador de cuenta» (fuerza el estado de la cuenta del conductor) y «Simular solicitud» (dispara una solicitud de viaje de prueba). Los tres están controlados por un único interruptor, `SHOW_DEV_TOOLS`, en [`src/constants/devTools.js`](src/constants/devTools.js). El valor en este repositorio es `false`: ningún panel provisional se muestra en la entrega. Un desarrollador puede poner ese valor en `true` en su copia local mientras trabaja, pero debe devolverlo a `false` antes de hacer commit.
 
 ## Uso de IA
-Todo el desarrollo siguió una metodología Spec-Driven Development asistida por Claude Code, con 5 agentes especializados (spec-author, planner, implementer, verifier, design-auditor) y reglas fijas en [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md) (una tarea a la vez, implementador y verificador siempre distintos, nunca secretos en un prompt, nunca commits automáticos). La bitácora completa, con cada prompt dado a Claude Code, su verificación y el aprendizaje registrado por Anderson, está en [docs/AI_LOG.md](docs/AI_LOG.md) (el PDF de la bitácora lo exporta el humano al entregar). El código con aportes de IA está marcado en el propio archivo con comentarios `// AI-assisted: see docs/AI_LOG.md #N`, trazables a la entrada exacta de la bitácora.
+Todo el desarrollo siguió una metodología Spec-Driven Development asistida por Claude Code, con 5 agentes especializados (spec-author, planner, implementer, verifier, design-auditor) y reglas fijas en [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md). Las reglas y la procedencia del código están en esos documentos; aquí se explican dos criterios.
+
+**Qué se registra en la bitácora.** [docs/AI_LOG.md](docs/AI_LOG.md) guarda cada prompt dado a Claude Code con su objetivo, el resumen de la respuesta, la verificación y el aprendizaje. El trabajo sustancial (funcionalidades, correcciones de comportamiento, cambios de especificación) se registra; las funciones grandes se agrupan en una sola entrada. Las consultas triviales y los pulidos menores (un texto, un espacio) no se registran. Verificación y aprendizaje los completa Anderson; las entradas reconstruidas después se marcan «RECONSTRUIDA, no registrada en el momento». El código con aportes de IA lleva el comentario `// AI-assisted: see docs/AI_LOG.md #N`, trazable a su entrada. El PDF de la bitácora lo exporta el humano al entregar.
+
+**Cómo se verifica.** Quien implementa nunca aprueba su propio trabajo: cada tarea la verifica un `verifier` distinto del `implementer`, y lo visual lo revisa un `design-auditor`. Ante un rechazo se registra el evento, se hace una sola ronda de corrección y se vuelve a verificar; si hay un segundo rechazo, el trabajo se detiene y se informa. Nada pasa a «Validada» sin la evidencia de Anderson en el celular. Se ejecutan `npm test` y `node scripts/check-constitution.mjs`. Auditoría de la bitácora: [docs/auditoria-bitacora-2026-11-16.md](docs/auditoria-bitacora-2026-11-16.md).
 
 ## Integrantes
 Anderson Londoño Avendaño (equipo de una persona).

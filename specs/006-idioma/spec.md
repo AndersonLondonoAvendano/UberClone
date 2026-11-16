@@ -132,6 +132,8 @@ Que el conductor use toda la app en español o en inglés, elija el idioma en Co
 - **CA-006-33** (RI-24) `docs/omisiones-y-limites.md` contiene los cinco límites (a) a (e), y el (a) describe el texto real del backend (`Nueva solicitud de viaje`; `Económico · {km} km · {min} min`). Verifica: lectura del documento contra `backend/src/notifications/payload.js`.
 - **CA-006-34** (RI-12, RI-24a) El backend no se modifica en este lote: `backend/` no cambia respecto al estado previo. Verifica: `git diff` de `backend/` vacío al cerrar el lote.
 
+**Adenda L3b (Borrador, no aprobada):** CA-006-35 a CA-006-50 y CA-006-D4 (selector sin sesión, textos en inglés, `delayValue`, zona horaria inyectable, `applySuggestion`) están en [adenda-l3b.md](adenda-l3b.md). Nota a CA-006-07: `delayValue(15)` es igual en ambos idiomas a propósito (ver CA-006-46).
+
 **Diseño**
 - **CA-006-D1** El `design-auditor` revisa los textos en inglés con la fuente del sistema al 200 % en: botones (Aceptar/Accept, Rechazar/Reject, Llegué/I've arrived, Finalizar viaje, Confirmar cobro, acciones de cobro), chips (estado del viaje, cobro, método), contador «Expires in {s} s», Historial (ítem, filtros, gráfica) y Detalle, y confirma que no hay texto cortado, superpuesto ni botones que pierdan el área táctil de 48 dp. Estado: **Pendiente de dispositivo**; la parte que se puede revisar con capturas del arnés se hace antes y lo demás queda «No verificado en dispositivo». Tarea: capturas en celular al 200 %.
 - **CA-006-D2** (RI-11) La comprobación del idioma activo mantiene contraste ≥ 4,5:1 del texto y ≥ 3:1 del icono con los tokens de `DESIGN.md` (cálculo con script temporal sobre los tokens) y no depende solo del color. Verifica: cálculo y lectura del componente. No verificado en dispositivo.

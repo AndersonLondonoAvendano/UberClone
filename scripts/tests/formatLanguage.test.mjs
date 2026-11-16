@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68
 // T-251: per-language formats (CA-006-28, 29, 30). Instants are built from local parts, so any time zone works.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -65,4 +66,32 @@ test('without a language argument the active language is read at call time; unsu
   assert.equal(formatKm(8.5, 'fr'), '8.5');
   init('es');
   assert.equal(formatKm(8.5, 'fr'), '8,5');
+});
+
+// CA-006-48: injected zone. 2026-11-11 19:05 UTC is 14:05 in UTC-5.
+const instant = Date.UTC(2026, 10, 11, 19, 5);
+const utc5 = { utcOffsetMinutes: -300 };
+const utc0 = { utcOffsetMinutes: 0 };
+
+test('same instant gives different correct hours in UTC-5 and UTC+0, in es and en (CA-006-48)', () => {
+  assert.equal(formatClock(instant, 'es', utc5), '14:05');
+  assert.equal(formatClock(instant, 'es', utc0), '19:05');
+  assert.equal(formatClock(instant, 'en', utc5), '2:05 PM');
+  assert.equal(formatClock(instant, 'en', utc0), '7:05 PM');
+  assert.equal(formatDateTime(instant, 'es', utc5), '11/11/2026 14:05');
+  assert.equal(formatDateTime(instant, 'en', utc0), '11/11/2026 7:05 PM');
+});
+
+test('the injected zone can change the date (day rollover)', () => {
+  const late = Date.UTC(2026, 10, 12, 2, 30);
+  assert.equal(formatDateTime(late, 'es', utc5), '11/11/2026 21:30');
+  assert.equal(formatDateTime(late, 'en', utc5), '11/11/2026 9:30 PM');
+  assert.equal(formatDateTime(late, 'es', utc0), '12/11/2026 02:30');
+  assert.equal(formatDateTime(late, 'en', utc0), '11/12/2026 2:30 AM');
+});
+
+test('without an injected zone the phone local time is used', () => {
+  assert.equal(formatDateTime(afternoon, 'es', {}), '11/11/2026 14:05');
+  assert.equal(formatDateTime(afternoon, 'es', { utcOffsetMinutes: 'x' }), '11/11/2026 14:05');
+  assert.equal(formatClock(afternoon, 'en', undefined), '2:05 PM');
 });

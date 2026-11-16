@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see docs/AI_LOG.md #68 (compact language control in the footer, no session needed)
 // AI-assisted: see docs/AI_LOG.md #60 (no header: brand band, overlapping form card, centred content)
 // Frame shared by the three authentication screens: the brand band (AuthBackdrop) under the status bar
 // and a keyboard-aware scroll area so the focused field, its error and the main button stay above the
@@ -9,9 +10,12 @@ import { useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackdrop } from './AuthBackdrop';
+import { LanguageSection } from '../settings/LanguageSection';
+import { useLanguage } from '../../i18n/useLanguage';
 import { color, space } from '../../theme/tokens';
 
 export function AuthScreenLayout({ testID, children }) {
+  useLanguage();
   const insets = useSafeAreaInsets();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
@@ -39,7 +43,12 @@ export function AuthScreenLayout({ testID, children }) {
           showsVerticalScrollIndicator={false}
         >
           <AuthBackdrop topInset={insets.top} />
-          <View style={styles.content}>{children}</View>
+          <View style={styles.content}>
+            {children}
+            <View style={styles.language}>
+              <LanguageSection compact />
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -62,5 +71,9 @@ const styles = StyleSheet.create({
     marginTop: -(space[7] + space[3]),
     paddingHorizontal: space[4],
     gap: space[3],
+  },
+  // Discreet footer control (T-270): after the form and links, so it never competes with the main button.
+  language: {
+    paddingTop: space[3],
   },
 });

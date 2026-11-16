@@ -118,3 +118,45 @@ Visuales: T-254 (selector) y las tareas de migración que corrigen lecturas cong
 4. Calidad del inglés: la paridad solo mide presencia; revisión de redacción de Anderson.
 5. Lector del idioma del teléfono distinto por sistema operativo (D-190).
 6. Texto en inglés más largo con fuente al 200 % (T-263).
+
+## 9. Adenda L3b (T-268 a T-272; Borrador, no aprobada)
+<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+
+Fuente: `specs/006-idioma/adenda-l3b.md` (RI-25 a RI-29, CA-006-35 a 50, D4, 35d). Sin dependencias, sin decisión nueva (la adenda no propone D-193). Las tareas quedan «Pendiente» hasta que Anderson apruebe la adenda; el resto de este plan puede quedar desactualizado (P5).
+
+**Archivos → responsabilidad → requisitos**
+
+| Archivo | Responsabilidad | Requisitos |
+|---|---|---|
+| `src/i18n/dictionaries/en/trip.js`, `en/account.js`, `es.js` (comentario) | «Reject», «I've arrived», «Rejected»; comentario de `delayValue` | RI-26, RI-27 |
+| `src/utils/format.js` | zona horaria opcional inyectable; local por defecto | RI-28 |
+| `src/i18n/applySuggestion.js` | no pisar un `setLanguage` hecho durante la espera | RI-29 |
+| `src/components/settings/LanguageSection.js` (+ variante compacta) | control reutilizado, sin lógica nueva | RI-25a, b, d |
+| `WelcomeScreen.js`, `AuthScreenLayout.js` (Login y SignUp), `PlaceholderScreen.js` o las tres pestañas | colocación discreta | RI-25a, c |
+| `scripts/tests/i18nEnglishWording.test.mjs`, `languageNoSession.test.mjs` y las pruebas de formato y sugerencia | pruebas | todos |
+
+**Contratos**
+```
+formatDateTime(ts, language?, { utcOffsetMinutes }?)   // sin tercer argumento: hora local del teléfono
+formatClock(ts, language?, { utcOffsetMinutes }?)
+applySuggestion(suggested)                              // sin cambio de firma
+```
+
+**Decisiones técnicas locales (no sustituyen `docs/decisiones.md`)**
+1. El control sin sesión es la misma lógica de `LanguageSection` con presentación compacta (prop o envoltorio); no hay segundo `setLanguage` ni acceso a `appLanguage` fuera de `src/i18n` (CA-006-37).
+2. Se coloca en el pie (o el encabezado) de cada pantalla, sin cambiar el orden de resolución RI-06 (CA-006-41). Si el layout compartido (`AuthScreenLayout`, `PlaceholderScreen`) lo permite, se prefiere un solo punto de inserción; `PlaceholderScreen` también lo usa Configuración y las demás pantallas con sesión, así que el implementer debe evitar duplicar el control allí (por una prop o insertando en las tres pestañas).
+3. `ForgotPasswordScreen.js` queda fuera de CA-006-35 (no listada); recibirá el control si va en `AuthScreenLayout`.
+4. La zona horaria se inyecta por un parámetro de desplazamiento en minutos, sin `Intl`; la hora real sigue siendo la local del teléfono.
+5. `applySuggestion`: tras el `await preference.get()` se comprueba que el idioma activo no cambió por el usuario; si no es seguro, límite documentado (CA-006-49 se sustituye y se informa).
+
+**Orden:** T-268 y T-269 son independientes entre sí (archivos distintos) y pueden ir en paralelo; T-270 después de T-268; T-271 después de T-270; T-272 al final.
+
+**Mapa CA → implementación**
+
+| CA | Tarea |
+|---|---|
+| CA-006-43, 44, 45, 46 | T-268 |
+| CA-006-47, 48, 49, 50 | T-269 |
+| CA-006-35, 36, 37, 38, 39, 40, 41, 42 | T-270 |
+| CA-006-D4 | T-271, T-272 |
+| CA-006-35d (y lo de dispositivo de 36, 40) | T-272 (Anderson) |

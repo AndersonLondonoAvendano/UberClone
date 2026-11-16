@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68
 // Tests for applySuggestion (T-253; CA-006-09).
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,4 +48,33 @@ test('a failing preference read does not throw', async () => {
   const store = createLanguageStore({});
   const apply = createSuggestionApplier({ preference: { get: async () => { throw new Error('x'); } }, store });
   assert.equal(await apply('en'), 'en');
+});
+
+const deferred = (stored) => {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const saved = [];
+  const preference = { get: async () => { await gate; return stored; }, set: async (v) => { saved.push(v); return true; } };
+  const store = createLanguageStore({ preference });
+  return { release, saved, store, apply: createSuggestionApplier({ preference, store }) };
+};
+
+test('a language chosen during the deferred read is not overridden (CA-006-49)', async () => {
+  const { release, saved, store, apply } = deferred(null);
+  const pending = apply('es'); // active is es; the user switches to en while the read is pending
+  store.setLanguage('en');
+  release();
+  assert.equal(await pending, null);
+  assert.equal(store.getLanguage(), 'en');
+  await store.setLanguage('en');
+  assert.deepEqual(saved, ['en', 'en']);
+});
+
+test('without a change during the deferred read the suggestion still applies (CA-006-09, CA-006-50)', async () => {
+  const { release, saved, store, apply } = deferred(null);
+  const pending = apply('en');
+  release();
+  assert.equal(await pending, 'en');
+  assert.equal(store.getLanguage(), 'en');
+  assert.deepEqual(saved, []);
 });

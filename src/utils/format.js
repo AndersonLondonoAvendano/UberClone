@@ -1,5 +1,6 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68
 import { getLanguage } from '../i18n/languageStore';
 import { normalizeLanguage, DEFAULT_LANGUAGE } from '../i18n/languages';
 
@@ -48,18 +49,42 @@ export function toValidDate(value) {
   return Number.isFinite(ms) ? new Date(ms) : null;
 }
 
+// AI-assisted: see docs/AI_LOG.md #68 (CA-006-47, CA-006-48)
+// Times are shown in the PHONE's local time, not Colombia's (a driver abroad sees the phone's hour).
+// By default the real local getters are used. For tests, options.utcOffsetMinutes (for example -300 for
+// UTC-5) shifts the instant and reads it with the UTC getters, so no Intl and no dependency is needed.
+const dateParts = (date, options) => {
+  const offset = options?.utcOffsetMinutes;
+  if (typeof offset === 'number' && Number.isFinite(offset)) {
+    const shifted = new Date(date.getTime() + offset * 60000);
+    return {
+      year: shifted.getUTCFullYear(),
+      month: shifted.getUTCMonth() + 1,
+      day: shifted.getUTCDate(),
+      hours: shifted.getUTCHours(),
+      minutes: shifted.getUTCMinutes(),
+    };
+  }
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hours: date.getHours(),
+    minutes: date.getMinutes(),
+  };
+};
+
 // Clock time in the phone's local time: es "14:05" (24 h), en "2:05 PM" (12 h). Empty text for an unknown date.
-export function formatClock(timestamp, language) {
+export function formatClock(timestamp, language, options) {
   const date = toValidDate(timestamp);
   if (!date) return '';
+  const { hours, minutes } = dateParts(date, options);
+  const mm = String(minutes).padStart(2, '0');
   if (resolveFormatLanguage(language) === 'en') {
-    const hours = date.getHours();
     const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-    return `${hour12}:${String(date.getMinutes()).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`;
+    return `${hour12}:${mm} ${hours < 12 ? 'AM' : 'PM'}`;
   }
-  const hh = String(date.getHours()).padStart(2, '0');
-  const mm = String(date.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
+  return `${String(hours).padStart(2, '0')}:${mm}`;
 }
 
 // Replaces {name} placeholders of a label.
@@ -82,12 +107,13 @@ export function countdownAnnouncement(secondsLeft, template) {
 // AI-assisted: see docs/AI_LOG.md #50
 // Local date and time: es "11/11/2026 14:05" (day first, as in Colombia), en "11/12/2026 2:05 PM" (month first).
 // Empty text for an unknown date.
-export function formatDateTime(timestamp, language) {
+export function formatDateTime(timestamp, language, options) {
   const date = toValidDate(timestamp);
   if (!date) return '';
-  const dd = String(date.getDate()).padStart(2, '0');
-  const mo = String(date.getMonth() + 1).padStart(2, '0');
+  const { year, month, day } = dateParts(date, options);
+  const dd = String(day).padStart(2, '0');
+  const mo = String(month).padStart(2, '0');
   const lang = resolveFormatLanguage(language);
-  const datePart = lang === 'en' ? `${mo}/${dd}/${date.getFullYear()}` : `${dd}/${mo}/${date.getFullYear()}`;
-  return `${datePart} ${formatClock(timestamp, lang)}`;
+  const datePart = lang === 'en' ? `${mo}/${dd}/${year}` : `${dd}/${mo}/${year}`;
+  return `${datePart} ${formatClock(timestamp, lang, options)}`;
 }
