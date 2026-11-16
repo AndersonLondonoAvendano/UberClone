@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54
 // AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon field, text link)
 // Password-recovery screen (RF-35). The email lives only in this component's state and is cleared
@@ -14,6 +15,7 @@ import { AuthScreenLayout } from '../../components/auth/AuthScreenLayout';
 import { Card } from '../../components/Card';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { sendPasswordReset } from '../../services/authService';
 import { color, space, type } from '../../theme/tokens';
 import { AUTH_ERROR_KIND, mapAuthError } from '../../utils/authErrors';
@@ -22,6 +24,7 @@ import { validateEmail } from '../../utils/authValidators';
 const TEXT = labels.auth;
 
 export function ForgotPasswordScreen({ navigation }) {
+  useLanguage();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState(null);
   const [notice, setNotice] = useState(null);

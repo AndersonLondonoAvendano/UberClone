@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #43
@@ -38,6 +39,7 @@ import { SIMULATED_SPEED_KMH } from '../../config/location';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { EXPIRED_NOTICE_MS } from '../../config/trip';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { paymentLabelKey } from '../../services/trip/paymentGateway';
 import { useAvailability } from '../../context/AvailabilityContext';
 import { useTrip } from '../../context/TripContext';
@@ -45,7 +47,7 @@ import { useRequestAddresses } from '../../hooks/useRequestAddresses';
 import { useAppState } from '../../context/AppStateContext';
 import { PASSENGER_API_ERROR, acceptRequest } from '../../services/passengerApi';
 import { DECLINE_REASON, declineRequest, markRequestAccepted } from '../../services/trip/declineRequestApp';
-import { CLOSED_REASON, closedReasonText, requestClosedReason } from '../../services/trip/requestClosed';
+import { CLOSED_REASON, closedReasonIcon, closedReasonText, requestClosedReason } from '../../services/trip/requestClosed';
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
 import { decisionDeadline, markShown } from '../../services/trip/decisionWindow';
@@ -80,6 +82,7 @@ function errorMessage(error) {
 }
 
 export function TripRequestScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { pendingRequest, clearPendingRequest, getDriverPosition, setRequestScreenId, takeRequestOrigin, isAvailable } = useAvailability();
   const { startTrip } = useTrip();
   // The urgent icon follows the text, capped at the same maxFontScale the countdown text uses.
@@ -324,7 +327,8 @@ export function TripRequestScreen({ navigation }) {
   } else if (expiredShown) {
     body = (
       <View testID="trip-request-expired" style={styles.centered} accessibilityLiveRegion="assertive">
-        <Icon name="time-outline" size={iconSize.lg} tint={color.textMuted} />
+        {/* AI-assisted: see docs/AI_LOG.md #67 (A2: the clock only for a real expiry) */}
+        <Icon name={closedReasonIcon(closedReason)} size={iconSize.lg} tint={color.textMuted} />
         <Text style={styles.title}>{closedReasonText(closedReason)}</Text>
         <Text style={styles.muted}>{labels.trip.backingHome}</Text>
       </View>

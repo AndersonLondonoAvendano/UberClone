@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: cards, DataRow, clear selected period)
@@ -14,6 +15,7 @@ import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useEarnings } from '../../hooks/useEarnings';
 import { useEarningsTrips } from '../../hooks/useEarningsTrips';
 import { useBalance } from '../../hooks/useBalance';
@@ -24,6 +26,7 @@ import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/f
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 
 export function EarningsScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   // AI-assisted: see docs/AI_LOG.md #65 (RC-04: day/week/month come from the range read, not the 200 latest;
   // the balance keeps its own source, useTrips)
   const { status, trips: rangeTrips, truncated, retry } = useEarningsTrips();
@@ -145,7 +148,8 @@ export function EarningsScreen({ navigation }) {
             </View>
             {balanceView.partial ? (
               <View style={styles.hintRow} testID="earnings-balance-partial" accessibilityLiveRegion="polite">
-                <Icon name="information-circle" size={iconSize.md} tint={color.warning} />
+                {/* AI-assisted: see docs/AI_LOG.md #67 (A1: a partial figure is a warning, not plain information) */}
+                <Icon name="warning" size={iconSize.md} tint={color.warning} />
                 <Text style={styles.partialText}>{fillLabel(labels.earnings.balancePartial, { count: String(balanceView.count) })}</Text>
               </View>
             ) : null}

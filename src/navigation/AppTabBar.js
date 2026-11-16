@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
 // AI-assisted: see docs/AI_LOG.md #54 (tabs stack at large font scales so the names are never cut)
 // AI-assisted: see docs/AI_LOG.md #16
 // AI-assisted: see docs/AI_LOG.md #52 (icon per tab, soft brand pill when active)
@@ -25,6 +26,7 @@ import { Icon } from '../components/Icon';
 import { InlineSignOut } from '../components/registration/InlineSignOut';
 import { labels } from '../constants/labels';
 import { useAppState } from '../context/AppStateContext';
+import { useLanguage } from '../i18n/useLanguage';
 import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 import { maskEmail } from '../utils/mask';
 
@@ -36,7 +38,6 @@ const LABEL_MAX_FONT_MULTIPLIER = 1.5;
 // The account menu never covers more than this share of the window height (it scrolls instead).
 const MENU_MAX_HEIGHT_RATIO = 0.6;
 const TAB_ICONS = { PersonalData: 'person', Vehicle: 'car', Documents: 'document-text' };
-const ACCOUNT_COPY = labels.registrationFlow.account;
 
 // Same keyboard events the library uses for its hide-on-keyboard option.
 function useKeyboardVisible() {
@@ -68,6 +69,8 @@ function tabText(options, route) {
 }
 
 export function AppTabBar({ state, descriptors, navigation, insets }) {
+  useLanguage();
+  const ACCOUNT_COPY = labels.registrationFlow.account;
   const keyboardVisible = useKeyboardVisible();
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
   const { fontScale, height: windowHeight } = useWindowDimensions();

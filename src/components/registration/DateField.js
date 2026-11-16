@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region, and minimumDate)
@@ -10,6 +11,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
@@ -20,6 +22,7 @@ function formatDate(date) {
 }
 
 export function DateField({ testID, label, value, onChange, errorTestID, errorMessage, maximumDate, minimumDate, disabled = false, announceError = false }) {
+  useLanguage();
   const openPicker = () => {
     DateTimePickerAndroid.open({
       value: value ?? maximumDate ?? minimumDate ?? new Date(),

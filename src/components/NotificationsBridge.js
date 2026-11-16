@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #64
 // Connects push notifications to the app (T-183, D-130, D-140). Mounted once inside the providers
 // (MainDrawer), so a session exists. Foreground messages and notification taps become a trip request
@@ -11,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { getNotifications } from '../services/notifications';
@@ -24,6 +26,7 @@ import { getRegistrationController } from '../services/notifications/registratio
 import { color, radius, space, type } from '../theme/tokens';
 
 export function NotificationsBridge({ currentRoute = null, getNavigation = () => null }) {
+  useLanguage();
   const { driverId, accountStatus } = useAppState();
   const { onTrip, isAvailable, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
   const insets = useSafeAreaInsets();

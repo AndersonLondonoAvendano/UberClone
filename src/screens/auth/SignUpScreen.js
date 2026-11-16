@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54
 // AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text link)
 // Create-account screen (RF-33). Email, password and confirmation live only in this component's
@@ -17,6 +18,7 @@ import { Card } from '../../components/Card';
 import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { signUpWithEmail } from '../../services/authService';
 import { mapAuthError } from '../../utils/authErrors';
 import { firstInvalidField, passwordRequirements, validateSignUp } from '../../utils/authValidators';
@@ -26,6 +28,7 @@ const TEXT = labels.auth;
 const FIELD_ORDER = ['email', 'password', 'confirmation'];
 
 export function SignUpScreen({ navigation }) {
+  useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');

@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #60
 // "Cerrar sesión" for the registration flow, outside the forms. Same single session reset as
 // AccountActions (useSessionReset) and the same texts (labels.auth.signOut); only the trigger differs:
@@ -10,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, findNodeHandle, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useSessionReset } from '../../context/useSessionReset';
 import { SESSION_RESET_REASON } from '../../services/session/resetSession';
 import { color, iconSize, opacity, space, touch, type } from '../../theme/tokens';
@@ -29,10 +31,10 @@ const MODE = {
 };
 
 const FOCUS_MODES = [MODE.CONFIRM, MODE.BLOCKED, MODE.ERROR, MODE.SAVE_PENDING, MODE.CONFIRM_FORCE];
-const COPY = labels.auth.signOut;
-
 // onOpenChange(open) is optional: true while any confirmation panel is showing (mode not idle).
 export function InlineSignOut({ trigger = 'link', onOpenChange }) {
+  useLanguage();
+  const COPY = labels.auth.signOut;
   const resetSession = useSessionReset();
   const [mode, setMode] = useState(MODE.IDLE);
   const titleRef = useRef(null);

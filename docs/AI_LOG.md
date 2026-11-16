@@ -3141,5 +3141,128 @@ bien; (8) npm test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-5". Sin
 
 #### Adenda de cierre (prompt «Cierre de T-232 y de los menores del LOTE L2», 2026-11-16 14:13)
 Decisiones de Anderson: aprobar el arreglo de `paymentView.js`; omitir el chip «Rechazados» (T-231); aceptar D-185 (coordenadas); pasar D-181…D-186 a «Aprobada salvo objeción» reconciliando D-181. Tareas: C1 `paymentView` + test real de no contaminación; C2 `useBalance` sin sesión, 5.000 exactos sin truncar, `exitCopy` por estado, «Cancelada: ya no estás disponible»; C3 límites en omisiones-y-limites.md; C4 segunda ronda del design-auditor (Pendiente de dispositivo); C5 cifras reales.
+
+#### Adenda del lote L3, Parte A (pulidos, prompt de la entrada #67, 2026-11-16)
+Evidencia de dispositivo STOP-5 de Anderson (14:54): L2 completo aprobado; ver progress.md. Pulidos: A1 ícono `warning` en el aviso parcial del saldo de Ganancias; A2 ícono de información sin reloj en «Cancelada: ya no estás disponible» (`closedReasonIcon`); A3 duración del aviso de la tarjeta = 2,5 s × factor de fuente con tope 6 s (`noticeDurationMs`); A4 la premisa del tope de 200 era falsa (ya paginaba a 5.000), se corrigió el falso positivo de `truncated` con exactamente 5.000 viajes y se añadieron pruebas de más de 200; A5 encuadre del mapa del Detalle con padding según atribución y fuente (`detailFitPadding`). Verifier distinto: A1–A5 aprobadas en lo estático; 261/261 pruebas, check-constitution 14 errores (base). Lo visual: No verificado en dispositivo.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #67 — Cierre de brechas del taller — lote L3 (idioma)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar el lote L2 con la evidencia de dispositivo (STOP-5), pulir (avisos, Ganancias por rango sin tope, encuadre del mapa del Detalle) e implementar el lote L3: idioma español/inglés.
+- Prompt (textual):
+````
+PROMPT — LOTE L3: idioma español/inglés + cierre de L2 + pulido del mapa del Detalle
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lote L3 (idioma)" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de la Parte A se añaden a la entrada del lote L2 (#66).
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 14:54, build de desarrollo, STOP-5 del lote L2)
+- Con «No disponible», tocar la notificación muestra un aviso de que debe activar la disponibilidad y
+  no ofrece la solicitud. Con «Disponible», el toque abre la pantalla completa y la mejora de rapidez
+  («Calculando…» y luego los datos) se nota.
+- Rechazo y vencimiento aparecen en el Historial como «Rechazado» con «Sin cobro».
+- Flujo completo de un viaje (aceptar, conductor llegando, iniciar, finalizar, cobrar): funciona.
+- Saldo y Ganancias coherentes con el Historial. Pago con tarjeta con Stripe: funciona; el Detalle
+  muestra «Pago aprobado», «Tarjeta (Stripe)», comisión y ruta de OSRM.
+- Anderson aprueba todo el checklist STOP-5.
+- Reglas de Firestore con los estados nuevos PUBLICADAS por Anderson (2026-11-16, ≈ 14:20 Bogotá) y
+  comprobadas con un guardado real: en la consola, drivers/{uid}/trips/mock-…-1 con status
+  "rejected", fare/commission/driverEarnings/tip en 0, rating null, economy con las cuatro claves en
+  0, origin {address, lat, lng} y originLabel.
+- Registra en progress.md, backlog y omisiones-y-limites.md: L2 completo (estados rechazado y
+  conductor llegando, campos aditivos, saldo completo, aviso de «No disponible», rapidez al tocar la
+  notificación) como "Validada en dispositivo por Anderson". G-01 y CA-005-26 cerrados con esta
+  evidencia. Corrige en docs/seguridad.md todo lo que aún diga que tip, rating o los estados nuevos
+  están «pendientes de publicar» o «NO VERIFICADO». Sigue pendiente de dispositivo SOLO lo que Anderson
+  no mencionó: «Salir del viaje» a mitad y viajes antiguos.
+- Hallazgo visual en el Detalle del viaje (dos capturas): la ruta se corta por abajo, el tramo final
+  queda tapado por la atribución del mapa y el marcador de destino no se ve completo.
+
+REGLAS (iguales a los lotes anteriores)
+Implementer implementa, verifier DISTINTO verifica cada parte, design-auditor distinto para lo
+visual, spec-author y planner para la Parte B. Quien implementa no aprueba; si un revisor rechaza,
+DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout de
+archivos. SHOW_DEV_TOOLS=false. Sin Alert. Sin dependencias nuevas, sin tocar app.json ni código
+nativo. firestore.rules fuera de git. No puedes probar en dispositivo. No dejes procesos de fondo.
+Textos solo en src/constants/labels.js (o el módulo que lo sustituya con esta tarea).
+
+PARTE A — Pulidos (sin spec nueva)
+A1. Aviso parcial de Ganancias: ícono `warning` en vez de `information-circle`.
+A2. Aviso «Cancelada: ya no estás disponible» en pantalla completa: sin ícono de reloj (sugiere
+    «expiró»); ícono neutro de información. «La solicitud expiró» conserva el reloj.
+A3. Duración del aviso de la tarjeta: de 2,5 s a un tiempo que escale con el tamaño de fuente (base
+    2,5 s por el factor de fuente, tope 6 s), visible completo con fuente al 200 %.
+A4. fetchTripsInRangeWith (Ganancias por rango) tiene el mismo defecto de tope de 200: usa la misma
+    lectura paginada con tope de 5.000 que Ganancias de hoy, semana y mes, con pruebas de más de 200
+    viajes y el mismo aviso por encima de 5.000. Sin índice nuevo (rango sobre finishedAt).
+A5. Mapa del Detalle del viaje: encuadra la ruta completa con margen suficiente (padding) para que
+    ni la ruta ni los marcadores de origen y destino queden tapados por la atribución ni cortados por
+    el borde. Reutiliza routeBounds y la política de cámara existentes; no cambies la ruta ni la
+    atribución (debe seguir visible y legible). Cubre rutas muy cortas y muy largas y un viaje sin
+    ruta guardada (respaldo actual). Pruebas puras del cálculo de encuadre y margen.
+
+PARTE B — LOTE L3: idioma español/inglés
+Contexto: el enunciado (docs/enunciado-taller.pdf) y el plan (docs/plan-cierre-entrega-2026-11-16.md,
+G-05, D-15) exigen español e inglés. Hoy solo hay español.
+SDD ligera: spec-author escribe specs/006-idioma/spec.md y planner el plan.md (cortos, con CA-nnn
+verificables y T-nnn que continúan la numeración) y CONTINÚAS con la implementación sin detenerte a
+pedir aprobación, rebanada por rebanada con su verifier. El planner elige el enfoque de MENOR riesgo
+y lo justifica en una decisión (D-187…).
+B1. Mecanismo. Sin librerías: un módulo propio de internacionalización con diccionarios `es` y `en`
+    (todas las claves de labels.js existentes), función de traducción con parámetros («Vence en
+    {n} s»), plurales simples donde haga falta y respaldo al español si falta una clave. Idioma
+    inicial: el guardado por el usuario; si no hay, el del teléfono si es en o es; si no, español.
+    Cambiar el idioma actualiza la app al instante, sin reiniciar (contexto de React), sin
+    parpadeos ni pérdida del estado de viaje o de una solicitud abierta (no reinicia el
+    temporizador de 15 s ni cambia la tarifa).
+B2. Selector. Sección «Idioma / Language» en Configuración (dos opciones, la actual marcada con
+    comprobación visual clara y accesible, sin Alert). La preferencia se guarda en el teléfono, por
+    dispositivo. NO se escribe en Firestore: las reglas de edición del perfil no permiten cambiar
+    personalData.language (decisión de Anderson: no ampliar validProfileEdit). Si el registro ya
+    guarda personalData.language, solo úsalo como idioma inicial sugerido. Cerrar sesión conserva la
+    preferencia (no es dato de cuenta).
+B3. Cobertura. Todo texto visible: pantallas, botones, avisos, estados, errores, placeholders,
+    accesibilidad (accessibilityLabel y hint), validaciones, onboarding, registro, viaje, Historial,
+    Ganancias, Perfil, Configuración y notificaciones LOCALES. Formatos: pesos colombianos siguen
+    como COP con puntos de miles en ambos idiomas; fechas y horas con el formato del idioma elegido;
+    distancias en km. Estados, categorías y métodos de pago se traducen solo en pantalla: los valores
+    guardados en Firestore no cambian (las reglas publicadas no deben tocarse).
+B4. Límites declarados (en omisiones-y-limites.md, sin ocultarlos): (a) el texto de la notificación
+    push lo arma el backend: di cuál es el comportamiento real en inglés; (b) direcciones de
+    Nominatim y nombres simulados de pasajeros no se traducen; (c) Stripe Checkout sigue el idioma de
+    la pasarela.
+B5. Pruebas. Paridad es/en (toda clave en ambos, mismos parámetros, sin cadenas vacías); un test que
+    detecte texto visible nuevo escrito a mano fuera del módulo de idioma en las pantallas
+    (heurística razonable con lista de excepciones justificada); función de traducción (parámetros,
+    respaldo, plurales); orden de resolución del idioma inicial; prueba de que cambiar el idioma no
+    altera los valores guardados ni la tarifa.
+B6. Diseño. El design-auditor revisa los textos en inglés (más largos o cortos): sin cortes ni
+    solapes con fuente al 200 % en botones, chips, el contador de la solicitud, el Historial y el
+    Detalle. Lo no comprobable queda «Pendiente de dispositivo».
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: íconos, duración del aviso, lectura por rango sin tope, encuadre del mapa. Parte B:
+trazabilidad a CA-nnn, paridad es/en, sin texto suelto, cambio de idioma sin perder estado, valores
+guardados intactos, límites declarados. Pruebas completas (npm test) y check-constitution (base 14
+errores) sin regresión; cita cifras reales. «Validada» solo con evidencia de Anderson; lo demás
+«Implementada, pendiente de dispositivo».
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-187…), hallazgos de los verifiers, cifras
+reales, pasos manuales de Anderson y el CHECKLIST STOP-6 (solo JavaScript, sin recompilar):
+(1) Configuración → English: toda la app cambia al instante; volver a Español; (2) cerrar la app y
+abrirla: se conserva el idioma; (3) con una solicitud abierta, cambiar el idioma no reinicia el
+contador ni cambia la tarifa; (4) recorrer Historial, Ganancias, Perfil, el viaje completo y el
+resumen en inglés, y anotar los textos que sigan en español; (5) fuente al 200 % en inglés: botones,
+chips y contador sin cortes; (6) cerrar sesión e iniciar otra: el idioma se conserva; (7) onboarding
+y registro en inglés; (8) Detalle del viaje: la ruta y los marcadores se ven completos; (9) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-6". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Cierre de L2 con la evidencia de Anderson, Parte A (íconos, aviso escalado, Ganancias por rango sin tope, encuadre del mapa del Detalle) y Parte B: módulo i18n propio es/en (D-187…D-192, Propuesta), selector en Configuración con preferencia por dispositivo, migración de todas las pantallas, componentes, navegación y servicios, y límites declarados. Verificado estáticamente por verifiers distintos y design-auditor (2 rondas); `npm test` 337/336 pasan/1 omitida, check-constitution 14 errores (base). Todo «Implementada, pendiente de dispositivo» (T-264, STOP-6).
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

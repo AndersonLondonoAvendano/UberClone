@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #60
 // Welcome of the registration, shown before the tabs while the registration is not sent. Pattern: a
 // 3-step checklist with a progress indicator ("N de 3") and one main action that opens the first
@@ -13,6 +14,7 @@ import { Icon } from '../../components/Icon';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { InlineSignOut } from '../../components/registration/InlineSignOut';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
@@ -22,7 +24,6 @@ import { deriveRegistrationProgress } from '../../utils/registrationProgress';
 const SAFE_EDGES = ['top', 'bottom'];
 const COPY = labels.registrationFlow.welcome;
 const STEP_ICONS = { personalData: 'person', vehicle: 'car', documents: 'document-text' };
-const ACTION_LABELS = { start: COPY.start, continue: COPY.continue, review: COPY.review };
 
 function fill(template, values) {
   return Object.keys(values).reduce((text, key) => text.replace(`{${key}}`, String(values[key])), template);
@@ -30,6 +31,8 @@ function fill(template, values) {
 
 // onStart(routeName): opens the registration tabs at that tab.
 export function WelcomeScreen({ onStart }) {
+  useLanguage();
+  const ACTION_LABELS = { start: COPY.start, continue: COPY.continue, review: COPY.review };
   const { isPersonalDataValid, isVehicleValid, isDocumentsValid } = useRegistrationForm();
   const { authUser } = useAppState();
   const progress = deriveRegistrationProgress({ isPersonalDataValid, isVehicleValid, isDocumentsValid });

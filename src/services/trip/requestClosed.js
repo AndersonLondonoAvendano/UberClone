@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see docs/AI_LOG.md #67 (A2: icon per closed reason)
 // Pure choice of why an open request disappeared (C2d, D-181). When the driver switches to "No disponible"
 // the request is released (useTripRequests stops watching) while it still had time left: that is not an
 // expiry, so the text must be "Cancelada: ya no estás disponible" and not "La solicitud expiró".
@@ -15,4 +16,10 @@ export function requestClosedReason({ available, remainingMs, toleranceMs = 0 })
 
 export function closedReasonText(reason) {
   return reason === CLOSED_REASON.UNAVAILABLE ? labels.trip.closedUnavailable : labels.trip.expired;
+}
+
+// Ionicons name for the full-screen notice: the clock only belongs to a real expiry; going offline is a
+// neutral information notice.
+export function closedReasonIcon(reason) {
+  return reason === CLOSED_REASON.UNAVAILABLE ? 'information-circle-outline' : 'time-outline';
 }

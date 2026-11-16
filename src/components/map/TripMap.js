@@ -27,6 +27,7 @@ import {
   ROUTE_LINE_WIDTH,
 } from '../../config/map';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { recenterAction, shouldCenterOnFirstFix } from '../../services/map/cameraPolicy';
 import { color, mapMarker, radius, space, type } from '../../theme/tokens';
 import { CarMarker } from './CarMarker';
@@ -48,7 +49,8 @@ const toLngLat = (point) => [point.lng, point.lat];
 const pointFeature = (point) =>
   point ? { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: toLngLat(point) } } : null;
 
-export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true, centerOnce = false, recenterSignal = 0, vehicleColorValue, attributionAtBottom = false, fitBounds, interactive = true, mapA11yLabel, attributionInsetRight = 0, attributionInsetBottom = 0 }) {
+export function TripMap({ testID, position, target, routeCoordinates, approximate = false, follow = true, centerOnce = false, recenterSignal = 0, vehicleColorValue, attributionAtBottom = false, fitBounds, fitPadding, interactive = true, mapA11yLabel, attributionInsetRight = 0, attributionInsetBottom = 0 }) {
+  useLanguage();
   const cameraRef = useRef(null);
   const [mapKey, setMapKey] = useState(0);
   const [failed, setFailed] = useState(false);
@@ -58,8 +60,9 @@ export function TripMap({ testID, position, target, routeCoordinates, approximat
   // Home (centerOnce) without a position starts on Colombia, not on the world.
   const [initialView] = useState(() => {
     if (fitBounds) {
+      // AI-assisted: see docs/AI_LOG.md #67 (A5: the caller may pass its own padding, e.g. extra bottom room)
       const inset = ROUTE_FIT_PADDING;
-      return { bounds: fitBounds, padding: { top: inset, right: inset, bottom: inset, left: inset } };
+      return { bounds: fitBounds, padding: fitPadding ?? { top: inset, right: inset, bottom: inset, left: inset } };
     }
     if (center) return { center: toLngLat(center), zoom: DRIVER_ZOOM };
     return centerOnce ? { center: COLOMBIA_CENTER, zoom: COLOMBIA_ZOOM } : undefined;

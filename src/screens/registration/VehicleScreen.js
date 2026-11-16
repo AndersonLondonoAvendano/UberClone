@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #27
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
@@ -13,6 +14,7 @@ import { SelectField } from '../../components/registration/SelectField';
 import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { VEHICLE_CATEGORY_OPTIONS, VEHICLE_COLOR_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
@@ -30,9 +32,10 @@ import {
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.vehicle.fields;
 // AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
-const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '2').replace('{total}', '3');
 
 export function VehicleScreen() {
+  useLanguage();
+  const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '2').replace('{total}', '3');
   const { vehicle, setVehicleField, touchVehicleField, visitedTabs, isLocked } = useRegistrationForm();
   const { accountStatus } = useAppState();
 

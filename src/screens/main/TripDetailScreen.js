@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #57 (T-110)
 // AI-assisted: see docs/AI_LOG.md #61 (D-124: the rating row shows five stars or "Sin calificación")
 // Trip detail (RF-49, RF-54), opened from a History row with the saved trip as the route param. The
@@ -8,7 +9,7 @@
 
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo } from 'react';
-import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '../../components/Card';
 import { Chip } from '../../components/Chip';
@@ -19,6 +20,8 @@ import { ScreenState } from '../../components/ScreenState';
 import { Icon } from '../../components/Icon';
 import { DETAIL_MAP_HEIGHT } from '../../config/map';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
+import { detailFitPadding } from '../../services/map/detailFraming';
 import { routeBounds, routeToCoordinates } from '../../services/map/routeBounds';
 import { tripDetailView } from '../../services/trip/tripDetailView';
 import { borderWidth, color, iconSize, radius, space, type } from '../../theme/tokens';
@@ -27,6 +30,7 @@ import { formatDateTime } from '../../utils/format';
 const STAR_POSITIONS = [1, 2, 3, 4, 5];
 
 export function TripDetailScreen({ navigation, route: screen }) {
+  const { language } = useLanguage(); // re-render on language change (RI-15)
   const trip = screen?.params?.trip ?? null;
   const goBack = useCallback(() => navigation.navigate('History'), [navigation]);
 
@@ -41,10 +45,13 @@ export function TripDetailScreen({ navigation, route: screen }) {
     }, [goBack]),
   );
 
-  const view = useMemo(() => (trip ? tripDetailView(trip) : null), [trip]);
+  const view = useMemo(() => (trip ? tripDetailView(trip) : null), [trip, language]);
   const coordinates = useMemo(() => routeToCoordinates(view?.route), [view]);
   const bounds = useMemo(() => routeBounds(view?.route), [view]);
   const destination = view?.route ? view.route[view.route.length - 1] : null;
+  // AI-assisted: see docs/AI_LOG.md #67 (A5: bottom margin clears the attribution, which grows with the font)
+  const { fontScale } = useWindowDimensions();
+  const fitPadding = useMemo(() => detailFitPadding({ mapHeight: DETAIL_MAP_HEIGHT, fontScale }), [fontScale]);
   const date = trip ? formatDateTime(trip.createdAt ?? trip.finishedAt) : '';
 
   return (
@@ -67,6 +74,7 @@ export function TripDetailScreen({ navigation, route: screen }) {
                   routeCoordinates={coordinates}
                   target={destination}
                   fitBounds={bounds}
+                  fitPadding={fitPadding}
                   follow={false}
                   interactive={false}
                   mapA11yLabel={labels.history.detail.routeA11y}

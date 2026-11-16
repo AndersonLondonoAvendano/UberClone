@@ -83,5 +83,5 @@ Rebanadas B1 (T-219, T-220), B2 (T-221 a T-224, T-228 a T-231), B3 (T-225, T-226
 | CA-005-20, 21 | T-225, T-235 |
 | CA-005-23, 24 | T-217, T-218, T-236 |
 | CA-005-25, 27 | T-232, T-236 |
-| CA-005-26 | T-218, T-238, T-239 (BLOQUEANTE) |
+| CA-005-26 | T-218, T-238, T-239 (cerrado 2026-11-16, STOP-5: Validada en dispositivo por Anderson) |
 | CA-005-D1, D2, D3 | T-224, T-230, T-231, T-237, T-239 |

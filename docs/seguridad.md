@@ -1,7 +1,7 @@
 # Seguridad — UberClone Conductor
 
 <!-- AI-assisted: see docs/AI_LOG.md #56 (T-73, reglas consolidadas) -->
-Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60), pendiente de publicar a mano por Anderson**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
+Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60). La parte de `drivers/{uid}/trips` (`validTrip()` con propina, calificación y los estados nuevos) está PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real; la edición acotada del perfil (T-164) no figura en esa evidencia y sigue sin confirmar**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Publicada la parte de viajes (2026-11-16); sin confirmar la del perfil.** Desde que se publica, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
 
 ## Dónde viven las reglas de Firestore
 - Las reglas **efectivas** son las publicadas en la consola de Firebase (Firestore → Reglas). Anderson las publica a mano.
@@ -287,7 +287,7 @@ service cloud.firestore {
 
 ## Edición acotada del perfil (T-164, RF-64, RF-65, D-122)
 <!-- AI-assisted: see docs/AI_LOG.md #60 -->
-**Paso manual de Anderson (D-80): esta regla NO está publicada.** Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba en Firestore → Reglas y pulses **Publicar**, «Guardar» en el Perfil falla con permiso denegado en cuentas aprobadas (T-162 queda **No verificado en dispositivo**). Orden: publicar, reiniciar la app, editar un campo.
+**Paso manual de Anderson (D-80): sin evidencia de que esta parte (edición del perfil) esté publicada; la publicación de 2026-11-16 que Anderson confirmó se comprobó con un guardado de viaje, no con una edición de perfil.** Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba en Firestore → Reglas y pulses **Publicar**, «Guardar» en el Perfil falla con permiso denegado en cuentas aprobadas (T-162 queda **No verificado en dispositivo**). Orden: publicar, reiniciar la app, editar un campo.
 
 **Qué se añade.** Un segundo `allow update` (las reglas de un mismo `match` se combinan con OR) con `validProfileEdit()`. El `allow update` de reenvío no cambia.
 
@@ -322,7 +322,7 @@ service cloud.firestore {
 
 ## Propina y calificación del viaje (D-124, prompt #61)
 <!-- AI-assisted: see docs/AI_LOG.md #61 -->
-**BLOQUEANTE: publicar antes de probar.** Esta regla NO está publicada. Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado falla con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
+**Resuelto (2026-11-16): regla PUBLICADA por Anderson (≈14:20 Bogotá) y comprobada con un guardado real en la consola (`tip` 0, `rating` null).** Nota histórica del bloqueo, ya superado: ni el agente ni el repositorio publican nada; hasta que se pegó el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado fallaba con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
 
 **Qué cambia en `validTrip()`.** (1) `tip` y `rating` entran en `hasAll` y `hasOnly` (la app siempre escribe ambos). (2) `tip` entero de 0 a 1.000.000 (holgura sobre el máximo simulado de 5.000). (3) `rating` nulo o entero de 1 a 5. (4) `commission + driverEarnings == fare + tip` y `driverEarnings <= fare + tip`: la comisión solo se calcula sobre la tarifa y la propina va completa al conductor. `commission <= fare` no cambia.
 
@@ -343,7 +343,7 @@ service cloud.firestore {
 **El backend no se ve afectado por las reglas.** Usa el SDK de administrador (admin SDK), que no pasa por las reglas de Firestore. Lee `fare` y `tip` del documento del viaje y cobra `fare + tip` (`chargeAmount`); nunca el monto del cuerpo de la petición.
 
 ### Lista de comprobación: regla `validTrip()` publicada (spec 004, RC-08, T-212)
-Estado: **NO VERIFICADO**. Este documento no afirma que la regla esté publicada; solo Anderson puede confirmarlo en la consola.
+Estado: **Publicada y comprobada por Anderson (2026-11-16, ≈14:20 Bogotá; guardado real en la consola, STOP-5).** La lista queda como procedimiento para volver a publicar; este documento no publica nada.
 
 **Texto vigente de `validTrip()`** (el bloque completo está arriba en «Texto final de las reglas», `function validTrip()` en `:205-234`). Las cláusulas que importan para propina y calificación son:
 - `hasAll` y `hasOnly` (`:207-208`) incluyen `'tip'` y `'rating'`.
@@ -366,7 +366,7 @@ Estado: **NO VERIFICADO**. Este documento no afirma que la regla esté publicada
 
 ## Estados del viaje y campos nuevos: `validTrip()` ampliada (spec 005, RE-13, D-183, D-185, D-186; T-218)
 <!-- AI-assisted: see docs/AI_LOG.md #66 -->
-Estado: **NO VERIFICADO. BLOQUEANTE (CA-005-26): esta regla NO está publicada y NO se asume publicada.** La publica Anderson a mano; ni el agente ni el repositorio publican nada, y `firestore.rules` (copia local ignorada por Git) no se crea ni se edita desde aquí. Sin publicarla, la app que escribe los campos nuevos puede fallar al guardar TODOS los viajes por `hasOnly` (como en G-01). Decisiones en Propuesta; la spec 005 es Borrador.
+Estado: **PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real (CA-005-26 cerrado; G-01 cerrado).** En la consola, `drivers/{uid}/trips/mock-…-1` quedó con `status` "rejected", `fare`/`commission`/`driverEarnings`/`tip` en 0, `rating` null, `economy` con las cuatro claves en 0, `origin` {address, lat, lng} y `originLabel`. La publica Anderson a mano; ni el agente ni el repositorio publican nada, y `firestore.rules` (copia local ignorada por Git) no se crea ni se edita desde aquí. Sin publicarla, la app que escribe los campos nuevos habría fallado al guardar TODOS los viajes por `hasOnly` (como en G-01); ya no ocurre. Decisiones D-181 a D-186 aprobadas salvo objeción (D-185 aceptada); la spec 005 sigue en Borrador. Lo que no se probó con la regla: «Salir del viaje» a mitad de viaje y viajes antiguos (siguen «No verificado en dispositivo»).
 
 **El texto pegable** es el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), con `validTrip()` ya actualizada y las funciones nuevas `validEconomy()` y `validPlace()` (los números de línea citados en la sección anterior ya no coinciden; vale el texto). Pega el bloque entero, no solo la función.
 
@@ -379,7 +379,7 @@ Estado: **NO VERIFICADO. BLOQUEANTE (CA-005-26): esta regla NO está publicada y
 6. `economy`: mapa con exactamente `fare`, `commission`, `tip`, `driverEarnings`, iguales a los de nivel superior.
 7. `origin` y `destination`: mapa con `address` (texto de hasta 200) y `lat`/`lng` opcionales o nulos, dentro de rango. Si Anderson rechaza D-185 (privacidad de coordenadas), se quitan `origin` y `destination` de `hasOnly`, de las dos últimas cláusulas y la función `validPlace()`.
 
-**Casos esperados** (revisión de la regla, no ejecución: sin emulador, NO VERIFICADO; la prueba real es el celular tras publicar):
+**Casos esperados** (revisión de la regla, no ejecución: sin emulador; la prueba real fue el celular tras publicar, ver el estado arriba; «Salir del viaje» a mitad y viajes antiguos siguen sin probar):
 | Caso | Resultado | Por qué |
 |---|---|---|
 | `completed` con la solicitud de ejemplo (19.200 / 3.840 / 15.360), `economy` espejo, `completedAt == finishedAt`, `origin`/`destination` con `lat`, `lng`, `address` | Permitido | Todas las cláusulas se cumplen. |

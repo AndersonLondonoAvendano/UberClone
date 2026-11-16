@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54 (orphan comment removed)
 // AI-assisted: see docs/AI_LOG.md #13
 // AI-assisted: see docs/AI_LOG.md #14
@@ -8,6 +9,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { borderWidth, color, elevation, iconSize, motion, opacity, radius, space, touch, type } from '../theme/tokens';
 import { Icon } from './Icon';
 
@@ -55,6 +57,7 @@ export function SkeletonBlock({ height = space[5], width = '100%', style }) {
 // the error title and message still show.
 // AI-assisted: see docs/AI_LOG.md #50 (optional title/message replace the generic copy of that kind)
 export function ScreenState({ kind, onRetry, title, message }) {
+  useLanguage();
   const base = labels.states[kind];
   if (!base) return null;
   const copy = { title: title ?? base.title, message: message ?? base.message };

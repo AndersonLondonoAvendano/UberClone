@@ -1,4 +1,11 @@
 // AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see docs/AI_LOG.md #67
+import { getLanguage } from '../i18n/languageStore';
+import { normalizeLanguage, DEFAULT_LANGUAGE } from '../i18n/languages';
+
+// Language to format with: the explicit one when supported, otherwise the active one read at call time (D-191).
+const resolveFormatLanguage = (language) => normalizeLanguage(language) ?? normalizeLanguage(getLanguage()) ?? DEFAULT_LANGUAGE;
+
 // Display formatting for the trip screens (T-43 to T-45): pesos with "." thousands grouping,
 // kilometers with a decimal comma and whole minutes. Display only: amounts come from calculateFare.
 
@@ -11,13 +18,14 @@ export function formatCop(value) {
   return `${sign}$ ${grouped}`;
 }
 
-// Kilometers with one decimal and a comma: 2350 m -> "2,4". Built from integers (no toFixed).
-export function formatKmFromMeters(meters) {
+// Kilometers with one decimal: 2350 m -> "2,4" in es, "2.4" in en. Built from integers (no toFixed).
+export function formatKmFromMeters(meters, language) {
   const tenths = Math.max(0, Math.round((Number(meters) || 0) / 100));
-  return `${Math.floor(tenths / 10)},${tenths % 10}`;
+  const separator = resolveFormatLanguage(language) === 'en' ? '.' : ',';
+  return `${Math.floor(tenths / 10)}${separator}${tenths % 10}`;
 }
 
-export const formatKm = (km) => formatKmFromMeters((Number(km) || 0) * 1000);
+export const formatKm = (km, language) => formatKmFromMeters((Number(km) || 0) * 1000, language);
 
 // Whole minutes, at least 1 while something remains: 61 s -> "2", 0 s -> "0".
 export function formatMinutesFromSeconds(seconds) {
@@ -40,10 +48,15 @@ export function toValidDate(value) {
   return Number.isFinite(ms) ? new Date(ms) : null;
 }
 
-// Clock time "14:05" in the phone's local time. Empty text for an unknown date.
-export function formatClock(timestamp) {
+// Clock time in the phone's local time: es "14:05" (24 h), en "2:05 PM" (12 h). Empty text for an unknown date.
+export function formatClock(timestamp, language) {
   const date = toValidDate(timestamp);
   if (!date) return '';
+  if (resolveFormatLanguage(language) === 'en') {
+    const hours = date.getHours();
+    const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+    return `${hour12}:${String(date.getMinutes()).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`;
+  }
   const hh = String(date.getHours()).padStart(2, '0');
   const mm = String(date.getMinutes()).padStart(2, '0');
   return `${hh}:${mm}`;
@@ -67,11 +80,14 @@ export function countdownAnnouncement(secondsLeft, template) {
 }
 
 // AI-assisted: see docs/AI_LOG.md #50
-// Local date and time "11/11/2026 14:05" (day first, as in Colombia). Empty text for an unknown date.
-export function formatDateTime(timestamp) {
+// Local date and time: es "11/11/2026 14:05" (day first, as in Colombia), en "11/12/2026 2:05 PM" (month first).
+// Empty text for an unknown date.
+export function formatDateTime(timestamp, language) {
   const date = toValidDate(timestamp);
   if (!date) return '';
   const dd = String(date.getDate()).padStart(2, '0');
   const mo = String(date.getMonth() + 1).padStart(2, '0');
-  return `${dd}/${mo}/${date.getFullYear()} ${formatClock(timestamp)}`;
+  const lang = resolveFormatLanguage(language);
+  const datePart = lang === 'en' ? `${mo}/${dd}/${date.getFullYear()}` : `${dd}/${mo}/${date.getFullYear()}`;
+  return `${datePart} ${formatClock(timestamp, lang)}`;
 }

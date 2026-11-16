@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #56
 // One row of the History list (T-106, RF-47): date and time, origin -> destination, category, fare, net
 // earning and a Chip with the TEXT of the payment state (cancelled trips say "Cancelado"). The date is
@@ -7,6 +8,7 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { PAYMENT_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { color, iconSize, opacity, space, touch, type } from '../theme/tokens';
 import { legacyPaymentChip } from '../services/trip/legacyTrip';
@@ -27,6 +29,7 @@ const PAYMENT_CHIP = {
 };
 
 function TripListItemBase({ trip, onOpen }) {
+  useLanguage();
   const cancelled = trip.status === TRIP_STATUS.CANCELLED;
   const paymentStatus = trip.paymentStatus ?? (trip.status === TRIP_STATUS.PAID ? PAYMENT_STATUS.PAID : undefined);
   const chipStyle = PAYMENT_CHIP[paymentStatus];

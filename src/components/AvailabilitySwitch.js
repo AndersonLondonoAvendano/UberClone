@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #53
 // AI-assisted: see docs/AI_LOG.md #64 (track and thumb extracted to SwitchTrack, same look and behavior)
@@ -8,12 +9,14 @@
 
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { badgeSize, borderWidth, color, elevation, iconSize, opacity, radius, space, type } from '../theme/tokens';
 import { Chip } from './Chip';
 import { Icon } from './Icon';
 import { SwitchTrack } from './SwitchTrack';
 
 export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
+  useLanguage();
   const stateLabel = value ? labels.home.available : labels.home.unavailable;
 
   return (

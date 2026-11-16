@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #35
@@ -21,6 +22,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { color, space, touch, type } from '../theme/tokens';
 import { ScreenHeader } from './ScreenHeader';
@@ -39,6 +41,7 @@ export function PlaceholderScreen({
   safeEdges = DEFAULT_SAFE_EDGES,
   children,
 }) {
+  useLanguage();
   const [kind, setKind] = useState(INITIAL_KIND);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 

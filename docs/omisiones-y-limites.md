@@ -93,7 +93,7 @@ Estados: **hecho** (implementado y aprobado en lo estático), **parcial**, **omi
 
 ## Límites del lote L2: estados, modelo y saldo (spec 005; D-181 a D-186 aprobadas salvo objeción, 2026-11-16)
 <!-- AI-assisted: see docs/AI_LOG.md #66 -->
-Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson); nada de esto está validado en el celular (No verificado en dispositivo). La spec 005 sigue en Borrador; este texto se ajusta si Anderson cambia las decisiones.
+Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson). **L2 completo (estados rechazado y conductor llegando, campos aditivos, saldo completo, aviso de «No disponible», rapidez al tocar la notificación): Validada en dispositivo por Anderson (2026-11-16 14:54, build de desarrollo, STOP-5).** Reglas de Firestore con los estados nuevos publicadas por Anderson (≈14:20 Bogotá) y comprobadas con un guardado real (CA-005-26 y G-01 cerrados). **Siguen «No verificado en dispositivo» SOLO:** «Salir del viaje» a mitad de viaje y los viajes antiguos. **Hallazgo visual abierto, en corrección (lote L3, A5):** en el Detalle del viaje la ruta se corta por abajo, la atribución tapa el tramo final y el marcador de destino no se ve completo. La spec 005 sigue en Borrador; este texto se ajusta si Anderson cambia las decisiones.
 
 **Desviaciones del esquema del enunciado (RE-13, D-186).** No se corrigen; se explican:
 | ID | Se pide | Qué se hace | Por qué |
@@ -109,7 +109,7 @@ Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson); n
 
 **Coste extra de persistir rechazos (RE-06, D-183).** Cada solicitud rechazada o vencida que se llegó a mostrar suma una escritura y una lectura (comprobación de existencia, para la idempotencia). Los viajes `rejected` también salen en las lecturas por rango (Ganancias) y paginadas (Historial), así que aumentan las lecturas aunque no sumen dinero. La escritura es de mejor esfuerzo y con tiempo límite: si falla, el rechazo no deja rastro. Una solicitud que nunca se mostró (por ejemplo, con «No disponible», D-181) no deja documento.
 
-**Otros límites.** No hay «siguiente conductor» tras un rechazo (no existe backend de despacho ni app de pasajero). Guardar coordenadas de origen y destino (`origin`/`destination`) agrega datos del pasajero y está sujeto a la confirmación de privacidad de Anderson (D-185). Guardar cualquier viaje depende de que Anderson publique a mano la regla `validTrip()` de `docs/seguridad.md`; sin eso el guardado falla y la app lo muestra como «no se pudo guardar».
+**Otros límites.** No hay «siguiente conductor» tras un rechazo (no existe backend de despacho ni app de pasajero). Guardar coordenadas de origen y destino (`origin`/`destination`) agrega datos del pasajero y está sujeto a la confirmación de privacidad de Anderson (D-185). Guardar cualquier viaje depende de la regla `validTrip()` de `docs/seguridad.md`, que Anderson publicó a mano el 2026-11-16 (≈14:20 Bogotá) y comprobó con un guardado real; si se reemplaza por una versión anterior, el guardado falla y la app lo muestra como «no se pudo guardar».
 
 **Historial sin filtro por estado (T-231, RE-09).** El Historial filtra solo por periodo y por método de pago (en el cliente); no existe un filtro por estado, así que no se añadió un chip «Rechazados» (se evita crear un filtro nuevo en la misma tarea). Los viajes `rejected` salen en la lista con su etiqueta «Rechazado» y, con el filtro de método, bajo «Todos», «Tarjeta» o «Efectivo» según su `paymentMethod`. Pendiente de decisión de Anderson si se quiere un filtro por estado.
 
@@ -120,5 +120,34 @@ Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson); n
 - **`declineWiring.test.mjs` usa expresiones regulares:** comprueba que la tarjeta y la pantalla llaman al mismo punto de rechazo leyendo el código fuente; no ejecuta el flujo de React. Se acepta porque no hay entorno de render en el proyecto (sin dependencias nuevas); el flujo real queda para la prueba en el celular.
 - **`acceptRequest` con «ya tomada/vencida» no guarda `rejected`:** no fue una decisión del conductor ni un vencimiento propio, así que no queda documento (también anotado en D-183).
 - **Saldo sin sesión (C2a):** sin `driverId` Ganancias muestra «Saldo no disponible» en vez de quedarse cargando.
-- **Salir del viaje (C2c):** a mitad de viaje el texto dice que queda cancelado y sin cobro; se guarda como `cancelled` con montos 0. En el destino se cierra como completado en el teléfono sin registrar el cobro.
+- **Salir del viaje (C2c), No verificado en dispositivo (pendiente, junto con los viajes antiguos):** a mitad de viaje el texto dice que queda cancelado y sin cobro; se guarda como `cancelled` con montos 0. En el destino se cierra como completado en el teléfono sin registrar el cobro.
 - **Chip «Rechazados» (T-231) OMITIDO:** decisión de Anderson (2026-11-16); los `rejected` salen en la lista con su etiqueta, sin filtro por estado.
+
+## Límites del lote L3: idioma español/inglés (spec 006; RI-24, D-188 a D-192)
+<!-- AI-assisted: see docs/AI_LOG.md #67 -->
+Se declaran como límites, no como defectos. Estado en dispositivo: **No verificado en dispositivo** salvo lo indicado.
+
+**Los cinco límites de RI-24 (CA-006-33).**
+- **(a) Texto de la notificación push en español.** El título («Nueva solicitud de viaje») y el cuerpo (`Económico · {km} km · {min} min`, con el kilometraje con coma decimal) los arma el backend (`backend/src/notifications/payload.js`: `NOTIFICATION_TITLE` y `buildMessage`) y no recibe el idioma del usuario. Con la app cerrada o en segundo plano se ve en español aunque la app esté en inglés. Una vez abierta la solicitud, su pantalla sí usa el idioma activo. Cambiarlo exigiría enviar el idioma al backend al registrar el token (D-189); se descarta en este lote por RI-12 (`backend/` no cambia, CA-006-34) y queda como mejora.
+- **(b) Direcciones y nombres.** Las direcciones que devuelve Nominatim y los nombres simulados de pasajeros (fijos en `payload.js`) no se traducen.
+- **(c) Pasarelas de pago.** Stripe Checkout (y Mercado Pago) sigue el idioma de la pasarela.
+- **(d) Sistema.** Los diálogos de permisos del sistema y el nombre del canal Android (si está en español) no cambian con el idioma de la app.
+- **(e) Herramientas de desarrollo.** Los textos de la prueba de mapa y de `mapTest`, `forceState` y `demo` se traducen con el resto para que la paridad sea total, aunque solo se vean en desarrollo.
+
+**Diferencia con G-05.** G-05 pide el idioma en el perfil; aquí se guarda por dispositivo (clave local `appLanguage`), no en el perfil del conductor (D-188, Propuesta). Cambiar de teléfono o reinstalar vuelve a la sugerencia del registro o al idioma del teléfono.
+
+**Lector del idioma del teléfono en iOS (D-190).** Sin `expo-localization`, el idioma se lee con `SettingsManager` (`AppleLanguages`), `I18nManager` e `Intl`. En iOS el locale de región puede no coincidir con el idioma preferido; por eso se prefiere `AppleLanguages`. No está verificado qué lector responde en cada sistema operativo. Cualquier idioma distinto de español o inglés cae a español.
+
+**La paridad mide presencia, no calidad.** La prueba de paridad comprueba que cada clave exista en ambos idiomas, no que la traducción al inglés sea buena ni que quepa en pantalla; eso depende de la revisión humana y de la auditoría al 200 % (T-263, T-264).
+
+**Heurística de la prueba estática (D-192).** `scripts/tests/i18nCoverage.test.mjs` analiza el código con expresiones regulares, no con un AST. Límites reales hallados por el verificador de S4:
+- No detecta: `{'literal'}` en JSX; ternarios con literales dentro de `{}`; plantillas con texto en JSX; `headerTitle:` o `tabBarLabel:` literales; `Alert.alert(t, 'ok')` con una palabra en minúscula; ni la desestructuración de nodos de `labels` a nivel de módulo.
+- La regla de lecturas de hoja de `labels` a nivel de módulo no corre en `services`, `utils`, `constants`, `config` ni `theme`. La revisión manual y por AST dio 0 hallazgos hoy, pero no queda protegida a futuro.
+- La revisión visual en inglés sigue siendo necesaria.
+
+**Sugerencia del registro (`src/i18n/applySuggestion.js`).** Puede sobrescribir un cambio de idioma hecho en la sesión en dos casos límite: (1) el conductor cambia el idioma mientras la lectura de la preferencia guardada sigue en curso y su guardado aún no terminó; (2) el guardado de ese cambio falló (almacenamiento con error), así que no hay preferencia guardada y la sugerencia se aplica encima. El comentario de las líneas 3 a 5 del archivo (`applySuggestion.js`; la guardia `if (stored) return null` está en la línea 25) dice que un cambio de sesión siempre aparece como preferencia guardada; es impreciso para estos dos casos. Solo se documenta; no se cambia código.
+
+**Otros límites.**
+- **`delayValue(15)`** muestra «15 s» en ambos idiomas (caso CA-006-07); no es un texto sin traducir.
+- **CA-006-19** no tiene prueba de renderizado (no hay entorno de render en el proyecto); el re-render real al cambiar el idioma queda **No verificado en dispositivo**.
+- **`useMemo` sin `language`:** el de `toPickup` en `TripRequestScreen` y el de `documentFields` en `RegistrationFormContext` no dependen de `language`. Hoy es inalcanzable porque el idioma solo cambia en Configuración; si algún día cambia desde otra pantalla, deben recibirlo como dependencia.

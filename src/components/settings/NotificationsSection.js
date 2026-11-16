@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #64
 // "Notificaciones" section of Settings (T-186, minimal; the final design is T-187). A switch that asks for the
 // permission in context after an inline explanation, an inline message with a link to the system settings
@@ -9,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { ENABLE_RESULT } from '../../services/notifications/registration';
 import { getRegistrationController } from '../../services/notifications/registrationRuntime';
 import { PERMISSION_STATE } from '../../services/notifications/constants';
@@ -45,6 +47,7 @@ const ENABLE_MESSAGES = {
 };
 
 export function NotificationsSection() {
+  useLanguage();
   const controllerRef = useRef(null);
   if (controllerRef.current === null) controllerRef.current = getRegistrationController();
   const controller = controllerRef.current;

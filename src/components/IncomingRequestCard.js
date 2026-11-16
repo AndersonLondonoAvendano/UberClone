@@ -17,7 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { decisionDeadline, markShown } from '../services/trip/decisionWindow';
+import { noticeDurationMs } from '../services/trip/noticeDuration';
 import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
@@ -67,6 +69,7 @@ function errorMessage(error) {
 // currentRoute: focused drawer screen name. getNavigation: returns a navigation object that can
 // reach the drawer screens (kept by MainDrawer).
 export function IncomingRequestCard({ currentRoute, getNavigation }) {
+  const { language } = useLanguage();
   const { accountStatus, driverId } = useAppState();
   const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId, isAvailable } = useAvailability();
   // AI-assisted: see docs/AI_LOG.md #66 (C2d): read inside the effect below without re-running it
@@ -144,9 +147,10 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   // The notice lasts a moment and never outlives the context it was shown in.
   useEffect(() => {
     if (!notice) return undefined;
-    const id = setTimeout(() => setNotice(null), EXPIRED_NOTICE_MS);
+    // AI-assisted: see docs/AI_LOG.md #67 (A3: the time grows with the font scale)
+    const id = setTimeout(() => setNotice(null), noticeDurationMs(EXPIRED_NOTICE_MS, fontScale));
     return () => clearTimeout(id);
-  }, [notice]);
+  }, [notice, fontScale]);
 
   // Countdown: one tick per second while the card is visible.
   useEffect(() => {
@@ -224,7 +228,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     const meters = haversineDistanceM(toLngLat(position), toLngLat(request.origin));
     const seconds = meters / (SIMULATED_SPEED_KMH / 3.6);
     return fillLabel(labels.trip.toPickup, { km: formatKmFromMeters(meters), min: formatMinutesFromSeconds(seconds) });
-  }, [request, getDriverPosition]);
+  }, [request, getDriverPosition, language]);
 
   const handleAccept = useCallback(async () => {
     if (!request || !canDecide(request, { working })) return;

@@ -114,7 +114,17 @@ export async function fetchTripsInRangeWith(
     if (docs.length < size) return { trips, truncated: false };
     cursor = docs[docs.length - 1];
   }
-  return { trips, truncated: true };
+  // AI-assisted: see docs/AI_LOG.md #67 (A4: exactly maxDocs trips is not truncated; one extra read of 1
+  // document tells whether anything follows the cap)
+  const probe = [
+    fns.orderBy('finishedAt', 'desc'),
+    fns.where('finishedAt', '>=', fns.Timestamp.fromMillis(start)),
+    fns.where('finishedAt', '<', fns.Timestamp.fromMillis(end)),
+    fns.limit(1),
+  ];
+  if (cursor) probe.push(fns.startAfter(cursor));
+  const { docs: more } = await fns.getDocs(fns.query(tripsCollection, ...probe));
+  return { trips, truncated: more.length > 0 };
 }
 
 // AI-assisted: see docs/AI_LOG.md #66

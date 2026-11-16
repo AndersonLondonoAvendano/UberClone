@@ -86,9 +86,56 @@ test('hard cap: maxDocs stops the reading and marks truncated', async () => {
   const result = await fetchTripsInRangeWith(fns, 'col', { ...earningsReadRange(NOW), pageSize: 100, maxDocs: 250 });
   assert.equal(result.trips.length, 250);
   assert.equal(result.truncated, true);
-  assert.equal(state.reads, 250); // never reads past the cap
-  assert.equal(state.queries.length, 3);
+  assert.equal(state.reads, 251); // 250 plus the 1-document probe; never more
+  assert.equal(state.queries.length, 4);
   assert.equal(state.queries[2].constraints.find((c) => c.kind === 'limit').n, 50);
+  assert.equal(state.queries[3].constraints.find((c) => c.kind === 'limit').n, 1);
+});
+
+// AI-assisted: see docs/AI_LOG.md #67 (A4: an arbitrary range reads with the same paginated read, cap 5,000)
+test('A4: a custom range with 1,200 trips (far above 200) is read whole with the default page size and cap', async () => {
+  const rows = Array.from({ length: 1200 }, (_, i) => trip(i, NOW - 1000 - i * 1000));
+  const { fns, state } = makeFirestore(rows);
+  const start = NOW - 3 * DAY;
+  const result = await fetchTripsInRangeWith(fns, 'col', { start, end: NOW });
+  assert.equal(result.trips.length, 1200);
+  assert.equal(result.truncated, false);
+  assert.equal(new Set(result.trips.map((t) => t.id)).size, 1200);
+  assert.equal(state.queries.length, 3); // 500 + 500 + 200
+  assert.ok(state.queries.every((q) => q.constraints.find((c) => c.kind === 'limit').n <= 500));
+});
+
+test('A4: exactly 5,000 trips is not truncated (one probe read finds nothing after the cap)', async () => {
+  const rows = Array.from({ length: 5000 }, (_, i) => trip(i, NOW - 1000 - i * 10));
+  const { fns, state } = makeFirestore(rows);
+  const result = await fetchTripsInRangeWith(fns, 'col', { start: NOW - DAY, end: NOW });
+  assert.equal(result.trips.length, 5000);
+  assert.equal(result.truncated, false);
+  assert.equal(state.reads, 5000);
+  assert.equal(state.queries.length, 11); // 10 pages of 500 plus the probe
+});
+
+test('A4: 5,001 trips stops at 5,000 and flags truncated; 5,200 too', async () => {
+  for (const total of [5001, 5200]) {
+    const rows = Array.from({ length: total }, (_, i) => trip(i, NOW - 1000 - i * 10));
+    const { fns, state } = makeFirestore(rows);
+    const result = await fetchTripsInRangeWith(fns, 'col', { start: NOW - DAY, end: NOW });
+    assert.equal(result.trips.length, 5000);
+    assert.equal(new Set(result.trips.map((t) => t.id)).size, 5000);
+    assert.equal(result.truncated, true);
+    assert.equal(state.reads, 5001); // the cap plus the 1-document probe
+    assert.equal(state.queries.length, 11);
+  }
+});
+
+test('A4: the custom range uses only finishedAt and the repository offers no other cap than 5,000', async () => {
+  const { TRIPS_RANGE_MAX_DOCS } = await import('../../src/services/tripRepository.js');
+  assert.equal(TRIPS_RANGE_MAX_DOCS, 5000);
+  const { fns, state } = makeFirestore([trip(1, NOW - 1000)]);
+  await fetchTripsInRangeWith(fns, 'col', { start: NOW - 2 * DAY, end: NOW });
+  const constraints = state.queries[0].constraints;
+  assert.ok(constraints.filter((c) => c.kind === 'where').every((c) => c.field === 'finishedAt'));
+  assert.deepEqual(constraints.filter((c) => c.kind === 'orderBy').map((c) => c.field), ['finishedAt']);
 });
 
 test('reads are bounded by the range: trips before the week and month start are never read', async () => {

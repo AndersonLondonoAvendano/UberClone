@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54 (one accessible description of the upload indicator)
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region)
@@ -19,11 +20,13 @@ import {
 } from 'expo-image-picker';
 import { borderWidth, color, iconSize, opacity, photoPreviewHeight, radius, space, touch, type } from '../../theme/tokens';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { uploadPhotoAsync } from '../../services/cloudinary';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 export function PhotoField({ testID, label, value, onChange, errorTestID, errorMessage, disabled = false, announceError = false }) {
+  useLanguage();
   const [uploadState, setUploadState] = useState('idle'); // 'idle' | 'uploading'
   const [permissionError, setPermissionError] = useState(null);
   const [uploadErrorMessage, setUploadErrorMessage] = useState(null);

@@ -32,6 +32,9 @@ export const PUBLISH_MAX_ATTEMPTS = 2;
 
 // How long the request card shows "La solicitud expiró" before going back to Home.
 export const EXPIRED_NOTICE_MS = 2500;
+// AI-assisted: see docs/AI_LOG.md #67
+// Ceiling of that notice once it is stretched by the font scale: 6 seconds.
+export const NOTICE_MAX_MS = 6 * 1000;
 
 // AI-assisted: see docs/AI_LOG.md #66
 // A request that arrives by push is shown at once with its passenger and category; distance, duration and

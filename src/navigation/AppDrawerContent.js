@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
 // AI-assisted: see docs/AI_LOG.md #54 (the active entry keeps its fill while pressed)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #52 (new drawer: brand header with profile, icon items, footer)
@@ -12,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import appConfig from '../../app.json';
 import { Icon } from '../components/Icon';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import {
@@ -29,38 +31,42 @@ import {
 } from '../theme/tokens';
 
 // MainHome is intentionally not listed: it is the initial route and the way back.
-const ITEMS = [
-  {
-    route: 'Profile',
-    testID: 'drawer-profile',
-    label: labels.drawer.profile,
-    a11yLabel: labels.a11y.drawerItems.profile,
-    icon: 'person',
-  },
-  {
-    route: 'History',
-    testID: 'drawer-history',
-    label: labels.drawer.history,
-    a11yLabel: labels.a11y.drawerItems.history,
-    icon: 'time',
-  },
-  {
-    route: 'Earnings',
-    testID: 'drawer-earnings',
-    label: labels.drawer.earnings,
-    a11yLabel: labels.a11y.drawerItems.earnings,
-    icon: 'cash',
-  },
-  {
-    route: 'Settings',
-    testID: 'drawer-settings',
-    label: labels.drawer.settings,
-    a11yLabel: labels.a11y.drawerItems.settings,
-    icon: 'settings',
-  },
-];
+// Read at render time so a language change shows without a remount.
+function buildItems() {
+  return [
+    {
+      route: 'Profile',
+      testID: 'drawer-profile',
+      label: labels.drawer.profile,
+      a11yLabel: labels.a11y.drawerItems.profile,
+      icon: 'person',
+    },
+    {
+      route: 'History',
+      testID: 'drawer-history',
+      label: labels.drawer.history,
+      a11yLabel: labels.a11y.drawerItems.history,
+      icon: 'time',
+    },
+    {
+      route: 'Earnings',
+      testID: 'drawer-earnings',
+      label: labels.drawer.earnings,
+      a11yLabel: labels.a11y.drawerItems.earnings,
+      icon: 'cash',
+    },
+    {
+      route: 'Settings',
+      testID: 'drawer-settings',
+      label: labels.drawer.settings,
+      a11yLabel: labels.a11y.drawerItems.settings,
+      icon: 'settings',
+    },
+  ];
+}
 
 function DrawerHeader({ topInset }) {
+  useLanguage();
   const { driverProfile } = useAppState();
   const { isAvailable } = useAvailability();
   const personal = driverProfile?.personalData;
@@ -71,7 +77,11 @@ function DrawerHeader({ topInset }) {
 
   return (
     <View style={[styles.header, { paddingTop: topInset + space[4] }]}>
-      <View style={styles.shape} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden />
+      <View
+        style={styles.shape}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+      />
       <Text accessibilityRole="header" numberOfLines={1} style={styles.appName}>
         {labels.drawer.title}
       </Text>
@@ -112,14 +122,16 @@ function DrawerHeader({ topInset }) {
 }
 
 export function AppDrawerContent({ state, navigation }) {
+  useLanguage();
   const insets = useSafeAreaInsets();
+  const items = buildItems();
   const focusedName = state.routes[state.index].name;
 
   return (
     <View style={styles.container}>
       <DrawerHeader topInset={insets.top} />
       <View style={styles.list}>
-        {ITEMS.map((item) => {
+        {items.map((item) => {
           const route = state.routes.find((candidate) => candidate.name === item.route);
           const focused = item.route === focusedName;
 

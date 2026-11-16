@@ -12,13 +12,16 @@ import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
+import { LanguageSection } from '../../components/settings/LanguageSection';
 import { NotificationsSection } from '../../components/settings/NotificationsSection';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
+import { useLanguage } from '../../i18n/useLanguage';
 import { color, iconSize, space, type } from '../../theme/tokens';
 
 export function SettingsScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { demoValue, authUser } = useAppState();
   const hasValue = demoValue !== '';
 
@@ -54,6 +57,10 @@ export function SettingsScreen({ navigation }) {
         {/* AI-assisted: see docs/AI_LOG.md #64 (T-186) */}
         <Card style={styles.group}>
           <NotificationsSection />
+        </Card>
+        {/* AI-assisted: see docs/AI_LOG.md #67 (T-254) */}
+        <Card style={styles.group}>
+          <LanguageSection />
         </Card>
         {SHOW_DEV_TOOLS ? (
           <Card style={styles.group}>

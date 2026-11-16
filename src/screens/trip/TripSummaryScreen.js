@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #61 (D-124: the summary shows the tip and the total charged = fare + tip)
 // AI-assisted: see docs/AI_LOG.md #58 (T-147, T-148: one "Cobrar con ..." button per configured gateway; verify uses the trip's gateway)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
@@ -32,6 +33,7 @@ import { SecondaryButton } from '../../components/SecondaryButton';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { COMMISSION_RATE } from '../../config/pricing';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { PAYMENT_STATUS, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
@@ -93,6 +95,7 @@ function fareOf(request) {
 }
 
 export function TripSummaryScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { trip, endTrip } = useTrip();
   const { driverId } = useAppState();
   // AI-assisted: see docs/AI_LOG.md #44 (keeps the last trip while leaving)

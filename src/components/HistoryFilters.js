@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #56
 // History filters (T-105, RF-47): period Hoy/Semana/Mes/Rango and payment method Todos/Tarjeta/Efectivo as
 // selectable chips (radio groups, 44 dp targets, a check icon plus text when selected). Rango shows two
@@ -7,6 +8,7 @@
 
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 import { HISTORY_PERIOD } from '../utils/historyFilters';
 import { HISTORY_METHOD } from '../utils/historyQuery';
@@ -45,6 +47,7 @@ export function HistoryFilters({
   onEndChange,
   rangeError,
 }) {
+  useLanguage();
   // DateField opens the Android dialog only, so Rango is offered on Android.
   const periods = Platform.OS === 'android' ? PERIODS : PERIODS.filter((item) => item !== HISTORY_PERIOD.RANGE);
   const isRange = period === HISTORY_PERIOD.RANGE;

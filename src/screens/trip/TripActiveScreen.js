@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #54 (car marker colour; main action fixed below the scrollable panel)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
@@ -29,6 +30,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { TripMap } from '../../components/map/TripMap';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
@@ -44,13 +46,15 @@ const PANEL_MAX_SHARE = 0.65;
 const MOVING_PHASES = [TRIP_PHASE.TO_PICKUP, TRIP_PHASE.TO_DESTINATION];
 
 // AI-assisted: see docs/AI_LOG.md #44
-const FINISH_ERROR_TEXT = {
+// Read at render time so the text follows the active language.
+const finishErrorTexts = () => ({
   [FINISH_ERROR.NETWORK]: labels.trip.finishErrorNetwork,
   [FINISH_ERROR.TIMEOUT]: labels.trip.finishErrorTimeout,
   [FINISH_ERROR.REJECTED]: labels.trip.finishErrorRejected,
-};
+});
 
 export function TripActiveScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { trip, arrive, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
   const { driverProfile } = useAppState();
   // AI-assisted: see docs/AI_LOG.md #61 (D-125: resolved street of the current target)
@@ -176,7 +180,8 @@ export function TripActiveScreen({ navigation }) {
   // AI-assisted: see docs/AI_LOG.md #66 ("Llegué" exists only while the driver is arriving)
   const canArrive = trip.status === TRIP_STATUS.DRIVER_ARRIVING && trip.phase === TRIP_PHASE.TO_PICKUP;
   const busy = working || trip.finishing;
-  const finishErrorText = trip.finishError ? FINISH_ERROR_TEXT[trip.finishError] ?? FINISH_ERROR_TEXT.network : null;
+  const finishErrors = finishErrorTexts();
+  const finishErrorText = trip.finishError ? finishErrors[trip.finishError] ?? finishErrors.network : null;
   // The main button waits for the arrival; its reason is visible text, not only an accessibility hint.
   const mainReady = toDestinationSide ? atDestination : atPickup;
   // AI-assisted: see docs/AI_LOG.md #66 (H-1: while driver_arriving the hint names the action that unlocks)
