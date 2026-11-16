@@ -93,6 +93,18 @@ node scripts/check-constitution.mjs
 ```
 Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, ganancias, historial, cobro, propina y calificación, geocodificación, etc.); se ejecutan igual con el cargador `registerSrcLoader.mjs`.
 
+## Cómo probar los endpoints de notificaciones cuando el cliente (S3) esté listo
+Con el backend en marcha y un conductor con `accountStatus = approved`. Los valores entre `<>` son placeholders: el ID token sale de la sesión de Firebase de la app y el token FCM, del dispositivo; no los pegues en chats ni en archivos del repositorio.
+```bash
+# Registrar el dispositivo (200 {"registered":true}; 400 si el token es inválido)
+curl -X POST <BACKEND_URL>/notifications/register -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"token":"<FCM_TOKEN>","platform":"android"}'
+# Solicitud de prueba a mis dispositivos, con retraso de 0 a 60 s (202 {"scheduled":true})
+curl -X POST <BACKEND_URL>/notifications/test-request -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"delaySeconds":10}'
+# Dar de baja el dispositivo (204 siempre que el token tenga forma válida)
+curl -X POST <BACKEND_URL>/notifications/unregister -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"token":"<FCM_TOKEN>"}'
+```
+Errores genéricos: 401 sin sesión, 400 datos inválidos o cuenta no aprobada, 404 sin dispositivos registrados, 429 límite (5 por minuto, o ya hay un envío diferido pendiente), 502 si FCM falla en un envío inmediato, 500 si el backend no tiene mensajería. Detalles de seguridad en [docs/seguridad.md](docs/seguridad.md).
+
 ## Cobro: Stripe o Mercado Pago (modo de prueba) y efectivo
 El backend admite **dos pasarelas de prueba** y la app ofrece un botón por cada una que esté configurada; si ninguna lo está, la app lo dice. Stripe usa Checkout Sessions con `STRIPE_SECRET_KEY` (solo clave de prueba) en `backend/.env`; sigue [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md). Mercado Pago no pudo probarse (no se pudieron crear cuentas de prueba): está implementado y **No verificado en dispositivo**. Ninguna pasarela está validada en el celular, y el backend aún no se ha ejecutado por HTTP real (falta `npm install` en `backend/`). El efectivo no usa pasarela.
 

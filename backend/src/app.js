@@ -6,6 +6,7 @@ import { ERRORS, createGuard, createRateLimiter, createRequestLogger, send } fro
 import { createMercadoPagoProvider } from './providers/mercadopago.js';
 import { createProviderRegistry } from './providers/registry.js';
 import { createPaymentsHandlers, registerPaymentsRoutes, registerProvidersRoute } from './routes/payments.js';
+import { createNotificationsHandlers, registerNotificationsRoutes } from './routes/notifications.js';
 import { registerReturnRoute } from './routes/return.js';
 import { createStripeWebhookHandler, createWebhookHandler, registerWebhookRoutes } from './routes/webhooks.js';
 
@@ -13,7 +14,10 @@ const SERVICE_NAME = 'uber-clone-backend';
 
 // mp (Mercado Pago client) and registry are optional: without registry one is built from mp, and
 // a gateway that is not configured has no checkout and no webhook route.
-export function createApp({ auth, store, mp = null, config, registry = null, log }) {
+// AI-assisted: see docs/AI_LOG.md #64
+// messaging (firebase-admin Messaging) and db (Firestore) are optional: without them the notification routes
+// answer a generic error. notifications = { now, setTimeout, clearTimeout, idFactory, random } are test seams.
+export function createApp({ auth, store, mp = null, config, registry = null, log, messaging = null, db = null, notifications = {} }) {
   const providers = registry ?? createProviderRegistry({ mercadopago: mp ? createMercadoPagoProvider({ client: mp }) : null });
   const app = express();
   // Closed CORS: no Access-Control-* header is ever sent, so browsers from other origins are refused.
@@ -39,6 +43,10 @@ export function createApp({ auth, store, mp = null, config, registry = null, log
   const handlers = createPaymentsHandlers({ store, mp, config, registry: providers });
   registerProvidersRoute(app, { guard, handlers, send });
   registerPaymentsRoutes(app, { guard, handlers, send });
+  const notificationsHandlers = createNotificationsHandlers({ db, messaging, ...notifications });
+  registerNotificationsRoutes(app, { guard, handlers: notificationsHandlers, send });
+  // Cancels the deferred test notifications still pending (called by server.js on shutdown).
+  app.closeNotifications = () => notificationsHandlers.close();
   registerReturnRoute(app, { ipLimiter, send });
   registerWebhookRoutes(app, {
     handler: mp ? createWebhookHandler({ store, mp, config }) : null,

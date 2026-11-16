@@ -2648,8 +2648,95 @@ decisiones D-127…D-129/D-133…D-135 en una línea cada una, cómo resolviste 
 abiertas, y el checklist STOP-1 para Anderson. Termina con "ESPERANDO RESULTADO DE
 ANDERSON EN STOP-1". No avances a S2.
 ````
+- Prompt S2 (textual):
+````
+PROMPT — FCM — REBANADA S2: backend de notificaciones (T-171…T-176)
+
+0. REGISTRO EN AI_LOG: NO crees entrada nueva. Añade este prompt textual como
+   "Prompt S2" dentro de la entrada #64 "FCM — implementación (rebanadas S1–S6)".
+
+APROBACIONES Y EVIDENCIA (actualiza docs/decisiones.md y docs/progress.md)
+- STOP-1 (T-169) VALIDADO EN DISPOSITIVO por Anderson el 2026-11-16: la app compiló con
+  RN Firebase 27.1.1 sobre Expo SDK 57, se obtuvo el token FCM, se concedió el permiso, y
+  una notificación enviada desde la consola de Firebase llegó con la app en segundo plano
+  y al tocarla abrió la app. D-126 pasa a "Vigente". El plan B (T-170) queda descartado.
+- Pendiente aún de comprobar en dispositivo: que la notificación de solicitud salga como
+  aviso emergente (DP-72, canal con importancia alta). No lo resuelvas en S2; queda para S3.
+
+METODOLOGÍA Y REGLAS
+- implementer implementa; verifier DISTINTO verifica; quien implementa no aprueba. Si el
+  verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs o logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  firestore.rules fuera de git. Sin Alert. NO hagas git stash, git reset, git checkout
+  de archivos ni nada que revierta cambios; si necesitas aislar, repórtalo.
+- Alcance: SOLO S2 (backend). No toques el cliente (src/) salvo que el plan lo exija
+  para una prueba pura. No avances a S3.
+
+ALCANCE S2 (según spec/plan; resumo las decisiones vigentes)
+1. backend/src/admin.js exporta messaging de forma explícita. createApp cambia de firma
+   para recibir la dependencia de mensajería e inyectarla; actualiza server.js.
+2. Endpoints nuevos bajo /notifications, TODOS autenticados con el ID token existente y
+   con el rate limit existente (ERRORS.rateLimited ya existe; no edites middleware.js):
+   - POST /notifications/register {token, platform}: valida token (string, 20–512
+     caracteres, sin espacios) y platform 'android'. Guarda en la colección RAÍZ
+     pushTokens/{sha256(token)} con {uid, token, platform, createdAt, updatedAt}. Es una
+     transacción: si ese token ya pertenecía a otro uid, se REASIGNA al uid actual (D-131).
+     Idempotente. Sin collectionGroup ni índices nuevos.
+   - POST /notifications/unregister {token}: borra el token SOLO si pertenece al uid del
+     caller; idempotente (204 aunque no exista); nunca revela si pertenece a otro uid.
+   - POST /notifications/test-request {delaySeconds?}: delaySeconds entero 0–60 (por
+     defecto 0). Exige cuenta aprobada (lee drivers/{uid}.accountStatus con admin; D-130:
+     NO exige "Disponible"). Responde 202 y envía a los tokens del propio uid. Como máximo
+     UN envío diferido pendiente por uid (evita acumulación); el envío diferido se
+     programa en el servidor (setTimeout) y se cancela al cerrar el servidor.
+3. Mensaje FCM: sendEachForMulticast (una respuesta por token, hasta 500 por llamada)
+   con notification {title: "Nueva solicitud de viaje", body: "<Categoría> · <km> km ·
+   <min> min"} y data (todos strings): type='trip_request', requestId, targetUid,
+   expiresAt (ahora + 90 s, epoch ms), category, distanceKm, durationMin, originLat,
+   originLng, destLat, destLng, passengerName (nombre de una lista fija de prueba).
+   SIN tarifa (D-132 rechazada; la app la calcula con calculateFare) y SIN direcciones
+   (D-138; la app geocodifica con D-125). android: priority 'high', ttl 90 s,
+   notification.channelId 'solicitudes'. Los datos simulados (distancia, duración,
+   coordenadas cerca de la zona de pruebas) salen de una plantilla del servidor; el body
+   del cliente NUNCA aporta tokens, textos ni datos de la solicitud.
+4. Limpieza: tras el envío, borra de pushTokens solo los tokens cuya respuesta
+   (revisando resp.success por índice) sea error messaging/registration-token-not-
+   registered (cadena confirmada en el SDK instalado) o invalid-registration-token.
+   Otros errores no borran nada.
+5. Seguridad y operación: errores genéricos al cliente, log por petición sin tokens ni
+   cuerpos (misma línea [req] existente, y como mucho el conteo de tokens), BODY_LIMIT
+   coherente con los 512 caracteres, requestId aleatorio generado en servidor, y el
+   endpoint de prueba no puede enviar a otro uid bajo ninguna combinación de body.
+6. Pruebas automáticas en scripts/tests con admin y reloj falsos: registro (válido,
+   token corto/largo/con espacios, reasignación entre uids), baja (propia, ajena,
+   inexistente), envío (payload exacto sin tarifa ni direcciones, solo tokens del uid,
+   ttl y expiresAt), delay acotado y un envío diferido por uid, cuenta no aprobada
+   rechazada, limpieza selectiva por código de error, rate limit, errores genéricos,
+   y que ningún log contenga token ni cuerpo. Las pruebas existentes deben seguir
+   pasando (51 de 54 con la invocación por defecto; los 3 conocidos pasan con el loader).
+7. Docs: backend/.env.example sin cambios salvo variables realmente nuevas (solo
+   nombres); docs/seguridad.md con la sección de notificaciones (colección pushTokens
+   solo backend, confirmación de que NO se necesitan reglas ni índices nuevos);
+   docs/pagos-guia-rapida.md NO se toca. Añade a la guía del backend cómo probar los
+   endpoints cuando el cliente (S3) esté listo.
+
+VERIFICACIÓN (verifier distinto)
+Payload exacto vs spec (sin tarifa, sin direcciones), aislamiento por uid, idempotencia,
+transacción de reasignación, rate limit, que no haya secretos ni tokens en logs,
+trazabilidad a T-171…T-176 y a los RF/CA, pruebas y constitución sin regresión (línea base
+14 errores).
+
+ENTREGA
+Informe corto: qué se implementó, archivos tocados, resultado del verifier, cifras de
+pruebas y constitución, y los casos que quedan para prueba en dispositivo en S4. Termina
+con "S2 COMPLETA — LISTA PARA COMMIT DE ANDERSON". Sin recapitular pasos.
+````
 - Resumen de la respuesta (2–3 líneas): S1 implementada (T-167, T-168) y validada parcial por un verifier distinto: RN Firebase 27.1.1 exacta, plugins y googleServicesFile en app.json, firebase.json con canal «solicitudes», capa src/services/notifications con adaptador inyectable, handler en segundo plano y sonda solo en __DEV__; 14 pruebas nuevas. Pendiente STOP-1 (T-169) en el celular.
 - Usado / modificado / descartado: usado: API modular de RN Firebase 27 (los .d.ts no exponen messaging()); modificado: maskToken pasa de «últimos 6» a «primeros 8 + longitud» (docs alineadas); descartado: expo-build-properties y expo-notifications (no requeridos; plan B solo si falla STOP-1). Incidente del implementer: un git stash pop restauró 5 archivos sin seguimiento de un stash antiguo y los borró; stash@{0} intacto.
 - Archivos y commit: scripts/dependencies.json, package.json, package-lock.json, app.json, firebase.json, index.js, App.js, src/services/notifications/**, scripts/tests/notification*.test.mjs, docs (decisiones, backlog, seguridad, spec §7, investigacion, progress). Sin commit; lo hace Anderson.
+- S2 — Resumen: S2 (T-171…T-175) implementada en el backend: `messaging` en `admin.js`/`createApp`/`server.js`, rutas `POST /notifications/register`, `/unregister` y `/test-request` con el `guard` y un límite propio, `pushTokens/{sha256}` con transacción (reasigna al uid que llama), mensaje FCM sin tarifa ni direcciones y limpieza selectiva de tokens. Verifier distinto: aprobada en lo estático, sin «Validada» (envío real = STOP-2). Pruebas: 93 (90 pasan; los 3 fallos conocidos pasan con el loader: 100/100); constitución 14 errores / 222 advertencias (base 14 / 225).
+- S2 — Usado / modificado / descartado: usado: `sendEachForMulticast` y los códigos de error confirmados en `firebase-admin` 13.10.0 instalado; las rutas del ENCARGO (`register`/`unregister`) sustituyen a `POST/DELETE /notifications/token` de spec, plan, requisitos y backlog, que se alinearon; descartado: tarifa y direcciones en el mensaje (D-132, D-138), `collectionGroup` e índices. Pendiente: `token` frente a `fid` (FR-10) y `ttl` en el servidor real. Incidente: ninguno (sin stash/reset).
+- S2 — Archivos y commit (sin hash): backend/src/{admin,app,server,config}.js, backend/src/notifications/{payload,tokenStore}.js, backend/src/routes/notifications.js, scripts/tests/{backendMessagingWiring,backendNotificationPayload,backendTokenStore,backendNotificationsRoutes}.test.mjs, scripts/tests/helpers/notificationsFakes.mjs, README.md, docs/{seguridad,backlog,decisiones,progress,requisitos}.md, specs/003-notificaciones-fcm/{spec,plan}.md.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

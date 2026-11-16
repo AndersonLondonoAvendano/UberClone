@@ -18,7 +18,7 @@ Diseño retirado y eliminado de este plan: `fcmTokenOwners` y `drivers/{uid}/fcm
 | Rebanada | Contenido | Tareas | Horas | Depende de | Punto de control |
 |---|---|---|---|---|---|
 | S1 | Spike nativo/config: dependencias, `app.json`, `firebase.json`, handler en `index.js`, token en log seguro, canal; compuerta RN Firebase vs plan B | T-167 a T-170 (T-170 solo condicional) | 3,5 (tope 3 h de spike; +1,5 si plan B) | G1 a G4 | STOP-1 (T-169) |
-| S2 | Backend: cableado de `messaging` (admin, `createApp`, `server`), plantilla sin tarifa ni direcciones, `pushTokens` con transacción, `POST/DELETE /notifications/token`, `POST /notifications/test-request`, límite propio, lotes ≤500 y limpieza UNREGISTERED | T-171 a T-176 | 6,0 | G1, G2 (no depende de S1) | Sin dispositivo (estático); el envío real se confirma en STOP-2 |
+| S2 | Backend: cableado de `messaging` (admin, `createApp`, `server`), plantilla sin tarifa ni direcciones, `pushTokens` con transacción, `POST /notifications/register` y `POST /notifications/unregister`, `POST /notifications/test-request`, límite propio, lotes ≤500 y limpieza UNREGISTERED | T-171 a T-176 | 6,0 | G1, G2 (no depende de S1) | Sin dispositivo (estático); el envío real se confirma en STOP-2 |
 | S3 | Cliente: dedupe, ventana de decisión de 15 s (D-137), lógica pura (payload→solicitud, elegibilidad, intención con uid), adopción en el mock, servicio de notificaciones, cliente del backend, entrada de push y puente | T-177 a T-183, T-194, T-195 | 9,25 | S1 (T-169), S2 (T-175) | — |
 | S4 | Sesión y preferencias: `notificationsEnabled`, paso de baja en `resetSession` (D-134), registro al iniciar sesión y en refresh | T-184 a T-186 | 3,75 | S3, S2 | STOP-2 (T-186) |
 | S5 | UI de Configuración, botón de prueba y auditoría | T-187 a T-189 | 2,75 | S4 | STOP-3 (T-189) |
@@ -90,7 +90,7 @@ Orden de ejecución: S1 → S2 → S3 → S4 → S5 → S6. Dentro de S3: T-177,
 | `backend/src/config.js` | constantes FCM y límite de pruebas | RF-83, RF-85 |
 | `backend/src/notifications/payload.js` | plantilla y mensaje | RF-82, RF-83 |
 | `backend/src/notifications/tokenStore.js` | `pushTokens`, transacción, `where('uid','==',uid)`, borrado de obsoletos | RF-79, RF-80, RF-81, RF-84 |
-| `backend/src/routes/notifications.js` | rutas `POST/DELETE /notifications/token` y `POST /notifications/test-request` | RF-79, RF-81, RF-84, RF-85 |
+| `backend/src/routes/notifications.js` | rutas `POST /notifications/register` y `POST /notifications/unregister` y `POST /notifications/test-request` | RF-79, RF-81, RF-84, RF-85 |
 
 ### Pruebas y documentos
 
@@ -104,7 +104,7 @@ Orden de ejecución: S1 → S2 → S3 → S4 → S5 → S6. Dentro de S3: T-177,
 - **`pendingIntent`:** `set(intent)`, `take(currentUid)`, `reset()`.
 - **`decisionWindow`:** `markShown(id, now)`, `decisionDeadline(request, now)`, `REQUEST_DECISION_WINDOW_MS = 15000`.
 - **Gate:** `offer(request)` → `offered | busy | expired | duplicate`.
-- **Backend `POST /notifications/token`:** `{ token }` texto no vacío ≤512; 200 `{ ok: true }`; 400 genérico; 401 por el `guard`. `DELETE` idempotente.
+- **Backend `POST /notifications/register`:** `{ token, platform }` token 20–512 sin espacios, platform `android`; 200 `{ registered: true }`; 400 genérico; 401 por el `guard`. `unregister` idempotente (204).
 - **Backend `POST /notifications/test-request`:** `{ delaySeconds? }` entero 0–60; 202 `{ scheduled: true }`; 400 genérico; error genérico sin cuenta aprobada, sin tokens o sin `messaging`; 429 (`ERRORS.rateLimited`) al superar 5 por minuto.
 - **`createApp({ auth, store, mp, config, registry, log, messaging })`**; `admin.js` exporta `{ adminAuth, db, messaging }`.
 - **Mensaje FCM:** DP-67; `data.type = 'trip_request'`.

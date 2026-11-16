@@ -2601,7 +2601,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: N/A
 - Estado: Implementada
 
-### T-169 — S1: compuerta del spike (STOP-1), RN Firebase o plan B
+### T-169 — S1: compuerta del spike (STOP-1), RN Firebase o plan B — Estado: Validada en dispositivo por Anderson (2026-11-16)
 - Spec: spec 003 (RF-68, RF-67, D-126, D-129, CA-003-02)
 - Requisitos: RF-68, RF-67
 - Depende de: T-167, T-168
@@ -2616,7 +2616,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: N/A
 - Estado: Pendiente
 
-### T-170 — S1 (condicional): adaptador de plan B con `expo-notifications`
+### T-170 — S1 (condicional): adaptador de plan B con `expo-notifications` — Estado: No aplica (plan B descartado; D-126 Vigente)
 - Spec: spec 003 (RF-67, RF-68, D-126, D-129)
 - Requisitos: RF-67, RF-68
 - Depende de: T-169 (solo si la compuerta activa el plan B)
@@ -2644,7 +2644,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-172 — S2: plantilla y mensaje FCM (puro)
 - Spec: spec 003 (RF-82, RF-83, D-137, D-138, CA-003-13, CA-003-14, CA-003-27)
@@ -2659,7 +2659,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-173 — S2: `pushTokens` con transacción (registro, baja, listado)
 - Spec: spec 003 (RF-79, RF-80, RF-81, D-128, D-131, CA-003-10, CA-003-22, CA-003-24, CA-003-25)
@@ -2674,14 +2674,14 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio (datos y titularidad).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
-### T-174 — S2: rutas `POST/DELETE /notifications/token`
+### T-174 — S2: rutas `POST /notifications/register` y `POST /notifications/unregister`
 - Spec: spec 003 (RF-79, CA-003-11, CA-003-22, CA-003-23)
 - Requisitos: RF-79
 - Depende de: T-171, T-173
 - Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `scripts/tests/backendNotificationsRoutes.test.mjs`
-- Hacer: handlers con el `guard` (como `registerPaymentsRoutes`, `payments.js:108-120`): `uid` solo del token de Firebase, cuerpo `{ token }` validado (texto no vacío de ≤512 caracteres), todo lo demás ignorado, errores genéricos con `ERRORS`. Registrar las rutas en `createApp` (el cableado de `messaging` ya está en T-171); sin `messaging` las rutas de envío responden error genérico. Pruebas: 401 sin cabecera válida, `uid` del cuerpo ignorado, 400 por token inválido (vacío, no texto, 513 caracteres), 200 con 512, 200 idempotente, las rutas usan el `messaging` inyectado.
+- Hacer: handlers con el `guard` (como `registerPaymentsRoutes`, `payments.js:108-120`): `uid` solo del token de Firebase, cuerpo `{ token, platform }` (register) o `{ token }` (unregister) validado (texto no vacío de ≤512 caracteres), todo lo demás ignorado, errores genéricos con `ERRORS`. Registrar las rutas en `createApp` (el cableado de `messaging` ya está en T-171); sin `messaging` las rutas de envío responden error genérico. Pruebas: 401 sin cabecera válida, `uid` del cuerpo ignorado, 400 por token inválido (vacío, no texto, 513 caracteres), 200 con 512, 200 idempotente, las rutas usan el `messaging` inyectado.
 - Criterios: CA-003-11, CA-003-22, CA-003-23.
 - Hecho cuando: las pruebas pasan y las rutas de pagos siguen pasando (`backendPayments`, `backendProviders`).
 - Qué debe ver Anderson en el celular: nada.
@@ -2689,7 +2689,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-175 — S2: `POST /notifications/test-request`, límite propio y limpieza de tokens
 - Spec: spec 003 (RF-81, RF-84, RF-85, RF-82, RF-83, CA-003-12, CA-003-15, CA-003-16, CA-003-24)
@@ -2704,7 +2704,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: alto (envío y límite).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-176 — S2: verificación estática del backend
 - Spec: spec 003 (RF-79 a RF-85, RNF-21, CA-003-10 a CA-003-16, CA-003-22 a CA-003-25)

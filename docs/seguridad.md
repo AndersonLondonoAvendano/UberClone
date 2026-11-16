@@ -340,3 +340,12 @@ Un script temporal fuera del proyecto replica estas reglas cláusula por cláusu
 - Ni el cuerpo de la notificación ni el payload llevan tarifa (D-132 rechazada) ni direcciones (D-138): solo categoría, distancia, duración, coordenadas, `requestId` y `expiresAt`.
 - Los endpoints de registro, baja y envío de token usan `createGuard` (límite por IP, token, límite por usuario) y envían solo a los dispositivos del llamante (D-127).
 - Nunca se imprime un token completo: solo los primeros 8 caracteres y su longitud, y solo en `__DEV__` (instrucción de Anderson, S1). `google-services.json` y `backend/secrets/` siguen ignorados por Git.
+
+## Notificaciones (FCM)
+Implementado en el backend (S2, spec 003; el envío real al celular queda «No verificado en dispositivo» hasta STOP-2).
+- `pushTokens/{sha256(token)}` (`uid`, `token`, `platform: 'android'`, `createdAt`, `updatedAt`) solo lo lee y escribe el Admin SDK del backend. **No se necesitan reglas nuevas ni índices nuevos**: `firestore.rules` no se toca y listar los dispositivos de un uid es `where('uid','==',uid)` (índice de un campo automático). Sin `collectionGroup`.
+- Los tokens nunca se escriben en logs: la única línea de registro es `[req] método ruta estado provider=- Nms`; tampoco cuerpos, correos ni uid.
+- Reasignación por uid (D-131): registrar un token ya guardado para otro uid lo pasa al que llama, en una transacción, y conserva `createdAt`. Dar de baja borra solo si el documento es del uid del ID token; token inexistente o ajeno responde igual (204).
+- Limpieza: tras cada envío se revisa `resp.success` por índice y se borran solo los tokens con error `messaging/registration-token-not-registered` o `messaging/invalid-registration-token`; cualquier otro error no borra nada.
+- `POST /notifications/test-request` envía solo a los dispositivos del uid del ID token (el cuerpo no puede aportar uid, tokens, texto ni datos), exige `accountStatus = 'approved'`, tiene un límite propio de 5 por minuto por uid (429) además del límite general, y admite un único envío diferido pendiente por uid.
+- Token válido: texto de 20 a 512 caracteres sin espacios; `platform` solo `android`. Con `BODY_LIMIT = '2kb'` cabe de sobra (comprobado en `scripts/tests/backendMessagingWiring.test.mjs`).

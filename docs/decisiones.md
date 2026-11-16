@@ -742,8 +742,8 @@ Nota: D-93 reemplaza a D-53 (acceso anónimo). Origen: spec specs/002-funcionali
 
 Origen: `specs/003-notificaciones-fcm/spec.md` §3 e informe `docs/fcm/investigacion.md`. Anderson resolvió D-126…D-136 el 2026-11-16 (prompt #63, Fase 1b). D-137 y D-138 son nuevas y quedan «Propuesta» hasta que Anderson apruebe la spec.
 
-### D-126 — Cliente FCM con RN Firebase y plan B expo-notifications · Aprobada, sujeta al spike (Anderson, 2026-11-16; R-113)
-Decisión: `@react-native-firebase/app` + `messaging` 27.1.1; spike S1 de 3 h máximo como puerta. Pasa a «Vigente» cuando el spike se confirme; si falla, plan B `expo-notifications` detrás de la misma interfaz `src/services/notifications/`. Reemplaza a D-77 y una cláusula de D-52 (declarado en el plan, G2). Compatible con D-24 (archivos de Firebase fuera de Git).
+### D-126 — Cliente FCM con RN Firebase y plan B expo-notifications · Vigente (Anderson, 2026-11-16; R-113; spike S1/STOP-1 validado en dispositivo el 2026-11-16; plan B descartado)
+Decisión: `@react-native-firebase/app` + `messaging` 27.1.1; spike S1 de 3 h máximo como puerta. Pasó a «Vigente» al confirmarse el spike (STOP-1: compiló, hubo token y permiso, y una notificación de la consola llegó en segundo plano y abrió la app; el heads-up de la solicitud sigue pendiente, DP-72, S3). Si hubiera fallado, plan B `expo-notifications` detrás de la misma interfaz `src/services/notifications/`. Reemplaza a D-77 y una cláusula de D-52 (declarado en el plan, G2). Compatible con D-24 (archivos de Firebase fuera de Git).
 Alternativa: omitir FCM (descartada: el PDF §7 lo marca obligatorio).
 
 ### D-127 — Disparo desde endpoint autenticado del backend · Aprobada, salvo objeción de Anderson (2026-11-16)

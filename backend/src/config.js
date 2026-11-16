@@ -9,6 +9,17 @@ export const BODY_LIMIT = '2kb';
 export const USER_RATE_LIMIT = { max: 20, windowMs: 60_000 };
 export const IP_RATE_LIMIT = { max: 120, windowMs: 60_000 };
 export const SIGNATURE_TOLERANCE_SEC = 300;
+// AI-assisted: see docs/AI_LOG.md #64
+// FCM notifications (spec 003). The Admin SDK takes the TTL as a number of milliseconds
+// (messaging-api.d.ts, AndroidConfig.ttl); FCM_TTL is the same value in the REST duration format.
+export const TEST_REQUEST_RATE_LIMIT = { max: 5, windowMs: 60_000 };
+export const FCM_TTL_MS = 90_000;
+export const FCM_TTL = '90s';
+export const FCM_CHANNEL_ID = 'solicitudes';
+export const TEST_REQUEST_MAX_DELAY_S = 60;
+export const PUSH_TOKEN_MIN_LENGTH = 20;
+export const PUSH_TOKEN_MAX_LENGTH = 512;
+export const FCM_BATCH_SIZE = 500;
 // Stripe events are larger than the JSON bodies of the app routes, but still small and bounded.
 export const STRIPE_WEBHOOK_BODY_LIMIT = '64kb';
 
