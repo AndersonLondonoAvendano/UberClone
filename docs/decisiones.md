@@ -785,3 +785,25 @@ Impacto: spec, plan y criterios; en Fase 2 una tarea cambia el origen del conteo
 
 ### D-138 — Dirección no viaja en la notificación · Aprobada (Anderson, 2026-11-16; hallazgo 4; D-125)
 Decisión: la notificación y el payload llevan solo coordenadas; la app resuelve la dirección al abrir con el geocodificador existente (D-125) y su fallback.
+
+### D-139 — Canal Android «solicitudes» mediante plugin de configuración local · Vigente (Anderson, 2026-11-16; prompt S3+S4; DP-72)
+Decisión: NO se usa `expo-notifications` (su servicio de Firebase entra en conflicto con el de RN Firebase). Un plugin local `plugins/withRequestsChannel.js` (sin dependencias nuevas; importa de `expo/config-plugins`) usa `withMainApplication` para insertar en `MainApplication.onCreate` la creación idempotente del canal `solicitudes` (`IMPORTANCE_HIGH`, nombre «Solicitudes de viaje», descripción corta, sonido y vibración por defecto). Es tolerante a que el canal ya exista (`createNotificationChannel` es idempotente y el plugin no duplica el bloque si ya está) y falla en el prebuild con un mensaje claro si no encuentra el punto de inserción; nunca en silencio. El backend ya envía `channelId: 'solicitudes'`; `firebase.json` conserva el canal por defecto de RN Firebase.
+Plan B: si el plugin no logra aplicar el cambio, se avisa a Anderson con el diagnóstico (no se edita `android/` a mano).
+Estado en dispositivo: **No verificado en dispositivo** (aviso emergente, STOP-2).
+
+### D-140 — Reglas del cliente para solicitudes por notificación · Vigente (Anderson, 2026-11-16; prompt S3+S4)
+Decisión: (1) El temporizador de decisión es de 15 s y empieza cuando la solicitud se MUESTRA, tanto del mock como de una notificación (D-137; la constante vive solo en `src/config/passengerApi.js`). La contradicción entre `decisiones.md` D-85 («30 s», prompt #43) y `docs/requisitos.md` RF-11 («15 s») se resuelve a favor de RF-11 por D-137; la cita de D-85 queda superada. (2) La validez de la notificación es `expiresAt` (≈ 90 s); si ya pasó al abrir se muestra «La solicitud expiró» y no se puede aceptar. (3) La dirección se resuelve en la app con el geocodificador (D-125) y su fallback. (4) La tarifa se calcula con `calculateFare` (R-084), nunca viaja en el payload. (5) Elegibilidad: solo se atiende con sesión, cuenta aprobada, sin viaje en curso y `targetUid` igual al uid actual; en otro caso se ignora sin mensajes.
+
+### D-141 — Controlador de registro de token y baja al cerrar sesión con restauración · Vigente (Anderson, 2026-11-16; prompt S4; T-184, T-185, T-186; D-131, D-134)
+Decisión: `registration.js` es un controlador puro (adaptador, backend, preferencia y `pendingIntent` inyectados) enlazado en `NotificationsBridge` (rama MAIN, por uid y cuenta aprobada). En `resetSession` el paso `unregisterNotifications` borra primero lo local (intención y `notificationsEnabled`) y luego da de baja en el backend y borra el token local en paralelo, con tope de 3 s; así un vencimiento no deja la preferencia atrás. Si `signOut` falla tras ese paso, `restoreNotifications` repone la preferencia y vuelve a registrar (mejor esfuerzo). Con `trip-in-progress` o `trip-save-pending` el paso no corre y nada cambia.
+Impacto: `resetSession.js` (claves nuevas en `steps`, resultados sin cambio), `buildSessionResetDeps.js` (solo pasa las dependencias nuevas; el plan decía «sin cambios» en T-184).
+
+### D-142 — Orden de la oferta por notificación: compuerta primero, adopción después · Vigente (Anderson, 2026-11-16; prompt S4; hallazgo del verifier de S3; D-135)
+Decisión: `offerPushThroughGate` (`src/services/trip/pushOffer.js`) consulta la compuerta antes de adoptar la solicitud en el mock; un duplicado nunca toca el mock y, si el adaptador rechaza una solicitud ya ofrecida, se libera el hueco de la compuerta.
+
+### D-143 — Números del `data` de la notificación: solo decimales estrictos · Vigente (Anderson, 2026-11-16; prompt S4; hallazgo del verifier de S3)
+Decisión: `pushRequest.js` acepta únicamente `^[+-]?\d+(\.\d+)?$`; `0x10`, `1e1`, espacios y puntos sueltos se rechazan en vez de corregirse.
+
+### D-144 — Sección mínima de Notificaciones en Configuración adelantada a S4 · Vigente (Anderson, 2026-11-16; prompt S4)
+Decisión: para poder probar STOP-2 se entrega ya una sección funcional mínima en Configuración (interruptor con explicación previa, mensaje y enlace a ajustes si el permiso está denegado o bloqueado, botón de prueba con retraso de 0 a 60 s, estados en línea, sin `Alert`). El diseño final y la auditoría siguen en T-187/T-189; el campo Diseño no se toca.
+Impacto: `src/components/settings/NotificationsSection.js`, `SettingsScreen.js`, `labels.notifications`, `testRequest.js`.

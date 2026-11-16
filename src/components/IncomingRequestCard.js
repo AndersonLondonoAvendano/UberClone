@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { labels } from '../constants/labels';
+import { decisionDeadline, markShown } from '../services/trip/decisionWindow';
 import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
@@ -168,6 +169,26 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     };
   }, [requestId, entrance]);
 
+  // D-137: the 15 s window starts the first time the request is shown.
+  useEffect(() => {
+    if (request) markShown(request.id, Date.now());
+  }, [request]);
+
+  const secondsLeft = request ? secondsUntil(decisionDeadline(request, now), now) : null;
+
+  // When the window closes without a decision, reject quietly, free the slot and tell the driver.
+  useEffect(() => {
+    if (!request || secondsLeft !== 0 || working) return;
+    const clock = Date.now();
+    if (secondsUntil(decisionDeadline(request, clock), clock) > 0) return; // stale tick, not really over
+    markHandled();
+    setNotice(labels.trip.expired);
+    rejectRequest(request.id).catch(() => {
+      // It expires by itself on the passenger side; the driver stays where they are anyway.
+    });
+    clearPendingRequest(request.id);
+  }, [request, secondsLeft, working, markHandled, clearPendingRequest]);
+
   const fare = useMemo(() => (request ? fareOf(request) : null), [request]);
   const toPickup = useMemo(() => {
     if (!request) return null;
@@ -235,7 +256,6 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     );
   }
 
-  const secondsLeft = secondsUntil(request.expiresAt, now);
   const progress = Math.min(1, secondsLeft / requestTotalSeconds(request));
   const name = request.passenger?.name ?? '';
   const rating = typeof request.passenger?.rating === 'number' ? formatRating(request.passenger.rating) : null;

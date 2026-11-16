@@ -3,7 +3,7 @@
 // and can be loaded by `node --test`. The real wiring lives in rnFirebaseDefault.js.
 //
 // Error contract: every method returns a promise (or a function) and PROPAGATES the SDK errors
-// (rejects). Callers decide how to handle them; spikeProbe and the root handler catch them.
+// (rejects). Callers decide how to handle them; the notifications service and the root handler catch them.
 import {
   PERMISSION_STATE,
   POST_NOTIFICATIONS_MIN_API,
@@ -47,6 +47,22 @@ export function createRnFirebaseAdapter({ messaging, permissions, platform, osVe
 
     deleteToken() {
       return messaging.deleteToken();
+    },
+
+    // Foreground push messages. The callback receives only the `data` map. Returns the unsubscribe.
+    onForegroundMessage(callback) {
+      return messaging.onMessage((message) => callback(message?.data ?? null));
+    },
+
+    // Notification tapped while the app was in the background. Returns the unsubscribe.
+    onNotificationOpened(callback) {
+      return messaging.onNotificationOpenedApp((message) => callback(message?.data ?? null));
+    },
+
+    // Data of the notification that cold-started the app, or null.
+    async getInitialNotification() {
+      const message = await messaging.getInitialNotification();
+      return message?.data ?? null;
     },
   };
 }

@@ -20,6 +20,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { IncomingRequestCard } from '../components/IncomingRequestCard';
+import { NotificationsBridge } from '../components/NotificationsBridge';
 import { SHOW_DEV_TOOLS } from '../constants/devTools';
 import { AvailabilityProvider, useAvailability } from '../context/AvailabilityContext';
 import { TripProvider } from '../context/TripContext';
@@ -84,6 +85,7 @@ function DrawerBody() {
         {SHOW_DEV_TOOLS ? <Drawer.Screen name="MapTest" getComponent={getMapTestScreen} /> : null}
       </Drawer.Navigator>
       <IncomingRequestCard currentRoute={currentRoute} getNavigation={getNavigation} />
+      <NotificationsBridge />
     </View>
   );
 }

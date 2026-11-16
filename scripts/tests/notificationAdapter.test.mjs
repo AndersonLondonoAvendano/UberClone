@@ -8,7 +8,6 @@ import './helpers/registerSrcLoader.mjs';
 
 const { createRnFirebaseAdapter } = await import('../../src/services/notifications/adapters/rnFirebaseAdapter.js');
 const { createNotifications } = await import('../../src/services/notifications/index.js');
-const { runSpikeProbe } = await import('../../src/services/notifications/spikeProbe.js');
 const { PERMISSION_STATE, POST_NOTIFICATIONS_PERMISSION } = await import('../../src/services/notifications/constants.js');
 
 const RESULTS = { GRANTED: 'granted', DENIED: 'denied', NEVER_ASK_AGAIN: 'never_ask_again' };
@@ -108,19 +107,4 @@ test('createNotifications delegates every call to the adapter', async () => {
   const notifications = createNotifications(adapter);
   assert.equal(await notifications.getToken(), 'fake-token-0123456789');
   assert.equal(await notifications.requestPermission(), PERMISSION_STATE.GRANTED);
-});
-
-test('spike probe logs only the masked token and never throws', async () => {
-  const lines = [];
-  const { adapter } = build();
-  await runSpikeProbe({ notifications: createNotifications(adapter), isDev: true, log: (line) => lines.push(line) });
-  assert.ok(lines.some((line) => line.includes('fake-tok… (len 21)')));
-  assert.ok(lines.every((line) => !line.includes('fake-token-0123456789')));
-
-  const off = [];
-  await runSpikeProbe({ notifications: createNotifications(adapter), isDev: false, log: (line) => off.push(line) });
-  assert.equal(off.length, 0);
-
-  const broken = build({ messaging: { getToken: async () => { throw new Error('native down'); } } });
-  await assert.doesNotReject(runSpikeProbe({ notifications: createNotifications(broken.adapter), isDev: true, log: () => {} }));
 });

@@ -3,7 +3,15 @@
 // imports `@react-native-firebase/*`; load it lazily with require().
 // Uses the modular API of v27 (the namespaced `messaging()` call does not exist in this version).
 import { PermissionsAndroid, Platform } from 'react-native';
-import { deleteToken, getMessaging, getToken, onTokenRefresh } from '@react-native-firebase/messaging';
+import {
+  deleteToken,
+  getInitialNotification,
+  getMessaging,
+  getToken,
+  onMessage,
+  onNotificationOpenedApp,
+  onTokenRefresh,
+} from '@react-native-firebase/messaging';
 import { createRnFirebaseAdapter } from './rnFirebaseAdapter';
 
 export function createDefaultRnFirebaseAdapter() {
@@ -13,6 +21,9 @@ export function createDefaultRnFirebaseAdapter() {
       getToken: () => getToken(instance),
       onTokenRefresh: (callback) => onTokenRefresh(instance, callback),
       deleteToken: () => deleteToken(instance),
+      onMessage: (callback) => onMessage(instance, callback),
+      onNotificationOpenedApp: (callback) => onNotificationOpenedApp(instance, callback),
+      getInitialNotification: () => getInitialNotification(instance),
     },
     permissions: PermissionsAndroid,
     platform: Platform.OS,

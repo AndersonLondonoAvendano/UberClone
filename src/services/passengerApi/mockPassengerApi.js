@@ -30,6 +30,7 @@ import {
   TRIP_STATUS,
   createPassengerApiError,
   isTripFinished,
+  isValidTripRequest,
 } from './contract';
 import { generateFeedback } from './simulatedFeedback';
 
@@ -44,6 +45,14 @@ export const REQUEST_NOW_RESULT = {
   NOT_SUBSCRIBED: 'not_subscribed',
   NO_POSITION: 'no_position',
   BUSY: 'busy',
+};
+
+// Results of adoptRequest (T-179): a request that arrived by notification and is taken in as the pending one.
+export const ADOPT_RESULT = {
+  ADOPTED: 'adopted',
+  BUSY: 'busy',
+  EXPIRED: 'expired',
+  INVALID: 'invalid',
 };
 
 const isDev = () => typeof __DEV__ !== 'undefined' && __DEV__;
@@ -181,14 +190,14 @@ export function createMockPassengerApi({
       if (typeof onRequest !== 'function') throw new TypeError('onRequest must be a function');
       const own = { onRequest, onError, getDriverPosition };
       subscriber = own;
-      clearPending();
+      if (!pending?.adopted) clearPending();
       scheduleNext();
       log('subscribed');
       return () => {
         if (subscriber !== own) return;
         subscriber = null;
         clearEmitTimer();
-        clearPending();
+        if (!pending?.adopted) clearPending(); // an adopted (push) request outlives availability
         log('unsubscribed');
       };
     },
@@ -259,6 +268,25 @@ export function createMockPassengerApi({
         throw createPassengerApiError(PASSENGER_API_ERROR.INVALID_STATE, 'Posición inválida');
       }
       locations.set(tripId, { lat: location.lat, lng: location.lng, timestamp: location.timestamp ?? now() });
+    },
+
+    // T-179: takes in a request that came by push (D-130). It becomes the pending one, so accept and
+    // reject work on it like on any other; subscribers are NOT notified (the caller already has it).
+    // Works without a subscription: a push request is offered even when the driver is not available.
+    adoptRequest(request) {
+      if (!isValidTripRequest(request)) return ADOPT_RESULT.INVALID;
+      if (request.expiresAt <= now()) return ADOPT_RESULT.EXPIRED;
+      if (pending || activeTripId) return ADOPT_RESULT.BUSY;
+      clearEmitTimer();
+      const expiryTimer = setTimer(() => {
+        if (!pending || pending.request.id !== request.id) return;
+        log('adopted request expired', request.id);
+        pending = null;
+        scheduleNext();
+      }, request.expiresAt - now());
+      pending = { request, expiryTimer, adopted: true };
+      log('request adopted', request.id);
+      return ADOPT_RESULT.ADOPTED;
     },
 
     // Dev helper (SHOW_DEV_TOOLS): emit a request right away instead of waiting for the timer.

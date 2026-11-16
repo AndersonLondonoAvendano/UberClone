@@ -11,13 +11,21 @@
 //   stopLocation(), releaseSubscriptions(), clearContexts(), clearOwnStorage(), signOut(),
 //   waitForTripSaveQueue() (optional): resolves when no trip save is in flight; awaited right before
 //   signOut for at most tripSaveDrainTimeoutMs, otherwise nothing is signed out (trip-save-pending).
+//   unregisterNotifications() (optional, D-134): unregisters the push token (backend and local) and
+//   clears the notifications preference and the pending intent, TOGETHER. It runs after the save wait
+//   and right before signOut, for at most notificationUnregisterTimeoutMs; its failure or timeout never
+//   blocks signOut or changes the result. If the reset stops earlier (trip-in-progress,
+//   trip-save-pending) it does not run and nothing of it changes.
+//   restoreNotifications() (optional): called only when signOut failed after that step ran (best effort).
 //   finalPublishTimeoutMs (default 5000), tripSaveDrainTimeoutMs (default 8000),
+//   notificationUnregisterTimeoutMs (default 3000),
 //   setTimeoutFn / clearTimeoutFn (injectable timers).
 // options: { skipTripSaveWait: true } skips the save wait (explicit "sign out anyway"). A trip in
 //   progress still blocks.
 
 export const FINAL_PUBLISH_TIMEOUT_MS = 5000;
 export const TRIP_SAVE_DRAIN_TIMEOUT_MS = 8000;
+export const NOTIFICATION_UNREGISTER_TIMEOUT_MS = 3000;
 
 export const SESSION_RESET_REASON = {
   TRIP_IN_PROGRESS: 'trip-in-progress',
@@ -58,6 +66,7 @@ export async function resetSession(deps = {}, options = {}) {
   const {
     finalPublishTimeoutMs = FINAL_PUBLISH_TIMEOUT_MS,
     tripSaveDrainTimeoutMs = TRIP_SAVE_DRAIN_TIMEOUT_MS,
+    notificationUnregisterTimeoutMs = NOTIFICATION_UNREGISTER_TIMEOUT_MS,
     setTimeoutFn = setTimeout,
     clearTimeoutFn = clearTimeout,
   } = deps;
@@ -98,9 +107,20 @@ export async function resetSession(deps = {}, options = {}) {
     }
   }
 
+  // 5c. Push token off (D-134): only now, with the save wait done; before this nothing of it was touched.
+  steps.unregisterNotifications = await runBounded(
+    deps.unregisterNotifications,
+    notificationUnregisterTimeoutMs,
+    setTimeoutFn,
+    clearTimeoutFn,
+  );
+
   steps.signOut = await runStep(deps.signOut);
 
   if (steps.signOut === STEP_STATUS.FAILED) {
+    if (steps.unregisterNotifications !== STEP_STATUS.SKIPPED) {
+      steps.restoreNotifications = await runStep(deps.restoreNotifications);
+    }
     return { ok: false, reason: SESSION_RESET_REASON.SIGN_OUT_FAILED, steps };
   }
   return { ok: true, steps };

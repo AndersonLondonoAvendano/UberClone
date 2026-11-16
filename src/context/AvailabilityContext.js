@@ -117,6 +117,8 @@ export function AvailabilityProvider({ children }) {
     lastRequest,
     error: requestsError,
     clearPendingRequest,
+    offerPushRequest,
+    pushOffered,
   } = useTripRequests({ enabled: watching, getDriverPosition });
 
   const blockForServices = useCallback(() => {
@@ -232,6 +234,8 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      offerPushRequest,
+      pushOffered,
       requestScreenId,
       setRequestScreenId,
       lastRequest,
@@ -255,6 +259,8 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      offerPushRequest,
+      pushOffered,
       requestScreenId,
       lastRequest,
       requestsError,

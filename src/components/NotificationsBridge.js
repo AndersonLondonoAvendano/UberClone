@@ -1,0 +1,128 @@
+// AI-assisted: see docs/AI_LOG.md #64
+// Connects push notifications to the app (T-183, D-130, D-140). Mounted once inside the providers
+// (MainDrawer), so a session exists. Foreground messages and notification taps become a trip request
+// offered through useAvailability().offerPushRequest, only for the right account (resolveIntent).
+// A request that already expired shows a brief "La solicitud expiró" notice; anything else that is not
+// eligible is ignored silently. It never imports the Firebase SDK (the notifications service does).
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { EXPIRED_NOTICE_MS } from '../config/trip';
+import { ACCOUNT_STATUS } from '../constants/accountStatus';
+import { labels } from '../constants/labels';
+import { useAppState } from '../context/AppStateContext';
+import { useAvailability } from '../context/AvailabilityContext';
+import { getNotifications } from '../services/notifications';
+import { INTENT_DECISION, resolveIntent } from '../services/notifications/eligibility';
+import { pendingIntent } from '../services/notifications/pendingIntent';
+import { getRegistrationController } from '../services/notifications/registrationRuntime';
+import { requestFromIntent } from '../services/notifications/pushRequest';
+import { color, radius, space, type } from '../theme/tokens';
+
+export function NotificationsBridge() {
+  const { driverId, accountStatus } = useAppState();
+  const { onTrip, offerPushRequest } = useAvailability();
+  const insets = useSafeAreaInsets();
+  const [notice, setNotice] = useState(null);
+
+  // Latest values for the long-lived subscriptions (no resubscribe on every change).
+  const latest = useRef({});
+  latest.current = { driverId, accountStatus, onTrip, offerPushRequest };
+
+  const decide = useCallback((intent) => {
+    const { driverId: uid, accountStatus: status, onTrip: busy } = latest.current;
+    return resolveIntent(intent, {
+      session: uid ? { uid } : null,
+      accountApproved: status === ACCOUNT_STATUS.APPROVED,
+      onTrip: busy,
+      now: Date.now(),
+    });
+  }, []);
+
+  const handle = useCallback(
+    (intent, request) => {
+      const decision = decide(intent);
+      if (decision === INTENT_DECISION.EXPIRED) setNotice(labels.trip.pushExpired);
+      else if (decision === INTENT_DECISION.OPEN) latest.current.offerPushRequest(request);
+    },
+    [decide],
+  );
+
+  // Takes the parked tap intent (bound to the uid) once there is a session.
+  const takeParked = useCallback(() => {
+    const uid = latest.current.driverId;
+    if (!uid) return;
+    const intent = pendingIntent.take(uid);
+    if (!intent) return;
+    handle(intent, requestFromIntent(intent, Date.now()));
+  }, [handle]);
+
+  useEffect(() => {
+    let cancel = () => {};
+    let unsubscribeForeground = () => {};
+    try {
+      const notifications = getNotifications();
+      unsubscribeForeground = notifications.onForegroundMessage((request, targetUid) =>
+        handle({ targetUid, requestId: request.id, expiresAt: request.expiresAt }, request),
+      );
+      cancel = notifications.onNotificationOpened(takeParked);
+    } catch {
+      // Notifications must never break the app (no native module, no Firebase config).
+    }
+    return () => {
+      unsubscribeForeground();
+      cancel();
+    };
+  }, [handle, takeParked]);
+
+  // An intent parked before the session or the approved state existed is delivered as soon as they do.
+  useEffect(() => {
+    if (driverId && accountStatus === ACCOUNT_STATUS.APPROVED) takeParked();
+  }, [driverId, accountStatus, takeParked]);
+
+  // Registers this phone's push token for the signed-in, approved driver (T-184/T-186, D-131): at start,
+  // on token refresh, and again for another account on the same phone (the effect restarts per uid).
+  const approved = accountStatus === ACCOUNT_STATUS.APPROVED;
+  useEffect(() => {
+    if (!driverId || !approved) return undefined;
+    let controller = null;
+    try {
+      controller = getRegistrationController();
+      controller.start(driverId);
+    } catch {
+      return undefined;
+    }
+    return () => controller.stop();
+  }, [driverId, approved]);
+
+  useEffect(() => {
+    if (!notice) return undefined;
+    const id = setTimeout(() => setNotice(null), EXPIRED_NOTICE_MS);
+    return () => clearTimeout(id);
+  }, [notice]);
+
+  if (!notice) return null;
+  return (
+    <View pointerEvents="none" style={[styles.anchor, { top: insets.top + space[3] }]}>
+      <View testID="push-expired-notice" style={styles.notice} accessibilityLiveRegion="polite">
+        <Text style={styles.noticeText}>{notice}</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  anchor: { position: 'absolute', left: space[4], right: space[4] },
+  notice: {
+    alignSelf: 'center',
+    paddingVertical: space[3],
+    paddingHorizontal: space[4],
+    borderRadius: radius.md,
+    backgroundColor: color.text,
+  },
+  noticeText: {
+    ...type.body,
+    color: color.surface,
+  },
+});

@@ -23,6 +23,12 @@ export const releaseTrip = (tripId) => adapter.releaseTrip(tripId);
 // 'not_subscribed', 'no_position', 'busy' or 'not_supported' (http).
 export const requestSimulatedTripNow = () => adapter.requestNow();
 
+// AI-assisted: see docs/AI_LOG.md #64
+// Takes in a request that arrived by notification as the pending one (T-179). Returns 'adopted',
+// 'busy', 'expired', 'invalid' or 'not_supported' (http).
+export const adoptPushRequest = (request) => adapter.adoptRequest(request);
+export { ADOPT_RESULT } from './mockPassengerApi';
+
 // AI-assisted: see docs/AI_LOG.md #43 (transition table and error helpers for the trip screens)
 export {
   NEXT_TRIP_STATUS,

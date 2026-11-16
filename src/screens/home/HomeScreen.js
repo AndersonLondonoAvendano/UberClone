@@ -69,6 +69,7 @@ export function HomeScreen({ navigation }) {
     onTrip,
     locationStatus,
     pendingRequest,
+    pushOffered,
     lastRequest,
     requestSimulatedTrip,
     position,
@@ -90,7 +91,8 @@ export function HomeScreen({ navigation }) {
 
   // Opens the card once per request id, only while available and without a trip.
   useEffect(() => {
-    if (!pendingRequest || !isAvailable || onTrip) return;
+    // A request that arrived by push (D-130) is opened even when the driver is not available.
+    if (!pendingRequest || !(isAvailable || pushOffered) || onTrip) return;
     // AI-assisted: see docs/AI_LOG.md #47
     // Full screen only while Home is the screen in front; elsewhere the bottom card shows it, and
     // coming back to Home with the request still pending opens it here with the real time left.
@@ -101,7 +103,7 @@ export function HomeScreen({ navigation }) {
     setDevMessage(null);
     const alreadyOpen = navigation.getState().routes.some((r) => r.name === 'TripRequest');
     if (!alreadyOpen) navigation.navigate('TripRequest');
-  }, [pendingRequest, isAvailable, onTrip, navigation, focused]);
+  }, [pendingRequest, isAvailable, pushOffered, onTrip, navigation, focused]);
 
   const hint = isAvailable
     ? (HINT_BY_LOCATION_STATUS[locationStatus] ?? labels.home.hintWaiting)

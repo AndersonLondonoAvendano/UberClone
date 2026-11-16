@@ -10,6 +10,8 @@ export const PRESENTATION = {
   NONE: 'none',
 };
 
+import { REQUEST_DECISION_WINDOW_MS } from '../../config/passengerApi';
+
 const APPROVED = 'approved';
 const HOME_ROUTE = 'Home';
 const TRIP_ROUTE_PREFIX = 'Trip';
@@ -25,9 +27,11 @@ export function decideRequestPresentation(currentRoute, onTrip, accountStatus, h
 
 export const secondsUntil = (expiresAt, now) => Math.max(0, Math.ceil((expiresAt - now) / 1000));
 
-// Total length of the request window, the same for the card and the full screen so both bars match.
+// Total length of the decision window (D-137), the same for the card and the full screen so both
+// bars match: the fixed window, or the request validity when that is shorter.
 export function requestTotalSeconds(request) {
   if (!request) return 1;
   const span = Number.isFinite(request.createdAt) ? request.expiresAt - request.createdAt : NaN;
-  return Math.max(1, Math.round((Number.isFinite(span) ? span : 30000) / 1000));
+  const total = Number.isFinite(span) ? Math.min(span, REQUEST_DECISION_WINDOW_MS) : REQUEST_DECISION_WINDOW_MS;
+  return Math.max(1, Math.round(total / 1000));
 }

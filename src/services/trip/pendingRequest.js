@@ -7,7 +7,11 @@ export const OFFER_RESULT = {
   OFFERED: 'offered',
   BUSY: 'busy',
   EXPIRED: 'expired',
+  DUPLICATE: 'duplicate',
 };
+
+// Ids already offered are remembered (bounded) so a redelivered or reopened push is not shown twice.
+export const SEEN_REQUEST_IDS_MAX = 50;
 
 export function createPendingRequestGate({
   now = () => Date.now(),
@@ -17,6 +21,13 @@ export function createPendingRequestGate({
 } = {}) {
   let pending = null;
   let timer = null;
+  const seen = [];
+
+  const remember = (id) => {
+    if (id === undefined || id === null) return;
+    seen.push(id);
+    if (seen.length > SEEN_REQUEST_IDS_MAX) seen.shift();
+  };
 
   const clear = () => {
     if (timer !== null) clearTimer(timer);
@@ -30,10 +41,12 @@ export function createPendingRequestGate({
   return {
     offer(request) {
       if (!request || typeof request.expiresAt !== 'number') return OFFER_RESULT.EXPIRED;
+      if (request.id !== undefined && seen.includes(request.id)) return OFFER_RESULT.DUPLICATE;
       if (request.expiresAt <= now()) return OFFER_RESULT.EXPIRED;
       if (pending && pending.expiresAt > now()) return OFFER_RESULT.BUSY;
       clear();
       pending = request;
+      remember(request.id);
       timer = setTimer(() => {
         timer = null;
         clear();

@@ -2738,5 +2738,132 @@ con "S2 COMPLETA — LISTA PARA COMMIT DE ANDERSON". Sin recapitular pasos.
 - S2 — Resumen: S2 (T-171…T-175) implementada en el backend: `messaging` en `admin.js`/`createApp`/`server.js`, rutas `POST /notifications/register`, `/unregister` y `/test-request` con el `guard` y un límite propio, `pushTokens/{sha256}` con transacción (reasigna al uid que llama), mensaje FCM sin tarifa ni direcciones y limpieza selectiva de tokens. Verifier distinto: aprobada en lo estático, sin «Validada» (envío real = STOP-2). Pruebas: 93 (90 pasan; los 3 fallos conocidos pasan con el loader: 100/100); constitución 14 errores / 222 advertencias (base 14 / 225).
 - S2 — Usado / modificado / descartado: usado: `sendEachForMulticast` y los códigos de error confirmados en `firebase-admin` 13.10.0 instalado; las rutas del ENCARGO (`register`/`unregister`) sustituyen a `POST/DELETE /notifications/token` de spec, plan, requisitos y backlog, que se alinearon; descartado: tarifa y direcciones en el mensaje (D-132, D-138), `collectionGroup` e índices. Pendiente: `token` frente a `fid` (FR-10) y `ttl` en el servidor real. Incidente: ninguno (sin stash/reset).
 - S2 — Archivos y commit (sin hash): backend/src/{admin,app,server,config}.js, backend/src/notifications/{payload,tokenStore}.js, backend/src/routes/notifications.js, scripts/tests/{backendMessagingWiring,backendNotificationPayload,backendTokenStore,backendNotificationsRoutes}.test.mjs, scripts/tests/helpers/notificationsFakes.mjs, README.md, docs/{seguridad,backlog,decisiones,progress,requisitos}.md, specs/003-notificaciones-fcm/{spec,plan}.md.
+- Prompt S3+S4 (textual):
+````
+PROMPT — FCM — REBANADAS S3 + S4: cliente e integración (hasta STOP-2)
+
+0. REGISTRO EN AI_LOG: NO crees entrada nueva. Añade este prompt textual como
+   "Prompt S3+S4" dentro de la entrada #64.
+
+CONTEXTO
+S1 validada en dispositivo (D-126 Vigente). S2 (backend) completa y verificada en lo
+estático: POST /notifications/register, /unregister y /test-request, colección raíz
+pushTokens, mensaje sin tarifa ni direcciones, ttl y expiresAt de 90 s, data con type,
+requestId, targetUid, category, distanceKm, durationMin, coordenadas y passengerName.
+Esta entrega cubre el cliente (S3) y la integración con sesiones, preferencias y el
+extremo a extremo (S4), y termina en STOP-2, donde Anderson prueba en el celular.
+
+METODOLOGÍA Y REGLAS
+- implementer implementa cada rebanada; verifier DISTINTO verifica cada rebanada (S3 y
+  luego S4); quien implementa no aprueba. Si el verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs o logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  firestore.rules fuera de git. Sin Alert. NO hagas git stash, git reset ni checkout de
+  archivos. Todo texto visible va en src/constants/labels.js. Tokens de diseño,
+  accesibilidad (áreas ≥ 48 dp, accessibilityLabel) y D-93…D-138 vigentes.
+- No puedes compilar Android ni probar en dispositivo: NO lo intentes.
+- Sigue el plan (specs/003-notificaciones-fcm/plan.md): S3 = T-177…T-183 y, si el plan
+  las asigna al cliente, T-194/T-195 (decisionDeadline y la tarjeta de solicitud);
+  S4 = T-184…T-186. Respeta las asignaciones del plan; si algo del plan no cuadra con el
+  código real, repórtalo antes de improvisar.
+
+DECISIONES PARA ESTA ENTREGA (regístralas en docs/decisiones.md)
+1. Canal Android (DP-72): NO uses expo-notifications (su servicio de Firebase entra en
+   conflicto con el de RN Firebase). Crea un PLUGIN DE CONFIGURACIÓN LOCAL en plugins/
+   (sin dependencias nuevas) que, vía @expo/config-plugins, añada al MainApplication
+   nativo la creación idempotente del canal "solicitudes" con IMPORTANCE_HIGH, nombre
+   visible "Solicitudes de viaje", descripción corta, sonido y vibración por defecto, y
+   regístralo en app.json. Inspecciona el MainApplication que genera el prebuild
+   actual (android/ ya existe; lee su estructura para no romperlo, sin modificarlo
+   a mano: android/ es generado e ignorado). Debe ser tolerante a que ya exista
+   y fallar con un mensaje claro en el prebuild, no en silencio. Plan B documentado si
+   el plugin no logra aplicar el cambio: avisar a Anderson con el diagnóstico. Úsalo
+   en el mensaje: el backend ya envía channelId 'solicitudes'.
+2. Ventanas de tiempo (D-137): el temporizador de decisión pasa a 15 s y empieza
+   cuando la solicitud se MUESTRA en pantalla, tanto si llega del mock como de una
+   notificación (corrige la constante en el lugar de configuración único y la
+   contradicción decisiones.md:520 vs docs/requisitos.md:25 con una decisión
+   numerada). La validez de la notificación es expiresAt (≈ 90 s del envío); si al
+   abrir ya pasó, muestra "La solicitud expiró" y no permite aceptar.
+3. Dirección: la app resuelve las direcciones con el geocodificador existente (D-125)
+   a partir de las coordenadas del payload, con su fallback.
+4. Tarifa: la app la calcula con calculateFare, la función única (R-084), usando
+   distanceKm y durationMin del payload y la categoría.
+5. Elegibilidad en cliente: la notificación solo se atiende si hay sesión, la cuenta
+   está aprobada, no hay un viaje en curso y el targetUid del payload coincide con el
+   uid actual; si no, se ignora de forma segura sin mensajes confusos.
+
+ALCANCE S3 — cliente
+- src/services/notifications/: servicio completo detrás de la interfaz ya creada en S1:
+  registrar el token con POST /notifications/register (usa el cliente HTTP y el ID
+  token existentes, como paymentsClient), dar de baja con /unregister, onTokenRefresh
+  que vuelve a registrar, permiso POST_NOTIFICATIONS en contexto con explicación
+  previa y manejo de "denegado" con enlace a los ajustes del sistema, canal
+  "solicitudes" (vía el plugin), y escucha de mensajes en primer plano y de apertura
+  desde notificación (onNotificationOpenedApp y getInitialNotification).
+- Estado de la preferencia notificationsEnabled en AsyncStorage (preferencia, no dato
+  sensible), con un hook (p. ej. useNotifications) y un contexto si el plan lo pide.
+- "Intención pendiente" en memoria (rama MAIN, D-133), ligada al targetUid: la
+  consume el gate de Root DESPUÉS de resolver sesión y estado de cuenta; se descarta si
+  el uid no coincide, al cerrar sesión o si el viaje ya está en curso.
+- Dedupe por requestId (D-135) para que el mock y la notificación no dupliquen.
+- Un adaptador puro (parsePushRequest) que convierte el data del mensaje en la
+  solicitud interna a través de mappers.js (el único archivo que conoce la forma de la
+  API del pasajero): valida tipos y rangos, rechaza datos inválidos o ajenos.
+- decisionDeadline(request, now) y la tarjeta de solicitud (IncomingRequestCard)
+  según el plan, con el temporizador de 15 s desde que se muestra.
+- Pruebas automáticas (lógica pura con dependencias inyectadas): parsePushRequest,
+  elegibilidad, expiración, dedupe, intención pendiente ligada a uid, decisionDeadline,
+  registro y baja de token con cliente falso, onTokenRefresh y permiso denegado.
+
+ALCANCE S4 — integración
+- resetSession (D-93…D-106, D-134): añade el paso "dar de baja el token" con timeout
+  corto y sin bloquear el cierre de sesión. ORDEN CRÍTICO (hallazgo del revisor): la
+  preferencia notificationsEnabled, el token local y la baja del token se borran
+  JUNTOS, DESPUÉS de la espera de guardados y justo antes de signOut. Si la espera da
+  trip-save-pending o hay viaje en curso y la sesión continúa, NADA de eso cambia.
+  Pruebas de orden y de no borrado en esos casos. clearOwnStorage (resetSession.js:86)
+  corre antes de esa espera: no puede borrar la preferencia.
+- Al iniciar sesión, registra el token del uid actual (si la preferencia está activa y
+  hay permiso). Cambio de cuenta A→B en el mismo teléfono: el token queda asociado a B
+  (D-131 reasigna) y A deja de recibir en ese dispositivo.
+- Configuración: sección mínima "Notificaciones" con el interruptor (pide el permiso en
+  contexto al activarlo) y el botón "Enviar solicitud de prueba" que llama a
+  /notifications/test-request con un retraso seleccionable de 0 a 60 s (por defecto 10),
+  con estados de carga/éxito/error en línea, sin Alert, tokens de diseño. Es la UI
+  funcional mínima; el pulido visual y la auditoría de diseño son S5.
+- Extremo a extremo: al tocar la notificación o recibirla en primer plano, la app
+  muestra la tarjeta de solicitud con la categoría, distancia, duración, tarifa
+  calculada con calculateFare y direcciones resueltas; el flujo posterior (aceptar,
+  rechazar, vencer 15 s) es el existente.
+- Actualiza la guía del backend (cómo probar con la app) y los docs de omisiones y
+  límites (iOS fuera, sin ubicación en segundo plano).
+
+VERIFICACIÓN (verifier distinto, por rebanada)
+Trazabilidad a T-177…T-186 y a los RF/CA; el plugin no usa dependencias nuevas y falla
+con mensaje claro; ninguna pantalla importa RN Firebase directamente (solo el
+adaptador); el orden de borrado en resetSession; la intención ligada al uid; D-137
+(15 s desde que se muestra); sin tarifa ni direcciones en el payload; sin secretos ni
+tokens completos en logs; pruebas y constitución sin regresión (base 14 errores); que
+la suite por defecto no pierda pruebas.
+
+ENTREGA
+Informe corto: por rebanada, qué se implementó, archivos, resultado de los dos
+verifiers, cifras de pruebas y constitución, decisiones nuevas, y el CHECKLIST STOP-2
+para Anderson en PowerShell: reiniciar el backend y el túnel, actualizar
+EXPO_PUBLIC_BACKEND_URL si cambió, npx expo prebuild --clean y npx expo run:android,
+y las pruebas: (1) activar notificaciones y conceder el permiso, (2) enviar solicitud
+de prueba con la app abierta, en segundo plano y cerrada, (3) comprobar el aviso
+emergente y el sonido, (4) tocar la notificación y ver la tarjeta con el temporizador
+de 15 s, (5) tocarla pasados 90 s y ver "La solicitud expiró", (6) cerrar sesión en A,
+entrar con B y comprobar que A no recibe y B sí, (7) denegar el permiso y ver el manejo,
+(8) sin red al registrar. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-2". No
+avances a S5.
+````
+- S3 — Resumen: cliente de notificaciones detrás de la interfaz de S1 (T-177…T-183, T-194, T-195): registro/baja vía backend, permiso, primer plano y apertura desde notificación, intención pendiente ligada a uid (D-133), dedupe por requestId (D-135), `parsePushRequest` vía `mappers.js`, `decisionDeadline` y tarjeta con 15 s desde que se muestra (D-137/D-140), plugin local `plugins/withRequestsChannel.js` para el canal «solicitudes» (D-139). Verifier distinto: validada en lo estático, sin «Validada» (DP-72 y entrega con la app cerrada = STOP-2).
+- S4 — Resumen: T-184…T-186 más la sección mínima «Notificaciones» en Configuración (D-144): preferencia `notificationsEnabled`, controlador de registro (A→B, onTokenRefresh), paso de baja en `resetSession` tras la espera de guardados y antes de `signOut`, con tope de 3 s y restauración si `signOut` falla (D-134, D-141), oferta con compuerta antes de adoptar (D-142), regex decimal estricta (D-143). Verifier distinto: aprobada en lo estático. Hallazgo mayor (literales RF-70/RF-71 y estado bloqueado) y carrera de `enable()` corregidos tras el verifier.
+- S3+S4 — Cifras: suite por defecto 107 pruebas / 104 pasan (3 fallos conocidos); con loader 114/114; constitución 14 errores / 241 advertencias (base 14); `--selftest` pasa. No se ejecutó `expo lint` ni expo-doctor tras S3/S4.
+- S3+S4 — Usado / modificado / descartado: decisiones D-139…D-144; descartado `expo-notifications` (conflicto con el servicio de RN Firebase). Marca de IA `#64` (la entrada #65 inicial del implementer se corrigió a #64, sin entrada nueva). Pendiente: tarjeta y sección sin auditoría de diseño (T-183, T-187, T-195), STOP-2 en dispositivo.
+- S3+S4 — Archivos y commit (sin hash): plugins/withRequestsChannel.js, app.json, App.js, src/services/notifications/*, src/services/trip/{decisionWindow,pushOffer,pendingRequest,requestPresentation}.js, src/services/session/*, src/components/{NotificationsBridge,IncomingRequestCard}.js, src/components/settings/NotificationsSection.js, src/hooks/useTripRequests.js, src/constants/labels.js, scripts/tests/* (14 archivos nuevos), docs/{decisiones,backlog,progress,seguridad,omisiones-y-limites}.md.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):

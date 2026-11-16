@@ -8,12 +8,21 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { resolveRequestAddresses } from '../services/geocoding/requestAddresses';
-import { isValidTripRequest, subscribeToRequests } from '../services/passengerApi';
+import {
+  ADOPT_RESULT,
+  adoptPushRequest,
+  isValidTripRequest,
+  subscribeToRequests,
+} from '../services/passengerApi';
 import { createPendingRequestGate } from '../services/trip/pendingRequest';
+import { offerPushThroughGate } from '../services/trip/pushOffer';
 
 export function useTripRequests({ enabled, getDriverPosition }) {
   const [lastRequest, setLastRequest] = useState(null);
   const [pendingRequest, setPendingRequest] = useState(null);
+  // AI-assisted: see docs/AI_LOG.md #64 (T-182: a request that arrived by push is offered even when the
+  // driver is not available; the flag clears when it stops being pending).
+  const [pushOffered, setPushOffered] = useState(false);
   const [error, setError] = useState(null);
   const gateRef = useRef(null);
 
@@ -56,9 +65,40 @@ export function useTripRequests({ enabled, getDriverPosition }) {
     };
   }, [enabled, getDriverPosition]);
 
+  useEffect(() => {
+    if (!pendingRequest) setPushOffered(false);
+  }, [pendingRequest]);
+
   const clearPendingRequest = useCallback((id) => {
     gateRef.current?.release(id);
   }, []);
 
-  return { pendingRequest, lastRequest, error, clearPendingRequest };
+  // Offers a request that came from a notification (D-130). Returns true only when it became the
+  // pending request; duplicates, busy and expired ones are ignored silently. Addresses are resolved in
+  // the background (D-125), as for any request.
+  const offerPushRequest = useCallback((request) => {
+    const gate = gateRef.current;
+    if (!gate || !isValidTripRequest(request)) return false;
+    // AI-assisted: see docs/AI_LOG.md #64 (gate first, then adopt; a duplicate never touches the mock)
+    const offered = offerPushThroughGate({
+      gate,
+      request,
+      adopt: (candidate) => {
+        const adopted = adoptPushRequest(candidate);
+        return !(
+          adopted === ADOPT_RESULT.BUSY ||
+          adopted === ADOPT_RESULT.EXPIRED ||
+          adopted === ADOPT_RESULT.INVALID
+        );
+      },
+    });
+    if (!offered) return false;
+    resolveRequestAddresses(request);
+    setError(null);
+    setLastRequest(request);
+    setPushOffered(true);
+    return true;
+  }, []);
+
+  return { pendingRequest, lastRequest, error, clearPendingRequest, offerPushRequest, pushOffered };
 }

@@ -45,6 +45,7 @@ import { useRequestAddresses } from '../../hooks/useRequestAddresses';
 import { PASSENGER_API_ERROR, acceptRequest, rejectRequest } from '../../services/passengerApi';
 import { haversineDistanceM } from '../../services/routing/straightLine';
 // AI-assisted: see docs/AI_LOG.md #47
+import { decisionDeadline, markShown } from '../../services/trip/decisionWindow';
 import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
 import { badgeSize, borderWidth, color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 import { calculateFare, commissionPercent } from '../../utils/fare';
@@ -84,7 +85,11 @@ export function TripRequestScreen({ navigation }) {
   const { pendingRequest, clearPendingRequest, getDriverPosition, setRequestScreenId } = useAvailability();
   const { startTrip } = useTrip();
   // The card keeps the request it opened with; a later one never replaces it.
-  const [request] = useState(() => pendingRequest);
+  // D-137: the 15 s decision window starts here, the first time the request is shown.
+  const [request] = useState(() => {
+    if (pendingRequest) markShown(pendingRequest.id, Date.now());
+    return pendingRequest;
+  });
   // AI-assisted: see docs/AI_LOG.md #61 (D-125: real street, "Buscando dirección…" while it arrives)
   const addresses = useRequestAddresses(request);
   const [driverPosition] = useState(() => getDriverPosition());
@@ -110,7 +115,7 @@ export function TripRequestScreen({ navigation }) {
     setDecided(value);
   }, []);
 
-  const secondsLeft = request ? secondsUntil(request.expiresAt, now) : 0;
+  const secondsLeft = request ? secondsUntil(decisionDeadline(request, now), now) : 0;
   const released = Boolean(request) && pendingRequest?.id !== request.id;
   const expired = Boolean(request) && !decided && !error?.gone && (secondsLeft === 0 || released);
 

@@ -16,6 +16,11 @@ export const MOCK_EMIT_MAX_MS = 20000;
 // decided by the request card, T-43).
 export const MOCK_REQUEST_TTL_MS = 30000;
 
+// Decision window (D-137): the driver has 15 s to accept or reject, counted from the moment the
+// request is first shown (not from its creation). The request validity (expiresAt) is a separate,
+// longer limit and still caps the window.
+export const REQUEST_DECISION_WINDOW_MS = 15000;
+
 // Mock: pickup 0.8–2 km from the driver, destination 2–6 km from the pickup (prompt #42).
 export const MOCK_PICKUP_MIN_KM = 0.8;
 export const MOCK_PICKUP_MAX_KM = 2;

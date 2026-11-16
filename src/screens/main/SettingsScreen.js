@@ -12,6 +12,7 @@ import { Card } from '../../components/Card';
 import { DataRow } from '../../components/DataRow';
 import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
+import { NotificationsSection } from '../../components/settings/NotificationsSection';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
 import { useAppState } from '../../context/AppStateContext';
@@ -49,6 +50,10 @@ export function SettingsScreen({ navigation }) {
             {labels.settings.accountTitle}
           </Text>
           <AccountActions variant="settings" email={authUser?.email} />
+        </Card>
+        {/* AI-assisted: see docs/AI_LOG.md #64 (T-186) */}
+        <Card style={styles.group}>
+          <NotificationsSection />
         </Card>
         {SHOW_DEV_TOOLS ? (
           <Card style={styles.group}>

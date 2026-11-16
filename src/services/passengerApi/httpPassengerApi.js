@@ -84,6 +84,10 @@ export function createHttpPassengerApi({ baseUrl = process.env.EXPO_PUBLIC_PASSE
     releaseTrip() {
       return Promise.resolve(false);
     },
+    // A push request is not adoptable by the real API adapter yet (T-179).
+    adoptRequest() {
+      return 'not_supported';
+    },
     // The real API cannot be asked for a request on demand.
     requestNow() {
       return 'not_supported';

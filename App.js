@@ -21,8 +21,6 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { color } from './src/theme/tokens';
-import { getNotifications } from './src/services/notifications';
-import { runSpikeProbe } from './src/services/notifications/spikeProbe';
 
 // AI-assisted: see docs/AI_LOG.md #52 (Inter font, safe loading)
 // Waits for Inter at most FONT_WAIT_MS. If the font fails or is slow the app continues with the
@@ -54,31 +52,7 @@ const NAVIGATION_THEME = {
   },
 };
 
-// AI-assisted: see docs/AI_LOG.md #64 (TEMPORARY spike S1: FCM token probe, __DEV__ only)
-function useNotificationSpike() {
-  useEffect(() => {
-    if (!__DEV__) return undefined;
-    let cancelled = false;
-    let unsubscribe = () => {};
-    try {
-      runSpikeProbe({ notifications: getNotifications(), isDev: __DEV__, log: console.log })
-        .then((stop) => {
-          if (cancelled) stop();
-          else unsubscribe = stop;
-        })
-        .catch(() => {});
-    } catch {
-      // The probe must never break startup.
-    }
-    return () => {
-      cancelled = true;
-      unsubscribe();
-    };
-  }, []);
-}
-
 export default function App() {
-  useNotificationSpike();
   const fontsReady = useInterReady();
   if (!fontsReady) {
     return <View style={styles.boot} />;

@@ -1,0 +1,93 @@
+// AI-assisted: see docs/AI_LOG.md #64
+// Plain Node test for the notifications backend client (T-181, DP-70) with a fake fetch.
+//   node scripts/tests/notificationsApi.test.mjs
+import assert from 'node:assert/strict';
+import './helpers/registerSrcLoader.mjs';
+
+const { createNotificationsApi, NOTIFICATIONS_ERROR } = await import('../../src/services/notifications/notificationsApi.js');
+
+const ID_TOKEN = 'ID_TOKEN_abc.def.ghi';
+const PUSH_TOKEN = 'PUSH_TOKEN_0123456789';
+const reply = (status, body = {}) => ({ status, ok: status >= 200 && status < 300, json: async () => body });
+const make = (fetchFn, extra = {}) =>
+  createNotificationsApi({ fetchFn, getToken: async () => ID_TOKEN, baseUrl: 'https://backend.example/', timeoutMs: 30, ...extra });
+
+// register: URL, method, auth header, body without uid.
+{
+  const calls = [];
+  const api = make(async (url, init) => { calls.push({ url, init }); return reply(200, { registered: true }); });
+  assert.deepEqual(await api.registerToken(PUSH_TOKEN), { ok: true });
+  assert.equal(calls[0].url, 'https://backend.example/notifications/register');
+  assert.equal(calls[0].init.method, 'POST');
+  assert.equal(calls[0].init.headers.Authorization, `Bearer ${ID_TOKEN}`);
+  assert.deepEqual(JSON.parse(calls[0].init.body), { token: PUSH_TOKEN, platform: 'android' });
+}
+
+// unregister accepts 204.
+{
+  const calls = [];
+  const api = make(async (url, init) => { calls.push({ url, init }); return reply(204); });
+  assert.deepEqual(await api.unregisterToken(PUSH_TOKEN), { ok: true });
+  assert.equal(calls[0].url, 'https://backend.example/notifications/unregister');
+  assert.deepEqual(JSON.parse(calls[0].init.body), { token: PUSH_TOKEN });
+}
+
+// test-request: with and without delay; never sends a uid.
+{
+  const bodies = [];
+  const api = make(async (url, init) => { bodies.push([url, JSON.parse(init.body)]); return reply(202, { scheduled: true }); });
+  assert.deepEqual(await api.requestTestNotification({ delaySeconds: 5 }), { ok: true });
+  assert.deepEqual(await api.requestTestNotification(), { ok: true });
+  assert.deepEqual(bodies[0], ['https://backend.example/notifications/test-request', { delaySeconds: 5 }]);
+  assert.deepEqual(bodies[1][1], {});
+  for (const [, body] of bodies) assert.equal('uid' in body, false);
+}
+
+// Error classes.
+const cases = [
+  [404, NOTIFICATIONS_ERROR.NO_DEVICES],
+  [429, NOTIFICATIONS_ERROR.RATE_LIMITED],
+  [401, NOTIFICATIONS_ERROR.SESSION],
+  [403, NOTIFICATIONS_ERROR.SESSION],
+  [400, NOTIFICATIONS_ERROR.SERVER],
+  [500, NOTIFICATIONS_ERROR.SERVER],
+  [502, NOTIFICATIONS_ERROR.SERVER],
+];
+for (const [status, expected] of cases) {
+  const api = make(async () => reply(status));
+  assert.deepEqual(await api.requestTestNotification(), { ok: false, error: expected }, String(status));
+}
+assert.equal(NOTIFICATIONS_ERROR.OFFLINE, 'offline');
+assert.equal(NOTIFICATIONS_ERROR.RATE_LIMITED, 'rate-limited');
+assert.equal(NOTIFICATIONS_ERROR.NO_DEVICES, 'no-devices');
+assert.equal(NOTIFICATIONS_ERROR.SERVER, 'server');
+
+// Offline: fetch rejects; timeout: aborted fetch; not configured; no session.
+{
+  const api = make(async () => { throw new TypeError('Network request failed to https://secret'); });
+  assert.deepEqual(await api.registerToken(PUSH_TOKEN), { ok: false, error: NOTIFICATIONS_ERROR.OFFLINE });
+  const slow = make((url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(Object.assign(new Error('x'), { name: 'AbortError' })))));
+  assert.deepEqual(await slow.registerToken(PUSH_TOKEN), { ok: false, error: NOTIFICATIONS_ERROR.OFFLINE });
+  const noUrl = make(async () => reply(200), { baseUrl: '' });
+  assert.deepEqual(await noUrl.registerToken(PUSH_TOKEN), { ok: false, error: NOTIFICATIONS_ERROR.OFFLINE });
+  let fetched = 0;
+  const noSession = make(async () => { fetched += 1; return reply(200); }, { getToken: async () => null });
+  assert.deepEqual(await noSession.registerToken(PUSH_TOKEN), { ok: false, error: NOTIFICATIONS_ERROR.SESSION });
+  const throwing = make(async () => reply(200), { getToken: async () => { throw new Error('no auth'); } });
+  assert.deepEqual(await throwing.registerToken(PUSH_TOKEN), { ok: false, error: NOTIFICATIONS_ERROR.SESSION });
+  assert.equal(fetched, 0);
+}
+
+// Empty token is refused without calling fetch; results never carry tokens or URLs.
+{
+  let fetched = 0;
+  const api = make(async () => { fetched += 1; return reply(200); });
+  assert.equal((await api.registerToken('')).ok, false);
+  assert.equal((await api.unregisterToken(null)).ok, false);
+  assert.equal(fetched, 0);
+  const failing = make(async () => reply(500));
+  const text = JSON.stringify(await failing.registerToken(PUSH_TOKEN));
+  assert.ok(!text.includes(PUSH_TOKEN) && !text.includes(ID_TOKEN) && !text.includes('backend.example'));
+}
+
+console.log('notificationsApi: OK');

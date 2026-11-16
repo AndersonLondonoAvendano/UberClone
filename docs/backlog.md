@@ -2734,22 +2734,22 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-178 — S3: lógica pura (payload a solicitud, elegibilidad, expiración, intención con uid)
-- Spec: spec 003 (RF-76, RF-77, RF-78, D-130, D-133, D-137, CA-003-09, CA-003-19, CA-003-20, CA-003-30)
+- Spec: spec 003 (RF-76, RF-77, RF-78, D-130, D-133, D-137, CA-003-09, CA-003-21, CA-003-30)
 - Requisitos: RF-76, RF-77, RF-78, RNF-24
 - Depende de: T-177, T-194
 - Archivos: `src/services/notifications/pushRequest.js`, `src/services/notifications/eligibility.js`, `src/services/notifications/pendingIntent.js`, `scripts/tests/pushRequest.test.mjs`, `scripts/tests/notificationEligibility.test.mjs`, `scripts/tests/pendingIntent.test.mjs`
 - Hacer: DP-60, DP-64, DP-77. `parse` convierte el `data` de la notificación en una solicitud que pasa `isValidTripRequest` (`contract.js:91`), con `MOCK_ADDRESS` y las coordenadas del payload, y la tarifa calculada con `calculateFare` al abrir (no viaja en el mensaje), o devuelve un motivo; `canOfferNow`/`resolveIntent` (`open` con tiempo restante según `expiresAt` ≈90 s, `expired`, `ignore` sin sesión, cuenta no aprobada, con viaje en curso o `targetUid` distinto de la sesión); `pendingIntent` con `set(intent)`, `take(currentUid)` (solo entrega si `targetUid` coincide con la sesión y limpia siempre) y `reset()`, y `requestId` ya consumido ignorado. Pruebas de todos los casos límite de la spec §5, de doble toque, de intención de otra cuenta y de tarifa recalculada.
-- Criterios: CA-003-09, CA-003-19, CA-003-20, CA-003-30.
+- Criterios: CA-003-09, CA-003-21, CA-003-30.
 - Hecho cuando: las pruebas pasan sin React ni SDK.
 - Qué debe ver Anderson en el celular: nada. Apertura real: **No verificado en dispositivo** (T-183).
 - Validación: verifier distinto.
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-179 — S3: adopción de solicitudes de push en el adaptador mock y el puerto
 - Spec: spec 003 (RF-78, D-130)
@@ -2764,7 +2764,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-180 — S3: servicio de notificaciones completo (interfaz, adaptador RN Firebase, falso, permiso)
 - Spec: spec 003 (RF-67, RF-68, RF-69, RF-70, CA-003-01, CA-003-03)
@@ -2779,7 +2779,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio (módulo nativo).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-181 — S3: cliente del backend de notificaciones
 - Spec: spec 003 (RF-72, RF-81, CA-003-05)
@@ -2794,7 +2794,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-182 — S3: entrada de solicitudes de push al contexto y a Inicio (D-130)
 - Spec: spec 003 (RF-75, RF-78, D-130, D-135)
@@ -2809,22 +2809,22 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio (toca el flujo central de solicitudes).
 - Diseño hecho cuando: N/A (sin elementos visuales nuevos; el aviso de expirada es T-183).
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-183 — S3: puente de notificaciones en la rama MAIN y aviso «La solicitud expiró»
-- Spec: spec 003 (RF-75, RF-76, RF-77, D-133, D-137, CA-003-09, CA-003-19, CA-003-20, CA-003-30, CA-003-D1)
+- Spec: spec 003 (RF-75, RF-76, RF-77, D-133, D-137, CA-003-09, CA-003-21, CA-003-30, CA-003-D1)
 - Requisitos: RF-75, RF-76, RF-77
 - Depende de: T-180, T-181, T-182
 - Archivos: `src/navigation/NotificationsBridge.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`
 - Hacer: DP-64, DP-77. El puente (hijo del `AvailabilityProvider`, `MainDrawer.js:93-97`) escucha `onForegroundMessage` y entrega a `offerPushRequest`; consume `pendingIntent.take(currentUid)` UNA vez cuando hay sesión, cuenta aprobada y sin viaje (una intención de otro uid se descarta); abre la solicitud con la tarifa y la dirección calculadas al abrir (DP-77) y con la ventana de 15 s contada desde que se muestra (T-194/T-195), sin pasar de `expiresAt`; si venció (≈90 s) muestra «La solicitud expiró» en Inicio (clave de `labels.js`, región `polite`, sin `Alert`, sin aceptar). Probar en el celular con el mensaje de la consola o el endpoint: primer plano, segundo plano, cerrada.
-- Criterios: CA-003-09, CA-003-19, CA-003-20, CA-003-30. «No verificado en dispositivo».
+- Criterios: CA-003-09, CA-003-21, CA-003-30. «No verificado en dispositivo».
 - Hecho cuando: lint, suite y `check-constitution` pasan y la app arranca; la apertura real queda para STOP-2.
 - Qué debe ver Anderson en el celular: con la app en segundo plano, tocar el aviso abre la solicitud con tiempo restante; con una solicitud vencida, «La solicitud expiró». **No verificado en dispositivo**.
 - Validación: verifier distinto; Anderson en el celular.
 - Riesgo: alto (navegación y sesión).
 - Diseño hecho cuando: el aviso «La solicitud expiró» usa tokens, `labels.js`, región `polite` y sin `Alert` (lo cubre T-189).
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-184 — S4: preferencia `notificationsEnabled` y `clearOwnStorage` real
 - Spec: spec 003 (RF-71, RF-74, D-134, CA-003-04)
@@ -2833,13 +2833,13 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Archivos: `src/services/notifications/preference.js`, `src/services/session/buildSessionResetDeps.js`, `scripts/tests/notificationPreference.test.mjs`
 - Hacer: DP-59. `get/set/clear` con AsyncStorage inyectable (`notificationsEnabled`, por defecto apagado). SOLO la preferencia: `clearOwnStorage` NO cambia (sigue siendo no-op, y corre antes de la espera de guardados, por eso no puede borrar nada de notificaciones; el borrado de `notificationsEnabled` lo hace T-185, después de la espera y antes de `signOut`, D-134). Pruebas: persistencia, valor por defecto, almacenamiento que falla.
 - Criterios: CA-003-04 (lógica). «No verificado en dispositivo»: reinicio de la app.
-- Hecho cuando: pruebas pasan y `buildSessionResetDeps.js` queda sin cambios en esta tarea.
+- Hecho cuando: pruebas pasan y `clearOwnStorage` en `buildSessionResetDeps.js` sigue siendo no-op (el archivo solo se toca en T-185 para el paso nuevo; el comentario se actualiza allí).
 - Qué debe ver Anderson en el celular: el interruptor sigue activo tras reiniciar (T-187). **No verificado en dispositivo**.
 - Validación: verifier distinto.
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-185 — S4: paso de baja del token en `resetSession`
 - Spec: spec 003 (RF-73, RF-74, D-133, D-134, CA-003-06, CA-003-07, CA-003-19, CA-003-20)
@@ -2854,13 +2854,13 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: alto (cierre de sesión).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-186 — S4: registro de token al iniciar sesión, en refresh y al apagar (STOP-2)
 - Spec: spec 003 (RF-72, RF-73, CA-003-05, CA-003-07, CA-003-21)
 - Requisitos: RF-72, RF-73
 - Depende de: T-181, T-183, T-184, T-185
-- Archivos: `src/services/notifications/registration.js`, `src/navigation/NotificationsBridge.js`, `src/context/useSessionReset.js`, `scripts/tests/notificationRegistration.test.mjs`
+- Archivos: `src/services/notifications/registration.js`, `src/components/NotificationsBridge.js`, `src/context/useSessionReset.js`, `scripts/tests/notificationRegistration.test.mjs`
 - Hacer: controlador puro (adaptador y backend inyectados) que registra con sesión + cuenta aprobada + interruptor activo + permiso concedido, vuelve a registrar en `onTokenRefresh`, da de baja al apagar y vuelve a registrar tras `sign-out-failed` (mejor esfuerzo); enlazado en el puente. PUNTO DE PARADA 2: con el backend alcanzable desde el celular, probar de punta a punta (M3). Esperar: «Pega aquí el resultado de la prueba en el celular: <resultado>».
 - Criterios: CA-003-05, CA-003-07. «No verificado en dispositivo» hasta el resultado de Anderson.
 - Hecho cuando: las pruebas pasan y Anderson confirma el aviso de prueba, el toque y el cierre de sesión con otra cuenta en el mismo celular.
@@ -2869,7 +2869,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: alto.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-187 — S5: sección «Notificaciones» en Configuración (interruptor, explicación, estado bloqueado)
 - Spec: spec 003 (RF-69, RF-70, RF-71, RNF-22, RNF-23, CA-003-03, CA-003-04, CA-003-D1 a CA-003-D3)
@@ -2989,7 +2989,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Implementada
 
 ### T-195 — S3: conectar la ventana de 15 s a la tarjeta y a la pantalla de solicitud
 - Spec: spec 003 (RF-77, RNF-22, RNF-23, D-137, CA-003-28, CA-003-29)
@@ -3004,7 +3004,7 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Riesgo: medio (toca el flujo central de solicitudes).
 - Diseño hecho cuando: el contador conserva tokens, `labels.js`, anuncio accesible sin saturar y área de 48 dp (lo cubre T-189).
 - Diseño: Pendiente
-- Estado: Pendiente
+- Estado: Implementada
 
 ## Fase 3 — Implementar
 (vacío)
