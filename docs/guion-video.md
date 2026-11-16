@@ -2,7 +2,7 @@
 
 <!-- AI-assisted: see docs/AI_LOG.md #68 (D5) -->
 
-Estado: borrador para Anderson, sin ensayar. Los flujos de L1 a L3 y de pagos se validaron en el celular (ver [progress.md](progress.md) y [pagos-evidencia.md](pagos-evidencia.md)); el selector de idioma sin sesión (L3b) está pendiente de dispositivo (STOP-7). El guion completo no se ha grabado: ensáyalo con cronómetro y ajusta tiempos y textos a lo que de verdad ocurra. Lo que no se vea en el ensayo se deja fuera o se dice como pendiente.
+Estado: borrador para Anderson, sin ensayar. Los flujos de L1 a L3 y de pagos se validaron en el celular (ver [progress.md](progress.md) y [pagos-evidencia.md](pagos-evidencia.md)); el selector de idioma sin sesión (L3b) fue probado por Anderson (STOP-7, 2026-11-16, 100 % OK salvo un ajuste visual del selector en inicio de sesión; verificación visual pendiente). El guion completo no se ha grabado: ensáyalo con cronómetro y ajusta tiempos y textos a lo que de verdad ocurra. Lo que no se vea en el ensayo se deja fuera o se dice como pendiente.
 
 Requisito del enunciado: video de **máximo 5 minutos** con el flujo completo. **Total de este guion: 4:50**, con 10 s de margen.
 

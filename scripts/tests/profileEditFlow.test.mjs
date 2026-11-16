@@ -7,12 +7,12 @@ import assert from 'node:assert/strict';
 const { createProfileEditFlow } = await import('../../src/utils/profileEditFlow.js');
 
 const profileA = {
-  personalData: { fullName: 'Ana Perez', phone: '3001234567' },
+  personalData: { fullName: 'Ana Perez', phone: '3000000001' },
   vehicle: { color: 'blanco' },
   documents: { mercadoPagoEmail: 'ana@example.com' },
 };
 const profileB = {
-  personalData: { fullName: 'Beto Lopez', phone: '3109876543' },
+  personalData: { fullName: 'Beto Lopez', phone: '3000000002' },
   vehicle: { color: 'negro' },
   documents: { mercadoPagoEmail: 'beto@example.com' },
 };
@@ -69,7 +69,7 @@ function makeFlow() {
   flow.touch('payoutEmail');
   assert.equal(flow.getState().errors.payoutEmail, true);
   flow.change('payoutEmail', 'ana@example.com');
-  flow.change('phone', '3001234567');
+  flow.change('phone', '3000000001');
   assert.equal(flow.getState().canSave, false);
   // Untouched invalid fields show no error until touched.
   const empty = makeFlow().flow;
@@ -112,7 +112,7 @@ function makeFlow() {
   assert.equal(calls.length, 1);
   assert.deepEqual(calls[0], {
     uid: 'A',
-    payload: { fullName: 'Ana Maria', phone: '3001234567', vehicleColor: 'blanco', payoutEmail: 'ana@example.com' },
+    payload: { fullName: 'Ana Maria', phone: '3000000001', vehicleColor: 'blanco', payoutEmail: 'ana@example.com' },
   });
   pending[0].resolve();
   await Promise.all([p1, p2]);

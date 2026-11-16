@@ -18,7 +18,7 @@ function makeUpdater(updateDoc) {
   });
 }
 const update = makeUpdater(async (ref, data) => { calls.push({ ref, data }); });
-const payload = { fullName: 'Ana Perez', phone: '3001234567', vehicleColor: 'Blanco', payoutEmail: 'ana@example.com' };
+const payload = { fullName: 'Ana Perez', phone: '3000000001', vehicleColor: 'Blanco', payoutEmail: 'ana@example.com' };
 
 await update('uid1', payload);
 assert.equal(calls.length, 1, 'single updateDoc call');
@@ -28,7 +28,7 @@ assert.deepEqual(Object.keys(calls[0].data).sort(), [
   'documents.mercadoPagoEmail', 'personalData.fullName', 'personalData.phone', 'updatedAt', 'vehicle.color',
 ]);
 assert.equal(calls[0].data['personalData.fullName'], 'Ana Perez');
-assert.equal(calls[0].data['personalData.phone'], '3001234567');
+assert.equal(calls[0].data['personalData.phone'], '3000000001');
 assert.equal(calls[0].data['vehicle.color'], 'Blanco');
 assert.equal(calls[0].data['documents.mercadoPagoEmail'], 'ana@example.com');
 assert.equal(calls[0].data.updatedAt, stamp);
@@ -44,7 +44,7 @@ await assert.rejects(update('uid1', { ...payload, accountStatus: 'approved' }));
 await assert.rejects(update('uid1', { ...payload, plate: 'XYZ999' }));
 const { payoutEmail, ...missing } = payload;
 await assert.rejects(update('uid1', missing));
-await assert.rejects(update('uid1', { ...payload, phone: 3001234567 }));
+await assert.rejects(update('uid1', { ...payload, phone: 3000000001 }));
 await assert.rejects(update('uid1', null));
 await assert.rejects(update('', payload));
 assert.equal(calls.length, before, 'rejected payloads never reach updateDoc');

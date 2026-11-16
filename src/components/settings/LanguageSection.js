@@ -43,44 +43,65 @@ export function LanguageSection({ compact = false }) {
   const text = labels.settings.language;
 
   return (
-    <View style={styles.stack} testID={compact ? 'language-section-compact' : 'language-section'}>
-      <Text style={compact ? styles.sectionCompact : styles.section} accessibilityRole="header">
-        {text.title}
-      </Text>
-      <View
-        accessibilityRole="radiogroup"
-        accessibilityLabel={text.groupLabel}
-        style={compact ? styles.rowCompact : styles.stack}
-      >
-        {OPTIONS.map((option) => {
-          const selected = language === option.code;
-          const name = text[option.nameKey];
-          return (
-            <Pressable
-              key={option.code}
-              testID={option.testID}
-              accessibilityRole="radio"
-              accessibilityLabel={name}
-              accessibilityState={{ selected, checked: selected }}
-              onPress={() => onSelect(option.code)}
-              style={({ pressed }) => [
-                styles.option,
-                compact && styles.optionCompact,
-                selected && styles.optionActive,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.name, selected && styles.nameActive]}>{name}</Text>
-              {selected ? (
-                <View style={styles.check}>
-                  <Icon name="checkmark-circle" size={iconSize.lg} tint={color.primary} />
-                  {compact ? null : <Text style={styles.activeText}>{text.active}</Text>}
-                </View>
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
+    <View style={compact ? styles.compactStack : styles.stack} testID={compact ? 'language-section-compact' : 'language-section'}>
+      {compact ? (
+        <View style={styles.compactLine}>
+          <Text style={styles.sectionCompact} accessibilityRole="header">
+            {text.title}
+          </Text>
+          <View accessibilityRole="radiogroup" accessibilityLabel={text.groupLabel} style={styles.compactOptions}>
+            {OPTIONS.map((option) => {
+              const selected = language === option.code;
+              const name = text[option.nameKey];
+              return (
+                <Pressable
+                  key={option.code}
+                  testID={option.testID}
+                  accessibilityRole="radio"
+                  accessibilityLabel={name}
+                  accessibilityState={{ selected, checked: selected }}
+                  onPress={() => onSelect(option.code)}
+                  hitSlop={space[2]}
+                  style={({ pressed }) => [styles.optionCompact, pressed && styles.pressed]}
+                >
+                  <Text style={selected ? styles.nameCompactActive : styles.nameCompact}>{name}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.section} accessibilityRole="header">
+            {text.title}
+          </Text>
+          <View accessibilityRole="radiogroup" accessibilityLabel={text.groupLabel} style={styles.stack}>
+            {OPTIONS.map((option) => {
+              const selected = language === option.code;
+              const name = text[option.nameKey];
+              return (
+                <Pressable
+                  key={option.code}
+                  testID={option.testID}
+                  accessibilityRole="radio"
+                  accessibilityLabel={name}
+                  accessibilityState={{ selected, checked: selected }}
+                  onPress={() => onSelect(option.code)}
+                  style={({ pressed }) => [styles.option, selected && styles.optionActive, pressed && styles.pressed]}
+                >
+                  <Text style={[styles.name, selected && styles.nameActive]}>{name}</Text>
+                  {selected ? (
+                    <View style={styles.check}>
+                      <Icon name="checkmark-circle" size={iconSize.lg} tint={color.primary} />
+                      <Text style={styles.activeText}>{text.active}</Text>
+                    </View>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        </>
+      )}
       {saveFailed ? (
         <Card variant="status" tone="warning" style={styles.notice} accessibilityLiveRegion="polite" testID="language-not-saved">
           <Icon name="warning" size={iconSize.md} tint={color.onWarningSoft} />
@@ -107,9 +128,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     backgroundColor: color.surface,
   },
-  sectionCompact: { ...type.label, color: color.textMuted },
-  rowCompact: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
-  optionCompact: { flexGrow: 1, flexBasis: 0, minWidth: touch.controlHeight * 2 },
+  // Compact (screens without a session): one small, muted, centered line; no border, fill or icon.
+  compactStack: { gap: space[1], alignItems: 'center' },
+  compactLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', columnGap: space[3] },
+  compactOptions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space[1] },
+  sectionCompact: { ...type.caption, color: color.textMuted, opacity: opacity.muted },
+  optionCompact: { minHeight: touch.min, minWidth: touch.min, paddingHorizontal: space[2], justifyContent: 'center', alignItems: 'center' },
+  nameCompact: { ...type.caption, color: color.textMuted, opacity: opacity.muted },
+  nameCompactActive: {
+    ...type.caption,
+    fontFamily: type.bodyStrong.fontFamily,
+    color: color.primary,
+    textDecorationLine: 'underline',
+  },
   optionActive: { borderColor: color.primary, backgroundColor: color.primarySoft },
   name: { ...type.body, color: color.text, flexShrink: 1 },
   nameActive: { ...type.bodyStrong, color: color.onPrimarySoft },

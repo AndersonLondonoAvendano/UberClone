@@ -51,7 +51,7 @@ test('UI files that read text call useLanguage()', () => {
   }
 });
 
-test('CA-006-36: radio role, selected only on the active, icon besides colour, height >= 48 dp, compact too', () => {
+test('CA-006-36: radio role, selected only on the active, icon besides colour, height >= 48 dp; compact is discreet but tappable', () => {
   assert.match(section, /accessibilityRole="radio"/);
   assert.match(section, /accessibilityRole="radiogroup"/);
   assert.match(section, /accessibilityState=\{\{ selected, checked: selected \}\}/);
@@ -59,9 +59,18 @@ test('CA-006-36: radio role, selected only on the active, icon besides colour, h
   assert.match(section, /name="checkmark-circle"/);
   assert.match(section, /minHeight: touch\.controlHeight/);
   assert.ok(touch.controlHeight >= 48);
-  // The compact variant only changes layout: it must not lower the touch height or drop the icon.
-  assert.doesNotMatch(section, /optionCompact: \{[^}]*(minHeight|height)/);
-  assert.match(section, /compact \? null : <Text style=\{styles\.activeText\}>/);
+  // The compact variant is small to the eye but keeps a >= 44 dp touch area, wraps, and marks the active
+  // option without relying on colour only (underline + stronger font); no border/background/icon/"Active".
+  assert.ok(touch.min >= 44);
+  assert.match(section, /optionCompact: \{[^}]*minHeight: touch\.min/);
+  assert.match(section, /optionCompact: \{[^}]*minWidth: touch\.min/);
+  assert.match(section, /hitSlop=/);
+  assert.match(section, /compactLine: \{[^}]*flexWrap: 'wrap'/);
+  assert.match(section, /nameCompactActive: \{[^}]*textDecorationLine: 'underline'/);
+  assert.match(section, /nameCompact: \{ \.\.\.type\.caption/);
+  assert.doesNotMatch(section, /(optionCompact|nameCompact\w*|compactLine|compactOptions): \{[^}]*(borderWidth|backgroundColor)/);
+  assert.equal((section.match(/styles\.activeText/g) ?? []).length, 1, 'the "Active" text exists only in the full variant');
+  assert.equal((section.match(/name="checkmark-circle"/g) ?? []).length, 1, 'the check icon exists only in the full variant');
   assert.doesNotMatch(section, /#[0-9a-fA-F]{3,8}\b/);
   assert.doesNotMatch(section, /\bAlert\b/);
 });

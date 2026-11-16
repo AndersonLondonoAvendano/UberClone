@@ -3393,3 +3393,19 @@ pasos.
 - Evento del proceso: el verifier documental rechazó Partes C/D (2 mayores: omisiones-y-limites.md omisión #3 de idioma obsoleta y estado inconsistente del toque de notificación entre README y omisiones; 3 menores: duración 4:45 vs 4:50, afirmación amplia en guion, referencia a checklist inexistente). Una ronda de corrección con implementer.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+- Tareas E1–E5 (cierre final): E1 datos de ejemplo (datos de prueba/ejemplo del cierre); E2 entrada reconstruida de la normalización de placa (#69); E3 coherencia documental (A1 validado por STOP-4, app cerrada pendiente solo en release, STOP-7 reportado por Anderson, cifras de pruebas actual e históricas); E4 conformidad final; E5 cifras (358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores base). Solo documentos, sin código.
+
+### Entrada #69 — Normalización de la placa (T-174, RF-67)
+- RECONSTRUIDA, no registrada en el momento — reconstruida a posteriori el 2026-11-16 (fecha de registro de esta entrada).
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: no registrada
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: no registrada (no se conserva)
+- Objetivo: normalización de la placa del vehículo en el registro (solo letras y números ASCII en mayúsculas, sin autocorrección del teclado), según el marcador «T-174, RF-67» del código.
+- Prompt (textual): no se conserva el prompt textual.
+- Resumen de la respuesta (2–3 líneas): no se conserva. Solo es comprobable en el repositorio el resultado: `normalizePlate` / `isValidPlate` en `src/utils/validators.js`, la prueba `scripts/tests/plateNormalization.test.mjs` y el comentario «T-174: no autocorrect/suggestions on the plate» en `src/screens/registration/VehicleScreen.js`.
+- Usado / modificado / descartado: no registrado.
+- Archivos: `src/utils/validators.js`, `scripts/tests/plateNormalization.test.mjs`, `src/screens/registration/VehicleScreen.js`. Nota de trazabilidad: el código cita «T-174», pero en `docs/backlog.md` T-174 es hoy la tarea de rutas `POST /notifications/register` y `/unregister` (FCM, S2); la numeración de la placa no coincide con el backlog actual. Según `docs/auditoria-bitacora-2026-11-16.md` (D2), el marcador original `#62` apuntaba por error a la entrada de FCM Fase 1 y se retiró del código; la restitución de la marca con este número la decide Anderson.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):

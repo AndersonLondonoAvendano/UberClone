@@ -151,7 +151,7 @@ Notas de la tabla:
 - **Aprendizaje:** 67 de las 68 entradas (todas menos #33).
 - **Verificación:** #60 a #68 (vacías) y #49, #50, #51, #52, #54, #55, #56 (marcador «pendiente»); además, confirmar las Verificaciones redactadas por la IA en las demás.
 - **Hash de commit:** las 48 entradas sin hash. #66, #67 y #68 no tienen commit todavía (en curso).
-- **Marcas de código retiradas en D2:** decidir si se registra una entrada reconstruida para la normalización de la placa y se restituye la marca (ver más abajo).
+- **Marcas de código retiradas en D2:** la entrada reconstruida para la normalización de la placa **ya existe en borrador (#69, RECONSTRUIDA, sin prompt ni verificación; 2026-11-16)**; Anderson completa Verificación, Aprendizaje y hash, y decide si restituye la marca `AI-assisted` con ese número (ver más abajo). #69 no está contada en las cifras de esta auditoría (#1 a #68).
 
 ## Hashes de commit (`git log --format=%h~%ad~%s --date=short`, 44 commits)
 
@@ -207,6 +207,8 @@ Solo se relaciona un commit con una entrada cuando la propia entrada cita el has
 Los commits `b9adc5e`, `e2f232a` y `52f4d8f` (asuntos «lote L1», «l2», «l3») son candidatos naturales para #65, #66 y #67, pero la bitácora no los cita y #66/#67 siguen en curso, así que no se asignan. #66, #67 y #68: en curso, sin commit.
 
 ## Marcador «#62» (D2)
+
+**Actualización 2026-11-16:** la pregunta pendiente de D2 queda respondida con una entrada reconstruida en borrador, la **#69** de `docs/AI_LOG.md` («RECONSTRUIDA, no registrada en el momento»; sin prompt textual, sin fecha de trabajo, Verificación, Aprendizaje y hash vacíos para Anderson). La restitución de la marca de código con el número #69 sigue a decisión de Anderson. Nota: el código cita «T-174», pero en `docs/backlog.md` T-174 es la tarea de rutas FCM; el desajuste de numeración queda anotado en la #69.
 
 - `node scripts/check-constitution.mjs` reporta **0 hallazgos C18 antes y 0 después**. La entrada `### Entrada #62` (FCM, Fase 1) existe en el archivo y en HEAD, así que la regla no marca el marcador como colgante.
 - Aun así, el marcador era semánticamente incorrecto: `#62` es FCM Fase 1, y los tres marcadores hablaban de la normalización de la placa (T-174, RF-67), trabajo que no aparece en ninguna entrada (se buscó «placa», «plate», «T-174», «autocorrect»). El commit que lo introdujo es `3010710` (2026-11-12), cuyas entradas #60/#61 tratan de perfil, propina y Nominatim. Ninguna entrada corresponde con certeza, así que no se apuntó a otra.

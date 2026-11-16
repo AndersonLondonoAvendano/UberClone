@@ -1,5 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #50
-// Masks an email for display: "anderson@gmail.com" -> "an*****@gmail.com". The full address is
+// Masks an email for display: "usuario@example.com" -> "us*****@example.com". The full address is
 // never shown on the payment block or the profile.
 export function maskEmail(email) {
   const value = String(email ?? '').trim();
