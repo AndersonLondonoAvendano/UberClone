@@ -13,7 +13,13 @@ export const TRIP_SPEED_FACTOR = 4;
 // The simulated approach to the pickup (the "Conductor llegando" phase) never lasts longer than this: when
 // the route is long, only the simulated speed rises for that leg. The distance, the time shown and the fare
 // do not change. It has no effect with the phone GPS. The leg to the destination is not capped.
-export const TRIP_PICKUP_APPROACH_MAX_S = 25;
+// Raised from 25 to 60 so the approach is not much faster than the leg to the destination; use a very
+// large number (e.g. 9999) to make both legs run at exactly the same speed.
+export const TRIP_PICKUP_APPROACH_MAX_S = 50;
+
+// Time between simulated positions during a trip. Small steps keep the car on the route line (a long
+// step cuts corners because positions are joined in a straight line).
+export const TRIP_TICK_MS = 200;
 
 // The driver "arrived" (pickup or destination) when closer than this to the target point.
 export const ARRIVAL_THRESHOLD_M = 25;

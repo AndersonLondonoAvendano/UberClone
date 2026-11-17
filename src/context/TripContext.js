@@ -16,7 +16,7 @@
 
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import * as tripConfig from '../config/trip';
-import { TRIP_LOCATION_SOURCE, TRIP_PICKUP_APPROACH_MAX_S, TRIP_SPEED_FACTOR } from '../config/trip';
+import { TRIP_LOCATION_SOURCE, TRIP_PICKUP_APPROACH_MAX_S, TRIP_SPEED_FACTOR, TRIP_TICK_MS } from '../config/trip';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { DRIVER_LOCATION_IDLE_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { publishDriverLocation, publishDriverTripStatus } from '../services/driverLocationPublisher';
@@ -44,6 +44,7 @@ const createLocationSource = ({ coordinates, phase }) => {
   const baseKmh = SIMULATED_SPEED_KMH * TRIP_SPEED_FACTOR;
   return createTripLocationSource(TRIP_LOCATION_SOURCE, {
     coordinates,
+    tickMs: TRIP_TICK_MS,
     speedKmh:
       phase === TRIP_PHASE.TO_PICKUP
         ? speedForMaxDuration(coordinates, baseKmh, TRIP_PICKUP_APPROACH_MAX_S)

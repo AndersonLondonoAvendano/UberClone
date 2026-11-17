@@ -15,7 +15,7 @@ export { shouldEmitPosition } from './throttle';
 // AI-assisted: see AI_LOG.md #43
 // Movement source for one trip leg (T-44). 'simulated' walks `coordinates` (the leg route) at
 // speedKmh; 'gps' returns the phone source and ignores the route.
-export function createTripLocationSource(kind, { coordinates, speedKmh }) {
-  if (kind === 'simulated') return createSimulatedLocationSource({ coordinates, speedKmh });
+export function createTripLocationSource(kind, { coordinates, speedKmh, tickMs }) {
+  if (kind === 'simulated') return createSimulatedLocationSource({ coordinates, speedKmh, tickMs });
   return createGpsLocationSource();
 }
