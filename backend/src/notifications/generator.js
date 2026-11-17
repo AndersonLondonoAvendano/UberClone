@@ -75,9 +75,11 @@ export function createAvailabilityGenerator({
       return;
     }
     // Every attempt counts toward the cap, even if the send fails or the request later expires.
+    // AI-assisted: see docs/AI_LOG.md #74 (D-207: `index` is the 0-based send number of the session)
+    const index = entry.count;
     entry.count += 1;
     try {
-      await send(uid);
+      await send(uid, index);
     } catch {
       // A failed send never breaks the generator.
     }

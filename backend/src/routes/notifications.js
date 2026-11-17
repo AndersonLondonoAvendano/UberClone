@@ -34,10 +34,14 @@ export function createNotificationsHandlers({
   const pending = new Map();
 
   // Sends one request to every token of the uid in batches, and removes only the tokens FCM reports as stale.
-  async function sendToUid(uid) {
+  // AI-assisted: see docs/AI_LOG.md #74
+  // D-207: payment alternates by the 0-based send index of the session (even = cash, odd = card). The test
+  // endpoint passes no index, so it always sends cash (simplest deterministic choice).
+  async function sendToUid(uid, index = 0) {
     const list = await tokens.listForUid(uid);
     if (list.length === 0) return;
-    const request = buildTestRequest({ now: now(), idFactory, targetUid: uid, random });
+    const paymentMethod = index % 2 === 0 ? 'cash' : 'card';
+    const request = buildTestRequest({ now: now(), idFactory, targetUid: uid, random, paymentMethod });
     for (let start = 0; start < list.length; start += FCM_BATCH_SIZE) {
       const batch = list.slice(start, start + FCM_BATCH_SIZE);
       const result = await messaging.sendEachForMulticast(buildMessage(batch, request));
@@ -60,7 +64,7 @@ export function createNotificationsHandlers({
     random: random ?? Math.random,
     setTimeout: schedule,
     clearTimeout: cancel,
-    send: (uid) => sendToUid(uid),
+    send: (uid, index) => sendToUid(uid, index),
     isEligible: async (uid) => Boolean(tokens) && Boolean(messaging) && (await isApproved(uid)) && (await tokens.listForUid(uid)).length > 0,
     config: autoRequest,
   });

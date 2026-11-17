@@ -88,6 +88,26 @@ assert.equal(parsePushRequest(data({ expiresAt: String(NOW - 9999) }), { now: NO
 
 assert.equal(requestFromIntent(null, NOW), null);
 
+// AI-assisted: see docs/AI_LOG.md #74
+// D-207: strict paymentMethod. Absent = cash (old backend); 'cash' and 'card' pass; anything else is invalid.
+{
+  const absent = parsePushRequest(data(), { now: NOW });
+  assert.equal(absent.request.paymentMethod, 'cash');
+  assert.equal(parsePushData(data()).intent.paymentMethod, 'cash');
+  assert.equal(parsePushRequest(data({ paymentMethod: 'cash' }), { now: NOW }).request.paymentMethod, 'cash');
+  const card = parsePushRequest(data({ paymentMethod: 'card' }), { now: NOW });
+  assert.equal(card.ok, true);
+  assert.equal(card.request.paymentMethod, 'card');
+  assert.equal(isValidTripRequest(card.request), true);
+  for (const bad of ['', 'CARD', 'mercadopago', 'stripe', ' cash', null, 1, true]) {
+    assert.deepEqual(
+      parsePushRequest(data({ paymentMethod: bad }), { now: NOW }),
+      { ok: false, reason: PARSE_REASON.INVALID },
+      String(bad),
+    );
+  }
+}
+
 // T-198 (CA-004-06): refineRequestMetrics with a fake OSRM behind the real resolver.
 {
   const { refineRequestMetrics } = await import('../../src/services/notifications/pushRequest.js');

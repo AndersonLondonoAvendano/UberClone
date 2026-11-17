@@ -4353,3 +4353,4 @@ Requisitos: RE-AUTO (D-197), RF-11 (ventana de decisión, D-137), RF-71/RF-74 (n
 - T-297 — Parte C: quitar «Solicitud de prueba» de Configuración, claves es/en huérfanas, código y pruebas propios de esa sección (D-206). Estado: Implementada
 - T-298 — Parte C: README, guion, checklist, progress, backlog y omisiones coherentes; endpoint conservado (D-206). Estado: Implementada
 - T-299 — Parte C: auditoría de diseño de Configuración sin la sección. Diseño: Pendiente (auditoría estática en código: sin bloqueos, 3 hallazgos P3; falta captura de celular; informe `docs/diseno/auditorias/ronda-1-configuracion-notificaciones.md`). Estado: Implementada
+- T-300 — Alternancia determinista del pago (efectivo, tarjeta, …) en las solicitudes automáticas: generador con índice de sesión, `paymentMethod` en el mensaje FCM, lectura estricta en la app y simulador alternado; pruebas (RE-AUTO, D-197, D-207). Estado: Implementada

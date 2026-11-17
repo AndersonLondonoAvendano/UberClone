@@ -383,3 +383,56 @@ test('D-199: lastSeq returns the last accepted seq as a safe integer, or null', 
   ctx.generator.close();
   assert.equal(ctx.generator.lastSeq('u1'), null);
 });
+
+// AI-assisted: see docs/AI_LOG.md #74
+function setupIndexed(config = {}, failing = false) {
+  const timers = createFakeTimers();
+  const indexes = [];
+  const generator = createAvailabilityGenerator({
+    now: () => 1_700_000_000_000,
+    random: () => 0.5,
+    setTimeout: timers.setTimeout,
+    clearTimeout: timers.clearTimeout,
+    send: async (uid, index) => {
+      indexes.push(index);
+      if (failing) throw new Error('fcm down');
+    },
+    isEligible: async () => true,
+    config: { ...CONFIG, ...config },
+  });
+  const fireNext = async () => {
+    const live = timers.timers.filter((t) => !t.cancelled);
+    const timer = live[live.length - 1];
+    timer.cancelled = true;
+    timer.fn();
+    await flush();
+  };
+  return { generator, indexes, fireNext };
+}
+
+test('D-207: send receives the 0-based index of the session, up to the cap of 8', async () => {
+  const ctx = setupIndexed();
+  ctx.generator.report('u1', true);
+  for (let i = 0; i < 8; i += 1) await ctx.fireNext();
+  assert.deepEqual(ctx.indexes, [0, 1, 2, 3, 4, 5, 6, 7]);
+});
+
+test('D-207: a new session (false then true) restarts the index at 0', async () => {
+  const ctx = setupIndexed();
+  ctx.generator.report('u1', true);
+  await ctx.fireNext();
+  await ctx.fireNext();
+  ctx.generator.report('u1', false);
+  ctx.generator.report('u1', true);
+  await ctx.fireNext();
+  assert.deepEqual(ctx.indexes, [0, 1, 0]);
+});
+
+test('D-207: a failed send still consumes its index', async () => {
+  const ctx = setupIndexed({}, true);
+  ctx.generator.report('u1', true);
+  await ctx.fireNext();
+  await ctx.fireNext();
+  await ctx.fireNext();
+  assert.deepEqual(ctx.indexes, [0, 1, 2]);
+});

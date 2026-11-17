@@ -100,3 +100,7 @@ P70-R1 → RA-01..05, 12; R2 → RA-06..09; R3 → RA-10..12; R4 → RA-13, 14; 
 ## Adenda #73 (D-204)
 
 Los valores por defecto del generador pasan a: primera solicitud 8–15 s, siguientes 35–60 s y tope de 8 por sesión (antes 15–30 s, 60–120 s y 10). Siguen configurables y validadas con las variables `AUTO_REQUEST_*`. Los rangos citados en RA-01 y CA-007-01 se leen con estos valores; el resto de la spec no cambia. AI-assisted: see docs/AI_LOG.md #73
+
+## Adenda #74 (D-207)
+
+El método de pago de las solicitudes automáticas alterna de forma determinista: efectivo, tarjeta, efectivo, tarjeta…, y la primera de cada sesión «Disponible» es efectivo (sin azar). El mensaje FCM lleva `data.paymentMethod` (`cash` o `card`), sin tarifa ni direcciones; la app lo lee de forma estricta (ausente = efectivo, otro valor = inválido). El resto de la spec no cambia. AI-assisted: see docs/AI_LOG.md #74

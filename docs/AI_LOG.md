@@ -3990,3 +3990,19 @@ test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-10". Sin recapitular 
 - Hash de commit:
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+### Entrada #74 — Tipo de pago alternado en las solicitudes automáticas
+<!-- AI-assisted: see docs/AI_LOG.md #74 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: que las solicitudes automáticas alternen de forma determinista efectivo / tarjeta / efectivo / tarjeta (D-207, completa D-197), sin azar.
+- Prompt (textual):
+````
+sabes qué todo me ha parecido perfecto, pero haciendo pruebas manuales noto que no me estan llegando solicitudes de carrera con pago en efectivo así que quiero que el backend envíe las solicitudes de manera escalonada, es decir, una de efectivo otra de tarjeta, y así sucesivamente no quiero que sea random o aleatorio el tema del tipo de pago en las solicitudes, vamos allá entonces.
+````
+- Resultado: ver D-207 en docs/decisiones.md y T-300 en docs/backlog.md. No verificado en dispositivo.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+- Hash del commit (lo completa Anderson):

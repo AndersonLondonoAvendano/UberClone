@@ -365,3 +365,30 @@ test('config: defaults, valid overrides and fallback to defaults on invalid or u
   });
   assert.deepEqual(bad, defaults);
 });
+
+// AI-assisted: see docs/AI_LOG.md #74
+test('D-207: automatic requests alternate cash, card, cash, card; a new session starts with cash again', () =>
+  withApp({ 'drivers/u1': APPROVED }, async (ctx) => {
+    await ctx.register(tokenOf(1));
+    await available(ctx, true);
+    fire(ctx.timers, 0);
+    await flush();
+    for (let i = 1; i < 4; i += 1) {
+      fire(ctx.timers, i);
+      await flush();
+    }
+    assert.deepEqual(ctx.messaging.calls.map((call) => call.data.paymentMethod), ['cash', 'card', 'cash', 'card']);
+    await available(ctx, false);
+    await available(ctx, true);
+    fire(ctx.timers, ctx.timers.timers.length - 1);
+    await flush();
+    assert.equal(ctx.messaging.calls.at(-1).data.paymentMethod, 'cash');
+  }));
+
+test('D-207: POST /notifications/test-request always sends cash', () =>
+  withApp({ 'drivers/u1': APPROVED }, async (ctx) => {
+    await ctx.register(tokenOf(1));
+    for (let i = 0; i < 2; i += 1) assert.equal((await ctx.call('/notifications/test-request', { body: {} })).status, 202);
+    await flush();
+    assert.deepEqual(ctx.messaging.calls.map((call) => call.data.paymentMethod), ['cash', 'cash']);
+  }));

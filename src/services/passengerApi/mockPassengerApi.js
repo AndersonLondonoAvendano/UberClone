@@ -33,7 +33,6 @@ import { haversineDistanceM } from '../routing/straightLine';
 import {
   NEXT_TRIP_STATUS,
   PASSENGER_API_ERROR,
-  PAYMENT_METHODS,
   TRIP_CATEGORIES,
   TRIP_STATUS,
   createPassengerApiError,
@@ -97,6 +96,12 @@ export function createMockPassengerApi({
 
   const between = (min, max) => min + random() * (max - min);
   const pick = (list) => list[Math.min(list.length - 1, Math.floor(random() * list.length))];
+  let paymentCounter = 0;
+  const nextPaymentMethod = () => {
+    const method = paymentCounter % 2 === 0 ? 'cash' : 'card';
+    paymentCounter += 1;
+    return method;
+  };
 
   // Moves a point `km` kilometres in a random bearing.
   function offset(point, km) {
@@ -123,7 +128,8 @@ export function createMockPassengerApi({
         durationMin: Math.max(1, Math.round((distanceKm / MOCK_AVERAGE_SPEED_KMH) * 60)),
       },
       category: pick(TRIP_CATEGORIES),
-      paymentMethod: pick(PAYMENT_METHODS),
+      // AI-assisted: see docs/AI_LOG.md #74 (D-207: deterministic alternation, cash first, never drawn)
+      paymentMethod: nextPaymentMethod(),
       tip,
       rating,
     };

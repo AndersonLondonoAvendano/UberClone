@@ -54,8 +54,9 @@ test('message has the exact shape', () => {
       destLat: '6.26',
       destLng: '-75.55',
       passengerName: 'Mateo Gil',
+      paymentMethod: 'cash',
     },
-    android: { priority: 'high', ttl: 90_000, collapseKey: 'trip_request', notification: { channelId: 'solicitudes', tag: 'trip_request' } },
+    android: { priority: 'high', ttl: 90_000, collapseKey: 'trip_request', notification: { channelId: 'solicitudes', tag: 'trip_request', icon: 'notification_icon', color: '#009688' } },
   });
 });
 
@@ -73,4 +74,21 @@ test('D-205: the message carries the fixed tag and collapse key next to the chan
   assert.equal(message.android.notification.tag, 'trip_request');
   assert.equal(message.android.notification.channelId, 'solicitudes');
   assert.doesNotMatch(JSON.stringify(message.android), /fare|price|address|tarifa/i);
+});
+
+// AI-assisted: see docs/AI_LOG.md #74
+test('D-207: paymentMethod defaults to cash, accepts card and rejects anything else', () => {
+  assert.equal(request.paymentMethod, 'cash');
+  assert.equal(buildTestRequest({ now: NOW, targetUid: 'u', paymentMethod: 'card' }).paymentMethod, 'card');
+  for (const bad of ['mercadopago', 'CASH', '', null, 1]) {
+    assert.throws(() => buildTestRequest({ now: NOW, targetUid: 'u', paymentMethod: bad }), TypeError);
+  }
+});
+
+test('D-207: the message carries data.paymentMethod as a string, still without fare or address', () => {
+  const card = buildTestRequest({ now: NOW, targetUid: 'u', paymentMethod: 'card' });
+  const message = buildMessage('only', card);
+  assert.equal(message.data.paymentMethod, 'card');
+  assert.equal(buildMessage('only', request).data.paymentMethod, 'cash');
+  assert.doesNotMatch(JSON.stringify(message), /fare|price|address|tarifa/i);
 });

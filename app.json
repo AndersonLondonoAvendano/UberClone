@@ -12,9 +12,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#009688",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.andersonlondono.uberclone",
@@ -42,7 +41,8 @@
       "expo-font",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
-      "./plugins/withRequestsChannel"
+      "./plugins/withRequestsChannel",
+      "./plugins/withBrandAssets"
     ]
   }
 }

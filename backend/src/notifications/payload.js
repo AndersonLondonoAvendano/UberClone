@@ -16,7 +16,12 @@ const MAX_JITTER_DEG = 0.004;
 const round = (value, digits) => Number(value.toFixed(digits));
 const jitter = (random) => (random() * 2 - 1) * MAX_JITTER_DEG;
 
-export function buildTestRequest({ now, idFactory = randomUUID, targetUid, random = Math.random }) {
+// AI-assisted: see docs/AI_LOG.md #74
+// D-207: the payment method is decided by the caller (deterministic alternation), never drawn here.
+export const PAYMENT_METHODS = ['cash', 'card'];
+
+export function buildTestRequest({ now, idFactory = randomUUID, targetUid, random = Math.random, paymentMethod = 'cash' }) {
+  if (!PAYMENT_METHODS.includes(paymentMethod)) throw new TypeError('invalid paymentMethod');
   const origin = { lat: round(ORIGIN.lat + jitter(random), 6), lng: round(ORIGIN.lng + jitter(random), 6) };
   const destination = {
     lat: round(origin.lat + 0.012 + Math.abs(jitter(random)), 6),
@@ -32,6 +37,7 @@ export function buildTestRequest({ now, idFactory = randomUUID, targetUid, rando
     origin,
     destination,
     passengerName: PASSENGER_NAMES[Math.min(PASSENGER_NAMES.length - 1, Math.floor(random() * PASSENGER_NAMES.length))],
+    paymentMethod,
   };
 }
 
@@ -58,6 +64,7 @@ export function buildMessage(tokens, request) {
       destLat: String(request.destination.lat),
       destLng: String(request.destination.lng),
       passengerName: String(request.passengerName),
+      paymentMethod: String(request.paymentMethod ?? 'cash'),
     },
     android: {
       priority: 'high',
@@ -65,7 +72,8 @@ export function buildMessage(tokens, request) {
       ttl: FCM_TTL_MS,
       // AI-assisted: see docs/AI_LOG.md #73
       collapseKey: FCM_REQUEST_TAG,
-      notification: { channelId: FCM_CHANNEL_ID, tag: FCM_REQUEST_TAG },
+      // Brand small icon (res/drawable/notification_icon, shipped by plugins/withBrandAssets) and color.
+      notification: { channelId: FCM_CHANNEL_ID, tag: FCM_REQUEST_TAG, icon: 'notification_icon', color: '#009688' },
     },
   };
 }

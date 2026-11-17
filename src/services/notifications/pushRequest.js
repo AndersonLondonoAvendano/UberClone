@@ -51,7 +51,11 @@ export function parsePushData(data) {
   const durationMin = num(data.durationMin);
   const origin = point(data.originLat, data.originLng);
   const destination = point(data.destLat, data.destLng);
+  // AI-assisted: see docs/AI_LOG.md #74 (D-207: absent = cash from an old backend; only 'cash'|'card' are valid)
+  const rawPayment = data.paymentMethod;
+  const paymentMethod = rawPayment === undefined ? 'cash' : rawPayment;
   const valid =
+    (paymentMethod === 'cash' || paymentMethod === 'card') &&
     requestId && requestId.length <= MAX_ID_LENGTH &&
     targetUid && targetUid.length <= MAX_ID_LENGTH &&
     TRIP_CATEGORIES.includes(category) &&
@@ -73,6 +77,7 @@ export function parsePushData(data) {
       origin,
       destination,
       passengerName: name || DEFAULT_PASSENGER_NAME,
+      paymentMethod,
     },
   };
 }
@@ -89,7 +94,7 @@ export function requestFromIntent(intent, now) {
     distanceKm: intent.distanceKm,
     durationMin: intent.durationMin,
     category: intent.category,
-    paymentMethod: 'cash',
+    paymentMethod: intent.paymentMethod === 'card' ? 'card' : 'cash',
     createdAt: now,
     // AI-assisted: see docs/AI_LOG.md #73 (D-202: a valid request adopted now keeps its full decision window)
     expiresAt: effectiveExpiry(intent.expiresAt, now),
