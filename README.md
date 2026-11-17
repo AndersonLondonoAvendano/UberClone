@@ -2,11 +2,6 @@
 
 App móvil del conductor (React Native + Expo, development build, iOS y Android) con backend Node/Express y Firestore. Taller "Taller: Uber - clone". Metodología Spec-Driven Development; ver [AGENTS.md](AGENTS.md) y [docs/constitution.md](docs/constitution.md).
 
-**Estado actual (2026-11-16):** inicio de sesión con correo y contraseña, registro con documentos, Inicio con mapa y solicitudes (también por notificación FCM en Android), viaje con estados, cobro con tarjeta con Stripe (verificada de punta a punta en modo de prueba) o efectivo, saldo, Ganancias, Historial con detalle de viaje e idioma español/inglés. Mercado Pago está implementado, pero **no verificado con usuarios de prueba**; ver [docs/pagos-evidencia.md](docs/pagos-evidencia.md). La propina y la calificación son **simuladas** (D-124) y las direcciones del pasajero se resuelven con Nominatim (D-125). Lo validado en el celular por Anderson consta en [docs/progress.md](docs/progress.md); lo que no, figura como «No verificado en dispositivo» o «Pendiente de dispositivo». Checklist de cierre: [docs/checklist-entrega-final.md](docs/checklist-entrega-final.md).
-
-Documentos para la entrega:
-- [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md): guía paso a paso del cobro con Stripe en modo de prueba (cuenta, clave, tarjetas de prueba, verificación y tabla de fallos).
-- [docs/pagos-guia-rapida.md](docs/pagos-guia-rapida.md): guía rápida de pagos (elección de pasarela, red, Mercado Pago de prueba, efectivo y saldo).
 
 
 ## Stack y arquitectura
