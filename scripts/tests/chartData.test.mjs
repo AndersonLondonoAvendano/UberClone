@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for chartData (CA-002-83, CA-002-85).
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

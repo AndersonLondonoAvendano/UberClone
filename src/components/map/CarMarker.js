@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Driver marker (R3): an Ionicons car glyph tinted with the registered vehicle colour, inside a round badge
 // (dark for light colours, white otherwise) with a dark token ring and a card shadow. Decorative (hidden from screen readers) and static: no animation.
 

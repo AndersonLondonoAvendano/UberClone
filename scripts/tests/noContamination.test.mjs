@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // T-232 (B4): rejected and cancelled trips never contaminate earnings, balance or commission
 // (RE-14, RE-15, RE-16; CA-005-25, CA-005-27).
 import assert from 'node:assert/strict';

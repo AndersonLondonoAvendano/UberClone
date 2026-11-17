@@ -1,6 +1,6 @@
 # Análisis: solicitudes automáticas que no llegaban en el APK de release
 
-Estado: **No verificado en dispositivo (STOP-9)**. Decisión: [D-199](decisiones.md). Tarea: T-284 (código en T-282 y T-283). AI-assisted: see docs/AI_LOG.md #72
+Estado: **No verificado en dispositivo (STOP-9)**. Decisión: [D-199](decisiones.md). Tarea: T-284 (código en T-282 y T-283). AI-assisted: see AI_LOG.md #72
 
 Sin secretos ni datos personales: solo nombres de archivo, líneas y códigos.
 

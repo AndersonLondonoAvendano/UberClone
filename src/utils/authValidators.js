@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Pure validators for the authentication forms. They return error CODES (never texts); the screens
 // translate a code with labels.auth.fieldErrors. No React Native or Firebase imports.
 

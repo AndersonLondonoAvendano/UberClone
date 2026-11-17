@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #56
 // One row of the History list (T-106, RF-47): date and time, origin -> destination, category, fare, net
 // earning and a Chip with the TEXT of the payment state (cancelled trips say "Cancelado"). The date is
 // the creation time of the trip (finishedAt as a fallback), shown by formatDateTime, which guards
@@ -33,10 +33,10 @@ function TripListItemBase({ trip, onOpen }) {
   const cancelled = trip.status === TRIP_STATUS.CANCELLED;
   const paymentStatus = trip.paymentStatus ?? (trip.status === TRIP_STATUS.PAID ? PAYMENT_STATUS.PAID : undefined);
   const chipStyle = PAYMENT_CHIP[paymentStatus];
-  // AI-assisted: see docs/AI_LOG.md #57 (T-123, RF-54)
+  // AI-assisted: see AI_LOG.md #57 (T-123, RF-54)
   // A legacy trip (no paymentMethod and no paymentStatus) gets the neutral chip with the TEXT
   // "Cobro simulado" instead of "Pago sin estado"; every other trip keeps its real state.
-  // AI-assisted: see docs/AI_LOG.md #66 (T-230: «Rechazado», its own icon, "Sin cobro", no "Cobro simulado" chip)
+  // AI-assisted: see AI_LOG.md #66 (T-230: «Rechazado», its own icon, "Sin cobro", no "Cobro simulado" chip)
   const rejected = trip.status === TRIP_STATUS.REJECTED;
   const noCharge = cancelled || rejected;
   const legacyChip = noCharge ? null : legacyPaymentChip(trip);
@@ -95,7 +95,7 @@ function TripListItemBase({ trip, onOpen }) {
     </Card>
   );
 
-  // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+  // AI-assisted: see AI_LOG.md #57 (T-110)
   // With onOpen the whole row is one button that opens the trip detail; the Card keeps its testID and
   // label but hides from the accessibility tree so the screen reader focuses the button once.
   if (!onOpen) return card;

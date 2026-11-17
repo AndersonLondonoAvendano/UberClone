@@ -53,7 +53,7 @@ Estados: HV = hecho y validado; HSV = hecho sin validación en dispositivo; P = 
 | RNF-13 prueba en celular físico | P | T-28 Pendiente; T-29 aplazada; T-31, T-33 y T-34 sin prueba | obligatorio | 1,5 |
 | ENT-01 ramas, PR y merge | HSV | historial de git (PR #4 a #6) | obligatorio | 0,5 |
 | ENT-02 README con instalación y "Uso de IA" | P | `README.md` dice "Estado actual de la entrega (parcial, 2026-11-05)" y que las demás specs no están implementadas; desactualizado (T-50) | obligatorio | 1 |
-| ENT-03 bitácora y PDF | P | `docs/AI_LOG.md` existe; PDF no encontrado (T-51, Anderson) | obligatorio | 1,5 |
+| ENT-03 bitácora y PDF | P | `AI_LOG.md` existe; PDF no encontrado (T-51, Anderson) | obligatorio | 1,5 |
 | ENT-04 marcas `// AI-assisted` | P | C18; T-51 | obligatorio | 0,5 |
 | ENT-05 sin llaves en prompts | HSV | sin evidencia automatizada | obligatorio | 0 |
 | ENT-06 video de 5 min | F | T-52 (lo graba Anderson) | obligatorio | 1,5 |

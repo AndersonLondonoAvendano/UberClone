@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #60
-// AI-assisted: see docs/AI_LOG.md #68 (compact language control as the last block of the screen)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #68 (compact language control as the last block of the screen)
 // Welcome of the registration, shown before the tabs while the registration is not sent. Pattern: a
 // 3-step checklist with a progress indicator ("N de 3") and one main action that opens the first
 // incomplete step (no carousel). The state of each step is derived from what the form context already

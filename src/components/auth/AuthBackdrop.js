@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #60
 // Brand block shared by the three authentication screens: a dark primary band with a curved bottom
 // edge, the decorative circle of the drawer header, a ring echoing it, the brand mark and the
 // wordmark. The form card of each screen overlaps its lower edge (see AuthScreenLayout). Only tokens;

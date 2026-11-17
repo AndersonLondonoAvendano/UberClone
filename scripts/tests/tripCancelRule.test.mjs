@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // T-222 (CA-005-08, CA-005-09): cancel() only before in_progress; abandon() keeps its behaviour.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

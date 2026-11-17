@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // Plain Node tests for the 'card' -> 'mercadopago' convention (#59, c). Run:
 //   node scripts/tests/paymentConvention.test.mjs
 import assert from 'node:assert/strict';

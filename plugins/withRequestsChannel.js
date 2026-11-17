@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Expo config plugin (D-139): creates the Android notification channel "solicitudes" (IMPORTANCE_HIGH)
 // when the app process starts, so a push that arrives with the app closed uses a channel that already
 // exists (the JS side is not running yet). It edits MainApplication.kt during prebuild; android/ is

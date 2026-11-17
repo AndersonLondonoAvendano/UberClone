@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #57
 // "My location" button over the Home map (H-1, RF-53): icon only, so it carries its own
 // accessibilityLabel. 44 x 44 touch target, tokens only. The camera move is decided by the parent.
 

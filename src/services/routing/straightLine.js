@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // Last-resort local route, no network: N points interpolated between from and to. It does not follow
 // the streets, so the screen must label it as an approximate route.
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Live labels (RI-05, RI-15). A Proxy over the dictionary of the active language: every read looks
 // the path up at that moment, so code that keeps `const TEXT = labels.auth` stays in the current language.
 // A key missing in the active dictionary falls back to the Spanish one, key by key. Leaves (strings,

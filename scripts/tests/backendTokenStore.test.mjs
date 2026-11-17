@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // T-173: pushTokens store with a transactional fake db.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Thin wrapper over the Firebase Auth instance of src/services/firebase.js. Errors are rethrown
 // untouched (with their `code`) so mapAuthError can translate them. Nothing is logged and the
 // email and password are never stored here (Firebase persists only its own session).

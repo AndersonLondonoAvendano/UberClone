@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Pure mapping of Firebase Auth error codes to a stable kind and a Spanish message from labels.
 // No React Native or Firebase imports. It never returns the raw code and never logs anything.
 

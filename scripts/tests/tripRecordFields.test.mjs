@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Tests for the additive fields of buildTripRecord (T-227, CA-005-18, 19, 22).
 import assert from 'node:assert/strict';
 import test from 'node:test';

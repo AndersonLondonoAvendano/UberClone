@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Backend configuration read from the environment. Only variable NAMES are ever reported.
 
 export const DEFAULT_PORT = 3001;
@@ -9,14 +9,14 @@ export const BODY_LIMIT = '2kb';
 export const USER_RATE_LIMIT = { max: 20, windowMs: 60_000 };
 export const IP_RATE_LIMIT = { max: 120, windowMs: 60_000 };
 export const SIGNATURE_TOLERANCE_SEC = 300;
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // FCM notifications (spec 003). The Admin SDK takes the TTL as a number of milliseconds
 // (messaging-api.d.ts, AndroidConfig.ttl); FCM_TTL is the same value in the REST duration format.
 export const TEST_REQUEST_RATE_LIMIT = { max: 5, windowMs: 60_000 };
 export const FCM_TTL_MS = 90_000;
 export const FCM_TTL = '90s';
 export const FCM_CHANNEL_ID = 'solicitudes';
-// AI-assisted: see docs/AI_LOG.md #73
+// AI-assisted: see AI_LOG.md #73
 // Fixed Android notification tag and FCM collapse key: a new request replaces the previous one in the tray (D-205).
 export const FCM_REQUEST_TAG = 'trip_request';
 export const TEST_REQUEST_MAX_DELAY_S = 60;
@@ -26,7 +26,7 @@ export const FCM_BATCH_SIZE = 500;
 // Stripe events are larger than the JSON bodies of the app routes, but still small and bounded.
 export const STRIPE_WEBHOOK_BODY_LIMIT = '64kb';
 
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // Defaults retuned for the demo in #73 (D-204).
 // Automatic simulated requests (spec 007). Seconds/minutes come from the environment; the generator receives ms.
 export const AUTO_REQUEST_DEFAULTS = {

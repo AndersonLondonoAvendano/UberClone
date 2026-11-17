@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // Pure helpers for trips saved before the payment fields existed (T-122, RF-54).
 // A legacy trip lacks BOTH paymentMethod and paymentStatus; with only one of them it is NOT legacy
 // (it follows the normal payment logic). Policy for legacy trips:
@@ -16,7 +16,7 @@ export function isLegacySimulatedTrip(trip) {
   return isMissing(trip.paymentMethod) && isMissing(trip.paymentStatus);
 }
 
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Tolerant read of a saved trip (RE-11): adds the fields introduced after the first documents with
 // defaults and never changes the existing ones. When both exist, the top-level amounts win over
 // `economy` (they stay the single source of the totals).

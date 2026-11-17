@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text link)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #60 (presentation redesign: brand band, icon fields, text link)
 // Create-account screen (RF-33). Email, password and confirmation live only in this component's
 // state and are cleared when the screen loses focus and after success. The password requirements
 // are always visible and their state is shown with icon + text. After success the auth gate (T-69)

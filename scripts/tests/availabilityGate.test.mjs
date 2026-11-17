@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // A2 (D-181): a request is offered only while the driver is Disponible; otherwise a single-slot notice.
 import assert from 'node:assert/strict';
 import test from 'node:test';

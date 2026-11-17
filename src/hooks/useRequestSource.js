@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #70
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #72
 // Single source of ride requests while the driver is "Disponible" (spec 007, D-197, DT-5). Joins the
 // availability reporter, the notifications registration state and AppState, and returns exactly one of
 // 'none' | 'server' | 'mock' (chooseRequestSource). The caller starts the in-app simulator only for 'mock'.

@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text links)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #60 (presentation redesign: brand band, icon fields, text links)
 // Sign-in screen (RF-34). Email and password live only in this component's state and are cleared
 // when the screen loses focus and after a successful sign-in. Nothing is logged. The same generic
 // message is shown for every credential failure (mapAuthError).

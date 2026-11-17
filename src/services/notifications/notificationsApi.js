@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #64
-// AI-assisted: see docs/AI_LOG.md #73
+// AI-assisted: see AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #73
 // Pure client of the backend notification endpoints (T-181, DP-70, RF-72, RF-81). The client of
 // POST /notifications/test-request was removed with its Settings UI (T-297, D-206); the endpoint stays. fetch, the ID-token
 // getter, the base URL and the timeout are injected (same pattern as paymentsClient), so a script can
@@ -82,8 +82,8 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     // (seq only when it is a safe integer > 0): no location, no uid, no personal data. Resolves
     // { ok: true, active[, applied][, lastSeq] } (server generator running; applied:false means the backend
     // ignored an obsolete seq and lastSeq is the last one it accepted) or { ok: false, error }.
-    // AI-assisted: see docs/AI_LOG.md #70
-    // AI-assisted: see docs/AI_LOG.md #72
+    // AI-assisted: see AI_LOG.md #70
+    // AI-assisted: see AI_LOG.md #72
     reportAvailability(available, seq) {
       if (typeof available !== 'boolean') return Promise.resolve(fail(NOTIFICATIONS_ERROR.SERVER));
       const body = Number.isSafeInteger(seq) && seq > 0 ? { available, seq } : { available };

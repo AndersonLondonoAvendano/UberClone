@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54 (accessible label = name + chosen value)
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #36
 // Inline dropdown (like an HTML select): the options open right under the field, pushing the content
 // below down, and close on pick or on tapping the field again. No Modal, no native picker dependency.
 // The selected option keeps the weight + underline marking (no accent fill).
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     ...type.label,
     color: color.text,
   },
-  // AI-assisted: see docs/AI_LOG.md #53 (chevron affordance, thick danger border on error)
+  // AI-assisted: see AI_LOG.md #53 (chevron affordance, thick danger border on error)
   trigger: {
     minHeight: touch.controlHeight,
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Initial language before the first frame (RI-06, RI-09, RI-15). Reads the saved preference with a
 // cap of READ_TIMEOUT_MS; a slow, failed or empty read falls back to the phone language and then es.
 // The resolved language is applied without saving it. Never throws and never waits longer than the cap.

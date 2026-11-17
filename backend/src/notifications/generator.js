@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #70
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #72
 // In-memory generator of automatic simulated requests, one entry per uid.
 // Clock, random, timers, sending and eligibility are injected so it can be tested without real waiting.
 // Nothing here logs tokens, uids or bodies.
@@ -75,7 +75,7 @@ export function createAvailabilityGenerator({
       return;
     }
     // Every attempt counts toward the cap, even if the send fails or the request later expires.
-    // AI-assisted: see docs/AI_LOG.md #74 (D-207: `index` is the 0-based send number of the session)
+    // AI-assisted: see AI_LOG.md #74 (D-207: `index` is the 0-based send number of the session)
     const index = entry.count;
     entry.count += 1;
     try {

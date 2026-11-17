@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #54
 import { initializeApp } from 'firebase/app';
 // `firebase/auth` (el paquete envoltorio) NO declara una condición "react-native" en su
 // package.json para "./auth" (solo node/browser/default) y por eso Metro nunca llega a la

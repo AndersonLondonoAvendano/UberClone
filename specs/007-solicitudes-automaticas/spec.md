@@ -1,7 +1,7 @@
 # Spec 007 — Solicitudes automáticas por FCM mientras el conductor está «Disponible»
 
-Estado: **Borrador** (propuesta de `spec-author`; NO aprobada). Esta spec no aprueba nada. Anderson ordenó continuar la ejecución sin esperar la aprobación (`docs/AI_LOG.md` #70); esa instrucción no sustituye la aprobación formal. Si cambia tras aprobarse, plan, tema y tareas pueden quedar desactualizados.
-Fuente: ENCARGO del prompt #70 (R1–R8 de ese prompt, citados aquí como `P70-R1…R8`), D-197 (reemplaza a D-130 en lo que choca), D-133, D-137, D-138, D-146, D-135. Spec relacionada: 003 (notificaciones FCM). AI-assisted: see docs/AI_LOG.md #70
+Estado: **Borrador** (propuesta de `spec-author`; NO aprobada). Esta spec no aprueba nada. Anderson ordenó continuar la ejecución sin esperar la aprobación (`AI_LOG.md` #70); esa instrucción no sustituye la aprobación formal. Si cambia tras aprobarse, plan, tema y tareas pueden quedar desactualizados.
+Fuente: ENCARGO del prompt #70 (R1–R8 de ese prompt, citados aquí como `P70-R1…R8`), D-197 (reemplaza a D-130 en lo que choca), D-133, D-137, D-138, D-146, D-135. Spec relacionada: 003 (notificaciones FCM). AI-assisted: see AI_LOG.md #70
 
 ## 1. Objetivo y porqué
 
@@ -99,8 +99,8 @@ P70-R1 → RA-01..05, 12; R2 → RA-06..09; R3 → RA-10..12; R4 → RA-13, 14; 
 
 ## Adenda #73 (D-204)
 
-Los valores por defecto del generador pasan a: primera solicitud 8–15 s, siguientes 35–60 s y tope de 8 por sesión (antes 15–30 s, 60–120 s y 10). Siguen configurables y validadas con las variables `AUTO_REQUEST_*`. Los rangos citados en RA-01 y CA-007-01 se leen con estos valores; el resto de la spec no cambia. AI-assisted: see docs/AI_LOG.md #73
+Los valores por defecto del generador pasan a: primera solicitud 8–15 s, siguientes 35–60 s y tope de 8 por sesión (antes 15–30 s, 60–120 s y 10). Siguen configurables y validadas con las variables `AUTO_REQUEST_*`. Los rangos citados en RA-01 y CA-007-01 se leen con estos valores; el resto de la spec no cambia. AI-assisted: see AI_LOG.md #73
 
 ## Adenda #74 (D-207)
 
-El método de pago de las solicitudes automáticas alterna de forma determinista: efectivo, tarjeta, efectivo, tarjeta…, y la primera de cada sesión «Disponible» es efectivo (sin azar). El mensaje FCM lleva `data.paymentMethod` (`cash` o `card`), sin tarifa ni direcciones; la app lo lee de forma estricta (ausente = efectivo, otro valor = inválido). El resto de la spec no cambia. AI-assisted: see docs/AI_LOG.md #74
+El método de pago de las solicitudes automáticas alterna de forma determinista: efectivo, tarjeta, efectivo, tarjeta…, y la primera de cada sesión «Disponible» es efectivo (sin azar). El mensaje FCM lleva `data.paymentMethod` (`cash` o `card`), sin tarifa ni direcciones; la app lo lee de forma estricta (ausente = efectivo, otro valor = inválido). El resto de la spec no cambia. AI-assisted: see AI_LOG.md #74

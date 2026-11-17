@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Background address resolution for a trip request (D-125). The request keeps the placeholder
 // address the adapter gave it (MOCK_ADDRESS); this store resolves the real street of its origin and
 // destination without blocking anything and keeps the result by request id, so the request card and

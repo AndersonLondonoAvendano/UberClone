@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #36
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { Icon } from '../Icon';
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   field: {
     gap: space[2],
   },
-  // AI-assisted: see docs/AI_LOG.md #53 (filled box with check icon; the row keeps the 44 touch area)
+  // AI-assisted: see AI_LOG.md #53 (filled box with check icon; the row keeps the 44 touch area)
   row: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,12 +1,12 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #14
-// AI-assisted: see docs/AI_LOG.md #51 (redesign: raised light bar, pill button with an Ionicons icon)
-// AI-assisted: see docs/AI_LOG.md #52 (Icon component replaces the View-drawn icons)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #14
+// AI-assisted: see AI_LOG.md #51 (redesign: raised light bar, pill button with an Ionicons icon)
+// AI-assisted: see AI_LOG.md #52 (Icon component replaces the View-drawn icons)
 // Screen header: bar with the screen title and one leading icon-only button (drawer or back) on a
 // soft brand circle. A single bottom separator: the card elevation (no extra border).
 // Tokens only; texts come from labels.js. The bar sits on the status-bar safe area owned by the screen.
 
-// AI-assisted: see docs/AI_LOG.md #60 (compact bar: icon-only 48 dp leading button, no text pill)
+// AI-assisted: see AI_LOG.md #60 (compact bar: icon-only 48 dp leading button, no text pill)
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from './Icon';
 import { labels } from '../constants/labels';
@@ -16,7 +16,7 @@ import { color, elevation, iconSize, opacity, radius, space, touch, type } from 
 // leading: 'drawer' | 'back' | null.
 // onLeadingPress is optional so the header does not depend on navigation: without it the button is
 // still drawn (testID, size and text stay checkable) and pressing it does nothing.
-// AI-assisted: see docs/AI_LOG.md #57 (T-110): optional leadingA11yLabel names the destination of the button.
+// AI-assisted: see AI_LOG.md #57 (T-110): optional leadingA11yLabel names the destination of the button.
 export function ScreenHeader({ title, leading, onLeadingPress, leadingA11yLabel }) {
   useLanguage();
   const isDrawer = leading === 'drawer';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // Pure, single source for (1) the payment label of a trip/request and (2) the charge buttons and message.
 // 'mercadopago' saved WITHOUT a paymentId means "card, gateway still to choose" (the app never writes the
 // gateway; only the backend does, together with the paymentId, when a checkout is created).

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // React Native Firebase adapter. All dependencies are injected, so this file never imports the SDK
 // and can be loaded by `node --test`. The real wiring lives in rnFirebaseDefault.js.
 //

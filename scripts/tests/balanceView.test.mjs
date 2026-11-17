@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Plain Node tests for buildBalanceView (B1, CA-005-03, CA-005-06): loading, empty, error (never 0),
 // ready over more than 200 trips, and partial when the read was truncated.
 import assert from 'node:assert/strict';

@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
-// AI-assisted: see docs/AI_LOG.md #54 (tabs stack at large font scales so the names are never cut)
-// AI-assisted: see docs/AI_LOG.md #16
-// AI-assisted: see docs/AI_LOG.md #52 (icon per tab, soft brand pill when active)
-// AI-assisted: see docs/AI_LOG.md #60 (short one-line labels, no underline, account menu)
+// AI-assisted: see AI_LOG.md #67 (language read at render, T-260)
+// AI-assisted: see AI_LOG.md #54 (tabs stack at large font scales so the names are never cut)
+// AI-assisted: see AI_LOG.md #16
+// AI-assisted: see AI_LOG.md #52 (icon per tab, soft brand pill when active)
+// AI-assisted: see AI_LOG.md #60 (short one-line labels, no underline, account menu)
 // Custom bottom tab bar for the registration tabs. It lives in the layout flow below the scenes and
 // its height comes from its content, so it grows with the text scale. Flat surface, no border or
 // shadow; the active tab is a soft brand pill with a filled icon (outline when inactive), brand color and
@@ -31,7 +31,7 @@ import { borderWidth, color, iconSize, opacity, radius, space, touch, type } fro
 import { maskEmail } from '../utils/mask';
 
 // From this font scale on the tabs stack vertically: three names no longer fit side by side.
-// AI-assisted: see docs/AI_LOG.md #54 (so "Documentos" is never split mid-word)
+// AI-assisted: see AI_LOG.md #54 (so "Documentos" is never split mid-word)
 const STACK_FONT_SCALE = 1.15;
 // Caps the tab label scaling so the stacked bar does not eat the screen at 200 %.
 const LABEL_MAX_FONT_MULTIPLIER = 1.5;

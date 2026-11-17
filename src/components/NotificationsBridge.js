@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #72
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #64
 // Connects push notifications to the app (T-183, D-130, D-140). Mounted once inside the providers
 // (MainDrawer), so a session exists. Foreground messages and notification taps become a trip request
 // offered through useAvailability().offerPushRequest, only for the right account (resolveIntent).
@@ -36,7 +36,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
   const [notice, setNotice] = useState(null);
   // A2 (D-181): single slot; a notice shown while another is visible is dropped (no repeat, no stack).
   const showNotice = useCallback((text) => setNotice((prev) => mergeNotice(prev, text)), []);
-  // AI-assisted: see docs/AI_LOG.md #64 (D-149): a tap that was offered (or promoted) and still has to open
+  // AI-assisted: see AI_LOG.md #64 (D-149): a tap that was offered (or promoted) and still has to open
   // the full-screen request; resolved once the pending request is visible to this component.
   const [openIntent, setOpenIntent] = useState(null);
 
@@ -69,7 +69,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
         }
         // The offer returns after the route lookup; it may expire there too (same notice as above).
         const offered = await latest.current.offerPushRequest(request);
-        // AI-assisted: see docs/AI_LOG.md #73 (D-202: clock tolerance)
+        // AI-assisted: see AI_LOG.md #73 (D-202: clock tolerance)
         if (!offered && isRequestExpired(request.expiresAt, Date.now())) showNotice(labels.trip.pushExpired);
       }
     },

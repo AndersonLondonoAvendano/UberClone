@@ -1,6 +1,6 @@
 # Checklist de la mañana del jueves 2026-11-12 — UberClone Conductor
 
-<!-- AI-assisted: see docs/AI_LOG.md #57 (T-131) -->
+<!-- AI-assisted: see AI_LOG.md #57 (T-131) -->
 Estado: **sin ejecutar.** Anderson la sigue en orden y marca cada paso con «OK» o «Falla: …». Nada de lo que aparece aquí está validado en el celular: todo es **No verificado en dispositivo** hasta que Anderson lo marque. Ninguna tarea pasa a «Validada» sin la evidencia de su paso. Usa solo datos y tarjetas de prueba; no pegues tokens, llaves ni valores de `.env` en el chat, en la bitácora ni en capturas.
 
 Horario base: los tiempos son estimados y el reloj parte de las **08:00** (ajústalo si empiezas distinto). El **código se congela a las 13:00** (paso 5). Guías de apoyo: [pagos-stripe-guia.md](pagos-stripe-guia.md) (Stripe: cuenta de prueba, clave, tarjetas y tabla síntoma-causa-solución), [pagos-guia-rapida.md](pagos-guia-rapida.md) (elección de pasarela, red y Mercado Pago), [checklist-dispositivo-sesiones.md](checklist-dispositivo-sesiones.md) y [omisiones-y-limites.md](omisiones-y-limites.md). Informe visual de apoyo: [ronda-2-cierre.md](diseno/auditorias/ronda-2-cierre.md).
@@ -125,7 +125,7 @@ Capturas sugeridas (con pie honesto: «Celular Android, 2026-11-12»): pasos 2.1
 - [ ] **5.3** Confirma que `SHOW_DEV_TOOLS` sigue en `false` y que `backend/.env` y `backend/secrets/` no aparecen en `git status`.
   - Listo cuando: los tres puntos se cumplen y anotas la hora real del congelado: ______. Si un paso del 3 falló y su corrección no cabe antes de las 13:00, **no se corrige**: se entrega como «No verificado en dispositivo» o con la falla declarada (contingencia).
 
-## 6. Bitácora `docs/AI_LOG.md` (30 min)
+## 6. Bitácora `AI_LOG.md` (30 min)
 
 Lo hace Anderson; Claude no completa estos campos.
 
@@ -141,7 +141,7 @@ Lo hace Anderson; Claude no completa estos campos.
 
 ## 8. PDF de la bitácora (10 min)
 
-- [ ] **8.1** Genera el PDF desde `docs/AI_LOG.md` ya completa (hay uno anterior, `docs/UberClone — Versión Conductor.pdf`; confirma que el que entregas corresponde a la versión final).
+- [ ] **8.1** Genera el PDF desde `AI_LOG.md` ya completa (hay uno anterior, `docs/UberClone — Versión Conductor.pdf`; confirma que el que entregas corresponde a la versión final).
   - Listo cuando: el PDF abre, incluye las entradas hasta la #57 completas y su fecha de generación es posterior a 6.2. Resultado: OK / Falla: ______
 
 ## 9. Limpieza de Firestore (15 min)

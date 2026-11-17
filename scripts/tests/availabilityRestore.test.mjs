@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // T-288/T-289/T-290 (D-201): the "Disponible" choice saved per uid, restored on open only when allowed,
 // the three-state gate of a tapped notification (with the wait cap) and a single "true" report on restore.
 // Fake storage, injected clock and timers: no real waiting, no network.

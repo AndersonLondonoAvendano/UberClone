@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Push-token registration controller (T-184, T-186, RF-72, RF-73, D-131, D-134). Pure: the preference,
 // the notifications service and the backend client are injected, so it has no React, Firebase or
 // network imports. It never throws and never logs a token.

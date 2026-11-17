@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Plain Node tests for reverse geocoding (D-125). No real network: fetch, clock and sleep are fakes.
 // Run: node --import ./scripts/tests/helpers/registerSrcLoader.mjs scripts/tests/reverseGeocode.test.mjs
 import assert from 'node:assert/strict';

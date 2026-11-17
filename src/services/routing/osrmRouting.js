@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // OSRM adapter: one request per call (never in a loop), aborted after ROUTE_TIMEOUT_MS.
 // With geometries=geojson the response already carries [lng, lat] pairs, so nothing is decoded.
 

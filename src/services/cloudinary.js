@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #29
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #29
 
 export class CloudinaryUploadError extends Error {
   constructor(message) {

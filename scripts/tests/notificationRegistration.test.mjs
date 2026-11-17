@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the push-token registration controller (T-184, T-185, D-131, D-134). Plain fakes.
 //   node scripts/tests/notificationRegistration.test.mjs
 import assert from 'node:assert/strict';

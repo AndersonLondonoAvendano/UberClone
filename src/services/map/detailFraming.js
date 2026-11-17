@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Pure padding for the camera of the trip detail map (A5). The on-screen attribution sits at the bottom
 // of the map and grows with the font scale, so the bottom margin adds its height to the base inset: the
 // last stretch of the route and the destination marker stay above it. Every side is at least the outer

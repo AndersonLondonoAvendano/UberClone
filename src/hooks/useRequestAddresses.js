@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Text to show for the origin and destination of a request (D-125): the resolved street, "Buscando
 // dirección…" while it is being looked up, and the original (simulated) text if the lookup failed.
 // Never starts a lookup itself (useTripRequests does when the request arrives).

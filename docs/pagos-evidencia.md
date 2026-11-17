@@ -1,7 +1,7 @@
 # Evidencia de pagos validada en el celular — UberClone Conductor
 
-<!-- AI-assisted: see docs/AI_LOG.md #68 -->
-Estado: **borrador para revisión de Anderson (2026-11-16).** Este documento (lote L4, C1) reúne lo que Anderson validó en el celular sobre el cobro. Solo se registra lo que consta en `docs/AI_LOG.md` y `docs/progress.md`; cuando una fecha no consta se dice «no consta fecha». No contiene claves, tokens ni datos personales. Todo pago es de prueba y no se mueve dinero real.
+<!-- AI-assisted: see AI_LOG.md #68 -->
+Estado: **borrador para revisión de Anderson (2026-11-16).** Este documento (lote L4, C1) reúne lo que Anderson validó en el celular sobre el cobro. Solo se registra lo que consta en `AI_LOG.md` y `docs/progress.md`; cuando una fecha no consta se dice «no consta fecha». No contiene claves, tokens ni datos personales. Todo pago es de prueba y no se mueve dinero real.
 
 ## Declaración honesta de alcance
 
@@ -11,9 +11,9 @@ Estado: **borrador para revisión de Anderson (2026-11-16).** Este documento (lo
 
 | Fecha | Qué | Fuente | Estado |
 |---|---|---|---|
-| 2026-11-11 | «Confirmar cobro» guarda el viaje en Firestore (sin coordenadas); Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial (T-46 a T-49) | `docs/AI_LOG.md` (entrada del encargo con «ESTADO PREVIO», declaración de Anderson, `SHOW_DEV_TOOLS=false`) | Validada en dispositivo por declaración de Anderson |
-| 2026-11-12 | Flujo de pagos con Stripe validado en el celular: tarjeta de prueba aprobada (`4242…`) y rechazada (`4000 0000 0000 0002`), y pago en efectivo | `docs/AI_LOG.md` (contexto del encargo del 2026-11-12: «Flujo de pagos con Stripe validado en dispositivo») | Validada por declaración de Anderson; sin captura |
-| 2026-11-16 14:54 (STOP-5) | Pago con tarjeta Stripe OK; Detalle con «Pago aprobado», «Tarjeta (Stripe)», comisión y ruta de OSRM; Saldo y Ganancias coherentes con el Historial; flujo completo (aceptar, conductor llegando, iniciar, finalizar, cobrar) | `docs/progress.md` (fila STOP-5), `docs/AI_LOG.md` | Validada en dispositivo por Anderson |
+| 2026-11-11 | «Confirmar cobro» guarda el viaje en Firestore (sin coordenadas); Historial y Ganancias lo muestran y se actualizan; un viaje cancelado aparece en Historial (T-46 a T-49) | `AI_LOG.md` (entrada del encargo con «ESTADO PREVIO», declaración de Anderson, `SHOW_DEV_TOOLS=false`) | Validada en dispositivo por declaración de Anderson |
+| 2026-11-12 | Flujo de pagos con Stripe validado en el celular: tarjeta de prueba aprobada (`4242…`) y rechazada (`4000 0000 0000 0002`), y pago en efectivo | `AI_LOG.md` (contexto del encargo del 2026-11-12: «Flujo de pagos con Stripe validado en dispositivo») | Validada por declaración de Anderson; sin captura |
+| 2026-11-16 14:54 (STOP-5) | Pago con tarjeta Stripe OK; Detalle con «Pago aprobado», «Tarjeta (Stripe)», comisión y ruta de OSRM; Saldo y Ganancias coherentes con el Historial; flujo completo (aceptar, conductor llegando, iniciar, finalizar, cobrar) | `docs/progress.md` (fila STOP-5), `AI_LOG.md` | Validada en dispositivo por Anderson |
 | 2026-11-16 15:59 (STOP-6) | Lote L3 Parte A e idioma validados (no es de pagos); el Detalle se ve con la ruta completa | `docs/progress.md` (fila STOP-6) | Validada en dispositivo por Anderson |
 | No consta fecha | Pago con tarjeta de prueba de Stripe **pendiente** (caso «Pendiente» tras volver a la app) | Encargo de Anderson del 2026-11-16 (L4, C1) | Consta como validado por Anderson, pero la fecha del recorrido no está registrada |
 | No consta fecha | Efectivo con «Confirmar cobro» en el flujo actual; propina y calificación simuladas (D-124) | Encargo de Anderson del 2026-11-16 (L4, C1) | Consta como validado por Anderson, pero la fecha del recorrido no está registrada |

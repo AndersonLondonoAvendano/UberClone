@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Pure: registered vehicle colour text -> colour token. Unknown, empty or 'otro' -> brand colour.
 // vehicleBadgeToken picks the badge fill: dark when the glyph is under 3:1 against the light badge.
 

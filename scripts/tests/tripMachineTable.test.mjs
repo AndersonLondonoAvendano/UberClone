@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // T-221 (CA-005-07, CA-005-16): canTransition equals the table of spec 005 section 4, cell by cell.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

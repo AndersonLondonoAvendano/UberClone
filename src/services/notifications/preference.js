@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Driver preference "notificationsEnabled" (T-184, RF-71, RF-74, D-134). Off by default. Storage is
 // injected (AsyncStorage in the app), so a script can test it. It never throws: a failing storage reads
 // as "off" and set/clear report false. Only the session-end step of resetSession clears it (after the

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Driver location constants (T-41). LOCATION_SOURCE picks the source once, at load time:
 // 'gps' reads the phone (expo-location, foreground only); 'simulated' walks a route polyline.
 

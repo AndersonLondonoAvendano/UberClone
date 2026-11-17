@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #41
 // Development-only map test (reachable only while SHOW_DEV_TOOLS is on): MapLibre map with the
 // OpenFreeMap style, the driver's current position from expo-location, and the street route between
 // the two fixed test points drawn as a GeoJSON line. Loading and error states use ScreenState; a

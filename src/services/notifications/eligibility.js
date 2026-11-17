@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Who may be shown a request that arrived by notification (T-178, D-140.5). Pure.
 // 'open' = show it; 'expired' = say "La solicitud expiró"; 'ignore' = do nothing, say nothing.
 
@@ -10,7 +10,7 @@ export const INTENT_DECISION = {
   IGNORE: 'ignore',
 };
 
-// AI-assisted: see docs/AI_LOG.md #73 (D-202: expired only when now >= expiresAt + clock tolerance)
+// AI-assisted: see AI_LOG.md #73 (D-202: expired only when now >= expiresAt + clock tolerance)
 // session: { uid } | null. A notification for another account, without session, with the account
 // not approved or during a trip is ignored silently; only a valid, eligible-but-late one is "expired".
 export function resolveIntent(intent, { session, accountApproved, onTrip, now }) {

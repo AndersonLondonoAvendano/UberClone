@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Tests for initLanguage (T-252; CA-006-08, 10, 19).
 import test from 'node:test';
 import assert from 'node:assert/strict';

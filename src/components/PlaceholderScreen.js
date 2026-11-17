@@ -1,9 +1,9 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #14
-// AI-assisted: see docs/AI_LOG.md #15
-// AI-assisted: see docs/AI_LOG.md #35
-// AI-assisted: see docs/AI_LOG.md #38
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #14
+// AI-assisted: see AI_LOG.md #15
+// AI-assisted: see AI_LOG.md #35
+// AI-assisted: see AI_LOG.md #38
+// AI-assisted: see AI_LOG.md #68
 // Placeholder screen: safe-area frame, header, provisional state selector and content area.
 // The selector (force-content|loading|empty|error) is provisional until each screen has real data,
 // and only renders while SHOW_DEV_TOOLS is on. With it off, kind never leaves INITIAL_KIND

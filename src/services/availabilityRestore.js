@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // Decides whether the saved "Disponible" is restored when the app opens with a restored session (T-289, D-201).
 // Pure: the preference and the location source are injected. It never throws and never asks for anything.
 //

@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #57
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #58
 // Plain Node tests for the backend diagnostic (T-127, T-128). Fakes only: no real env, disk,
 // Firebase or network. Run:
 //   node scripts/tests/doctor.test.mjs

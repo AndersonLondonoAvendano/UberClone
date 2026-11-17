@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for src/utils/documentValidators.js (CA-002-51, CA-002-52). Run:
 //   node scripts/tests/documentValidators.test.mjs
 import assert from 'node:assert/strict';

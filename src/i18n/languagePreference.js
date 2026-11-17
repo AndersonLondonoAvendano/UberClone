@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Device language preference "appLanguage" (RI-12). Same pattern as notifications/preference.js:
 // storage is injected (AsyncStorage in the app) and nothing here throws. It is never cleared on sign-out.
 import { SUPPORTED, normalizeLanguage } from './languages';

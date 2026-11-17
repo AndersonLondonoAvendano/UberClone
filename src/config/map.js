@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // Map constants. OpenFreeMap styles are public (no key, no account), so they live here and not in
 // environment variables. The attribution text shown on screen lives in labels.mapTest.attribution.
 
@@ -30,7 +30,7 @@ export const COLOMBIA_ZOOM = 4.5;
 // Camera animation length with "reduce motion" on: jump without animation.
 export const REDUCED_MOTION_DURATION_MS = 0;
 
-// AI-assisted: see docs/AI_LOG.md #57 (T-110)
+// AI-assisted: see AI_LOG.md #57 (T-110)
 // Trip detail map (read-only): frame height in points, padding in points around the framed route, and
 // the smallest bounds span in degrees (about 100 m) so a route of two almost equal points still frames.
 export const DETAIL_MAP_HEIGHT = 240;

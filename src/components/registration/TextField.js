@@ -1,13 +1,13 @@
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #53 (rest / focus / error / disabled states, error with icon)
-// AI-assisted: see docs/AI_LOG.md #60 (optional helperText, hidden while an inline error shows)
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #53 (rest / focus / error / disabled states, error with icon)
+// AI-assisted: see AI_LOG.md #60 (optional helperText, hidden while an inline error shows)
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { FieldError } from './FieldError';
 
-// AI-assisted: see docs/AI_LOG.md #54 (inputRef, inputProps and announceError for the auth forms)
+// AI-assisted: see AI_LOG.md #54 (inputRef, inputProps and announceError for the auth forms)
 // inputRef: ref of the TextInput (focus on the first error). inputProps: extra TextInput props
 // (autoComplete, textContentType, secureTextEntry...). announceError: error in a polite live region
 // with the accessible label "<label>: <error>".

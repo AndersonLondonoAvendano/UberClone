@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Plain Node tests for fetchAllTripsWith (B1, CA-005-01..05): the balance reads every trip with internal
 // pagination and a hard cap, on a simulated Firestore that counts reads.
 import assert from 'node:assert/strict';

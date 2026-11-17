@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Fare parameters (RF-21), in whole Colombian pesos (COP). Single source of the platform commission
 // the registration, the request card and the trip summary all read COMMISSION_RATE from here.
 

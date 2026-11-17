@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #56
 // History filters (T-105, RF-47): period Hoy/Semana/Mes/Rango and payment method Todos/Tarjeta/Efectivo as
 // selectable chips (radio groups, 44 dp targets, a check icon plus text when selected). Rango shows two
 // DateField (Android only, as DateField itself) and the validateRange error as icon + text in a polite

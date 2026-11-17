@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // Live list of the driver's saved trips (T-47, T-48): onSnapshot on drivers/{uid}/trips, most recent
 // first, at most TRIPS_LIMIT. status: 'loading' | 'ready' | 'error'. retry() resubscribes. The
 // subscription is released on unmount, on retry and when the driver id changes.

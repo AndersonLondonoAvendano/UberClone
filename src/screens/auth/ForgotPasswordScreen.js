@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon field, text link)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #60 (presentation redesign: brand band, icon field, text link)
 // Password-recovery screen (RF-35). The email lives only in this component's state and is cleared
 // when the screen loses focus. The neutral message is identical whether the email has an account or
 // not (mapAuthError('reset', ...)); only network and rate-limit failures differ. Nothing is logged.

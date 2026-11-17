@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Holds the request a tapped notification wants to open until the app is ready to decide (T-178,
 // DP-64). It lives in memory only and is bound to a uid: take(currentUid) always empties it and
 // returns null if the uid differs, so a notification for account A never opens under account B.

@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54 (orphan comment removed)
-// AI-assisted: see docs/AI_LOG.md #13
-// AI-assisted: see docs/AI_LOG.md #14
-// AI-assisted: see docs/AI_LOG.md #51 (redesign: skeleton loading, framed empty and error cards)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54 (orphan comment removed)
+// AI-assisted: see AI_LOG.md #13
+// AI-assisted: see AI_LOG.md #14
+// AI-assisted: see AI_LOG.md #51 (redesign: skeleton loading, framed empty and error cards)
 // Remote-data screen states: loading (pulsing skeleton blocks), empty (framed card), error (soft red
 // card with retry button). Tokens only; texts come from labels.js. The pulse respects reduce-motion.
 
@@ -55,7 +55,7 @@ export function SkeletonBlock({ height = space[5], width = '100%', style }) {
 // kind: 'loading' | 'empty' | 'error'.
 // Error without onRetry: the retry button is NOT rendered (a button that does nothing misleads);
 // the error title and message still show.
-// AI-assisted: see docs/AI_LOG.md #50 (optional title/message replace the generic copy of that kind)
+// AI-assisted: see AI_LOG.md #50 (optional title/message replace the generic copy of that kind)
 export function ScreenState({ kind, onRetry, title, message }) {
   useLanguage();
   const base = labels.states[kind];

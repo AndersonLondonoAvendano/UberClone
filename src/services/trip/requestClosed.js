@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #66
-// AI-assisted: see docs/AI_LOG.md #67 (A2: icon per closed reason)
+// AI-assisted: see AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #67 (A2: icon per closed reason)
 // Pure choice of why an open request disappeared (C2d, D-181). When the driver switches to "No disponible"
 // the request is released (useTripRequests stops watching) while it still had time left: that is not an
 // expiry, so the text must be "Cancelada: ya no estás disponible" and not "La solicitud expiró".

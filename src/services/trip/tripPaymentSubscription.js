@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure core of useTripPayment (T-96): subscribes to one saved trip through an injected `subscribe`
 // (tripRepository.subscribeTrip in the app) and reports { trip, loading, error }. Returns the cleanup:
 // it unsubscribes and drops any later callback, so nothing updates an unmounted screen.

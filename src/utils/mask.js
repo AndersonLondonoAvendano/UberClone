@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // Masks an email for display: "usuario@example.com" -> "us*****@example.com". The full address is
 // never shown on the payment block or the profile.
 export function maskEmail(email) {

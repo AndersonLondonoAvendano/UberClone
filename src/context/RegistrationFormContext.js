@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #26
-// AI-assisted: see docs/AI_LOG.md #33
-// AI-assisted: see docs/AI_LOG.md #34
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalRegistrationForm)
-// AI-assisted: see docs/AI_LOG.md #55 (license, SOAT and technical review fields, RF-41)
+// AI-assisted: see AI_LOG.md #26
+// AI-assisted: see AI_LOG.md #33
+// AI-assisted: see AI_LOG.md #34
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #54 (reset and useOptionalRegistrationForm)
+// AI-assisted: see AI_LOG.md #55 (license, SOAT and technical review fields, RF-41)
 // Registration form state (useContext): the 17 fields across the three tabs, per-field "touched"
 // flags and per-tab "visited" flags (DP-08), aggregate validity per tab and overall (RF-02), and
 // the submit flow (RF-04). The plate is normalized to uppercase on every change, so the field
@@ -49,7 +49,7 @@ import { applySuggestion } from '../i18n/applySuggestion';
 // RF-07/RF-21 (T-38): the commission rate comes only from src/config/pricing.js as a fraction
 // (0.2). It is shown on the terms checkbox as a percentage and stored with the registration as the
 // fraction. A rate stored in an older document is ignored: COMMISSION_RATE always applies.
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #43
 
 const INITIAL_PERSONAL_DATA = {
   fullName: '',
@@ -117,7 +117,7 @@ export function RegistrationFormProvider({ children }) {
   // driverId resolves, so a driver who already submitted sees their own data instead of an empty
   // form. hasPreloadedRef guarantees this runs at most once ever, so it never overwrites an
   // in-progress edit if driverId is read again later.
-  // AI-assisted: see docs/AI_LOG.md #34
+  // AI-assisted: see AI_LOG.md #34
   const hasPreloadedRef = useRef(false);
   useEffect(() => {
     if (!driverId || hasPreloadedRef.current) return;
@@ -128,7 +128,7 @@ export function RegistrationFormProvider({ children }) {
       if (!isMounted || !stored) return;
       if (stored.personalData) {
         const { birthDate, ...restPersonalData } = stored.personalData;
-        // AI-assisted: see docs/AI_LOG.md #67
+        // AI-assisted: see AI_LOG.md #67
         // RI-08: the stored language is only a suggestion for the app language (once, never saved).
         applySuggestion(restPersonalData.language);
         setPersonalDataState((current) => ({
@@ -147,7 +147,7 @@ export function RegistrationFormProvider({ children }) {
         }));
       }
       if (stored.documents) {
-        // AI-assisted: see docs/AI_LOG.md #55
+        // AI-assisted: see AI_LOG.md #55
         // documentsFromStored maps the nested stored structure (license, soat, technicalReview) to
         // the flat form fields and ignores commissionRate, so nothing unexpected enters the state.
         setDocumentsState((current) => ({ ...current, ...documentsFromStored(stored.documents) }));
@@ -184,7 +184,7 @@ export function RegistrationFormProvider({ children }) {
     setVisitedTabs((current) => ({ ...current, [tab]: true }));
   }, []);
 
-  // AI-assisted: see docs/AI_LOG.md #54
+  // AI-assisted: see AI_LOG.md #54
   // Session reset: empties the form and lets the next uid preload its own saved registration.
   const reset = useCallback(() => {
     hasPreloadedRef.current = false;
@@ -226,7 +226,7 @@ export function RegistrationFormProvider({ children }) {
     [vehicle],
   );
 
-  // AI-assisted: see docs/AI_LOG.md #55
+  // AI-assisted: see AI_LOG.md #55
   // Tab 3 is valid with the email, the terms and the new document fields; the technical review is
   // only checked when the vehicle year requires it (the vehicle year comes from tab 2).
   const documentFields = useMemo(() => validateDocumentFields(documents, vehicle.year), [documents, vehicle.year]);
@@ -263,7 +263,7 @@ export function RegistrationFormProvider({ children }) {
     // Trim only here, at the submit boundary, not on every keystroke
     // (setPersonalDataField/setVehicleField/setDocumentsField): trimming while typing would eat a
     // space the driver just typed before the next word of a multi-word name.
-    // AI-assisted: see docs/AI_LOG.md #34
+    // AI-assisted: see AI_LOG.md #34
     const personalDataPayload = {
       ...personalData,
       fullName: personalData.fullName.trim(),
@@ -276,7 +276,7 @@ export function RegistrationFormProvider({ children }) {
       brand: vehicle.brand.trim(),
       model: vehicle.model.trim(),
     };
-    // AI-assisted: see docs/AI_LOG.md #55
+    // AI-assisted: see AI_LOG.md #55
     // Revalidate the dates with a fresh clock (they may have expired since the form was filled)
     // and build the nested documents structure; the technical review goes out as null when the
     // vehicle year does not require it.
@@ -369,7 +369,7 @@ export function useRegistrationForm() {
   return context;
 }
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Tolerant read for code that may run outside the provider (useSessionReset): null when absent
 // (the main branch does not mount the registration form).
 export function useOptionalRegistrationForm() {

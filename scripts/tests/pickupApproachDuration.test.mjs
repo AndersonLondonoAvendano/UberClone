@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // T-286 (D-200): the simulated approach to the pickup finishes within the configured cap, whatever the
 // route length, with an injected clock (no real waiting). The distance walked is not changed.
 import assert from 'node:assert/strict';

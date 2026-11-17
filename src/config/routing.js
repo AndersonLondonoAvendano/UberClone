@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // Routing constants. Public values (no keys): the OSRM demo server needs no account.
 // Every coordinate in the routing module is [lng, lat], the GeoJSON and MapLibre order.
 

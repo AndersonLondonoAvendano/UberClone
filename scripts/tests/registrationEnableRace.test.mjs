@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // enable() must not write the preference when the session is closed while the permission dialog is open.
 //   node scripts/tests/registrationEnableRace.test.mjs
 import assert from 'node:assert/strict';

@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #20
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #20
+// AI-assisted: see AI_LOG.md #54
 // Startup screens shown while the account status is loading or failed. They use the shared
 // remote-data state block; the error variant also offers "Cerrar sesión" (AccountActions,
 // registration variant) so the driver is never stuck without a way out. Only AppState is

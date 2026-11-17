@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Plain Node tests for the simulated tip and rating (D-124): generator, mapper, trip record, charged
 // amount, balance and legacy display. Run: node scripts/tests/tipFeedback.test.mjs
 import assert from 'node:assert/strict';

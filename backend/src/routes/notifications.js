@@ -1,9 +1,9 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // POST /notifications/register, POST /notifications/unregister and POST /notifications/test-request.
 // The uid comes only from the verified ID token; the body never supplies a uid, tokens, text or data.
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // POST /notifications/availability only takes { available: boolean }; extra fields are ignored. State is in memory only.
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // The availability answer is { active, applied } (D-199): applied:true when the report took effect; when it was
 // ignored for an obsolete seq it is { active, applied:false, lastSeq } (HTTP 200 either way), where lastSeq is the
 // last accepted seq of the uid so the app can recover. Only a seq lower than or equal to the last one is ignored.
@@ -34,7 +34,7 @@ export function createNotificationsHandlers({
   const pending = new Map();
 
   // Sends one request to every token of the uid in batches, and removes only the tokens FCM reports as stale.
-  // AI-assisted: see docs/AI_LOG.md #74
+  // AI-assisted: see AI_LOG.md #74
   // D-207: payment alternates by the 0-based send index of the session (even = cash, odd = card). The test
   // endpoint passes no index, so it always sends cash (simplest deterministic choice).
   async function sendToUid(uid, index = 0) {

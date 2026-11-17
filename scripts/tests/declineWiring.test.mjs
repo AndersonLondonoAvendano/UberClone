@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // T-229: manual rejection and every expiry go through the same declineRequest path (source checks, because the
 // components cannot run in Node).
 import assert from 'node:assert/strict';

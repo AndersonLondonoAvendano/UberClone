@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Phone language without extra dependencies (RI-07). Readers are injected so a script can test
 // them; the real ones load React Native lazily and never throw (a failing reader counts as "none").
 import { normalizeLanguage } from './languages';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // Plain Node test for chooseRequestSource (T-275, CA-007-13): every combination.
 //   node scripts/tests/requestSource.test.mjs
 import assert from 'node:assert/strict';

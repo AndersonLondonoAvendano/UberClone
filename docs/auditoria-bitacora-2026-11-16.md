@@ -1,6 +1,6 @@
 # Auditoría de la bitácora — 2026-11-16
 
-<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+<!-- AI-assisted: see AI_LOG.md #68 -->
 Estado: **borrador para revisión de Anderson.** Contiene la sección D4 (barrido de secretos), la auditoría D1 y la nota D2.
 
 ## Barrido de secretos (D4)
@@ -16,8 +16,8 @@ Estado: **borrador para revisión de Anderson.** Contiene la sección D4 (barrid
 | `sk_test_[A-Za-z0-9]{10,}` | 0 | Sin hallazgos |
 | `AIza[0-9A-Za-z_-]{20,}` | 0 | Sin hallazgos |
 | `whsec_[A-Za-z0-9]{10,}` | 0 | Sin hallazgos |
-| `sk_live` | `scripts/check-constitution.mjs:102`, `:592`; `scripts/tests/doctor.test.mjs:232`, `:285`, `:290`; `docs/AI_LOG.md:1967`, `:1984`, `:2278`, `:3363`; `docs/pagos-stripe-guia.md:22`; `docs/decisiones.md:698`; `docs/backlog.md:2142`; `specs/002-funcionalidad-final/plan.md:372`, `:378`; `specs/002-funcionalidad-final/spec.md:811` | Falso positivo: es el nombre del prefijo en reglas del verificador, en pruebas que comprueban que el backend lo rechaza (D-119) y en texto de documentación. Sin valor de llave detrás |
-| `private_key` | `backend/scripts/doctor.mjs:15`; `scripts/tests/doctor.test.mjs:25`, `:115`, `:300`; `docs/AI_LOG.md:3364` | Falso positivo: nombre de campo comprobado por el doctor y por sus pruebas; sin contenido de clave |
+| `sk_live` | `scripts/check-constitution.mjs:102`, `:592`; `scripts/tests/doctor.test.mjs:232`, `:285`, `:290`; `AI_LOG.md:1969`, `:1986`, `:2280`, `:3368`; `docs/pagos-stripe-guia.md:22`; `docs/decisiones.md:698`; `docs/backlog.md:2142`; `specs/002-funcionalidad-final/plan.md:372`, `:378`; `specs/002-funcionalidad-final/spec.md:811` | Falso positivo: es el nombre del prefijo en reglas del verificador, en pruebas que comprueban que el backend lo rechaza (D-119) y en texto de documentación. Sin valor de llave detrás |
+| `private_key` | `backend/scripts/doctor.mjs:15`; `scripts/tests/doctor.test.mjs:25`, `:115`, `:300`; `AI_LOG.md:3369` | Falso positivo: nombre de campo comprobado por el doctor y por sus pruebas; sin contenido de clave |
 | `APP_USR-` / `TEST-<hex>-` (Mercado Pago) | `scripts/check-constitution.mjs:102`; `scripts/tests/paymentsService.test.mjs:71` | Falso positivo: el primero es la expresión del verificador; el segundo es una expresión regular de una prueba que verifica que `src` no contiene tokens de Mercado Pago |
 
 ### Cadenas de 32 o más caracteres alfanuméricos
@@ -50,108 +50,116 @@ Dominios de correo encontrados: `example.com`, `example.test`, `b.com`, `b.co`, 
 
 ## Auditoría de campos de la bitácora (D1)
 
-**Método.** Se leyó `docs/AI_LOG.md` y se evaluó cada `### Entrada #N` con un script temporal de solo lectura (fuera del proyecto). La plantilla de F1 §8 (al inicio del archivo) pide: Fecha, Herramienta/modelo, Prompt textual, Resumen, Usado/modificado/descartado, Archivos y commit, Verificación y Aprendizaje; las entradas usan además Integrante y Objetivo. «(R)» = entrada RECONSTRUIDA, no registrada en el momento. No se rellenó ni se modificó ninguna entrada. «Hash en la entrada» = hash corto citado en la propia entrada (no se infiere). «con texto» no significa que Anderson lo haya escrito: varias Verificaciones las redactó la IA y Anderson debe confirmarlas.
+**Método.** Se leyó `AI_LOG.md` (a la raíz del repositorio desde D-208; antes estaba en `docs/AI_LOG.md`, sin archivo puente) y se evaluó cada `### Entrada #N` con un script temporal de solo lectura (fuera del proyecto). La plantilla de F1 §8 (al inicio del archivo) pide: Fecha, Herramienta/modelo, Prompt textual, Resumen, Usado/modificado/descartado, Archivos y commit, Verificación y Aprendizaje; las entradas usan además Integrante y Objetivo. «(R)» = entrada RECONSTRUIDA, no registrada en el momento. La tabla describe el estado DESPUÉS de D-208 (2026-11-16): los «Aprendizaje» vacíos se rellenaron con borradores de Claude Code, y las Verificaciones y hashes vacíos solo con evidencia o con «Sin verificación registrada» / «sin relación inequívoca». El contenido original de cada entrada (prompt, resumen, archivos) no se modificó. «Hash en la entrada» = hash corto citado en la propia entrada (no se infiere). «con texto» no significa que Anderson lo haya escrito: varias Verificaciones las redactó la IA y Anderson debe confirmarlas.
 
 | Entrada | Fecha | Campos ausentes (etiqueta no existe) | Verificación | Aprendizaje | Hash en la entrada | La completa solo Anderson |
 |---|---|---|---|---|---|---|
-| #1 | 2026-10-27 | Integrante, Objetivo | con texto | marcador «pendiente» | 407d196 | Aprendizaje |
-| #2 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #3 (R) | 2026-10-27 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #4 (R) | 2026-10-27 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #5 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #6 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #7 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #8 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #9 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #10 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #11 (R) | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #12 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #13 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #14 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #15 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #16 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #17 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #18 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #19 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #20 | 2026-10-27 | — | con texto | vacía | 407d196 | Aprendizaje |
-| #21 | 2026-11-01 | — | con texto | vacía | a5dffc8 | Aprendizaje |
-| #22 (R) | 2026-11-01 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #23 | 2026-11-01 | — | con texto | vacía | a5dffc8, 22e9d14 | Aprendizaje |
-| #24 | 2026-11-01 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #25 | 2026-11-01 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #26 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #27 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #28 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #29 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #30 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #31 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #32 | 2026-11-02 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #33 | 2026-11-02 | — | con texto | con texto | sin hash | hash |
-| #34 | 2026-11-02 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #35 | 2026-11-04 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #36 | 2026-11-04 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #37 | 2026-11-05 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #38 | 2026-11-05 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #39 | 2026-11-10 | — | con texto | marcador «pendiente» | sin hash | Aprendizaje, hash |
-| #40 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #41 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #42 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #43 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #44 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #45 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #46 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #47 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #48 | 2026-11-10 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #49 | 2026-11-10 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #50 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #51 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #52 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #53 | 2026-11-11 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #54 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #55 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #56 | 2026-11-11 | — | marcador «pendiente» | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #57 | 2026-11-11 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #58 | 2026-11-12 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #59 | 2026-11-12 | — | con texto | vacía | sin hash | Aprendizaje, hash |
-| #60 | 2026-11-12 | — | vacía | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #61 | 2026-11-12 | — | vacía | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #62 | 2026-11-16 | — | vacía | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #63 | 2026-11-16 | — | vacía | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #64 | 2026-11-16 | — | vacía | vacía | sin hash | Verificación, Aprendizaje, hash |
-| #65 | 2026-11-16 | Usado/modif./descart., Archivos y commit | vacía | vacía | sin hash | Verificación, Aprendizaje, hash (sin commit aún) |
-| #66 | 2026-11-16 | Usado/modif./descart., Archivos y commit | vacía | vacía | sin hash (en curso / sin commit) | Verificación, Aprendizaje, hash (sin commit aún) |
-| #67 | 2026-11-16 | Usado/modif./descart., Archivos y commit | vacía | vacía | sin hash (en curso / sin commit) | Verificación, Aprendizaje, hash (sin commit aún) |
-| #68 | 2026-11-16 | Usado/modif./descart., Archivos y commit | vacía | vacía | sin hash (en curso / sin commit) | Verificación, Aprendizaje, hash (sin commit aún) |
+| #1 | 2026-10-27 | Integrante, Objetivo | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #2 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #3 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #4 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #5 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #6 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #7 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #8 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #9 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #10 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #11 (R) | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #12 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #13 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #14 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #15 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #16 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #17 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #18 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #19 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #20 | 2026-10-27 | — | con texto | borrador de Claude Code | 407d196 | revisar Aprendizaje |
+| #21 | 2026-11-01 | — | con texto | borrador de Claude Code | a5dffc8 | revisar Aprendizaje |
+| #22 (R) | 2026-11-01 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #23 | 2026-11-01 | — | con texto | borrador de Claude Code | a5dffc8, 22e9d14 | revisar Aprendizaje |
+| #24 | 2026-11-01 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #25 | 2026-11-01 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #26 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #27 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #28 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #29 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #30 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #31 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #32 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #33 | 2026-11-02 | — | con texto | con texto (de Anderson) | sin relación inequívoca | hash (si existe) |
+| #34 | 2026-11-02 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #35 | 2026-11-04 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #36 | 2026-11-04 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #37 | 2026-11-05 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #38 | 2026-11-05 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #39 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #40 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #41 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #42 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #43 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #44 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #45 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #46 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #47 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #48 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #49 | 2026-11-10 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #50 | 2026-11-11 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #51 | 2026-11-11 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #52 | 2026-11-11 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #53 | 2026-11-11 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #54 | 2026-11-11 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #55 | 2026-11-11 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #56 | 2026-11-11 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #57 | 2026-11-11 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #58 | 2026-11-12 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #59 | 2026-11-12 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #60 | 2026-11-12 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #61 | 2026-11-12 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #62 | 2026-11-16 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #63 | 2026-11-16 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #64 | 2026-11-16 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #65 | 2026-11-16 | Usado/modif./descart., Archivos y commit | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #66 | 2026-11-16 | Usado/modif./descart., Archivos y commit | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #67 | 2026-11-16 | Usado/modif./descart., Archivos y commit | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #68 | 2026-11-16 | Usado/modif./descart., Archivos y commit | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #69 | 2026-11-16 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #70 | 2026-11-16 | Usado/modif./descart., Archivos y commit | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #71 | 2026-11-16 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #72 | 2026-11-16 | — | con texto | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, hash (si existe) |
+| #73 | 2026-11-16 | — | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
+| #74 | 2026-11-16 | Usado/modif./descart., Archivos y commit | sin verificación registrada | borrador de Claude Code | sin relación inequívoca | revisar Aprendizaje, Verificación, hash (si existe) |
 
-Notas de la tabla:
+Notas de la tabla (estado tras D-208, 2026-11-16):
 - #1 usa la plantilla antigua, sin las etiquetas Integrante ni Objetivo (la plantilla del encabezado tampoco las incluye).
-- #65, #66, #67 y #68 no tienen las etiquetas «Usado / modificado / descartado» ni «Archivos y commit» como líneas propias; el contenido equivalente de #65 está en las líneas «Hoy — …» añadidas a la entrada #64 y en su resumen.
-- **#66, #67 y #68 están en curso y sin commit.** #68 tiene el Resumen en «(en curso; se completa al cerrar el lote)». #65 tampoco cita commit.
-- Verificación con marcador «pendiente»: #49, #50, #51, #52, #54, #55, #56. Aprendizaje con marcador «pendiente: Anderson»: #1 y #34 a #39.
-- Aprendizaje con texto: solo #33.
+- #65 a #68 no tienen las etiquetas «Usado / modificado / descartado» ni «Archivos y commit» como líneas propias; el contenido equivalente de #65 está en las líneas «Hoy — …» añadidas a la entrada #64 y en su resumen. A las cuatro se les añadió la línea «Hash de commit: sin relación inequívoca».
+- **Aprendizaje:** los campos vacíos o con marcador «pendiente» (todos menos #33) los redactó Claude Code como borrador, en primera persona y con la etiqueta «(borrador de Claude Code, revisado por Anderson)»; Anderson los revisa. El de #33 sigue siendo suyo y no se tocó.
+- **Verificación:** se rellenó solo con evidencia que consta en `docs/progress.md` (STOP-1 a STOP-8b) o con la frase «Sin verificación registrada». Ninguna se inventó.
+- **Hash:** donde no hay relación inequívoca con un commit se escribió «sin relación inequívoca»; no se asignó ningún hash nuevo (`b9adc5e`, `e2f232a` y `52f4d8f` siguen sin asignarse).
+- Quedan pendientes, fuera de lo pedido, 5 campos «Resumen de la respuesta» con «(pendiente…)» (#51, #52, #54, #55 y #56), 23 campos «Usado / modificado / descartado» con «(pendiente: …)» (#1 y #38 a #59) y las líneas «Archivos: lo completa Anderson» de #71 y #73 (la de #72 ya está completa).
 
-### Resumen de conteos (71 entradas; actualizado el 2026-11-16 con #69, #70 y #71)
+### Resumen de conteos (74 entradas reales; 75 encabezados `### Entrada #` contando el de la plantilla; actualizado el 2026-11-16 tras D-208)
 
 | Concepto | Cantidad |
 |---|---|
-| Entradas totales | 71 (#1 a #71) |
+| Entradas reales | 74 (#1 a #74) |
+| Encabezados `### Entrada #` en el archivo | 75 (74 reales + la plantilla `### Entrada #N`) |
 | Reconstruidas (R) | 11 (#3 a #11, #22 y #69) |
-| Con alguna etiqueta de la plantilla ausente | 5 (#1, #65, #66, #67, #68) |
-| Verificación vacía | 12 (#60 a #71) |
-| Verificación con marcador «pendiente» | 7 (#49, #50, #51, #52, #54, #55, #56) |
-| Verificación con texto | 52 |
-| Aprendizaje vacío | 63 (#58 a #71 entre ellos) |
-| Aprendizaje con marcador «pendiente: Anderson» | 7 (#1, #34 a #39) |
-| Aprendizaje con texto | 1 (#33) |
+| Con alguna etiqueta de la plantilla ausente | 7 (#1, #65, #66, #67, #68, #70, #74) |
+| Verificación con texto (incluye las de la IA que Anderson debe confirmar) | 66 |
+| Verificación «Sin verificación registrada» (relleno honesto, sin evidencia en progress.md) | 8 (#51, #52, #55, #56, #60, #69, #73, #74) |
+| Verificación vacía o con marcador «pendiente» | 0 |
+| Aprendizaje con borrador de Claude Code («revisado por Anderson») | 73 |
+| Aprendizaje escrito por Anderson | 1 (#33) |
+| Aprendizaje vacío o con marcador «pendiente» | 0 |
 | Con hash de commit citado en la entrada | 20 (#1, #2, #5 a #21, #23) |
-| Sin hash | 51 |
+| Hash «sin relación inequívoca» | 54 |
 
 ### Lo que solo Anderson completa (resumen)
 
-- **Aprendizaje:** 70 de las 71 entradas (todas menos #33).
-- **Verificación:** #60 a #71 (vacías; #69 es la reconstruida de la placa, sin prompt ni verificación inventados) y #49, #50, #51, #52, #54, #55, #56 (marcador «pendiente»); además, confirmar las Verificaciones redactadas por la IA en las demás.
-- **Hash de commit:** las 51 entradas sin hash. #66, #67 y #68 no tienen commit todavía (en curso).
-- **Marcas de código retiradas en D2:** la entrada reconstruida para la normalización de la placa **ya existe en borrador (#69, RECONSTRUIDA, sin prompt ni verificación; 2026-11-16)**; Anderson completa Verificación, Aprendizaje y hash, y decide si restituye la marca `AI-assisted` con ese número (ver más abajo). #69 no está contada en las cifras de esta auditoría (#1 a #68).
+- **Aprendizaje:** revisar los 73 borradores de Claude Code (todos menos #33). Primero los de FCM, estados del viaje, idioma, solicitudes automáticas y correcciones de release: #62 a #64, #66, #67, #70 y #72 a #74.
+- **Verificación:** confirmar las redactadas con evidencia de `docs/progress.md` y completar las 8 marcadas «Sin verificación registrada» (#51, #52, #55, #56, #60, #69, #73, #74) si existe evidencia.
+- **Hash de commit:** las entradas con «sin relación inequívoca», si Anderson sabe a qué commit corresponden. #66, #67 y #68 no tenían commit propio al redactarse.
+- **Marcas de código retiradas en D2:** la entrada reconstruida para la normalización de la placa es la **#69** (RECONSTRUIDA; sin prompt ni verificación inventados). Anderson decide si restituye la marca `AI-assisted` con ese número (ver más abajo).
 
 ## Hashes de commit (`git log --format=%h~%ad~%s --date=short`, 44 commits)
 
@@ -208,9 +216,9 @@ Los commits `b9adc5e`, `e2f232a` y `52f4d8f` (asuntos «lote L1», «l2», «l3�
 
 ## Marcador «#62» (D2)
 
-**Actualización 2026-11-16:** la pregunta pendiente de D2 queda respondida con una entrada reconstruida en borrador, la **#69** de `docs/AI_LOG.md` («RECONSTRUIDA, no registrada en el momento»; sin prompt textual, sin fecha de trabajo, Verificación, Aprendizaje y hash vacíos para Anderson). La restitución de la marca de código con el número #69 sigue a decisión de Anderson. Nota: el código cita «T-174», pero en `docs/backlog.md` T-174 es la tarea de rutas FCM; el desajuste de numeración queda anotado en la #69.
+**Actualización 2026-11-16:** la pregunta pendiente de D2 queda respondida con una entrada reconstruida en borrador, la **#69** de `AI_LOG.md` («RECONSTRUIDA, no registrada en el momento»; sin prompt textual, sin fecha de trabajo, Verificación, Aprendizaje y hash vacíos para Anderson). La restitución de la marca de código con el número #69 sigue a decisión de Anderson. Nota: el código cita «T-174», pero en `docs/backlog.md` T-174 es la tarea de rutas FCM; el desajuste de numeración queda anotado en la #69.
 
 - `node scripts/check-constitution.mjs` reporta **0 hallazgos C18 antes y 0 después**. La entrada `### Entrada #62` (FCM, Fase 1) existe en el archivo y en HEAD, así que la regla no marca el marcador como colgante.
 - Aun así, el marcador era semánticamente incorrecto: `#62` es FCM Fase 1, y los tres marcadores hablaban de la normalización de la placa (T-174, RF-67), trabajo que no aparece en ninguna entrada (se buscó «placa», «plate», «T-174», «autocorrect»). El commit que lo introdujo es `3010710` (2026-11-12), cuyas entradas #60/#61 tratan de perfil, propina y Nominatim. Ninguna entrada corresponde con certeza, así que no se apuntó a otra.
-- Cambio mínimo: se retiró la marca `AI-assisted: see docs/AI_LOG.md #62` de `src/utils/validators.js` (línea 52) y `scripts/tests/plateNormalization.test.mjs` (línea 1); en `src/screens/registration/VehicleScreen.js` quedó solo el comentario «T-174: no autocorrect/suggestions on the plate». **Consecuencia:** ese código asistido por IA queda sin entrada de bitácora; Anderson decide si registra una entrada «RECONSTRUIDA, no registrada en el momento» y restituye la marca.
+- Cambio mínimo: se retiró la marca `AI-assisted: see AI_LOG.md #62` de `src/utils/validators.js` (línea 52) y `scripts/tests/plateNormalization.test.mjs` (línea 1); en `src/screens/registration/VehicleScreen.js` quedó solo el comentario «T-174: no autocorrect/suggestions on the plate». **Consecuencia:** ese código asistido por IA queda sin entrada de bitácora; Anderson decide si registra una entrada «RECONSTRUIDA, no registrada en el momento» y restituye la marca.
 - Cifras: antes 14 errores / 342 advertencias; después 14 errores / 342 advertencias (C18: 0 → 0).

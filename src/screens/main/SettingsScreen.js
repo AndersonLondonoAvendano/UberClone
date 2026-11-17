@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: Cards, DataRow, note icons)
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #53 (presentation: Cards, DataRow, note icons)
 // Settings (T-49, read-only): app info (name, version), the simulated-payment note and the map credits.
 // The provisional shared demo value panel only renders under SHOW_DEV_TOOLS.
 
@@ -33,7 +33,7 @@ export function SettingsScreen({ navigation }) {
       onLeadingPress={() => navigation.dispatch(DrawerActions.openDrawer())}
     >
       <View style={styles.stack}>
-        {/* AI-assisted: see docs/AI_LOG.md #53 */}
+        {/* AI-assisted: see AI_LOG.md #53 */}
         <Card style={styles.group}>
           <Text style={styles.section} accessibilityRole="header">
             {labels.settings.appTitle}
@@ -47,18 +47,18 @@ export function SettingsScreen({ navigation }) {
           <Note icon="card" text={labels.settings.paymentNote} />
           <Note icon="map" text={labels.settings.mapsNote} />
         </Card>
-        {/* AI-assisted: see docs/AI_LOG.md #54 */}
+        {/* AI-assisted: see AI_LOG.md #54 */}
         <Card style={styles.group}>
           <Text style={styles.section} accessibilityRole="header">
             {labels.settings.accountTitle}
           </Text>
           <AccountActions variant="settings" email={authUser?.email} />
         </Card>
-        {/* AI-assisted: see docs/AI_LOG.md #64 (T-186) */}
+        {/* AI-assisted: see AI_LOG.md #64 (T-186) */}
         <Card style={styles.group}>
           <NotificationsSection />
         </Card>
-        {/* AI-assisted: see docs/AI_LOG.md #67 (T-254) */}
+        {/* AI-assisted: see AI_LOG.md #67 (T-254) */}
         <Card style={styles.group}>
           <LanguageSection />
         </Card>

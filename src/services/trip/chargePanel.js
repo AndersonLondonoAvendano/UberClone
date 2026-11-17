@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Pure decision of the single message, tone, chip and actions shown on "Cobro y resumen" (T-118, RF-56).
 // The screen only paints what this returns. One message at a time with priority:
 // save error > service error (card) / write error (cash) > informational > success.
@@ -21,7 +21,7 @@ function errorText(error, generic) {
   return typeof error === 'string' && error.length > 0 ? error : generic;
 }
 
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // T-126 (RF-57): the single "Title. Message" text of a card service error class. Classes without their own
 // text (failed, backendUnavailable, openFailed) use the older action texts; unknown codes use the generic one.
 export function serviceErrorText(code) {
@@ -29,11 +29,11 @@ export function serviceErrorText(code) {
   return entry ? `${entry.title}. ${entry.message}` : text.serviceError;
 }
 
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // T-145 (RF-62, DP-47): the gateways with a charge button, in a fixed order.
 export const CHARGE_PROVIDERS = [SAVED_PAYMENT.MERCADOPAGO, SAVED_PAYMENT.STRIPE];
 
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // The pseudo-action of "Reintentar" when the providers query failed (it reloads the query, no payment service call).
 export const RELOAD_PROVIDERS = 'reloadProviders';
 
@@ -66,7 +66,7 @@ export function chargePanel({ method, paymentStatus, saveError, serviceError, wr
   const status = isCard && collected ? PAYMENT_STATUS.APPROVED : paymentStatus;
   const view = paymentView({ paymentMethod: method, paymentStatus: status, status: 'completed' });
 
-  // AI-assisted: see docs/AI_LOG.md #59
+  // AI-assisted: see AI_LOG.md #59
   // Charge/retry buttons come ONLY from the configured gateways (chargeChoices). With the providers loading, failed
   // or none configured there is no charge button and never a default gateway. "Verificar pago" only exists once
   // the trip has a chosen gateway (paymentId). A failed providers query offers "Reintentar".

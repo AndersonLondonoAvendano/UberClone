@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // T-283 (D-199): monotonic seq across restarts, retry with a greater seq when the backend answers
 // applied:false, release-safe trace, and immediate report when the effective value turns true.
 // Injected clock, storage and api: no real waiting, no network.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Live saved trip for "Cobro y resumen" (T-96, RF-44): onSnapshot on drivers/{uid}/trips/{tripId}.
 // Returns { trip, loading, error } where error is 'offline' | 'failed' | null. Without a tripId (the
 // trip is not saved yet) nothing is subscribed. The subscription is released on unmount and when the

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Payment provider registry. A provider is
 //   { id, createCheckout({ tripId, uid, trip, currency, publicBaseUrl }) -> { url },
 //     getPaymentState({ tripId, uid, trip, currency }) -> { status: approved | pending | rejected, id } | null }

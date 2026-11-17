@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #54 (driver drawn as a car marker, R3)
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #57 (Home: centerOnce mode and recenter signal, H-1)
+// AI-assisted: see AI_LOG.md #54 (driver drawn as a car marker, R3)
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #57 (Home: centerOnce mode and recenter signal, H-1)
 // Shared trip map (T-44): MapLibre with the OpenFreeMap style, the route of the current leg as a
 // GeoJSON line, the target point (pickup or destination) and the driver car marker. The camera follows the
 // driver while `follow` is on. A failed style load shows the error with a retry that remounts the
@@ -8,7 +8,7 @@
 // neighborhood-zoom centering; later positions never move the camera. A changed `recenterSignal`
 // recenters on demand. The trip detail (T-110) passes `fitBounds` ([west, south, east, north]): the
 // initial camera frames those bounds with no animation (so reduce motion needs nothing special). The attribution is always shown as on-screen text over the map.
-// AI-assisted: see docs/AI_LOG.md #57 (design round 1: H1, H2)
+// AI-assisted: see AI_LOG.md #57 (design round 1: H1, H2)
 // `interactive={false}` makes only the map ignore touches (the retry button of the error box keeps working) and
 // `mapA11yLabel` then labels the map as one element. `attributionInsetRight` / `attributionInsetBottom` reserve room
 // for the bottom attribution (Home keeps the "My location" button clear of it); they default to 0.
@@ -36,7 +36,7 @@ import { SecondaryButton } from '../SecondaryButton';
 const ROUTE_LAYOUT = { 'line-join': 'round', 'line-cap': 'round' };
 const ROUTE_PAINT = { 'line-color': color.primary, 'line-width': ROUTE_LINE_WIDTH };
 const ROUTE_APPROX_PAINT = { ...ROUTE_PAINT, 'line-dasharray': [2, 2] };
-// AI-assisted: see docs/AI_LOG.md #53
+// AI-assisted: see AI_LOG.md #53
 // Driver: car glyph in a badge (CarMarker). Target: hollow ring. Shape tells them apart, not only colour.
 const TARGET_PAINT = {
   'circle-radius': mapMarker.targetRadius,
@@ -60,7 +60,7 @@ export function TripMap({ testID, position, target, routeCoordinates, approximat
   // Home (centerOnce) without a position starts on Colombia, not on the world.
   const [initialView] = useState(() => {
     if (fitBounds) {
-      // AI-assisted: see docs/AI_LOG.md #67 (A5: the caller may pass its own padding, e.g. extra bottom room)
+      // AI-assisted: see AI_LOG.md #67 (A5: the caller may pass its own padding, e.g. extra bottom room)
       const inset = ROUTE_FIT_PADDING;
       return { bounds: fitBounds, padding: fitPadding ?? { top: inset, right: inset, bottom: inset, left: inset } };
     }
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     borderRadius: radius.sm,
   },
-  // AI-assisted: see docs/AI_LOG.md #55 (Home: the top of the map holds the floating card)
+  // AI-assisted: see AI_LOG.md #55 (Home: the top of the map holds the floating card)
   attributionBottom: {
     top: undefined,
     bottom: space[2],

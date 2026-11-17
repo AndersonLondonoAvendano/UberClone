@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Earnings of the screen (T-108, RNF-03): metrics of Today, Week and Month plus the balance with the
 // platform, memoised. The calculation itself is the pure buildEarnings (src/utils/earnings.js).
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Track and thumb of a switch, shared by AvailabilitySwitch and the notifications row (F-01). Purely
 // visual: the parent Pressable owns the touch target and the accessibility role. The thumb slides with a
 // transform animation unless the system asks to reduce motion. Tokens only.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // Serialized writer for the optional Firestore document driverLocations/{uid} (T-44). Pure: the
 // write, the uid, the server timestamp and the timers are injected, so it is tested without Firebase.
 //

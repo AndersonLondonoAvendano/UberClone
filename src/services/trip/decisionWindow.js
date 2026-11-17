@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Decision window of an incoming request (T-194, D-137): 15 s counted from the first time the
 // request is shown, capped by its validity (expiresAt). Pure and injectable; nothing here touches
 // React or timers. markShown keeps the FIRST instant, so re-renders or reopening never extend it.

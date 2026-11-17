@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the eligibility rules (T-178, D-140.5).
 //   node scripts/tests/notificationEligibility.test.mjs
 import assert from 'node:assert/strict';

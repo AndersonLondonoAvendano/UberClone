@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // Plain Node test for the availability reporter and its single-source wiring (T-276, CA-007-12,
 // CA-007-04 app side, RA-13). Injected clock, timers and api: no real waiting, no network.
 //   node scripts/tests/availabilityReporter.test.mjs

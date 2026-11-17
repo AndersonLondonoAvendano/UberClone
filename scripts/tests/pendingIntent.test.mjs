@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the pending intent bound to a uid (T-178, DP-64).
 //   node scripts/tests/pendingIntent.test.mjs
 import assert from 'node:assert/strict';

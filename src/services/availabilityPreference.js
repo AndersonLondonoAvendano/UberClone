@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // Driver "Disponible" choice kept on the phone (T-288, D-201). Local only: nothing goes to Firestore.
 // The key is bound to the uid (`availability:<uid>`) and holds a plain 'true' / 'false' mark, no personal
 // data, so one account never inherits another one's choice. Storage is injected (AsyncStorage in the app),

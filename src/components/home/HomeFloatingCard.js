@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #55
 // Floating card over the Home map (F1b, RF-39): availability switch with its written state, the
 // hint or notice, and the grant-permission button when the location permission is missing.
 // Tokens and labels only. Sits below the status bar through the safe-area inset.

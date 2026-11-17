@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #55
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #61
 // Pure mapping of a finished trip to the document saved in drivers/{uid}/trips/{tripId} (T-46, T-93).
 // Amounts come from calculateFare (the same call the summary screen uses), so what is saved is
 // exactly what the driver saw. NO real driver position is saved: only address labels, distance,
@@ -16,11 +16,11 @@ import { PAYMENT_STATUS, TRIP_STATUS } from '../../constants/tripStatus';
 import { calculateFare } from '../../utils/fare';
 import { simplifyRoute } from './simplifyRoute';
 
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // REJECTED: a request the driver declined or that expired. 'requested' is never saved.
 export const SAVED_STATUS = { COMPLETED: TRIP_STATUS.COMPLETED, CANCELLED: TRIP_STATUS.CANCELLED, REJECTED: TRIP_STATUS.REJECTED };
 // 'transfer' and 'none' are legacy values: they are only READ (shown as "No disponible"), never written.
-// AI-assisted: see docs/AI_LOG.md #58 (T-145: 'stripe' is READ from the backend write, never written by the app)
+// AI-assisted: see AI_LOG.md #58 (T-145: 'stripe' is READ from the backend write, never written by the app)
 export const SAVED_PAYMENT = { CASH: 'cash', MERCADOPAGO: 'mercadopago', STRIPE: 'stripe', TRANSFER: 'transfer', NONE: 'none' };
 
 // A card trip is charged through a gateway: Mercado Pago or Stripe.
@@ -65,7 +65,7 @@ const round = (value, decimals) => {
   const factor = 10 ** decimals;
   return Math.round((Number(value) || 0) * factor) / factor;
 };
-// AI-assisted: see docs/AI_LOG.md #61 (D-124)
+// AI-assisted: see AI_LOG.md #61 (D-124)
 // tip: whole COP >= 0 (anything else is 0). rating: whole 1-5 (anything else is null: no rating).
 export const tipOf = (value) => (Number.isInteger(value) && value >= 0 ? value : 0);
 export const ratingOf = (value) => (Number.isInteger(value) && value >= 1 && value <= 5 ? value : null);

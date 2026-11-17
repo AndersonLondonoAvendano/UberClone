@@ -1,24 +1,24 @@
-// AI-assisted: see docs/AI_LOG.md #68
-// AI-assisted: see docs/AI_LOG.md #11
-// AI-assisted: see docs/AI_LOG.md #61
-// AI-assisted: see docs/AI_LOG.md #13
-// AI-assisted: see docs/AI_LOG.md #14
-// AI-assisted: see docs/AI_LOG.md #15
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #33
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #41
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #67 (moved here from src/constants/labels.js; content unchanged)
+// AI-assisted: see AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #11
+// AI-assisted: see AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #13
+// AI-assisted: see AI_LOG.md #14
+// AI-assisted: see AI_LOG.md #15
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #33
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #67 (moved here from src/constants/labels.js; content unchanged)
 // Spanish dictionary (source of truth for every key; English falls back to it). Same shape as before the move.
 
 export const es = {
   appName: 'UberClone Conductor',
-  // AI-assisted: see docs/AI_LOG.md #60 (registration welcome, short tab names and account menu)
+  // AI-assisted: see AI_LOG.md #60 (registration welcome, short tab names and account menu)
   registrationFlow: {
     tabShort: { personalData: 'Datos', vehicle: 'Vehículo', documents: 'Documentos' },
     stepOf: 'Paso {n} de {total}',
@@ -85,7 +85,7 @@ export const es = {
     devBusy: 'Ya hay una solicitud o un viaje en curso.',
     devNotSupported: 'La API real no permite simular solicitudes.',
     servicesOff: 'Activa la ubicación del teléfono para estar disponible.',
-    // AI-assisted: see docs/AI_LOG.md #55 (F1b: Home map)
+    // AI-assisted: see AI_LOG.md #55 (F1b: Home map)
     hintLocalOnly: 'Solo tú ves tu posición. Activa Disponible para recibir solicitudes.',
     permissionNeeded: 'Necesitamos tu ubicación para mostrarte en el mapa y recibir solicitudes.',
     grantPermission: 'Permitir ubicación',
@@ -109,7 +109,7 @@ export const es = {
     paymentMethod: { card: 'Tarjeta', mercadopago: 'Mercado Pago', stripe: 'Stripe', cash: 'Efectivo' },
     fare: 'Tarifa',
     commission: 'Comisión ({pct} %)',
-    // AI-assisted: see docs/AI_LOG.md #61 (D-124: tip and total charged in the summary)
+    // AI-assisted: see AI_LOG.md #61 (D-124: tip and total charged in the summary)
     tip: 'Propina',
     totalCharged: 'Total cobrado',
     net: 'Tu ganancia',
@@ -120,21 +120,21 @@ export const es = {
     reject: 'Rechazar',
     rejectHint: 'Rechaza la solicitud y vuelve a Inicio',
     working: 'Un momento…',
-    // AI-assisted: see docs/AI_LOG.md #66 (A1: metrics in progress; A2: request while not available)
+    // AI-assisted: see AI_LOG.md #66 (A1: metrics in progress; A2: request while not available)
     calculating: 'Calculando…',
     calculatingA11y: 'Calculando distancia, duración y tarifa',
     unavailableNotice: 'Activa Disponible para recibir solicitudes',
     expired: 'La solicitud expiró',
-    // AI-assisted: see docs/AI_LOG.md #66 (C2d: the driver went "No disponible" with a request open)
+    // AI-assisted: see AI_LOG.md #66 (C2d: the driver went "No disponible" with a request open)
     closedUnavailable: 'Cancelada: ya no estás disponible',
-    // AI-assisted: see docs/AI_LOG.md #64 (T-183: a notification opened after its request had expired)
+    // AI-assisted: see AI_LOG.md #64 (T-183: a notification opened after its request had expired)
     pushExpired: 'La solicitud expiró',
     backingHome: 'Volviendo a Inicio…',
     noRequest: 'No hay una solicitud pendiente.',
     errorTaken: 'Otro conductor tomó esta solicitud.',
     errorNetwork: 'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
     errorGeneric: 'Algo salió mal. Inténtalo de nuevo.',
-    // AI-assisted: see docs/AI_LOG.md #47
+    // AI-assisted: see AI_LOG.md #47
     newRequest: 'Nueva solicitud de {name}',
     dismiss: 'Cerrar',
     dismissHint: 'Oculta la tarjeta sin rechazar; la solicitud vence sola',
@@ -146,19 +146,19 @@ export const es = {
       toDestination: 'En camino al destino',
       atDestination: 'Llegaste al destino',
     },
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     remaining: '{km} km · {min} min',
     remainingCaption: 'restantes',
-    // AI-assisted: see docs/AI_LOG.md #72 (T-287 H-2: spoken label of the target address row)
+    // AI-assisted: see AI_LOG.md #72 (T-287 H-2: spoken label of the target address row)
     pickupPointA11y: 'Punto de recogida: {address}',
     destinationA11y: 'Destino: {address}',
     routeLoading: 'Calculando la ruta…',
-    // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address by reverse geocoding)
+    // AI-assisted: see AI_LOG.md #61 (D-125: real address by reverse geocoding)
     addressSearching: 'Buscando dirección…',
     addressFallback: 'Calle cercana (simulada)',
     approxRoute: 'Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles.',
-    // AI-assisted: see docs/AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
-    // AI-assisted: see docs/AI_LOG.md #72 (D-200: no manual arrival, so no arrive or hint keys)
+    // AI-assisted: see AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
+    // AI-assisted: see AI_LOG.md #72 (D-200: no manual arrival, so no arrive or hint keys)
     startRide: 'Pasajero a bordo',
     finishRide: 'Finalizar viaje',
     finishRideHint: 'Llega al destino para continuar',
@@ -167,7 +167,7 @@ export const es = {
     finishErrorTimeout: 'El servidor no respondió a tiempo al finalizar el viaje.',
     finishErrorRejected: 'El servidor no aceptó el final del viaje. Puedes salir del viaje.',
     exitTrip: 'Salir del viaje',
-    // AI-assisted: see docs/AI_LOG.md #66 (C2c: the text depends on the state, see services/trip/exitCopy.js)
+    // AI-assisted: see AI_LOG.md #66 (C2c: the text depends on the state, see services/trip/exitCopy.js)
     exitQuestionServer: '¿Salir del viaje sin la confirmación del servidor?',
     exitQuestionInProgress: '¿Salir del viaje en curso?',
     exitQuestionPlain: '¿Salir del viaje?',
@@ -191,7 +191,7 @@ export const es = {
     finishedAt: 'Hora de llegada',
     kmValue: '{km} km',
     minValue: '{min} min',
-    // AI-assisted: see docs/AI_LOG.md #50 (simulated payment and saving, T-46)
+    // AI-assisted: see AI_LOG.md #50 (simulated payment and saving, T-46)
     paymentTitle: 'Cobro',
     paymentSimulated: 'Pago de prueba: no se mueve dinero real.',
     paymentCash: 'Efectivo: recibe el pago del pasajero en mano.',
@@ -214,7 +214,7 @@ export const es = {
     leaveConfirm: 'Sí, volver sin guardar',
     leaveKeep: 'Seguir en el resumen',
     noTrip: 'No hay un viaje para mostrar.',
-    // AI-assisted: see docs/AI_LOG.md #55 (charge state and actions, T-94)
+    // AI-assisted: see AI_LOG.md #55 (charge state and actions, T-94)
     paymentChip: {
       approved: 'Aprobado',
       pending: 'Pendiente',
@@ -222,7 +222,7 @@ export const es = {
       cash: 'Efectivo',
       unavailable: 'No disponible',
     },
-    // AI-assisted: see docs/AI_LOG.md #55 (charge state screen states, T-96)
+    // AI-assisted: see AI_LOG.md #55 (charge state screen states, T-96)
     paymentStateTitle: 'Estado del cobro',
     paymentLoading: 'Consultando el estado del cobro',
     paymentOffline: {
@@ -244,7 +244,7 @@ export const es = {
       verify: 'Verificar pago',
       confirmCash: 'Confirmar efectivo recibido',
     },
-    // AI-assisted: see docs/AI_LOG.md #58 (T-147: one charge button per configured gateway; Stripe is test mode)
+    // AI-assisted: see AI_LOG.md #58 (T-147: one charge button per configured gateway; Stripe is test mode)
     chargeProvider: {
       mercadopago: 'Cobrar con Mercado Pago',
       stripe: 'Cobrar con Stripe (tarjeta de prueba)',
@@ -254,8 +254,8 @@ export const es = {
       mercadopago: 'Reintentar pago con Mercado Pago',
       stripe: 'Reintentar pago con Stripe (tarjeta de prueba)',
     },
-    // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
-    // AI-assisted: see docs/AI_LOG.md #55 (single charge panel message, T-118)
+    // AI-assisted: see AI_LOG.md #55 (charge actions, T-97)
+    // AI-assisted: see AI_LOG.md #55 (single charge panel message, T-118)
     chargePanel: {
       cashPending: 'Falta confirmar que recibiste el efectivo.',
       cashCollected: 'Efectivo recibido. El viaje quedó guardado en tu historial.',
@@ -273,7 +273,7 @@ export const es = {
     paymentCardNote: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando Mercado Pago lo confirma; esta pantalla no lo marca.',
     paymentCardNoteGeneric: 'Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando la pasarela lo confirma; esta pantalla no lo marca.',
     paymentCashCollected: 'Efectivo cobrado.',
-    // AI-assisted: see docs/AI_LOG.md #57 (T-126: one message per payments service error class, no URL/token)
+    // AI-assisted: see AI_LOG.md #57 (T-126: one message per payments service error class, no URL/token)
     paymentServiceError: {
       notConfigured: { title: 'Servicio de cobro sin configurar', message: 'El servicio de cobro no está configurado en esta app. Avisa a soporte o revisa la configuración de la app.' },
       offline: { title: 'Sin conexión con el cobro', message: 'No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido.' },
@@ -293,7 +293,7 @@ export const es = {
       cashFailed: { title: 'No pudimos confirmar el efectivo', message: 'No se guardó la confirmación. Revisa tu conexión e inténtalo de nuevo.' },
     },
   },
-  // AI-assisted: see docs/AI_LOG.md #50 (earnings, history, profile and settings: T-47 to T-49)
+  // AI-assisted: see AI_LOG.md #50 (earnings, history, profile and settings: T-47 to T-49)
   earnings: {
     periods: { day: 'Hoy', week: 'Esta semana', month: 'Este mes' },
     periodsA11y: 'Periodo de las ganancias',
@@ -307,22 +307,22 @@ export const es = {
     emptyMessage: 'Cuando completes un viaje y confirmes el cobro, aparece aquí.',
     errorMessage: 'No pudimos traer tus ganancias. Revisa tu conexión e inténtalo de nuevo.',
     tripLine: '{passenger} · {time}',
-    // AI-assisted: see docs/AI_LOG.md #55 (RF-40: neutral text when a trip has no valid date)
+    // AI-assisted: see AI_LOG.md #55 (RF-40: neutral text when a trip has no valid date)
     timeUnknown: 'Hora no disponible',
-    // AI-assisted: see docs/AI_LOG.md #55 (T-100: balance with the platform)
+    // AI-assisted: see AI_LOG.md #55 (T-100: balance with the platform)
     balance: 'Saldo con la plataforma',
     balanceCredit: 'Saldo a favor de la plataforma',
     balanceHint: 'La plataforma te debe esta cantidad por los cobros con tarjeta.',
-    // AI-assisted: see docs/AI_LOG.md #56 (T-108: six metrics)
+    // AI-assisted: see AI_LOG.md #56 (T-108: six metrics)
     gross: 'Total facturado',
     tips: 'Propinas',
     average: 'Promedio por viaje',
     metricsTitle: 'Resumen del periodo',
     balanceCreditHint: 'Debes esta cantidad a la plataforma por la comisión de los viajes en efectivo.',
-    // AI-assisted: see docs/AI_LOG.md #66 (B1: balance over every trip; partial when the read hit its cap)
+    // AI-assisted: see AI_LOG.md #66 (B1: balance over every trip; partial when the read hit its cap)
     balancePartial: 'Saldo parcial: se leyeron los {count} viajes más recientes.',
     balanceErrorMessage: 'No pudimos traer tu saldo. Revisa tu conexión e inténtalo de nuevo.',
-    // AI-assisted: see docs/AI_LOG.md #66 (C2a: no driver session, nothing to read)
+    // AI-assisted: see AI_LOG.md #66 (C2a: no driver session, nothing to read)
     balanceNoSessionTitle: 'Saldo no disponible',
     balanceNoSessionMessage: 'Inicia sesión para ver tu saldo con la plataforma.',
   },
@@ -330,7 +330,7 @@ export const es = {
     emptyTitle: 'Todavía no tienes viajes',
     emptyMessage: 'Tus viajes completados y cancelados aparecen aquí cuando termines uno.',
     errorMessage: 'No pudimos traer tu historial. Revisa tu conexión e inténtalo de nuevo.',
-    // AI-assisted: see docs/AI_LOG.md #66 (T-230: one label for a declined or expired request)
+    // AI-assisted: see AI_LOG.md #66 (T-230: one label for a declined or expired request)
     status: { completed: 'Completado', cancelled: 'Cancelado', rejected: 'Rechazado' },
     cancelledAmounts: 'Sin cobro',
     fare: 'Tarifa',
@@ -340,12 +340,12 @@ export const es = {
     itemA11y: '{status}. {date}. {passenger}. De {origin} a {destination}.',
     itemA11yAmounts: ' Tarifa {fare}. Tu ganancia {net}.',
     dateUnknown: 'Fecha no disponible',
-    // AI-assisted: see docs/AI_LOG.md #56 (Rango validation messages, T-101)
+    // AI-assisted: see AI_LOG.md #56 (Rango validation messages, T-101)
     rangeMissing: 'Elige la fecha de inicio y la fecha de fin.',
     rangeOrder: 'La fecha de inicio no puede ser posterior a la fecha de fin.',
     rangeTooLong: 'El rango no puede superar 366 días.',
     weekdaysShort: ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'],
-    // AI-assisted: see docs/AI_LOG.md #56 (T-104 to T-106: filters, chart, paginated list)
+    // AI-assisted: see AI_LOG.md #56 (T-104 to T-106: filters, chart, paginated list)
     periodsA11y: 'Periodo del historial',
     periods: { day: 'Hoy', week: 'Semana', month: 'Mes', range: 'Rango' },
     methodsA11y: 'Método de pago',
@@ -370,7 +370,7 @@ export const es = {
     chartTotalLine: 'Total {total}',
     chartTopLine: 'Mayor: {label} · {value}',
     chartNote: 'La gráfica suma los viajes cargados.',
-    // AI-assisted: see docs/AI_LOG.md #57 (T-109)
+    // AI-assisted: see AI_LOG.md #57 (T-109)
     detail: {
       title: 'Detalle del viaje',
       duration: 'Duración',
@@ -383,18 +383,18 @@ export const es = {
       rating: 'Calificación',
       ratingValue: '★ {rating}',
       ratingA11y: 'Calificación {rating} de 5',
-      // AI-assisted: see docs/AI_LOG.md #61 (D-124)
+      // AI-assisted: see AI_LOG.md #61 (D-124)
       noRating: 'Sin calificación',
       noRatingA11y: 'Calificación: sin calificación',
       durationValue: '{minutes} min',
       distanceValue: '{km} km',
-      // AI-assisted: see docs/AI_LOG.md #58 (T-150: the gateway name is shown)
+      // AI-assisted: see AI_LOG.md #58 (T-150: the gateway name is shown)
       methods: { card: 'Tarjeta', mercadopago: 'Tarjeta (Mercado Pago)', stripe: 'Tarjeta (Stripe)', cash: 'Efectivo' },
       methodUnknown: 'No disponible',
       routeUnavailable: 'Ruta no disponible',
       routeA11y: 'Ruta del viaje',
       back: 'Volver al historial',
-      // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+      // AI-assisted: see AI_LOG.md #57 (T-110)
       openHint: 'Abre el detalle del viaje',
       emptyTitle: 'No encontramos este viaje',
       emptyMessage: 'Vuelve al historial y elige otro viaje.',
@@ -453,7 +453,7 @@ export const es = {
     mapsNote: 'Las rutas usan OSRM y los mapas son de OpenStreetMap y OpenFreeMap.',
     accountTitle: 'Cuenta',
     accountEmail: 'Correo de la cuenta',
-    // AI-assisted: see docs/AI_LOG.md #67 (T-254)
+    // AI-assisted: see AI_LOG.md #67 (T-254)
     language: {
       title: 'Idioma / Language',
       optionEs: 'Español',
@@ -696,7 +696,7 @@ export const es = {
           error: 'Escribe un correo válido, con @ y dominio.',
         },
         termsAccepted: { error: 'Debes aceptar los términos para continuar.' },
-        // AI-assisted: see docs/AI_LOG.md #55
+        // AI-assisted: see AI_LOG.md #55
         licenseNumber: { label: 'Número de licencia de conducción', error: 'Escribe un número de licencia válido (5 a 20 letras o números).' },
         licensePhotoUrl: { label: 'Foto de la licencia de conducción', error: 'Elige una foto de tu licencia con la cámara o la galería.' },
         licenseExpiresAt: { label: 'Vencimiento de la licencia', error: 'Elige una fecha de vencimiento posterior a hoy.' },
@@ -705,7 +705,7 @@ export const es = {
         technicalReviewPhotoUrl: { label: 'Foto de la revisión técnico-mecánica', error: 'Elige una foto de tu revisión técnico-mecánica con la cámara o la galería.' },
         technicalReviewExpiresAt: { label: 'Vencimiento de la revisión técnico-mecánica', error: 'Elige una fecha de vencimiento posterior a hoy.' },
       },
-      // AI-assisted: see docs/AI_LOG.md #55
+      // AI-assisted: see AI_LOG.md #55
       sections: {
         license: 'Licencia de conducción',
         soat: 'SOAT',

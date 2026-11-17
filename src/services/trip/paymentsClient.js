@@ -1,13 +1,13 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure client of the backend payments endpoints (T-95, RF-42, RF-43). fetch, the token getter, the
 // base URL and the timeout are injected, so a script can test it without network or Firebase.
 // It never throws: every result is { ok: true, ... } or { ok: false, error }.
 //
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // T-144 (RF-62, DP-48): getProviders() reads which gateways the backend has configured (booleans only) and
 // checkout/sync carry an optional `provider` in the body. Without it the body is the legacy { tripId }.
 //
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // T-125 (RF-57): `error` is one of eight stable classes. It is only a class: never a URL, a token,
 // a header or the raw message of the thrown error.
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Period limits in Colombian time (UTC-5, no daylight saving), computed with UTC arithmetic only so
 // the result never depends on the device time zone. Ranges are [start, end) in epoch ms. The week
 // runs Monday to Sunday. A chosen date (Date from the picker or 'YYYY-MM-DD') is read as a calendar

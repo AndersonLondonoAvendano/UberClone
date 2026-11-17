@@ -1,4 +1,4 @@
-<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+<!-- AI-assisted: see AI_LOG.md #70 -->
 # Análisis: «No disponible» no detenía las solicitudes automáticas (STOP-8)
 
 Corrección ordenada por Anderson (#70, D-198, completa D-197). Método: lectura del código y de las pruebas, sin suponer. No contiene secretos.

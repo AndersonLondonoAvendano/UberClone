@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Tests for deriveRegistrationProgress / shouldShowWelcome. Run:
 //   node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/registrationProgress.test.mjs
 import assert from 'node:assert/strict';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Tests for the RN Firebase adapter factory with fake dependencies (no React Native, no SDK).
 // Contract: SDK errors are propagated (the promise rejects / the call throws).
 // Run: node --test scripts/tests/notificationAdapter.test.mjs

@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #70
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #72
 // Reports the driver's effective availability to the backend and keeps the "backend confirmed" flag that
 // feeds chooseRequestSource (spec 007, DT-4, DT-5, DT-6; STOP-8 correction, D-198). Pure and injectable:
 // the notifications api, the clock and the timers come from the caller, so a script can drive it without

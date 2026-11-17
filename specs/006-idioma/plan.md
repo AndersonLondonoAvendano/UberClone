@@ -120,7 +120,7 @@ Visuales: T-254 (selector) y las tareas de migración que corrigen lecturas cong
 6. Texto en inglés más largo con fuente al 200 % (T-263).
 
 ## 9. Adenda L3b (T-268 a T-272; Borrador, no aprobada)
-<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+<!-- AI-assisted: see AI_LOG.md #68 -->
 
 Fuente: `specs/006-idioma/adenda-l3b.md` (RI-25 a RI-29, CA-006-35 a 50, D4, 35d). Sin dependencias, sin decisión nueva (la adenda no propone D-193). Las tareas quedan «Pendiente» hasta que Anderson apruebe la adenda; el resto de este plan puede quedar desactualizado (P5).
 

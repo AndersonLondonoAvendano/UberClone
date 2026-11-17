@@ -1,13 +1,13 @@
-// AI-assisted: see docs/AI_LOG.md #72 (T-285 removed arrive; T-286 caps the simulated pickup approach)
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalTrip)
+// AI-assisted: see AI_LOG.md #72 (T-285 removed arrive; T-286 caps the simulated pickup approach)
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #54 (reset and useOptionalTrip)
 // The trip in progress (T-44, T-45): one tripController at a time, shared by the request card, the
 // trip screen and the summary. It goes through the passenger API port only (never an adapter).
 // Starting a trip pauses the availability watch and the request subscription (setOnTrip(true));
 // ending it (endTrip, from the summary or after a cancel) disposes the controller and resumes the
 // availability the driver had before. Switching availability off during a trip does not stop it.
 //
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // endTrip releases the trip completely and is idempotent: a trip that did not finish is abandoned
 // first (its final status is written once), then the controller is disposed (timers, location
 // source, queue), the adapter frees the trip (releaseTrip: the mock drops its active trip even if
@@ -38,7 +38,7 @@ const TripContext = createContext(null);
 
 const api = { reportTripStatus, cancelTrip, reportDriverLocation };
 
-// AI-assisted: see docs/AI_LOG.md #72 (T-286: the simulated approach to the pickup lasts at most
+// AI-assisted: see AI_LOG.md #72 (T-286: the simulated approach to the pickup lasts at most
 // TRIP_PICKUP_APPROACH_MAX_S; the destination leg keeps the base speed)
 const createLocationSource = ({ coordinates, phase }) => {
   const baseKmh = SIMULATED_SPEED_KMH * TRIP_SPEED_FACTOR;
@@ -51,7 +51,7 @@ const createLocationSource = ({ coordinates, phase }) => {
   });
 };
 
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // Never awaited and never throws: the UI does not wait for Firestore or the adapter.
 const quietly = (call) => {
   Promise.resolve()
@@ -85,7 +85,7 @@ export function TripProvider({ children }) {
         buildStraightLineRoute: (from, to) => buildStraightLineRoute(from, to),
         createLocationSource,
         publishLocation: publishDriverLocation,
-        // AI-assisted: see docs/AI_LOG.md #44 (final status, skips the throttle)
+        // AI-assisted: see AI_LOG.md #44 (final status, skips the throttle)
         publishStatus: publishDriverTripStatus,
         config: tripConfig,
         onChange: (state) => {
@@ -100,7 +100,7 @@ export function TripProvider({ children }) {
     [disposeController, getDriverPosition, setOnTrip],
   );
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   const endTrip = useCallback(() => {
     const controller = controllerRef.current;
     if (!controller) return;
@@ -109,14 +109,14 @@ export function TripProvider({ children }) {
     controllerRef.current = null;
     controller.dispose();
     quietly(() => releaseTrip(final.tripId));
-    // AI-assisted: see docs/AI_LOG.md #50 (cancelled trips are saved silently, bounded retry, never blocking)
+    // AI-assisted: see AI_LOG.md #50 (cancelled trips are saved silently, bounded retry, never blocking)
     if (driverId && final.finished === TRIP_STATUS.CANCELLED) {
-      // AI-assisted: see docs/AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
+      // AI-assisted: see AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
       trackTripSave(async () => {
         const record = buildTripRecord({
           driverId,
           tripId: final.tripId,
-          request: withResolvedAddresses(final.request), // AI-assisted: see docs/AI_LOG.md #61 (D-125)
+          request: withResolvedAddresses(final.request), // AI-assisted: see AI_LOG.md #61 (D-125)
           status: SAVED_STATUS.CANCELLED,
           startedAt: final.startedAt,
           finishedAt: final.finishedAt,
@@ -129,7 +129,7 @@ export function TripProvider({ children }) {
     setOnTrip(false);
   }, [driverId, setOnTrip]);
 
-  // AI-assisted: see docs/AI_LOG.md #54
+  // AI-assisted: see AI_LOG.md #54
   // Session reset: releases a finished trip (summary still open) like endTrip does, or just clears
   // the state when there is none. A trip still in progress is never dropped: returns false.
   const reset = useCallback(() => {
@@ -154,7 +154,7 @@ export function TripProvider({ children }) {
       startRide: () => call('startRide'),
       finish: () => call('finish'),
       cancel: () => call('cancel'),
-      // AI-assisted: see docs/AI_LOG.md #44 (safe exit "Salir del viaje")
+      // AI-assisted: see AI_LOG.md #44 (safe exit "Salir del viaje")
       abandon: () => call('abandon'),
       retryRoute: () => call('retryRoute'),
       retryReport: () => call('retryReport'),
@@ -177,7 +177,7 @@ export function useTrip() {
   return context;
 }
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Tolerant read for code that may run outside the provider (useSessionReset): null when absent.
 export function useOptionalTrip() {
   return useContext(TripContext);

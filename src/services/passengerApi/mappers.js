@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #61
 // The ONLY file that knows the real passenger API's shape. The rest of the app sees only the
 // internal models of contract.js. ASSUMPTION until the real API arrives: the field names below are
 // a guess (a flat JSON close to the internal model, with snake_case alternatives). When the API is
@@ -39,14 +39,14 @@ const STATUS_FROM_API = {
   canceled: TRIP_STATUS.CANCELLED,
 };
 
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 function toPaymentMethod(value) {
   const method = String(value ?? '').toLowerCase();
   // #59: the contract speaks 'card' | 'cash'; the legacy 'mercadopago' is read as 'card' (gateway still undefined).
   return method === 'mercadopago' ? 'card' : method;
 }
 
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Optional feedback fields (D-124): a legacy request without them gives undefined (the key is left out).
 function toTip(value) {
   const tip = toNumber(value);
@@ -74,7 +74,7 @@ export function toTripRequest(raw = {}) {
     distanceKm: toNumber(raw.distanceKm ?? raw.distance_km),
     durationMin: toNumber(raw.durationMin ?? raw.duration_min),
     category: String(raw.category ?? '').toLowerCase(),
-    // AI-assisted: see docs/AI_LOG.md #55 (legacy "card" is the same as "mercadopago")
+    // AI-assisted: see AI_LOG.md #55 (legacy "card" is the same as "mercadopago")
     paymentMethod: toPaymentMethod(raw.paymentMethod ?? raw.payment_method),
     ...(tip !== undefined ? { tip } : {}),
     ...(rating !== undefined ? { rating } : {}),

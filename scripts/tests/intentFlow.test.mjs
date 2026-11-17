@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the cold-start intent flow (STOP-2c, D-146): the intent is stored as soon as it
 // arrives and evaluated only when the gate is ready. Simulated timeline, injected dependencies.
 //   node scripts/tests/intentFlow.test.mjs

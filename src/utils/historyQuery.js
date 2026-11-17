@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #56
-// AI-assisted: see docs/AI_LOG.md #58 (T-149: the Card filter includes Stripe)
+// AI-assisted: see AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #58 (T-149: the Card filter includes Stripe)
 // Pure helpers of the paginated history (T-102): merge pages without duplicates and filter by
 // payment method on the client (the query itself only ranges over createdAt).
 

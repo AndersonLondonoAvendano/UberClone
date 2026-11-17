@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Passenger API configuration. PASSENGER_API_MODE is a constant in code, not an environment
 // variable or a secret: it changes to 'http' the day the real API arrives. The http adapter reads
 // its base URL from EXPO_PUBLIC_PASSENGER_API_URL (only the variable name is documented).
@@ -34,7 +34,7 @@ export const MOCK_AVERAGE_SPEED_KMH = 25;
 // Mock: low probability that another driver "takes" the request when it is accepted.
 export const MOCK_ALREADY_TAKEN_PROBABILITY = 0.1;
 
-// AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203)
+// AI-assisted: see AI_LOG.md #73 (T-293, D-203)
 // Purpose: the simulated "another driver took it" only makes sense after a real decision. It is never
 // simulated for a request adopted from a push, and for a simulator request only when the driver accepts at
 // least this long after it was emitted (never on a first load or a quick tap).

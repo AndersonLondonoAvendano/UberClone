@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Pure tests for normalizeLanguage, resolveLanguage and readPhoneLanguage (T-242; CA-006-08, 09, 10).
 import test from 'node:test';
 import assert from 'node:assert/strict';

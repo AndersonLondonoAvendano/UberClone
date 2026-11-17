@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // A3: the notice of the request card lasts base x font scale, at most 6 s.
 import assert from 'node:assert/strict';
 import test from 'node:test';

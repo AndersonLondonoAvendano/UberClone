@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #34
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #34
 import { doc, getDoc, onSnapshot, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { createProfileUpdater } from './profileUpdater';
@@ -8,7 +8,7 @@ import { createProfileUpdater } from './profileUpdater';
 // when the document does not exist yet (treated as "not registered", not an error).
 // onError only fires for real read failures (network/permissions).
 // Returns the unsubscribe function; the caller must invoke it (e.g. in a useEffect cleanup).
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // The optional onData receives the whole document data (or null) so the profile reuses this same
 // subscription instead of opening another one.
 export function listenToDriverAccount(uid, { onChange, onError, onData }) {
@@ -51,6 +51,6 @@ export async function submitDriverRegistration(uid, { personalData, vehicle, doc
   );
 }
 
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Saves the editable profile fields (payload from buildProfilePayload) with dotted paths only.
 export const updateDriverProfile = createProfileUpdater({ doc, updateDoc, serverTimestamp, db });

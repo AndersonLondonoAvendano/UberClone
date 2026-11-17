@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the tap-to-fullscreen decision and the return-to-origin model (D-149).
 //   node scripts/tests/requestNavigation.test.mjs
 import assert from 'node:assert/strict';

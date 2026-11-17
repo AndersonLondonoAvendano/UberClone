@@ -1,6 +1,6 @@
 # Lista de comprobación en dispositivo — sesiones
 
-<!-- AI-assisted: see docs/AI_LOG.md #56 (T-74) -->
+<!-- AI-assisted: see AI_LOG.md #56 (T-74) -->
 Estado: **sin ejecutar.** Anderson la sigue en el celular (Android) y declara el resultado por paso («OK», «Falla: …»). Hasta entonces todo es **No verificado en dispositivo** y ninguna tarea pasa a «Validada». Usa solo fotos y datos de prueba.
 
 | # | Paso | Esperado | Resultado |

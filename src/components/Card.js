@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #51
+// AI-assisted: see AI_LOG.md #51
 // Surface hierarchy. variant: 'card' (resting white), 'featured' (dark brand, raised), 'status'
 // (soft tone: brand | success | warning | danger). Tokens only; children decide their own text colours.
 

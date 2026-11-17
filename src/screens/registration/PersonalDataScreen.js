@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
-// AI-assisted: see docs/AI_LOG.md #26
-// AI-assisted: see docs/AI_LOG.md #34
-// AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68 (showLanguageSwitch)
+// AI-assisted: see AI_LOG.md #26
+// AI-assisted: see AI_LOG.md #34
+// AI-assisted: see AI_LOG.md #36
 // Personal data tab: the 8 real fields of RF-05, backed by RegistrationFormContext. A field shows
 // its error once it was touched (blurred) or once this tab was visited and left (DP-08), never on
 // a fresh, untouched render.
@@ -35,7 +35,7 @@ import {
 
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.personalData.fields;
-// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+// AI-assisted: see AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
 
 export function PersonalDataScreen() {
   useLanguage();
@@ -58,7 +58,7 @@ export function PersonalDataScreen() {
     <PlaceholderScreen name="personal-data" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
-          // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
+          // AI-assisted: see AI_LOG.md #53 (pending notice as a status card with icon and text)
           <Card variant="status" tone="warning" style={styles.notice}>
             <Icon name="time" size={iconSize.lg} tint={color.onWarningSoft} />
             <Text testID="personal-data-pending-notice" style={styles.pendingNotice}>
@@ -178,7 +178,7 @@ export function PersonalDataScreen() {
 }
 
 const styles = StyleSheet.create({
-  // AI-assisted: see docs/AI_LOG.md #52 (soft warning banner, same style as the chips)
+  // AI-assisted: see AI_LOG.md #52 (soft warning banner, same style as the chips)
   notice: {
     flexDirection: 'row',
     alignItems: 'flex-start',

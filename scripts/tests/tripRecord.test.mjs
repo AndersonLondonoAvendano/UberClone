@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for buildTripRecord (CA-002-58, CA-002-60, CA-002-77) and the plannedRoute kept by
 // the trip controller. Run:
 //   node scripts/tests/tripRecord.test.mjs

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // t(key, params, language) (RI-02, RI-03, RI-04). Looks a dotted key up in the language dictionary, falls
 // back to Spanish, then to the key itself. {name} placeholders take params; a missing param becomes an
 // empty string. A plural entry is { one, other } chosen by params.n (1 = one; 0, 2, 10 = other).

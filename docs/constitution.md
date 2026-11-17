@@ -25,7 +25,7 @@ App móvil del conductor (RF-08 a RF-30) con backend Node/Express. Fuera de alca
 - `AsyncStorage` solo preferencias y sesión (RNF-04; C04).
 - Sin Static Maps (RNF-10; C06).
 - Los comentarios del código no remiten a documentos que no se entregan (C26).
-- Marcas de IA `// AI-assisted: see docs/AI_LOG.md #N` siempre con entrada existente (ENT-04; C18).
+- Marcas de IA `// AI-assisted: see AI_LOG.md #N` siempre con entrada existente (ENT-04; C18).
 
 ## §5 Red, errores y estados
 - Secretos solo en `backend/.env` (RNF-05; C01, C02, C03, C27).
@@ -43,7 +43,7 @@ App móvil del conductor (RF-08 a RF-30) con backend Node/Express. Fuera de alca
 - Hooks propios `useDriverLocation`, `useTripRequests`, `useEarnings` (RNF-03; C12).
 
 ## §9 Entrega
-README con instalación y "Uso de IA" enlazada (ENT-02; C19, C20); `docs/AI_LOG.md` con entradas (ENT-03); video ≤ 5 min (ENT-06).
+README con instalación y "Uso de IA" enlazada (ENT-02; C19, C20); `AI_LOG.md` con entradas (ENT-03); video ≤ 5 min (ENT-06).
 
 ## §10 Flujo SDD y gobierno
 - Fases 0–5 (ver `AGENTS.md`). Anderson aprueba cada fase.

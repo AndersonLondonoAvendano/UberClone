@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Real wiring of the registration controller (T-184, T-186): the notifications service, the backend
 // client, the AsyncStorage preference and the pending intent. One instance per app. Everything native
 // is resolved lazily (getNotifications loads the SDK on first call), so a missing native module only

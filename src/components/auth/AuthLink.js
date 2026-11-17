@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Secondary text link of the authentication screens (forgot password, create account, back to sign in).
 // Lighter than the primary button on purpose: no box, brand colour and underline. The touch target is at
 // least 48 dp high and grows with the text size.

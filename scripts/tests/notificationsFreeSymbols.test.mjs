@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Guards against "ReferenceError: Property 'X' doesn't exist" in the notifications path (D-147):
 // (a) a static check that no file uses an undeclared free identifier, (b) the dev-trace route run
 // with injected dependencies. Parser: @babel/parser + @babel/traverse (already in node_modules).

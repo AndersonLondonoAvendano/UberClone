@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #68
 // English wording coherence (T-268; CA-006-43, 44, 46).
 import test from 'node:test';
 import assert from 'node:assert/strict';

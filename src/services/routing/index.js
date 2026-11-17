@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // Routing entry point. Screens call getRoute and never build routing URLs themselves.
 // Order: OSRM; on failure, only when allowFallback is true, the preloaded route for the fixed test
 // points and then the straight line. Without fallback a failure rejects with code ROUTE_FAILED.

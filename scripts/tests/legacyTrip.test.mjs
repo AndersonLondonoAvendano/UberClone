@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // Plain Node tests for the legacy-trip helpers (T-122, CA-002-94, RF-54). Run: node scripts/tests/legacyTrip.test.mjs
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

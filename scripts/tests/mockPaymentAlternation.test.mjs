@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 // D-207: the app simulator alternates the payment method (cash first, then card), never drawn at random.
 //   node scripts/tests/mockPaymentAlternation.test.mjs
 import assert from 'node:assert/strict';

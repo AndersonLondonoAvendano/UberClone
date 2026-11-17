@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Notifications service (T-180). It delegates to an adapter (RN Firebase today; an expo-notifications
 // adapter can replace it without touching callers). Screens must not import the SDK.
 // Push tokens are only logged masked (safeLog) and never leave this layer except to the backend client.

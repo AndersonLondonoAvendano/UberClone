@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // GET /payments/return: fixed landing page for the hosted checkout (success and cancel). It carries no
 // trip data and reflects nothing from the request: the HTML is a constant.
 import { ERRORS, send as defaultSend } from '../middleware.js';

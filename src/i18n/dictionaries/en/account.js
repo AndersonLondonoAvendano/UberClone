@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #68
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
 // English dictionary, account and data sections: earnings, history, profile, settings, notifications,
 // states, placeholder, a11y, actions, forceState, mapTest and demo. Same paths and {params} as es.
 // Only visible text is translated: COP amounts, stored values and Firestore states do not change.
@@ -157,7 +157,7 @@ export const enAccount = {
     mapsNote: 'Routes use OSRM and maps come from OpenStreetMap and OpenFreeMap.',
     accountTitle: 'Account',
     accountEmail: 'Account email',
-    // AI-assisted: see docs/AI_LOG.md #67 (T-254)
+    // AI-assisted: see AI_LOG.md #67 (T-254)
     language: {
       title: 'Idioma / Language',
       optionEs: 'Español',

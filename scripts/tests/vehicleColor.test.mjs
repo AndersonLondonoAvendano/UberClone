@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Plain Node tests for src/utils/vehicleColor.js (CA-002-139, D-100). Run:
 //   node scripts/tests/vehicleColor.test.mjs
 import './helpers/registerSrcLoader.mjs';

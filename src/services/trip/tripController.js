@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #43
 // Trip in progress (T-44): one controller per accepted trip. Pure JavaScript with every dependency
 // injected (passenger API, routing, location source, timers, clock), so it is tested without React.
 //
@@ -11,7 +11,7 @@
 // order; a report that keeps failing pauses the queue with `reportError` until retryReport().
 // Nothing retries forever and nothing restarts by itself after a location error.
 //
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // finish() never hangs: every report attempt has its own timeout (REPORT_ATTEMPT_TIMEOUT_MS) and the
 // whole finish waits at most FINISH_TIMEOUT_MS; then finishError (a FINISH_ERROR code: network,
 // timeout or rejected) lets the screen offer "Reintentar" and the safe exit "Salir del viaje" (abandon()).
@@ -43,7 +43,7 @@ export function createTripController({
   buildStraightLineRoute, // (from, to) => route
   createLocationSource, // ({ coordinates, phase }) => { start({ onPosition, onError, onEnd }) => stop }
   publishLocation = () => Promise.resolve(false),
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   publishStatus = () => Promise.resolve(false), // (finalStatus, position) => Promise, never awaited
   config,
   now = () => Date.now(),
@@ -60,7 +60,7 @@ export function createTripController({
   const queue = [];
   let sending = false;
   let finishResolvers = [];
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   let completedResult = null; // null | 'delivered' | 'fatal' (what the API said about completed)
   let finishPromise = null;
   let finalPublished = false;
@@ -84,11 +84,11 @@ export function createTripController({
     cancelError: false,
     finished: null, // null | completed | cancelled (TRIP_STATUS values)
     finishedAt: null,
-    // AI-assisted: see docs/AI_LOG.md #50
+    // AI-assisted: see AI_LOG.md #50
     startedAt: null, // when the passenger boarded (saved with the trip)
-    // AI-assisted: see docs/AI_LOG.md #55
+    // AI-assisted: see AI_LOG.md #55
     plannedRoute: null, // null | [[lat, lng], ...] simplified route to the destination (saved with the trip)
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     finishing: false,
     finishError: null, // null | one of FINISH_ERROR
     abandoned: false, // the driver left with "Salir del viaje" without the API confirming
@@ -110,7 +110,7 @@ export function createTripController({
       timers.set(id, resolve);
     });
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // A plain timer that dispose() clears too.
   const startTimer = (fn, ms) => {
     const id = setTimer(() => {
@@ -174,7 +174,7 @@ export function createTripController({
     if (typeof stop === 'function') stop();
   };
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // The final status reaches driverLocations once per trip, whatever the way out.
   const publishFinal = (finalStatus) => {
     if (finalPublished) return;
@@ -202,14 +202,14 @@ export function createTripController({
 
   // ---- Status reports (ordered, bounded retries) ----
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   const settleFinish = (ok, error = null) => {
     const resolvers = finishResolvers;
     finishResolvers = [];
     resolvers.forEach((settle) => settle(ok, error));
   };
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // A COMPLETED answer that arrives after its attempt timed out still counts: the API did accept
   // it, so the trip closes and a later INVALID_STATE ("already completed") is not read as a rejection.
   const trackLateCompleted = (call) => {
@@ -233,9 +233,9 @@ export function createTripController({
       let delivered = false;
       let fatal = false;
       for (let attempt = 1; attempt <= config.REPORT_MAX_ATTEMPTS && !disposed && queue[0] === status; attempt += 1) {
-        // AI-assisted: see docs/AI_LOG.md #45 (stop retrying once the queue head changed)
+        // AI-assisted: see AI_LOG.md #45 (stop retrying once the queue head changed)
         try {
-          // AI-assisted: see docs/AI_LOG.md #44 (per-attempt timeout)
+          // AI-assisted: see AI_LOG.md #44 (per-attempt timeout)
           await withTimeout(() => {
             const call = Promise.resolve().then(() => api.reportTripStatus(state.tripId, status));
             if (status === TRIP_STATUS.COMPLETED) trackLateCompleted(call);
@@ -253,7 +253,7 @@ export function createTripController({
         }
       }
       if (disposed) break;
-      // AI-assisted: see docs/AI_LOG.md #44
+      // AI-assisted: see AI_LOG.md #44
       // Cancelled or abandoned while this report was in flight: the queue was emptied.
       if (queue[0] !== status) continue;
       if (delivered || fatal) {
@@ -298,7 +298,7 @@ export function createTripController({
     return true;
   }
 
-  // AI-assisted: see docs/AI_LOG.md #72 (D-200)
+  // AI-assisted: see AI_LOG.md #72 (D-200)
   // The arrival is automatic: distance threshold, end of the route, or already at the target when the leg
   // begins. There is no manual "I've arrived". Calling it again does nothing: the phase check makes the
   // driver_arrived transition and its single report happen once.
@@ -381,7 +381,7 @@ export function createTripController({
     const approximate = !route;
     const finalRoute = route ?? buildStraightLineRoute(from, to);
     const patch = { route: finalRoute, routeLoading: false, routeApproximate: approximate };
-    // AI-assisted: see docs/AI_LOG.md #55
+    // AI-assisted: see AI_LOG.md #55
     // The first real (not straight-line) route to the destination is kept, simplified, to save with the
     // trip (RF-52). No new route request is made for it and no driver position is stored.
     const realRoute = !approximate && finalRoute.provider !== 'fallback' && finalRoute.provider !== 'straight';
@@ -428,7 +428,7 @@ export function createTripController({
       return beginLeg(TRIP_PHASE.TO_DESTINATION, request.destination).then(() => true);
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     // Resolves true once the passenger API received completed (the summary opens then), or false
     // with finishError set, never later than FINISH_TIMEOUT_MS. Calling it again is "Reintentar".
     finish() {
@@ -469,10 +469,10 @@ export function createTripController({
       return pending;
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44 (timeout, single flight, final status published)
+    // AI-assisted: see AI_LOG.md #44 (timeout, single flight, final status published)
     async cancel() {
       if (state.finished || cancelling || disposed) return false;
-      // AI-assisted: see docs/AI_LOG.md #66
+      // AI-assisted: see AI_LOG.md #66
       // RE-08: an ongoing ride cannot be cancelled; the API is not called and nothing changes.
       if (!canTransition(state.status, TRIP_STATUS.CANCELLED)) return false;
       if (completedResult === 'delivered') {
@@ -513,7 +513,7 @@ export function createTripController({
       }
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     // Safe exit "Salir del viaje": ends the trip locally when the API cannot confirm it (no network,
     // timeout, rejected). At the destination it counts as completed, otherwise as cancelled. It
     // stops everything, writes that final status once and returns it. Idempotent.

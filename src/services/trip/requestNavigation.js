@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // How a request is opened and how the driver comes back (D-149). Pure: no React, no navigation, no timers.
 // A TAP on the push notification always opens the full-screen request from any drawer screen; an arrival
 // without a tap (mock, foreground push) keeps the presentation rules of requestPresentation.js.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Authentication stack: Login -> SignUp / ForgotPassword. The screen header is drawn by each screen,
 // so the navigator header is hidden. Exported only; the auth gate (T-69) mounts it from RootNavigator.
 

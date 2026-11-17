@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Plain Node tests for the payment provider registry and adapters (T-135, T-137) and the S2 backend
 // wiring (T-138 to T-142). Fakes only: no
 // network, no Firebase. Run:

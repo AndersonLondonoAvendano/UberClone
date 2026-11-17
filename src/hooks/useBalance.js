@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Platform balance over every saved trip (B1, D-182): one paginated read (fetchAllTrips, cap 5,000) on
 // focus and on retry, no onSnapshot. status: 'loading' | 'ready' | 'error' | 'noSession'. A late answer after unmount,
 // blur or a newer read is ignored. The view (kind, balance, partial) comes from buildBalanceView.
@@ -19,7 +19,7 @@ export function useBalance() {
     useCallback(() => {
       readId.current += 1;
       const id = readId.current;
-      // AI-assisted: see docs/AI_LOG.md #66 (C2a: no driver id is a clear state, never an endless loading)
+      // AI-assisted: see AI_LOG.md #66 (C2a: no driver id is a clear state, never an endless loading)
       if (!driverId) {
         setState({ status: 'noSession', trips: [], truncated: false });
         return undefined;

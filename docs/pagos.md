@@ -1,6 +1,6 @@
 # Pagos — Mercado Pago Checkout Pro
 
-<!-- AI-assisted: see docs/AI_LOG.md #55 (T-90, RF-44, RNF-18, RNF-19, D-107 a D-110) -->
+<!-- AI-assisted: see AI_LOG.md #55 (T-90, RF-44, RNF-18, RNF-19, D-107 a D-110) -->
 
 Estado: investigación y diseño (2026-11-11). La prueba real contra Mercado Pago la hace Anderson; el agente no ejecutó el backend contra Mercado Pago ni leyó secretos.
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Real firebase-admin initialization, kept apart so tests never load it.
 import { readFileSync } from 'node:fs';
 

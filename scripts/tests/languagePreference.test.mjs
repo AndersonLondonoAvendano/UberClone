@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Tests for the appLanguage preference with injected storage (T-242; CA-006-15).
 import test from 'node:test';
 import assert from 'node:assert/strict';

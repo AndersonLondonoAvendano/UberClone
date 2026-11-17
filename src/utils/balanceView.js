@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Pure presentation of the platform balance (B1, CA-005-03, CA-005-06): which block the screen shows and
 // the numbers in it. The balance comes from computeBalance over EVERY trip read (no 200 cap); an error
 // never shows 0, and a truncated read is flagged as partial with the number of trips read.

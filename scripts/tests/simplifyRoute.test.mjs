@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for src/services/trip/simplifyRoute.js (CA-002-77). Run:
 //   node scripts/tests/simplifyRoute.test.mjs
 import assert from 'node:assert/strict';

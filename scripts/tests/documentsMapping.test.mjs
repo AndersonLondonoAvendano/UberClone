@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for src/utils/documentsMapping.js (CA-002-53, CA-002-54, CA-002-55). Run:
 //   node scripts/tests/documentsMapping.test.mjs
 import assert from 'node:assert/strict';

@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
 // Driver position while `enabled` (T-41). Starts the configured source, publishes at most one
 // position per LOCATION_THROTTLE_MS / LOCATION_THROTTLE_M, pauses while the app is in the
 // background (foreground location only) and stops the source on disable or unmount.

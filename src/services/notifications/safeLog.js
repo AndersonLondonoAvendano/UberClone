@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Safe logging for push tokens: a token is a credential and never leaves the device in full.
 
 const VISIBLE_CHARS = 8;
@@ -25,7 +25,7 @@ export function logPushEvent(code, { isDev = false, log } = {}) {
   log(`[push] ${code}`);
 }
 
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Dev-only timing trace (A1): a fixed code plus elapsed milliseconds, e.g. `[push] metrics-final ms=840`.
 // Only a code and a number: no token, name, address or coordinates.
 export function logPushTiming(code, ms, { isDev = false, log } = {}) {
@@ -33,7 +33,7 @@ export function logPushTiming(code, ms, { isDev = false, log } = {}) {
   log(`[push] ${code} ms=${Math.round(ms)}`);
 }
 
-// AI-assisted: see docs/AI_LOG.md #73 (T-292, D-202)
+// AI-assisted: see AI_LOG.md #73 (T-292, D-202)
 // Dev-only trace for callers that have no injected logger: same fixed code, console only when __DEV__.
 // Codes are fixed words (adopted, expired-clock, released, taken-by-other); never a token, name or uid.
 export function logPushEventDev(code) {

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Pure generator of the simulated passenger feedback (D-124): a tip in whole COP and a 1-5 rating for
 // the driver. Used only by the mock adapter; the real API would send these fields itself. The random
 // source is injected (default Math.random) so a script can reproduce the exact values.

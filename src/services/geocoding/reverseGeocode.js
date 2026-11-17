@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Reverse geocoding client for Nominatim (D-125). Pure JavaScript with the network, clock and sleep
 // injected, so a script tests it without a real request.
 // - One serialized queue: at most one request in flight and GEOCODE_MIN_GAP_MS between the end of one

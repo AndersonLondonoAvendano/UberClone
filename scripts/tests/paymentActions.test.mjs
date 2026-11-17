@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for the charge action runner (T-97). Simulated services, no network or Firebase.
 //   node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/paymentActions.test.mjs
 import assert from 'node:assert/strict';
@@ -118,7 +118,7 @@ for (const error of ['offline', 'backendUnavailable', 'failed']) {
   assert.equal(screen.split('setUserActed(true)').length - 1, 1);
 }
 
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // T-146 (RF-62, CA-002-123): the provider reaches the client; verify uses the trip's gateway; no provider is failed.
 {
   const calls = [];

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Pure helpers over the permission states of constants.js (T-180).
 import { PERMISSION_STATE } from './constants';
 

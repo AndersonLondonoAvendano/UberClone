@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Bearer token verification. adminAuth is firebase-admin's auth() (or a fake in tests).
 // Tokens are never logged and never echoed.
 

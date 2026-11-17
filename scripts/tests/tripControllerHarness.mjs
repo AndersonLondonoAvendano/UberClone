@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Shared fake dependencies for the trip controller tests (not a test file: no .test suffix).
 const { createTripController } = await import('../../src/services/trip/tripController.js');
 

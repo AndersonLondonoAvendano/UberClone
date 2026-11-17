@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure decision of the charge state shown on "Cobro y resumen" and of the actions it offers
 // (T-94, RF-44, CA-002-69). It reads the saved trip document (drivers/{uid}/trips/{tripId}) and
 // returns { chip, actions }; the screen maps each id to its text in labels.trip.paymentChip and
@@ -29,7 +29,7 @@ export const PAYMENT_ACTION = {
 const NONE = { chip: PAYMENT_CHIP.UNAVAILABLE, actions: [] };
 
 export function paymentView(trip) {
-  // AI-assisted: see docs/AI_LOG.md #66 (T-232: a rejected request was never driven, it has nothing to charge)
+  // AI-assisted: see AI_LOG.md #66 (T-232: a rejected request was never driven, it has nothing to charge)
   if (!trip || typeof trip !== 'object') return NONE;
   if (trip.status === TRIP_STATUS.CANCELLED || trip.status === TRIP_STATUS.REJECTED) return NONE;
   const paid = trip.status === TRIP_STATUS.PAID;
@@ -37,7 +37,7 @@ export function paymentView(trip) {
     const collected = paid || trip.paymentStatus === PAYMENT_STATUS.PAID;
     return { chip: PAYMENT_CHIP.CASH, actions: collected ? [] : [PAYMENT_ACTION.CONFIRM_CASH] };
   }
-  // AI-assisted: see docs/AI_LOG.md #58 (T-145: a Stripe trip is a card trip like Mercado Pago)
+  // AI-assisted: see AI_LOG.md #58 (T-145: a Stripe trip is a card trip like Mercado Pago)
   if (isCardMethod(trip.paymentMethod)) {
     if (paid || trip.paymentStatus === PAYMENT_STATUS.APPROVED) return { chip: PAYMENT_CHIP.APPROVED, actions: [] };
     if (trip.paymentStatus === PAYMENT_STATUS.REJECTED) {

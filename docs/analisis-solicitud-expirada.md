@@ -1,4 +1,4 @@
-<!-- AI-assisted: see docs/AI_LOG.md #73 -->
+<!-- AI-assisted: see AI_LOG.md #73 -->
 # Análisis: «La solicitud expiró» y «Otro conductor tomó…» al abrir desde la notificación (#73)
 
 Método: lectura de código y pruebas, sin ejecutar en dispositivo. Sin secretos. Estado: **No verificado en dispositivo** (STOP-10).

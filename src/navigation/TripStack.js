@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #18
 // Trip stack: Home -> TripRequest -> TripActive -> TripSummary.
 // The screen header is drawn by each screen, so the navigator header is hidden. The back gesture and
 // the Android back button stay enabled (default behavior of the native stack).
@@ -25,7 +25,7 @@ export function TripStack() {
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={SCREEN_OPTIONS}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      {/* AI-assisted: see docs/AI_LOG.md #49 */}
+      {/* AI-assisted: see AI_LOG.md #49 */}
       <Stack.Screen name="TripRequest" component={TripRequestScreen} getId={getRequestId} />
       <Stack.Screen name="TripActive" component={TripActiveScreen} />
       <Stack.Screen name="TripSummary" component={TripSummaryScreen} />

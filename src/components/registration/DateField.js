@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
-// AI-assisted: see docs/AI_LOG.md #26
-// AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region, and minimumDate)
-// AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54 (accessible label = name + chosen value)
+// AI-assisted: see AI_LOG.md #26
+// AI-assisted: see AI_LOG.md #55 (optional announceError: error in a polite live region, and minimumDate)
+// AI-assisted: see AI_LOG.md #36
 // Opens the native Android date dialog (DateTimePickerAndroid.open), verified against
 // node_modules/@react-native-community/datetimepicker/src/index.d.ts (v9.1.0): the imperative
 // open() API is Android-specific; onValueChange only fires on an actual selection (not deprecated,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     ...type.label,
     color: color.text,
   },
-  // AI-assisted: see docs/AI_LOG.md #53 (calendar affordance, thick danger border on error)
+  // AI-assisted: see AI_LOG.md #53 (calendar affordance, thick danger border on error)
   trigger: {
     minHeight: touch.controlHeight,
     flexDirection: 'row',

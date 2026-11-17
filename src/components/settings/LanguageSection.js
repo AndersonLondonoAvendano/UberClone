@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
 // "Idioma / Language" section of Settings (T-254; RI-10, RI-11, RI-12, RI-14). Two radio options, each
 // written in its own language; the active one shows a check icon plus the text "Active" (never only colour).
 // The choice is saved on the phone by setLanguage, never on a server. If the save fails the language still

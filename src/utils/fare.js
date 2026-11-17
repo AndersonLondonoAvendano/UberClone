@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Pure fare calculation (RF-20 to RF-22): no React, no network, no side effects. Parameters come
 // from src/config/pricing.js.
 //

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Language selector in Settings (T-254; CA-006-12, 13, 14, 17, D3). The component is checked by reading its
 // source (there is no renderer in the test setup); the save-failure path runs on the real store.
 import test from 'node:test';

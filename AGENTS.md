@@ -37,7 +37,7 @@ npx expo-doctor
 - Estado "No verificado en dispositivo" para todo lo que solo se ve en el celular.
 - Los builds nativos (`expo run:*`, `prebuild`, `eas`) los hace el humano.
 - Secretos solo en el backend (`backend/.env`).
-- La bitácora de IA (`docs/AI_LOG.md`) la registra el humano, en el momento.
+- La bitácora de IA (`AI_LOG.md`) la registra el humano, en el momento.
 
 ## Modo ahorro (desactivado por defecto, D-20)
 Una sola auditoría de diseño final con máximo dos rondas.
@@ -48,7 +48,7 @@ Una sola auditoría de diseño final con máximo dos rondas.
 - **P3 Tarea visual.** Igual que P1, más: el agente principal carga las skills de diseño, autocontrol con el arnés cuando aplique, `Diseño: Pendiente` hasta la auditoría.
 - **P4 Auditoría de diseño.** Invoca al `design-auditor` con las skills cargadas; los hallazgos van al `implementer` (máximo dos rondas antes de escalar); el `verifier` valida solo con `Diseño: Aprobado`.
 - **P5 Cambio de especificación.** `spec-author` → `planner` → `implementer` → `verifier`, y se regenera la matriz.
-- **Regla de bitácora (todo prompt).** Todo prompt de Anderson a Claude Code termina con una entrada de bitácora en borrador en `docs/AI_LOG.md` que copia el prompt textual; Anderson completa «Verificación» y «Aprendizaje». Solo se registran los prompts dados a Claude Code. Las entradas reconstruidas se marcan «RECONSTRUIDA, no registrada en el momento».
+- **Regla de bitácora (todo prompt).** Todo prompt de Anderson a Claude Code termina con una entrada de bitácora en borrador en `AI_LOG.md` que copia el prompt textual; Anderson completa «Verificación» y «Aprendizaje». Solo se registran los prompts dados a Claude Code. Las entradas reconstruidas se marcan «RECONSTRUIDA, no registrada en el momento».
 - **P6 Cierre de entrega.** README, capturas con pie honesto, prueba de clon limpio, lista exacta de archivos y pasos manuales (commit, push, PDF de la bitácora, video).
 
 ---

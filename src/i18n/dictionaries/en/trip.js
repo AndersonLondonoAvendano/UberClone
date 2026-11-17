@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #68
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
 // English dictionary, trip section (request, active trip, summary, charge). Same paths and {params} as es.
 export const enTrip = {
   trip: {
@@ -53,14 +53,14 @@ export const enTrip = {
     },
     remaining: '{km} km · {min} min',
     remainingCaption: 'left',
-    // AI-assisted: see docs/AI_LOG.md #72 (T-287 H-2: spoken label of the target address row)
+    // AI-assisted: see AI_LOG.md #72 (T-287 H-2: spoken label of the target address row)
     pickupPointA11y: 'Pickup point: {address}',
     destinationA11y: 'Destination: {address}',
     routeLoading: 'Calculating the route…',
     addressSearching: 'Looking up address…',
     addressFallback: 'Nearby street (simulated)',
     approxRoute: 'Approximate route: no connection to the routing server, so the straight line does not follow the streets.',
-    // AI-assisted: see docs/AI_LOG.md #72 (D-200: no manual arrival, so no arrive or hint keys)
+    // AI-assisted: see AI_LOG.md #72 (D-200: no manual arrival, so no arrive or hint keys)
     startRide: 'Passenger on board',
     finishRide: 'End trip',
     finishRideHint: 'Reach the destination to continue',

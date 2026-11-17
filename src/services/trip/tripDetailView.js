@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #57 (T-109)
-// AI-assisted: see docs/AI_LOG.md #61
-// AI-assisted: see docs/AI_LOG.md #58 (T-150: the method row names the gateway, Stripe included)
+// AI-assisted: see AI_LOG.md #57 (T-109)
+// AI-assisted: see AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #58 (T-150: the method row names the gateway, Stripe included)
 // Pure presentation of a saved trip for the detail screen (RF-49, RF-54). No network, no React:
 // it only reads the document already loaded. Missing data never throws:
 // - tip: a positive number is shown as pesos, otherwise "Sin propina";
@@ -51,7 +51,7 @@ function statusOf(trip) {
   if (trip.status === TRIP_STATUS.CANCELLED) {
     return { label: labels.history.status.cancelled, tone: 'danger', icon: 'close-circle' };
   }
-  // AI-assisted: see docs/AI_LOG.md #66 (T-230: only the TRIP status; a completed trip whose payment was
+  // AI-assisted: see AI_LOG.md #66 (T-230: only the TRIP status; a completed trip whose payment was
   // rejected by the gateway keeps its "Pago rechazado" chip)
   if (trip.status === TRIP_STATUS.REJECTED) return { ...REJECTED_CHIP, label: labels.history.status.rejected };
   const legacy = legacyPaymentChip(trip);

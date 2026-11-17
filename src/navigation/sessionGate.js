@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Pure session gate: no React Native or Firebase imports, so it can be tested with plain node.
 // It maps (authStatus, accountStatus) to ONE route. The root navigator mounts a single branch per
 // route, so there is never a shared back stack between authentication and the driver screens.

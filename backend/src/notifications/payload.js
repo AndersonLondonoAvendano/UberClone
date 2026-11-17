@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Pure builders for the simulated trip request sent by the test endpoint and its FCM message.
 // No fare, no street addresses and no personal data of a real person travel in the message.
 import { randomUUID } from 'node:crypto';
@@ -16,7 +16,7 @@ const MAX_JITTER_DEG = 0.004;
 const round = (value, digits) => Number(value.toFixed(digits));
 const jitter = (random) => (random() * 2 - 1) * MAX_JITTER_DEG;
 
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 // D-207: the payment method is decided by the caller (deterministic alternation), never drawn here.
 export const PAYMENT_METHODS = ['cash', 'card'];
 
@@ -70,7 +70,7 @@ export function buildMessage(tokens, request) {
       priority: 'high',
       // The installed Admin SDK types ttl as a number of milliseconds (it sends it as "90s").
       ttl: FCM_TTL_MS,
-      // AI-assisted: see docs/AI_LOG.md #73
+      // AI-assisted: see AI_LOG.md #73
       collapseKey: FCM_REQUEST_TAG,
       // Brand small icon (res/drawable/notification_icon, shipped by plugins/withBrandAssets) and color.
       notification: { channelId: FCM_CHANNEL_ID, tag: FCM_REQUEST_TAG, icon: 'notification_icon', color: '#009688' },

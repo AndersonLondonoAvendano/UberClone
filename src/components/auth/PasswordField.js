@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #60 (lock icon and the show/hide button inside the field)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #60 (lock icon and the show/hide button inside the field)
 // Password field of the authentication forms: an AuthField with the text hidden and, when the screen
 // passes onToggleVisible, an eye button INSIDE the field (role button, label that tells the state,
 // >= 48 x 48). The password lives only in the state of the screen that renders this field.

@@ -367,12 +367,12 @@ const rules = [
     id: 'C18', level: 'ERROR', from: 3, req: 'ENT-04',
     run(ctx) {
       const out = [];
-      const log = ctx.read('docs/AI_LOG.md') || '';
+      const log = ctx.read('AI_LOG.md') || '';
       const have = new Set([...log.matchAll(/^###\s+Entrada\s+#(\d+)/gm)].map((m) => m[1]));
       const scan = ctx.files.filter((f) => CODE_EXT.has(f.ext) && f.rel !== SELF && !f.rel.startsWith('scripts/') && !f.rel.startsWith('docs/'));
       for (const f of scan) {
-        for (const h of grepLines(ctx.read(f.rel) || '', /AI-assisted:?\s*see\s+docs\/AI_LOG\.md\s+#(\d+)/)) {
-          if (!have.has(h.match[1])) out.push({ file: f.rel, line: h.line, msg: `AI mark #${h.match[1]} has no entry in docs/AI_LOG.md` });
+        for (const h of grepLines(ctx.read(f.rel) || '', /AI-assisted:?\s*see\s+AI_LOG\.md\s+#(\d+)/)) {
+          if (!have.has(h.match[1])) out.push({ file: f.rel, line: h.line, msg: `AI mark #${h.match[1]} has no entry in AI_LOG.md` });
         }
       }
       return out;
@@ -384,9 +384,9 @@ const rules = [
       const out = [];
       const readme = ctx.read('README.md');
       if (readme == null) out.push({ file: 'README.md', line: 1, msg: 'README missing' });
-      else if (!/^#+\s*Uso de IA/m.test(readme) || !/docs\/AI_LOG\.md/.test(readme)) out.push({ file: 'README.md', line: 1, msg: 'README lacks a "Uso de IA" section linking docs/AI_LOG.md' });
-      const log = ctx.read('docs/AI_LOG.md');
-      if (log == null || !/^###\s+Entrada\s+#\d+/m.test(log)) out.push({ file: 'docs/AI_LOG.md', line: 1, msg: 'AI log has no entries' });
+      else if (!/^#+\s*Uso de IA/m.test(readme) || !/AI_LOG\.md/.test(readme)) out.push({ file: 'README.md', line: 1, msg: 'README lacks a "Uso de IA" section linking AI_LOG.md' });
+      const log = ctx.read('AI_LOG.md');
+      if (log == null || !/^###\s+Entrada\s+#\d+/m.test(log)) out.push({ file: 'AI_LOG.md', line: 1, msg: 'AI log has no entries' });
       return out;
     },
   },
@@ -542,7 +542,7 @@ function makeGood(root) {
   put(root, 'src/config/pricing.js', "export const PRICING = { base: 3500, perKm: 1200, perMinute: 250, minimum: 6000, multipliers: { economy: 1.0, xl: 1.4, premium: 1.8 }, commissionRate: 0.2 };\n");
   put(root, 'src/utils/fare.js', [
     "import { PRICING } from '../config/pricing';",
-    '// AI-assisted: see docs/AI_LOG.md #1',
+    '// AI-assisted: see AI_LOG.md #1',
     'export function calculateFare({ distanceKm, durationMin, category, tip }) {',
     '  const raw = (PRICING.base + distanceKm * PRICING.perKm + durationMin * PRICING.perMinute) * PRICING.multipliers[category];',
     '  const fare = Math.max(Math.round(raw / 100) * 100, PRICING.minimum);',
@@ -584,8 +584,8 @@ function makeGood(root) {
   put(root, 'specs/001-x/spec.md', 'CA-001-01 Dado…\n');
   put(root, 'specs/001-x/plan.md', 'CA-001-01 -> src/screens/Register.js\n');
   put(root, 'docs/progress.md', 'Fase actual: 5\n\n| CA | Resultado | Evidencia |\n|---|---|---|\n| CA-001-01 | ✅ | prueba automática |\n');
-  put(root, 'docs/AI_LOG.md', '### Entrada #1\n- Fecha: 2026-01-01\n');
-  put(root, 'README.md', '# Fx\n\n## Uso de IA\nVer [bitácora](docs/AI_LOG.md).\n');
+  put(root, 'AI_LOG.md', '### Entrada #1\n- Fecha: 2026-01-01\n');
+  put(root, 'README.md', '# Fx\n\n## Uso de IA\nVer [bitácora](AI_LOG.md).\n');
 }
 
 const mutations = {
@@ -606,9 +606,9 @@ const mutations = {
   C15: (r) => put(r, 'package.json', JSON.stringify({ dependencies: { expo: '1', react: '1', 'react-native': '1', 'expo-dev-client': '1', 'left-pad': '1' } })),
   C16: (r) => put(r, 'package.json', JSON.stringify({ dependencies: { expo: '1', react: '1', 'react-native': '1' } })),
   C17: (r) => put(r, 'src/utils/abs.js', 'export const s = StyleSheet.absoluteFillObject;\n'),
-  C18: (r) => put(r, 'src/utils/ai.js', '// AI-assisted: see docs/AI_LOG.md #7\nexport const a = 1;\n'),
+  C18: (r) => put(r, 'src/utils/ai.js', '// AI-assisted: see AI_LOG.md #7\nexport const a = 1;\n'),
   C19: (r) => put(r, 'README.md', '# Fx\n'),
-  C20: (r) => put(r, 'README.md', '# Fx\n\n## Uso de IA\nVer [bitácora](docs/AI_LOG.md).\n\nPENDIENTE\n'),
+  C20: (r) => put(r, 'README.md', '# Fx\n\n## Uso de IA\nVer [bitácora](AI_LOG.md).\n\nPENDIENTE\n'),
   C21: (r) => fs.appendFileSync(path.join(r, 'docs/requisitos.md'), '| RF-02 | Otro | F1 §2 |\n'),
   C22: (r) => fs.appendFileSync(path.join(r, 'docs/backlog.md'), '### T-02 Otra\n- Requisitos: RF-99\n'),
   C23: (r) => fs.appendFileSync(path.join(r, 'specs/001-x/spec.md'), 'CA-001-02 Dado…\n'),

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // T-171: messaging wiring (admin.js, server.js, createApp) and the FCM constants.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

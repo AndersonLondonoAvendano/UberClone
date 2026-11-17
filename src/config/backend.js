@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Backend (payments) settings. The base URL is public configuration (EXPO_PUBLIC_*); no secret lives
 // in the app. When it is not set the payments service answers NOT_CONFIGURED.
 

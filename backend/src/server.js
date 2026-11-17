@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Builds the real dependencies and starts listening. Never prints configuration values.
 import { fileURLToPath } from 'node:url';
 import { initAdmin } from './admin.js';
