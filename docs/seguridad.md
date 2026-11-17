@@ -1,7 +1,7 @@
 # Seguridad — UberClone Conductor
 
 <!-- AI-assisted: see docs/AI_LOG.md #56 (T-73, reglas consolidadas) -->
-Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60), pendiente de publicar a mano por Anderson**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Pendiente de publicar** en la consola (Anderson). Desde que se publique, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
+Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60). La parte de `drivers/{uid}/trips` (`validTrip()` con propina, calificación y los estados nuevos) está PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real; la edición acotada del perfil (T-164) no figura en esa evidencia y sigue sin confirmar**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Publicada la parte de viajes (2026-11-16); sin confirmar la del perfil.** Desde que se publica, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
 
 ## Dónde viven las reglas de Firestore
 - Las reglas **efectivas** son las publicadas en la consola de Firebase (Firestore → Reglas). Anderson las publica a mano.
@@ -202,12 +202,34 @@ service cloud.firestore {
           && (route.size() == 0 || (validPoint(route[0]) && validPoint(route[route.size() - 1])));
       }
 
+      // The economy map mirrors the top-level amounts (spec 005, D-185).
+      function validEconomy(e, data) {
+        return e is map
+          && e.keys().hasOnly(['fare', 'commission', 'tip', 'driverEarnings'])
+          && e.keys().hasAll(['fare', 'commission', 'tip', 'driverEarnings'])
+          && e.fare == data.fare && e.commission == data.commission
+          && e.tip == data.tip && e.driverEarnings == data.driverEarnings;
+      }
+
+      // A place is { lat, lng, address }; coordinates may be null when the request did not carry them (spec 005, D-185).
+      function validPlace(p) {
+        return p is map
+          && p.keys().hasOnly(['lat', 'lng', 'address'])
+          && p.keys().hasAll(['address'])
+          && p.address is string && p.address.size() <= 200
+          && (!('lat' in p) || p.lat == null || (p.lat is number && p.lat >= -90 && p.lat <= 90))
+          && (!('lng' in p) || p.lng == null || (p.lng is number && p.lng >= -180 && p.lng <= 180));
+      }
+
       function validTrip() {
         let data = request.resource.data;
         return data.keys().hasAll(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
-          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route'])
+          && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route', 'passengerId', 'completedAt', 'economy', 'origin', 'destination'])
           && data.driverId == uid
-          && data.status in ['completed', 'cancelled']
+          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-183): 'rejected' is new; 'requested' is never written.
+          && data.status in ['completed', 'cancelled', 'rejected']
+          // Cancelled and rejected trips carry no money and no rating.
+          && (data.status == 'completed' || (data.fare == 0 && data.commission == 0 && data.driverEarnings == 0 && data.tip == 0 && data.rating == null))
           && data.paymentStatus == 'pending'
           && data.commissionRate is number && data.commissionRate >= 0 && data.commissionRate <= 1
           && data.category is string && data.category.size() > 0 && data.category.size() <= 20
@@ -230,7 +252,15 @@ service cloud.firestore {
           && (data.startedAt == null || data.startedAt is timestamp)
           && data.finishedAt is timestamp
           && data.createdAt == request.time
-          && (!('route' in data) || validRoute(data.route));
+          && (!('route' in data) || validRoute(data.route))
+          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-185): additive optional fields.
+          && (!('passengerId' in data) || data.passengerId == null || (data.passengerId is string && data.passengerId.size() > 0 && data.passengerId.size() <= 128))
+          && (!('completedAt' in data)
+            || (data.status == 'completed' && data.completedAt == data.finishedAt)
+            || (data.status != 'completed' && data.completedAt == null))
+          && (!('economy' in data) || validEconomy(data.economy, data))
+          && (!('origin' in data) || validPlace(data.origin))
+          && (!('destination' in data) || validPlace(data.destination));
       }
 
       // Narrow cash rule (D-108): only paymentStatus and status change, pending/completed -> paid,
@@ -257,7 +287,7 @@ service cloud.firestore {
 
 ## Edición acotada del perfil (T-164, RF-64, RF-65, D-122)
 <!-- AI-assisted: see docs/AI_LOG.md #60 -->
-**Paso manual de Anderson (D-80): esta regla NO está publicada.** Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba en Firestore → Reglas y pulses **Publicar**, «Guardar» en el Perfil falla con permiso denegado en cuentas aprobadas (T-162 queda **No verificado en dispositivo**). Orden: publicar, reiniciar la app, editar un campo.
+**Paso manual de Anderson (D-80): sin evidencia de que esta parte (edición del perfil) esté publicada; la publicación de 2026-11-16 que Anderson confirmó se comprobó con un guardado de viaje, no con una edición de perfil.** Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba en Firestore → Reglas y pulses **Publicar**, «Guardar» en el Perfil falla con permiso denegado en cuentas aprobadas (T-162 queda **No verificado en dispositivo**). Orden: publicar, reiniciar la app, editar un campo.
 
 **Qué se añade.** Un segundo `allow update` (las reglas de un mismo `match` se combinan con OR) con `validProfileEdit()`. El `allow update` de reenvío no cambia.
 
@@ -292,7 +322,7 @@ service cloud.firestore {
 
 ## Propina y calificación del viaje (D-124, prompt #61)
 <!-- AI-assisted: see docs/AI_LOG.md #61 -->
-**BLOQUEANTE: publicar antes de probar.** Esta regla NO está publicada. Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado falla con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
+**Resuelto (2026-11-16): regla PUBLICADA por Anderson (≈14:20 Bogotá) y comprobada con un guardado real en la consola (`tip` 0, `rating` null).** Nota histórica del bloqueo, ya superado: ni el agente ni el repositorio publican nada; hasta que se pegó el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado fallaba con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
 
 **Qué cambia en `validTrip()`.** (1) `tip` y `rating` entran en `hasAll` y `hasOnly` (la app siempre escribe ambos). (2) `tip` entero de 0 a 1.000.000 (holgura sobre el máximo simulado de 5.000). (3) `rating` nulo o entero de 1 a 5. (4) `commission + driverEarnings == fare + tip` y `driverEarnings <= fare + tip`: la comisión solo se calcula sobre la tarifa y la propina va completa al conductor. `commission <= fare` no cambia.
 
@@ -312,6 +342,73 @@ service cloud.firestore {
 
 **El backend no se ve afectado por las reglas.** Usa el SDK de administrador (admin SDK), que no pasa por las reglas de Firestore. Lee `fare` y `tip` del documento del viaje y cobra `fare + tip` (`chargeAmount`); nunca el monto del cuerpo de la petición.
 
+### Lista de comprobación: regla `validTrip()` publicada (spec 004, RC-08, T-212)
+Estado: **Publicada y comprobada por Anderson (2026-11-16, ≈14:20 Bogotá; guardado real en la consola, STOP-5).** La lista queda como procedimiento para volver a publicar; este documento no publica nada.
+
+**Texto vigente de `validTrip()`** (el bloque completo está arriba en «Texto final de las reglas», `function validTrip()` en `:205-234`). Las cláusulas que importan para propina y calificación son:
+- `hasAll` y `hasOnly` (`:207-208`) incluyen `'tip'` y `'rating'`.
+- `data.tip is int && data.tip >= 0 && data.tip <= 1000000` (`:222`).
+- `data.rating == null || (data.rating is int && data.rating >= 1 && data.rating <= 5)` (`:223`).
+- `data.commission + data.driverEarnings == data.fare + data.tip` (`:225`) y `data.driverEarnings <= data.fare + data.tip` (`:224`).
+
+**Pasos**
+1. Abre la consola de Firebase, Firestore Database, pestaña **Reglas**, y compara la función `validTrip()` publicada con el texto de arriba. Si la publicada no tiene `'tip'` y `'rating'` en `hasAll` y `hasOnly`, es la versión anterior.
+2. Si difiere (o no estás seguro), borra todo el editor y pega el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), no solo la función.
+3. Pulsa **Publicar** y espera la confirmación de la consola.
+4. Reinicia la app (ciérrala del todo y ábrela).
+5. Completa un viaje simulado con propina (por ejemplo 2.000) y calificación (por ejemplo 4 estrellas), sin cancelar.
+6. En la consola, Firestore Database, Datos: abre `drivers/{uid}/trips`, el documento más reciente.
+7. Anota fecha y resultado en `docs/progress.md` o en tu mensaje.
+
+**Qué debes ver**
+- Éxito: el documento existe con `tip` (número entero, p. ej. 2000), `rating` (entero 1 a 5), `fare`, `commission` y `driverEarnings` con `commission + driverEarnings = fare + tip`, y la app muestra el resumen sin error de permiso.
+- Fallo: el viaje no se guarda y la app muestra un error de guardado; en el registro del dispositivo aparece `permission-denied`. Significa que la regla publicada es la anterior o que el paso 2 se pegó incompleto: repite los pasos 1 a 4.
+
+## Estados del viaje y campos nuevos: `validTrip()` ampliada (spec 005, RE-13, D-183, D-185, D-186; T-218)
+<!-- AI-assisted: see docs/AI_LOG.md #66 -->
+Estado: **PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real (CA-005-26 cerrado; G-01 cerrado).** En la consola, `drivers/{uid}/trips/mock-…-1` quedó con `status` "rejected", `fare`/`commission`/`driverEarnings`/`tip` en 0, `rating` null, `economy` con las cuatro claves en 0, `origin` {address, lat, lng} y `originLabel`. La publica Anderson a mano; ni el agente ni el repositorio publican nada, y `firestore.rules` (copia local ignorada por Git) no se crea ni se edita desde aquí. Sin publicarla, la app que escribe los campos nuevos habría fallado al guardar TODOS los viajes por `hasOnly` (como en G-01); ya no ocurre. Decisiones D-181 a D-186 aprobadas salvo objeción (D-185 aceptada); la spec 005 sigue en Borrador. Lo que no se probó con la regla: «Salir del viaje» a mitad de viaje y viajes antiguos (siguen «No verificado en dispositivo»).
+
+**El texto pegable** es el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), con `validTrip()` ya actualizada y las funciones nuevas `validEconomy()` y `validPlace()` (los números de línea citados en la sección anterior ya no coinciden; vale el texto). Pega el bloque entero, no solo la función.
+
+**Qué cambia, solo de forma aditiva.** Todo lo anterior se conserva (`hasAll` sin cambios, comisión, propina, calificación, `paymentMethod`, `route`, `createdAt == request.time`, `validCashPayment()`).
+1. `status in ['completed', 'cancelled', 'rejected']`. `requested` nunca se escribe.
+2. `cancelled` y `rejected`: `fare`, `commission`, `driverEarnings` y `tip` en 0 y `rating` nulo. Antes la regla no lo exigía a los cancelados (la app ya los guardaba así).
+3. Claves nuevas solo en `hasOnly` (opcionales, así un guardado sin ellas sigue valiendo): `passengerId`, `completedAt`, `economy`, `origin`, `destination`.
+4. `passengerId`: ausente, nulo o texto de 1 a 128.
+5. `completedAt`: ausente; en `completed`, igual a `finishedAt`; en otro estado, nulo.
+6. `economy`: mapa con exactamente `fare`, `commission`, `tip`, `driverEarnings`, iguales a los de nivel superior.
+7. `origin` y `destination`: mapa con `address` (texto de hasta 200) y `lat`/`lng` opcionales o nulos, dentro de rango. Si Anderson rechaza D-185 (privacidad de coordenadas), se quitan `origin` y `destination` de `hasOnly`, de las dos últimas cláusulas y la función `validPlace()`.
+
+**Casos esperados** (revisión de la regla, no ejecución: sin emulador; la prueba real fue el celular tras publicar, ver el estado arriba; «Salir del viaje» a mitad y viajes antiguos siguen sin probar):
+| Caso | Resultado | Por qué |
+|---|---|---|
+| `completed` con la solicitud de ejemplo (19.200 / 3.840 / 15.360), `economy` espejo, `completedAt == finishedAt`, `origin`/`destination` con `lat`, `lng`, `address` | Permitido | Todas las cláusulas se cumplen. |
+| `completed` sin ninguno de los campos nuevos (cliente anterior) | Permitido | Los campos nuevos son opcionales. |
+| `cancelled` con montos 0, `tip` 0, `rating` nulo, `completedAt` ausente o nulo | Permitido | Cumple la cláusula de montos en cero. |
+| `rejected` con montos 0, `tip` 0, `rating` nulo, `finishedAt` y `createdAt == request.time` | Permitido | Estado admitido y montos en cero. |
+| `rejected` con `fare`, `commission`, `driverEarnings` o `tip` mayor que 0 | Denegado | Cláusula de montos en cero. |
+| `rejected` o `cancelled` con `rating` distinto de nulo | Denegado | Cláusula de `rating`. |
+| `status: 'requested'` o cualquier otro estado | Denegado | `status in [...]`. |
+| `completedAt` en un `cancelled` o `rejected` con valor no nulo | Denegado | Cláusula de `completedAt`. |
+| `completed` con `completedAt` distinto de `finishedAt` | Denegado | Cláusula de `completedAt`. |
+| `economy` con montos distintos a los de nivel superior o con claves extra | Denegado | `validEconomy()`. |
+| `origin` sin `address`, con clave extra, o `lat` fuera de -90 a 90 | Denegado | `validPlace()`. |
+| Clave no listada (por ejemplo `passengerName2`) | Denegado | `hasOnly`. |
+| Confirmar cobro en efectivo de un `completed` | Permitido | `validCashPayment()` no cambia. |
+| Intentar pasar un `rejected` o `cancelled` a pagado | Denegado | `validCashPayment()` exige `status == 'completed'`. |
+
+### Lista de comprobación de publicación (la hace Anderson, ANTES de cualquier prueba en el celular)
+1. Abre la consola de Firebase, Firestore Database, pestaña **Reglas**.
+2. Borra todo el editor y pega el bloque completo de «Texto final de las reglas» de este archivo (de `rules_version` a la última llave). Comprueba que `function validTrip()` contiene `'rejected'` y que existen `validEconomy` y `validPlace`.
+3. Pulsa **Publicar** y espera la confirmación de la consola.
+4. Reinicia la app (ciérrala del todo y ábrela).
+5. Completa un viaje simulado: debe guardarse sin error de permiso.
+6. Cancela otro viaje antes de iniciarlo: debe guardarse con montos 0.
+7. Rechaza una solicitud (o deja vencer otra) tras mostrarla: debe guardarse con estado `rejected`.
+8. En la consola, Firestore Database, Datos, `drivers/{uid}/trips`: revisa los tres documentos. Esperado: `status` correcto; `rejected` y `cancelled` con `fare`, `commission`, `driverEarnings`, `tip` en 0 y `rating` nulo; el completado con `economy`, `completedAt` igual a `finishedAt`, `origin` y `destination`.
+9. Anota fecha y resultado en `docs/progress.md` o en tu mensaje. Si un guardado falla con `permission-denied`, la regla publicada es la anterior o se pegó incompleta: repite los pasos 1 a 4.
+10. Actualiza también tu copia local `firestore.rules` con el mismo texto (no se versiona).
+
 ## Geocodificación (Nominatim) (D-125, prompt #61)
 
 La app convierte las coordenadas de las solicitudes simuladas en una dirección legible con la geocodificación inversa de Nominatim (OpenStreetMap), un servicio público y sin clave.
@@ -323,6 +420,11 @@ La app convierte las coordenadas de las solicitudes simuladas en una dirección 
 - **Qué se guarda:** solo el texto corto de la dirección en `originLabel` y `destinationLabel` (límite de 200 caracteres de las reglas, el texto no pasa de 120). El historial y el detalle leen lo guardado y no llaman al servicio. Las reglas de Firestore no cambian.
 - **Pendiente de producción:** el servicio público no es para uso comercial ni intensivo; en producción se cambiaría por un proveedor propio o de pago, desde el backend si requiere clave.
 
+## Consulta de Ganancias por rango (spec 004, RC-04, T-202/T-203, D-170)
+La consulta de Ganancias usa `orderBy('finishedAt')` y rango sobre `finishedAt` en `drivers/{uid}/trips`: un solo campo, índice automático. NO requiere índice compuesto ni cambios en las reglas; no hay pasos manuales.
+- Lectura única por rango (`fetchTripsInRange`): de lunes o día 1 (el que caiga antes) hasta ahora, en páginas de 500 con `startAfter` y tope duro de 5000 documentos. La regla `read` de `trips` ya exige sesión del dueño; no cambia.
+- Si Firestore respondiera con un error de índice (`failed-precondition`), el mensaje trae un enlace para crearlo; sería un fallo inesperado y Anderson debería avisar en vez de crearlo a ciegas. Estado: **No verificado en dispositivo** (CA-004-12).
+
 ## Prueba contra el código real
 Un script temporal fuera del proyecto replica estas reglas cláusula por cláusula en JavaScript y las prueba con los payloads reales de `buildTripRecord`, `buildDocumentsPayload` y el registro. **No es el emulador de Firebase** (no hay Java ni emulador instalados): es una réplica, y la prueba definitiva es la repetición en el celular tras publicar. Resultado y alcance en `docs/progress.md` (T-73).
 
@@ -333,3 +435,26 @@ Un script temporal fuera del proyecto replica estas reglas cláusula por cláusu
 - Configuración pública de cliente (`EXPO_PUBLIC_*`): en `.env` local, ignorado por Git. `.env.example` lleva solo los **nombres** (D-81).
 - El mapa no necesita clave ni variable: MapLibre usa las teselas públicas de OpenFreeMap y las rutas salen del servidor demo público de OSRM. Sus URL son constantes públicas en `src/config/map.js` y `src/config/routing.js` (D-82 Vigente MODIFICADA, prompt #41).
 - Ningún agente de IA lee ni escribe valores de `.env` (CLAUDE.md).
+
+## FCM (propuesta, spec 003; sin reglas nuevas)
+- `pushTokens/{hash}` (colección raíz, D-131; `hash` = SHA-256 del token; campos `uid`, `token`, `platform`, `updatedAt`): acceso denegado a clientes (la regla genérica ya niega lo no listado); la lee y escribe solo el Admin SDK del backend (D-128). Registrar un token lo reasigna al uid actual en una transacción. **No se añade ninguna regla a `firestore.rules`** (sigue fuera de Git, D-24) **ni se crea ningún índice a mano**: se descartó `collectionGroup` y listar los dispositivos de un uid es `where('uid','==',uid)`, índice de un solo campo automático. `drivers/{uid}/fcmTokens` ya no existe.
+- Límite del token: 512 caracteres, coherente con `BODY_LIMIT` ('2kb', `backend/src/config.js:8`).
+- Ni el cuerpo de la notificación ni el payload llevan tarifa (D-132 rechazada) ni direcciones (D-138): solo categoría, distancia, duración, coordenadas, `requestId` y `expiresAt`.
+- Los endpoints de registro, baja y envío de token usan `createGuard` (límite por IP, token, límite por usuario) y envían solo a los dispositivos del llamante (D-127).
+- Nunca se imprime un token completo: solo los primeros 8 caracteres y su longitud, y solo en `__DEV__` (instrucción de Anderson, S1). `google-services.json` y `backend/secrets/` siguen ignorados por Git.
+
+## Notificaciones (FCM)
+Implementado en el backend (S2, spec 003; el envío real al celular queda «No verificado en dispositivo» hasta STOP-2).
+- `pushTokens/{sha256(token)}` (`uid`, `token`, `platform: 'android'`, `createdAt`, `updatedAt`) solo lo lee y escribe el Admin SDK del backend. **No se necesitan reglas nuevas ni índices nuevos**: `firestore.rules` no se toca y listar los dispositivos de un uid es `where('uid','==',uid)` (índice de un campo automático). Sin `collectionGroup`.
+- Los tokens nunca se escriben en logs: la única línea de registro es `[req] método ruta estado provider=- Nms`; tampoco cuerpos, correos ni uid.
+- Reasignación por uid (D-131): registrar un token ya guardado para otro uid lo pasa al que llama, en una transacción, y conserva `createdAt`. Dar de baja borra solo si el documento es del uid del ID token; token inexistente o ajeno responde igual (204).
+- Limpieza: tras cada envío se revisa `resp.success` por índice y se borran solo los tokens con error `messaging/registration-token-not-registered` o `messaging/invalid-registration-token`; cualquier otro error no borra nada.
+- `POST /notifications/test-request` envía solo a los dispositivos del uid del ID token (el cuerpo no puede aportar uid, tokens, texto ni datos), exige `accountStatus = 'approved'`, tiene un límite propio de 5 por minuto por uid (429) además del límite general, y admite un único envío diferido pendiente por uid.
+- Token válido: texto de 20 a 512 caracteres sin espacios; `platform` solo `android`. Con `BODY_LIMIT = '2kb'` cabe de sobra (comprobado en `scripts/tests/backendMessagingWiring.test.mjs`).
+
+### Cómo probar las notificaciones con la app (S4, T-184 a T-186; No verificado en dispositivo)
+1. Backend en marcha y alcanzable desde el celular (`EXPO_PUBLIC_BACKEND_URL` apunta a él). Los secretos siguen solo en `backend/.env` y `backend/secrets/`.
+2. Iniciar sesión con una cuenta aprobada, abrir Configuración > Notificaciones y activar el interruptor: la app explica el permiso, lo pide en contexto y, si se concede, registra el token en `POST /notifications/register`. Si el permiso está denegado o bloqueado, la sección muestra un mensaje y un botón a los ajustes del sistema.
+3. Elegir el retraso (0 a 60 s, por defecto 10 s) y pulsar «Enviar solicitud de prueba» (`POST /notifications/test-request` con `delaySeconds`). Con retraso, mandar la app a segundo plano y esperar el aviso; tocarlo abre la solicitud simulada.
+4. Cerrar sesión: antes de `signOut` (y después de esperar los guardados de viaje) se da de baja el token en `POST /notifications/unregister`, se borra el token local, `notificationsEnabled` y la intención pendiente, con un tope de 3 s que nunca bloquea el cierre. Con un viaje en curso o guardados pendientes no cambia nada. Iniciar sesión con otra cuenta en el mismo celular registra el token para esa cuenta (D-131) y la cuenta anterior ya no recibe avisos.
+5. Un envío diferido vive en la memoria del backend: si el backend se reinicia antes de que venza el retraso, se pierde.

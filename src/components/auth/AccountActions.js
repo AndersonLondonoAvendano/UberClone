@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54
 // Account actions with an on-screen confirmation (no Alert): "Cerrar sesión" and, in Settings,
 // "Cambiar de cuenta". Both run the single session reset (useSessionReset). Variants:
@@ -12,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, findNodeHandle, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useSessionReset } from '../../context/useSessionReset';
 import { SESSION_RESET_REASON } from '../../services/session/resetSession';
 import { color, iconSize, space, touch, type } from '../../theme/tokens';
@@ -32,9 +34,9 @@ const MODE = {
 };
 
 const FOCUS_MODES = [MODE.CONFIRM, MODE.BLOCKED, MODE.ERROR, MODE.SAVE_PENDING, MODE.CONFIRM_FORCE];
-const COPY = labels.auth.signOut;
-
 export function AccountActions({ variant = 'settings', email }) {
+  useLanguage();
+  const COPY = labels.auth.signOut;
   const resetSession = useSessionReset();
   const isRegistration = variant === 'registration';
   const prefix = isRegistration ? 'auth' : 'settings';

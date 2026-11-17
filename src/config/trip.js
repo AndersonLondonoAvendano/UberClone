@@ -9,6 +9,12 @@ export const TRIP_LOCATION_SOURCE = 'simulated';
 // demo trip takes about a minute per leg instead of several. 1 = real speed.
 export const TRIP_SPEED_FACTOR = 4;
 
+// AI-assisted: see docs/AI_LOG.md #72 (T-286, D-200)
+// The simulated approach to the pickup (the "Conductor llegando" phase) never lasts longer than this: when
+// the route is long, only the simulated speed rises for that leg. The distance, the time shown and the fare
+// do not change. It has no effect with the phone GPS. The leg to the destination is not capped.
+export const TRIP_PICKUP_APPROACH_MAX_S = 25;
+
 // The driver "arrived" (pickup or destination) when closer than this to the target point.
 export const ARRIVAL_THRESHOLD_M = 25;
 
@@ -30,8 +36,17 @@ export const REPORT_MIN_DISTANCE_M = 20;
 export const PUBLISH_DRIVER_LOCATION = true;
 export const PUBLISH_MAX_ATTEMPTS = 2;
 
-// How long the request card shows "La solicitud venció" before going back to Home.
+// How long the request card shows "La solicitud expiró" before going back to Home.
 export const EXPIRED_NOTICE_MS = 2500;
+// AI-assisted: see docs/AI_LOG.md #67
+// Ceiling of that notice once it is stretched by the font scale: 6 seconds.
+export const NOTICE_MAX_MS = 6 * 1000;
+
+// AI-assisted: see docs/AI_LOG.md #66
+// A request that arrives by push is shown at once with its passenger and category; distance, duration and
+// fare stay in "calculando" until the real route answers. This is the longest it may stay there (a little
+// above the 2,5 s OSRM timeout): after it the message values are used and the request is marked estimated.
+export const REQUEST_METRICS_CAP_MS = 3000;
 
 // AI-assisted: see docs/AI_LOG.md #44
 // Each reportTripStatus or cancelTrip attempt gives up after this long (offline requests may never
@@ -45,3 +60,8 @@ export const FINISH_TIMEOUT_MS = 15000;
 export const PUBLISH_STATUS_MAX_ATTEMPTS = 3;
 export const PUBLISH_STATUS_RETRY_DELAY_MS = 1500;
 export const PUBLISH_WRITE_TIMEOUT_MS = 8000;
+
+// AI-assisted: see docs/AI_LOG.md #73 (T-291, D-202)
+// Clock tolerance, in ONE place, between the server expiresAt of a request and the phone clock (which may be
+// a few seconds ahead or behind). A request only counts as expired when now >= expiresAt + this value.
+export const REQUEST_CLOCK_TOLERANCE_MS = 10000;

@@ -1,3 +1,5 @@
+// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
 // AI-assisted: see docs/AI_LOG.md #27
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
@@ -13,6 +15,7 @@ import { SelectField } from '../../components/registration/SelectField';
 import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { VEHICLE_CATEGORY_OPTIONS, VEHICLE_COLOR_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
@@ -30,9 +33,10 @@ import {
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.vehicle.fields;
 // AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
-const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '2').replace('{total}', '3');
 
 export function VehicleScreen() {
+  useLanguage();
+  const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '2').replace('{total}', '3');
   const { vehicle, setVehicleField, touchVehicleField, visitedTabs, isLocked } = useRegistrationForm();
   const { accountStatus } = useAppState();
 
@@ -42,7 +46,7 @@ export function VehicleScreen() {
     !isValid && (vehicle.touched[key] || showErrors) ? FIELDS[key].error : null;
 
   return (
-    <PlaceholderScreen name="vehicle" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="vehicle" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
@@ -76,7 +80,7 @@ export function VehicleScreen() {
           onChangeText={(value) => setVehicleField('plate', value)}
           onBlur={() => touchVehicleField('plate')}
           maxLength={6}
-          // AI-assisted: see docs/AI_LOG.md #62 (T-174: no autocorrect/suggestions on the plate)
+          // T-174: no autocorrect/suggestions on the plate
           inputProps={{
             autoCapitalize: 'characters',
             autoCorrect: false,

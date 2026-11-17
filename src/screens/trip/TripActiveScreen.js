@@ -1,3 +1,5 @@
+// AI-assisted: see docs/AI_LOG.md #72 (T-285, D-200: arrival is automatic; no "Llegué" button, no main button while approaching)
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #54 (car marker colour; main action fixed below the scrollable panel)
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
 // AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
@@ -5,7 +7,7 @@
 // AI-assisted: see docs/AI_LOG.md #43
 // Trip in progress (T-44). Reads the trip from TripContext (the controller does the work): map with
 // the leg route, the target and the driver; the phase, the remaining distance and time; "Pasajero a
-// bordo" once the driver reached the pickup and "Finalizar viaje" at the destination. Route, report,
+// bordo" only once the driver reached the pickup (the arrival is automatic, D-200) and "Finalizar viaje" at the destination. Route, report,
 // location and cancel errors are inline text with their own retry: nothing retries by itself.
 // Cancel asks for a simple inline confirmation. Leaving the screen (back gesture or button) during
 // the trip opens that confirmation instead of dropping the trip.
@@ -29,26 +31,32 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { TripMap } from '../../components/map/TripMap';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { FINISH_ERROR, TRIP_STATUS } from '../../constants/tripStatus';
 import { useAppState } from '../../context/AppStateContext';
 import { useTrip } from '../../context/TripContext';
 import { useRequestAddresses } from '../../hooks/useRequestAddresses';
+import { canOfferCancel } from '../../services/trip/cancelRule';
+import { exitCopy } from '../../services/trip/exitCopy';
 import { TRIP_PHASE } from '../../services/trip/tripController';
 import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
 import { fillLabel, formatKmFromMeters, formatMinutesFromSeconds } from '../../utils/format';
 
 const SAFE_EDGES = ['top', 'bottom'];
 const PANEL_MAX_SHARE = 0.65;
+const PANEL_CONFIRM_MAX_SHARE = 0.9;
 const MOVING_PHASES = [TRIP_PHASE.TO_PICKUP, TRIP_PHASE.TO_DESTINATION];
 
 // AI-assisted: see docs/AI_LOG.md #44
-const FINISH_ERROR_TEXT = {
+// Read at render time so the text follows the active language.
+const finishErrorTexts = () => ({
   [FINISH_ERROR.NETWORK]: labels.trip.finishErrorNetwork,
   [FINISH_ERROR.TIMEOUT]: labels.trip.finishErrorTimeout,
   [FINISH_ERROR.REJECTED]: labels.trip.finishErrorRejected,
-};
+});
 
 export function TripActiveScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { trip, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
   const { driverProfile } = useAppState();
   // AI-assisted: see docs/AI_LOG.md #61 (D-125: resolved street of the current target)
@@ -57,6 +65,7 @@ export function TripActiveScreen({ navigation }) {
   const [confirmExit, setConfirmExit] = useState(false);
   const [working, setWorking] = useState(false);
   const { height: windowHeight } = useWindowDimensions();
+  const scrollRef = useRef(null);
   const leavingRef = useRef(false);
   const mountedRef = useRef(true);
   // AI-assisted: see docs/AI_LOG.md #44
@@ -81,9 +90,12 @@ export function TripActiveScreen({ navigation }) {
     navigation.setOptions({ gestureEnabled: !active });
   }, [navigation, active]);
 
+  // AI-assisted: see docs/AI_LOG.md #66 (in_progress cannot be cancelled: leaving opens the safe exit)
+  const cancelOffered = Boolean(trip) && canOfferCancel(trip.status);
   usePreventRemove(active, ({ data }) => {
     if (leavingRef.current) navigation.dispatch(data.action);
-    else setConfirmCancel(true);
+    else if (cancelOffered) setConfirmCancel(true);
+    else setConfirmExit(true);
   });
 
   const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
@@ -164,10 +176,16 @@ export function TripActiveScreen({ navigation }) {
   const toDestinationSide = trip.phase === TRIP_PHASE.TO_DESTINATION || trip.phase === TRIP_PHASE.AT_DESTINATION;
   const atDestination = trip.phase === TRIP_PHASE.AT_DESTINATION;
   const busy = working || trip.finishing;
-  const finishErrorText = trip.finishError ? FINISH_ERROR_TEXT[trip.finishError] ?? FINISH_ERROR_TEXT.network : null;
-  // The main button waits for the arrival; its reason is visible text, not only an accessibility hint.
-  const mainReady = toDestinationSide ? atDestination : atPickup;
-  const mainHint = toDestinationSide ? labels.trip.finishRideHint : labels.trip.startRideHint;
+  const finishErrors = finishErrorTexts();
+  const finishErrorText = trip.finishError ? finishErrors[trip.finishError] ?? finishErrors.network : null;
+  // D-200: the arrival at the pickup is automatic (controller: distance threshold or end of the route), so
+  // while the driver is on the way to the pickup there is no main button and no hint, only "Cancelar viaje".
+  // "Pasajero a bordo" appears once the driver is at the pickup. At the destination the main button
+  // waits for the arrival and its reason is visible text, not only an accessibility hint.
+  const mainHint = toDestinationSide && !atDestination ? labels.trip.finishRideHint : null;
+
+  // AI-assisted: see docs/AI_LOG.md #66 (C2c: the exit text says what really happens in this state)
+  const exitText = exitCopy({ status: trip.status, atDestination, serverError: Boolean(trip.finishError || trip.cancelError) });
 
   let actions;
   if (confirmExit) {
@@ -181,9 +199,9 @@ export function TripActiveScreen({ navigation }) {
       >
         <View style={styles.confirmHead}>
           <Icon name="warning" size={iconSize.lg} tint={color.onWarningSoft} />
-          <Text style={[styles.title, styles.flex, styles.onWarning]}>{labels.trip.exitQuestion}</Text>
+          <Text style={[styles.title, styles.flex, styles.onWarning]}>{exitText.question}</Text>
         </View>
-        <Text style={[styles.body, styles.onWarning]}>{labels.trip.exitMessage}</Text>
+        <Text style={[styles.body, styles.onWarning]}>{exitText.message}</Text>
         <SecondaryButton
           testID="trip-active-exit-confirm-yes"
           label={labels.trip.exitConfirm}
@@ -260,30 +278,39 @@ export function TripActiveScreen({ navigation }) {
             onPress={handleFinish}
             disabled={!atDestination || busy}
           />
-        ) : (
+        ) : atPickup ? (
           <PrimaryButton
             testID="trip-active-start"
             label={labels.trip.startRide}
-            accessibilityHint={labels.trip.startRideHint}
             onPress={handleStartRide}
-            disabled={!atPickup || busy}
+            disabled={busy}
           />
-        )}
-        {!mainReady ? (
+        ) : null}
+        {mainHint ? (
           <Text testID="trip-active-main-hint" style={styles.hint}>
             {mainHint}
           </Text>
         ) : null}
-        <SecondaryButton
-          testID="trip-active-cancel"
-          label={labels.trip.cancel}
-          variant="danger"
-          onPress={() => setConfirmCancel(true)}
-          disabled={busy}
-        />
+        {cancelOffered ? (
+          <SecondaryButton
+            testID="trip-active-cancel"
+            label={labels.trip.cancel}
+            variant="danger"
+            onPress={() => setConfirmCancel(true)}
+            disabled={busy}
+          />
+        ) : (
+          <SecondaryButton testID="trip-active-exit" label={labels.trip.exitTrip} onPress={askExit} disabled={busy} />
+        )}
       </View>
     );
   }
+
+  const confirming = confirmExit || confirmCancel;
+  const targetAddress = toDestinationSide ? addresses.destination : addresses.origin;
+  const targetA11yLabel = fillLabel(toDestinationSide ? labels.trip.destinationA11y : labels.trip.pickupPointA11y, {
+    address: targetAddress ?? '',
+  });
 
   return (
     <SafeAreaView testID="screen-trip-active" edges={SAFE_EDGES} style={styles.screen}>
@@ -300,10 +327,16 @@ export function TripActiveScreen({ navigation }) {
       </View>
 
       {/* AI-assisted: see docs/AI_LOG.md #53, #54 (the whole panel is capped, the scroll yields space) */}
-      <View style={[styles.panel, { maxHeight: windowHeight * PANEL_MAX_SHARE }]}>
+      {/* AI-assisted: see docs/AI_LOG.md #72 (T-287 H-1: an open confirmation lives inside the scroll, so it is
+          always reachable at 200 % font; the panel may grow taller while it is open) */}
+      <View style={[styles.panel, { maxHeight: windowHeight * (confirming ? PANEL_CONFIRM_MAX_SHARE : PANEL_MAX_SHARE) }]}>
         <ScrollView
+          ref={scrollRef}
           style={styles.panelScroll}
           contentContainerStyle={styles.panelContent}
+          onContentSizeChange={() => {
+            if (confirming) scrollRef.current?.scrollToEnd({ animated: false });
+          }}
         >
         <View style={styles.info} accessibilityLiveRegion="polite">
           <Chip testID="trip-active-phase" label={phaseText} tone={atPickup || atDestination ? 'success' : 'brand'} />
@@ -323,9 +356,9 @@ export function TripActiveScreen({ navigation }) {
             <Text style={[styles.bodyStrong, styles.flex]}>{trip.request.passenger?.name}</Text>
           </View>
           {trip.target?.address ? (
-            <View style={styles.personRow}>
+            <View style={styles.personRow} accessible accessibilityLabel={targetA11yLabel}>
               <Icon name={toDestinationSide ? 'location' : 'radio-button-on'} size={iconSize.md} tint={color.textMuted} />
-              <Text style={[styles.body, styles.flex]}>{toDestinationSide ? addresses.destination : addresses.origin}</Text>
+              <Text style={[styles.body, styles.flex]}>{targetAddress}</Text>
             </View>
           ) : null}
           {trip.routeLoading ? <Text style={styles.muted}>{labels.trip.routeLoading}</Text> : null}
@@ -341,9 +374,10 @@ export function TripActiveScreen({ navigation }) {
           <Notice testID="trip-active-report-error" text={labels.trip.reportError} onRetry={retryReport} />
         ) : null}
 
+        {confirming ? actions : null}
         </ScrollView>
 
-        {actions}
+        {confirming ? null : actions}
       </View>
     </SafeAreaView>
   );

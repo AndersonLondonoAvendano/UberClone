@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #14
 // AI-assisted: see docs/AI_LOG.md #51 (redesign: raised light bar, pill button with an Ionicons icon)
 // AI-assisted: see docs/AI_LOG.md #52 (Icon component replaces the View-drawn icons)
@@ -9,6 +10,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from './Icon';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { color, elevation, iconSize, opacity, radius, space, touch, type } from '../theme/tokens';
 
 // leading: 'drawer' | 'back' | null.
@@ -16,6 +18,7 @@ import { color, elevation, iconSize, opacity, radius, space, touch, type } from 
 // still drawn (testID, size and text stay checkable) and pressing it does nothing.
 // AI-assisted: see docs/AI_LOG.md #57 (T-110): optional leadingA11yLabel names the destination of the button.
 export function ScreenHeader({ title, leading, onLeadingPress, leadingA11yLabel }) {
+  useLanguage();
   const isDrawer = leading === 'drawer';
   const isBack = leading === 'back';
 

@@ -1,3 +1,5 @@
+// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
 // AI-assisted: see docs/AI_LOG.md #27
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
@@ -20,6 +22,7 @@ import { PhotoField } from '../../components/registration/PhotoField';
 import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
 import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
@@ -30,9 +33,10 @@ const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.documents.fields;
 const SECTIONS = labels.registration.documents.sections;
 // AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
-const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '3').replace('{total}', '3');
 
 export function DocumentsScreen() {
+  useLanguage();
+  const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '3').replace('{total}', '3');
   const {
     documents,
     setDocumentsField,
@@ -73,7 +77,7 @@ export function DocumentsScreen() {
   const canSubmit = isRegistrationValid && !isSubmitting && !isAccountPending;
 
   return (
-    <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)

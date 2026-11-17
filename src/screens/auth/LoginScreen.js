@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54
 // AI-assisted: see docs/AI_LOG.md #60 (presentation redesign: brand band, icon fields, text links)
 // Sign-in screen (RF-34). Email and password live only in this component's state and are cleared
@@ -15,6 +16,7 @@ import { PasswordField } from '../../components/auth/PasswordField';
 import { Card } from '../../components/Card';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { signInWithEmail } from '../../services/authService';
 import { color, space, type } from '../../theme/tokens';
 import { mapAuthError } from '../../utils/authErrors';
@@ -24,6 +26,7 @@ const TEXT = labels.auth;
 const FIELD_ORDER = ['email', 'password'];
 
 export function LoginScreen({ navigation }) {
+  useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);

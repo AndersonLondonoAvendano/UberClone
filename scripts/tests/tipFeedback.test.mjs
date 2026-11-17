@@ -47,14 +47,18 @@ assert.equal(generateFeedback(() => 0).rating <= 2, true);
 
 // The mock request carries tip and rating (injected random, no timers fired).
 {
-  const api = createMockPassengerApi({ random: () => 0.1, setTimer: () => 1, clearTimer: () => {}, log: () => {} });
+  // T-197: the request waits for its metrics; a fake resolver keeps the test off the network.
+  const api = createMockPassengerApi({
+    random: () => 0.1, setTimer: () => 1, clearTimer: () => {}, log: () => {},
+    resolveMetrics: async (o, d, fallback) => ({ ...fallback, estimated: true }),
+  });
   let emitted = null;
   api.subscribeToRequests((r) => (emitted = r), () => {}, { getDriverPosition: () => ({ lat: 6.25, lng: -75.57 }) });
   api.requestNow?.();
-  if (emitted) {
-    assert.ok(Number.isInteger(emitted.tip) && emitted.tip % 500 === 0);
-    assert.ok(Number.isInteger(emitted.rating) && emitted.rating >= 1 && emitted.rating <= 5);
-  }
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(emitted, 'the request is emitted once the metrics resolve');
+  assert.ok(Number.isInteger(emitted.tip) && emitted.tip % 500 === 0);
+  assert.ok(Number.isInteger(emitted.rating) && emitted.rating >= 1 && emitted.rating <= 5);
 }
 
 // Mapper: snake_case/aliases, legacy leaves both undefined, invalid values dropped.

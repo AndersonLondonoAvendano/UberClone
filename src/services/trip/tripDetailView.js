@@ -23,6 +23,9 @@ const PAYMENT_CHIP = {
   [PAYMENT_STATUS.PAID]: { tone: 'success', icon: 'checkmark-circle' },
 };
 
+// Neutral tone (text on surfaceMuted) plus its own icon: differs from the cancelled chip (danger, close-circle).
+export const REJECTED_CHIP = { tone: 'neutral', icon: 'remove-circle' };
+
 const isNumber = (value) => typeof value === 'number' && Number.isFinite(value);
 const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 
@@ -48,6 +51,9 @@ function statusOf(trip) {
   if (trip.status === TRIP_STATUS.CANCELLED) {
     return { label: labels.history.status.cancelled, tone: 'danger', icon: 'close-circle' };
   }
+  // AI-assisted: see docs/AI_LOG.md #66 (T-230: only the TRIP status; a completed trip whose payment was
+  // rejected by the gateway keeps its "Pago rechazado" chip)
+  if (trip.status === TRIP_STATUS.REJECTED) return { ...REJECTED_CHIP, label: labels.history.status.rejected };
   const legacy = legacyPaymentChip(trip);
   if (legacy) return legacy;
   const paymentStatus = trip.paymentStatus ?? (trip.status === TRIP_STATUS.PAID ? PAYMENT_STATUS.PAID : undefined);

@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54 (accessible label = name + chosen value)
 // AI-assisted: see docs/AI_LOG.md #25
 // AI-assisted: see docs/AI_LOG.md #36
@@ -8,12 +9,14 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { borderWidth, color, elevation, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { Icon } from '../Icon';
 import { FieldError } from './FieldError';
 
 const VISIBLE_OPTIONS = 5; // taller lists scroll inside the dropdown
 
 export function SelectField({ testID, label, options, value, onChange, errorTestID, errorMessage, disabled = false }) {
+  useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
 

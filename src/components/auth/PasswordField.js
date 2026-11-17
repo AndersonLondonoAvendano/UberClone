@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #54
 // AI-assisted: see docs/AI_LOG.md #60 (lock icon and the show/hide button inside the field)
 // Password field of the authentication forms: an AuthField with the text hidden and, when the screen
@@ -8,9 +9,8 @@ import { Pressable, StyleSheet } from 'react-native';
 import { AuthField } from './AuthField';
 import { Icon } from '../Icon';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { color, iconSize, opacity, radius, touch } from '../../theme/tokens';
-
-const A11Y = labels.auth.a11y;
 
 export function PasswordField({
   testID,
@@ -29,6 +29,8 @@ export function PasswordField({
   onSubmitEditing,
   disabled = false,
 }) {
+  useLanguage();
+  const A11Y = labels.auth.a11y;
   const toggleLabel = visible ? A11Y.hidePassword : A11Y.showPassword;
 
   const toggle = onToggleVisible ? (

@@ -22,7 +22,7 @@ async function main() {
   // The server may start with no gateway at all: /health works and checkout answers a generic error.
   const config = loadConfig(undefined, { allowNoProvider: true });
   for (const warning of config.warnings) console.warn(warning);
-  const { adminAuth, db } = await initAdmin(config);
+  const { adminAuth, db, messaging } = await initAdmin(config);
   const { mercadopago, stripe } = config.providers;
   const mp = mercadopago ? createMercadoPagoClient({ accessToken: mercadopago.accessToken }) : null;
   const registry = createProviderRegistry({
@@ -44,6 +44,8 @@ async function main() {
     config,
     registry,
     log: (line) => console.log(line),
+    messaging,
+    db,
   });
 
   const server = app.listen(config.port, () => {
@@ -57,7 +59,11 @@ async function main() {
     );
     process.exit(1);
   });
-  const shutdown = () => server.close(() => process.exit(0));
+  const shutdown = () => {
+    // Cancels deferred test notifications still waiting for their timer.
+    app.closeNotifications();
+    server.close(() => process.exit(0));
+  };
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 }

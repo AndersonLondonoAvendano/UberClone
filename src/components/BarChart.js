@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #56
 // Simple bar chart drawn with View (T-104, RF-48): bar height is the 0..1 ratio of barScale, each bar
 // has its text label under it and an accessibilityLabel with label and amount. The whole chart has one
@@ -7,6 +8,7 @@
 
 import { StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
+import { useLanguage } from '../i18n/useLanguage';
 import { borderWidth, color, radius, space, type } from '../theme/tokens';
 import { barScale, chartSummary } from '../utils/chartData';
 import { showsLabel } from '../utils/chartLayout';
@@ -16,6 +18,7 @@ const PLOT_HEIGHT = space[7] * 2;
 
 // groups: [{ key, label, value }] from groupNetEarnings.
 export function BarChart({ groups, testID = 'bar-chart' }) {
+  useLanguage();
   const list = Array.isArray(groups) ? groups : [];
   const summary = chartSummary(list);
   const scale = barScale(list);
@@ -56,7 +59,7 @@ export function BarChart({ groups, testID = 'bar-chart' }) {
               <View style={styles.track}>
                 <View style={[styles.bar, ratio > 0 ? { height: ratio * PLOT_HEIGHT } : styles.barZero]} />
               </View>
-              <Text numberOfLines={1} style={styles.tick}>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.3} style={styles.tick}>
                 {showsLabel(index, list.length) ? group.label : ' '}
               </Text>
             </View>

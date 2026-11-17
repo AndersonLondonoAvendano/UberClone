@@ -5,9 +5,17 @@
 //
 // getAvailability(), getTrip(), getAppState(), getRegistration(): latest context value or null.
 // publishIdleStatus(position): publishes the idle driver status through the existing writer queue.
-// clearOwnStorage(): optional. The app has no own AsyncStorage keys (only Firebase Auth persistence
-//   uses it and it must survive until signOut), so the default is an explicit no-op.
+// clearOwnStorage(): optional. It runs BEFORE the trip-save wait, so it must not delete anything that
+//   has to survive a reset that does not end in signOut (Firebase Auth persistence uses AsyncStorage and
+//   must survive until signOut). The default is an explicit no-op. The notificationsEnabled preference
+//   and the local push token are NOT cleared here (D-134): they are cleared by unregisterNotifications.
 // waitForTripSaveQueue(): resolves when no trip save is in flight (see services/trip/saveQueue.js).
+// unregisterNotifications(): optional. Backend unregistration, local token, notificationsEnabled and
+//   the pending intent, all together, run by resetSession AFTER the save wait and right before signOut.
+// clearAvailabilityPreference(): optional (D-201). Removes the locally saved "Disponible" of the session's uid.
+//   It runs INSIDE the unregisterNotifications step (same point and bound as the notifications preference,
+//   D-134), first, and a failure never stops the push cleanup.
+// restoreNotifications(): optional. Undoes the previous step if signOut fails (best effort).
 // signOut(): REQUIRED. resetSession counts a missing signOut as ok, so it is enforced here.
 
 const noop = async () => {};
@@ -33,6 +41,9 @@ export function buildSessionResetDeps({
   publishIdleStatus,
   clearOwnStorage = noop,
   waitForTripSaveQueue,
+  unregisterNotifications,
+  clearAvailabilityPreference,
+  restoreNotifications,
   signOut,
 }) {
   if (typeof signOut !== 'function') {
@@ -96,6 +107,18 @@ export function buildSessionResetDeps({
 
     clearOwnStorage,
     waitForTripSaveQueue,
+    unregisterNotifications:
+      typeof clearAvailabilityPreference === 'function'
+        ? async () => {
+            try {
+              await clearAvailabilityPreference();
+            } catch {
+              // The push cleanup must still run.
+            }
+            if (typeof unregisterNotifications === 'function') await unregisterNotifications();
+          }
+        : unregisterNotifications,
+    restoreNotifications,
     signOut,
   };
 }

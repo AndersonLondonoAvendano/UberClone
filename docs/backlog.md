@@ -2569,6 +2569,745 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 - Diseño: Pendiente
 - Estado: Pendiente (necesita capturas del celular; el design-auditor no corrió). Diseño: Pendiente
 
+## Spec 003 — Notificaciones push FCM (plan: `specs/003-notificaciones-fcm/plan.md`; regenerado 2026-11-16 tras la revisión 1b de la spec; la spec sigue «Borrador» y D-126, D-127…D-129, D-133…D-135, D-137 y D-138 «Propuesta»: ninguna tarea se ejecuta antes de las compuertas G1 a G4 del plan §0; la numeración sigue a T-166; T-194 y T-195 llevan los números finales para no mover T-185, T-190, T-192 y T-193 que la spec cita, pero se ejecutan en S3 justo después de T-177; orden de S3: T-177, T-194, T-195, T-178, T-179, T-180, T-181, T-182, T-183)
+
+### T-167 — S1: dependencias, `app.json`, `firebase.json` y `.gitignore` para FCM
+- Spec: `specs/003-notificaciones-fcm/spec.md` (RNF-25, RNF-21, RF-68, D-126, D-129, CA-003-17, CA-003-02)
+- Requisitos: RNF-25, RNF-21, RF-68
+- Depende de: ninguna (compuertas G1 a G4 del plan §0)
+- Archivos: `scripts/dependencies.json`, `package.json`, `app.json`, `firebase.json` (nuevo), `.gitignore`
+- Hacer: plan §8 sin variaciones. Mover las dos librerías a «allowed» (27.1.1 exacta), instalarlas, añadir plugins en orden y `android.googleServicesFile`, crear `firebase.json` con `messaging_android_notification_channel_id` = `solicitudes` y comprobar que `google-services.json` ya está en `.gitignore` (`:46`; no se edita salvo que falte). No leer `google-services.json`. Comprobar que el `android.package` de `app.json` es el registrado (M1). `npx expo-doctor` y `check-constitution` antes y después.
+- Criterios: CA-003-17 (`google-services.json` fuera de git). «No verificado en dispositivo»: CA-003-02.
+- Hecho cuando: `npm ls` muestra 27.1.1 en ambas, `expo-doctor` sin errores nuevos, la app sigue arrancando en JS (`npx expo start`); el build nativo lo hace Anderson en T-169.
+- Qué debe ver Anderson en el celular: nada todavía (módulo nativo: probar en el celular en T-169). **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson en T-169.
+- Riesgo: medio (config nativa, C15).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-168 — S1: interfaz mínima, adaptador RN Firebase y handler en segundo plano
+- Spec: spec 003 (RF-67, RF-68, D-126, D-129, CA-003-01)
+- Requisitos: RF-67, RF-68
+- Depende de: T-167
+- Archivos: `src/services/notifications/index.js`, `src/services/notifications/constants.js`, `src/services/notifications/safeLog.js`, `src/services/notifications/adapters/rnFirebaseAdapter.js`, `src/services/notifications/spikeProbe.js` (temporal), `index.js`, `App.js`, `scripts/tests/notificationSafeLog.test.mjs`
+- Hacer: DP-59, DP-73. `safeLog.maskToken` (primeros 8 caracteres y longitud; instrucción de Anderson en S1, reemplaza «últimos 6») con su prueba; adaptador con `getToken` y creación del canal si hace falta; `setBackgroundMessageHandler` en `index.js` antes de `registerRootComponent`; `spikeProbe` pide el permiso (`PermissionsAndroid`, Android 13+) y escribe en log solo `maskToken`, invocado únicamente con `__DEV__` desde `App.js`. Ninguna pantalla importa el SDK.
+- Criterios: CA-003-01 (grep). «No verificado en dispositivo»: token y canal.
+- Hecho cuando: la prueba pasa, el grep de CA-003-01 queda limpio, lint y `check-constitution` pasan y el JS arranca; compilación y token se confirman en T-169.
+- Qué debe ver Anderson en el celular: en T-169. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (módulo nativo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-169 — S1: compuerta del spike (STOP-1), RN Firebase o plan B — Estado: Validada en dispositivo por Anderson (2026-11-16)
+- Spec: spec 003 (RF-68, RF-67, D-126, D-129, CA-003-02)
+- Requisitos: RF-68, RF-67
+- Depende de: T-167, T-168
+- Archivos: ninguno (la decisión y la evidencia las registra el verifier en `docs/progress.md`; el planner no lo edita)
+- Hacer: PUNTO DE PARADA 1. Anderson (M2): `npx expo run:android`; la app arranca; comprueba en el log los primeros 8 caracteres y la longitud del token; envía un mensaje de la consola de Firebase con la app en segundo plano. Criterio del plan §10: se mantiene RN Firebase si (a) compila, (b) arranca con el handler, (c) hay token y (d) el mensaje llega como aviso emergente. Si el heads-up falla por canal, DP-72 (añadir `expo-notifications` solo para el canal, con D-129 Vigente) y repetir. Tope de 3 h de spike; si fallan (a), (b) o (c) sin diagnóstico, se activa T-170. Esperar: «Pega aquí el resultado de la prueba en el celular: <resultado>».
+- Criterios: CA-003-02. «No verificado en dispositivo» hasta el resultado de Anderson.
+- Hecho cuando: Anderson reporta el resultado de (a) a (d) y queda registrada la decisión (RN Firebase o plan B).
+- Qué debe ver Anderson en el celular: la app abre; el log muestra 6 caracteres del token; el mensaje de la consola llega con la app en segundo plano y aparece emergente.
+- Validación: Anderson en el celular; verifier distinto para la decisión.
+- Riesgo: alto (puerta del plan).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-170 — S1 (condicional): adaptador de plan B con `expo-notifications` — Estado: No aplica (plan B descartado; D-126 Vigente)
+- Spec: spec 003 (RF-67, RF-68, D-126, D-129)
+- Requisitos: RF-67, RF-68
+- Depende de: T-169 (solo si la compuerta activa el plan B)
+- Archivos: `src/services/notifications/adapters/expoNotificationsAdapter.js`, `src/services/notifications/index.js`, `scripts/dependencies.json`, `package.json`, `app.json`
+- Hacer: plan §10 (plan B). Mover `expo-notifications` (~57.0.25) a «allowed» con decisión Vigente, `setNotificationChannelAsync` ANTES de `getDevicePushTokenAsync()`, misma interfaz. El mismo `google-services.json`. Quitar los plugins de RN Firebase solo si la compuerta lo exige. Si la compuerta mantiene RN Firebase y no hay fallo de canal, esta tarea se cierra «No aplica».
+- Criterios: CA-003-01. «No verificado en dispositivo».
+- Hecho cuando: el adaptador cumple la interfaz y Anderson confirma token y llegada tras recompilar (repite STOP-1), o la tarea queda «No aplica».
+- Qué debe ver Anderson en el celular: lo mismo que T-169 con el adaptador B. **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Condicional (solo si falla la compuerta de T-169 o el canal)
+
+### T-171 — S2: `messaging` en `admin.js`, `createApp` y `server.js`, y constantes FCM
+- Spec: spec 003 (RF-79, RF-83, RF-85, D-131, CA-003-23, CA-003-27)
+- Requisitos: RF-79, RF-83, RF-85
+- Depende de: ninguna (compuertas G1, G2)
+- Archivos: `backend/src/admin.js`, `backend/src/server.js`, `backend/src/app.js`, `backend/src/config.js`, `scripts/tests/backendMessagingWiring.test.mjs`
+- Hacer: DP-66, DP-67, DP-69. `admin.js` exporta `messaging` junto a `adminAuth` y `db` (hoy `{ adminAuth, db }`, `admin.js:11`); `server.js` lo desestructura (`:25`) y lo pasa a `createApp` (`:40`); `createApp` (`app.js:16`) cambia de firma y recibe `messaging` inyectable (sin registrar rutas todavía). Constantes en `config.js` (junto a `:8-9`): `TEST_REQUEST_RATE_LIMIT` (`{ max: 5, windowMs: 60000 }`), `FCM_TTL_MS` (90000), `FCM_TTL` (`'90s'`), `FCM_CHANNEL_ID` (`solicitudes`), `TEST_REQUEST_MAX_DELAY_S` (60). Sin `messaging` el servidor arranca y `/health` responde. No hay `fare.js` ni `calculateFare` en `backend/src`. No leer `backend/.env` ni `backend/secrets`.
+- Criterios: CA-003-23 (parte del cableado), CA-003-27 (constantes 90 s).
+- Hecho cuando: la prueba pasa (con y sin `messaging` inyectado, `/health` responde, `admin.js` exporta `messaging`), las pruebas de pagos siguen pasando, el backend arranca igual y `check-constitution` pasa.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-172 — S2: plantilla y mensaje FCM (puro)
+- Spec: spec 003 (RF-82, RF-83, D-137, D-138, CA-003-13, CA-003-14, CA-003-27)
+- Requisitos: RF-82, RF-83
+- Depende de: T-171
+- Archivos: `backend/src/notifications/payload.js`, `scripts/tests/backendNotificationPayload.test.mjs`
+- Hacer: DP-67. Función pura `buildTestRequest({ now, idFactory, targetUid })` (categoría, distancia, duración, coordenadas de origen y destino, `requestId` único, `targetUid`, `expiresAt = now + 90 s`; SIN tarifa ni direcciones) y `buildMessage(token, request)` con `notification` (título «Nueva solicitud de viaje», cuerpo «Económico · 3,2 km · 9 min»), `data` en texto (`type`, `requestId`, `targetUid`, `expiresAt`, `category`, `distanceKm`, `durationMin`, coordenadas), `android.priority = 'high'`, `android.ttl = '90s'`, `channelId` «solicitudes»; sin datos personales. Pruebas de todos los campos y de la ausencia de tarifa y direcciones; grep de `calculateFare` en `backend/src` (cero).
+- Criterios: CA-003-13, CA-003-14, CA-003-27 (`expiresAt` y `ttl` ≈90 s).
+- Hecho cuando: las pruebas pasan y el mensaje no contiene nombre, correo, teléfono, tarifa ni direcciones.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-173 — S2: `pushTokens` con transacción (registro, baja, listado)
+- Spec: spec 003 (RF-79, RF-80, RF-81, D-128, D-131, CA-003-10, CA-003-22, CA-003-24, CA-003-25)
+- Requisitos: RF-79, RF-80, RF-81
+- Depende de: T-171
+- Archivos: `backend/src/notifications/tokenStore.js`, `scripts/tests/backendTokenStore.test.mjs`
+- Hacer: DP-65. Colección raíz `pushTokens/{sha256(token)}` con `{ uid, token, platform: 'android', updatedAt }`, `db` inyectado. `register(uid, token)` con `db.runTransaction` que reasigna al uid que llama; `unregister(uid, token)` en transacción, borra solo si el uid coincide (inexistente o ajeno: misma respuesta); `listForUid(uid)` con `where('uid','==',uid)`; `removeTokens(tokens)` para la limpieza (usado por T-175). `token` válido: texto no vacío de ≤512 caracteres. Sin `collectionGroup`, sin índices, sin reglas. Pruebas con `db` falso transaccional: dos dispositivos del mismo uid, reasignación A→B (A deja de tenerlo y se usó la transacción), baja idempotente, baja de token ajeno no borra y responde igual que inexistente, token vacío/no texto/513 caracteres rechazado y 512 aceptado; grep de `collectionGroup` y `fcmTokens` (cero).
+- Criterios: CA-003-10, CA-003-22, CA-003-24, CA-003-25.
+- Hecho cuando: las pruebas pasan y `firestore.rules` no se toca.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (atención a no filtrar tokens en logs).
+- Riesgo: medio (datos y titularidad).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-174 — S2: rutas `POST /notifications/register` y `POST /notifications/unregister`
+- Spec: spec 003 (RF-79, CA-003-11, CA-003-22, CA-003-23)
+- Requisitos: RF-79
+- Depende de: T-171, T-173
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `scripts/tests/backendNotificationsRoutes.test.mjs`
+- Hacer: handlers con el `guard` (como `registerPaymentsRoutes`, `payments.js:108-120`): `uid` solo del token de Firebase, cuerpo `{ token, platform }` (register) o `{ token }` (unregister) validado (texto no vacío de ≤512 caracteres), todo lo demás ignorado, errores genéricos con `ERRORS`. Registrar las rutas en `createApp` (el cableado de `messaging` ya está en T-171); sin `messaging` las rutas de envío responden error genérico. Pruebas: 401 sin cabecera válida, `uid` del cuerpo ignorado, 400 por token inválido (vacío, no texto, 513 caracteres), 200 con 512, 200 idempotente, las rutas usan el `messaging` inyectado.
+- Criterios: CA-003-11, CA-003-22, CA-003-23.
+- Hecho cuando: las pruebas pasan y las rutas de pagos siguen pasando (`backendPayments`, `backendProviders`).
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-175 — S2: `POST /notifications/test-request`, límite propio y limpieza de tokens
+- Spec: spec 003 (RF-81, RF-84, RF-85, RF-82, RF-83, CA-003-12, CA-003-15, CA-003-16, CA-003-24)
+- Requisitos: RF-81, RF-84, RF-85
+- Depende de: T-172, T-173, T-174
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `scripts/tests/backendNotificationsRoutes.test.mjs` (`backend/src/middleware.js` NO se edita)
+- Hacer: DP-67, DP-68, DP-69. Exigir `accountStatus = approved`; `delaySeconds` entero 0 a 60 (otro valor: 400 genérico; el resto del cuerpo se ignora); tokens con `listForUid(uid)` (`where('uid','==',uid)`); envío con `messaging.sendEachForMulticast` inyectable en lotes de ≤500; revisar `resp.success` POR ÍNDICE y borrar solo los tokens del índice con error UNREGISTERED (404; `messaging/registration-token-not-registered`, confirmar con un envío real); otros errores no borran; 202 `{ scheduled: true }`; sin tokens: error genérico «sin dispositivos»; límite propio con el segundo `createRateLimiter` (`TEST_REQUEST_RATE_LIMIT`) y `ERRORS.rateLimited` (`middleware.js:30`) → 429 genérico; registros sin tokens, cuerpos ni correos. Confirmar en S2 la advertencia `token` → `fid` (plan §10 FR-10). Pruebas con mensajería y reloj falsos: solo tokens del uid, 501 tokens → 2 lotes (500 + 1), fallo en un índice borra solo ese token, límite 429, grep de logs y de `collectionGroup` (cero), `git diff` de `middleware.js` vacío.
+- Criterios: CA-003-12, CA-003-15, CA-003-16, CA-003-24.
+- Hecho cuando: las pruebas pasan, el envío va solo a tokens del uid, el grep de logs queda limpio y `middleware.js` no cambió.
+- Qué debe ver Anderson en el celular: nada todavía (el envío real es STOP-2). **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: alto (envío y límite).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-176 — S2: verificación estática del backend
+- Spec: spec 003 (RF-79 a RF-85, RNF-21, CA-003-10 a CA-003-16, CA-003-22 a CA-003-25)
+- Requisitos: RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85
+- Depende de: T-175
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`)
+- Hacer: un `verifier` distinto ejecuta toda la suite de `scripts/tests`, `check-constitution`, `expo-doctor` y revisa `git diff`: sin cambios en `firestore.rules` ni `middleware.js`, sin `.env` ni `secrets`, sin token ni cuerpo en logs, rutas de pagos intactas; grep: `collectionGroup`, `fcmTokens`, `fcmTokenOwners` y `calculateFare` ausentes de `backend/src`.
+- Criterios: CA-003-10 a CA-003-16, CA-003-22 a CA-003-25.
+- Hecho cuando: todo pasa y se informa lo pendiente de dispositivo.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-177 — S3: dedupe por `requestId` en la compuerta
+- Spec: spec 003 (RF-75, D-135, CA-003-08)
+- Requisitos: RF-75, RNF-24
+- Depende de: T-169
+- Archivos: `src/services/trip/pendingRequest.js` (`createPendingRequestGate`), `scripts/tests/pendingRequestDedupe.test.mjs`
+- Hacer: DP-63. Conjunto acotado (50) de ids vistos; `offer` devuelve `OFFER_RESULT.DUPLICATE` para un id visto aunque esté liberado o vencido; el comportamiento previo del resto de resultados no cambia. Pruebas: mismo id dos veces, id liberado y re-ofrecido, id vencido, expulsión del más antiguo al pasar de 50, compatibilidad con los resultados existentes.
+- Criterios: CA-003-08.
+- Hecho cuando: las pruebas pasan y el mock (ids únicos) sigue ofreciendo solicitudes.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-178 — S3: lógica pura (payload a solicitud, elegibilidad, expiración, intención con uid)
+- Spec: spec 003 (RF-76, RF-77, RF-78, D-130, D-133, D-137, CA-003-09, CA-003-21, CA-003-30)
+- Requisitos: RF-76, RF-77, RF-78, RNF-24
+- Depende de: T-177, T-194
+- Archivos: `src/services/notifications/pushRequest.js`, `src/services/notifications/eligibility.js`, `src/services/notifications/pendingIntent.js`, `scripts/tests/pushRequest.test.mjs`, `scripts/tests/notificationEligibility.test.mjs`, `scripts/tests/pendingIntent.test.mjs`
+- Hacer: DP-60, DP-64, DP-77. `parse` convierte el `data` de la notificación en una solicitud que pasa `isValidTripRequest` (`contract.js:91`), con `MOCK_ADDRESS` y las coordenadas del payload, y la tarifa calculada con `calculateFare` al abrir (no viaja en el mensaje), o devuelve un motivo; `canOfferNow`/`resolveIntent` (`open` con tiempo restante según `expiresAt` ≈90 s, `expired`, `ignore` sin sesión, cuenta no aprobada, con viaje en curso o `targetUid` distinto de la sesión); `pendingIntent` con `set(intent)`, `take(currentUid)` (solo entrega si `targetUid` coincide con la sesión y limpia siempre) y `reset()`, y `requestId` ya consumido ignorado. Pruebas de todos los casos límite de la spec §5, de doble toque, de intención de otra cuenta y de tarifa recalculada.
+- Criterios: CA-003-09, CA-003-21, CA-003-30.
+- Hecho cuando: las pruebas pasan sin React ni SDK.
+- Qué debe ver Anderson en el celular: nada. Apertura real: **No verificado en dispositivo** (T-183).
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-179 — S3: adopción de solicitudes de push en el adaptador mock y el puerto
+- Spec: spec 003 (RF-78, D-130)
+- Requisitos: RF-78
+- Depende de: T-178
+- Archivos: `src/services/passengerApi/mockPassengerApi.js`, `src/services/passengerApi/index.js`, `src/services/passengerApi/httpPassengerApi.js`, `scripts/tests/mockAdoptRequest.test.mjs`
+- Hacer: DP-61. `adoptRequest(request)` fija la solicitud como pendiente con su expiración (`mockPassengerApi.js:155-166` queda sin cambios; `MOCK_REQUEST_TTL_MS = 30000` se conserva como validez del mock); `adoptPushRequest` en el puerto; `not_supported` en HTTP. Pruebas: aceptar una solicitud adoptada, rechazarla, que venza, adoptar mientras hay otra pendiente (rechazo `busy`).
+- Criterios: RF-78 (aceptar desde push).
+- Hecho cuando: las pruebas pasan y el flujo del mock existente no cambia.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-180 — S3: servicio de notificaciones completo (interfaz, adaptador RN Firebase, falso, permiso)
+- Spec: spec 003 (RF-67, RF-68, RF-69, RF-70, CA-003-01, CA-003-03)
+- Requisitos: RF-67, RF-69, RF-70
+- Depende de: T-169, T-168, T-178 (y T-170 si se activó el plan B); `onNotificationOpened` y `getInitialNotification` llenan `pendingIntent.set` con `targetUid` (T-178)
+- Archivos: `src/services/notifications/index.js`, `src/services/notifications/adapters/rnFirebaseAdapter.js`, `src/services/notifications/adapters/fakeAdapter.js`, `src/services/notifications/permissionState.js`, `index.js`, `App.js`, `scripts/tests/notificationPermissionState.test.mjs`
+- Hacer: DP-59. Completar `getPermissionState`, `requestPermission` (`PermissionsAndroid`, Android 13+; en ≤12 `not_required`), `registerToken`, `unregisterToken`, `onForegroundMessage`, `onNotificationOpened` (con `getInitialNotification`, que llena `pendingIntent`), `onTokenRefresh`; quitar `spikeProbe`; adaptador falso programable para pruebas; lógica de estados en `permissionState.js` con pruebas. Grep de CA-003-01.
+- Criterios: CA-003-01, CA-003-03 (lógica). «No verificado en dispositivo»: diálogo del sistema y apertura.
+- Hecho cuando: pruebas, lint y `check-constitution` pasan, el grep queda limpio y la app arranca.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (módulo nativo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-181 — S3: cliente del backend de notificaciones
+- Spec: spec 003 (RF-72, RF-81, CA-003-05)
+- Requisitos: RF-72, RF-81
+- Depende de: T-180, T-175
+- Archivos: `src/services/notifications/notificationsApi.js`, `scripts/tests/notificationsApi.test.mjs`
+- Hacer: DP-70. `registerToken(token)`, `unregisterToken(token)`, `requestTestNotification({ delaySeconds })` como `src/services/trip/paymentsClient.js` (ID token de Firebase, URL de `src/config/backend.js`), sin enviar `uid` ni registrar cuerpos o tokens; errores traducidos a códigos (`offline`, `rate-limited`, `no-devices`, `server`). Pruebas con `fetch` falso.
+- Criterios: CA-003-05 (parte del cliente).
+- Hecho cuando: las pruebas pasan.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-182 — S3: entrada de solicitudes de push al contexto y a Inicio (D-130)
+- Spec: spec 003 (RF-75, RF-78, D-130, D-135)
+- Requisitos: RF-75, RF-78
+- Depende de: T-177, T-178, T-179
+- Archivos: `src/hooks/useTripRequests.js`, `src/context/AvailabilityContext.js`, `src/screens/home/HomeScreen.js`
+- Hacer: DP-62. `offerPushRequest(request)` valida con `isValidTripRequest`, aplica `adoptPushRequest`, ofrece por la compuerta (`DUPLICATE` y `busy` se ignoran) y marca `pushOffered`; el efecto de `HomeScreen.js:92-104` pasa a `(isAvailable || pushOffered)` sin cambiar el camino del mock; `pushOffered` se limpia al liberar la solicitud. No se llama `setAvailable(true)` (aceptar equivale a confirmar «Disponible», DP-62). `offerPushRequest` llama a `resolveRequestAddresses` (`useTripRequests.js:43-44`, D-125) con las coordenadas de la solicitud, con su fallback; el servicio no cambia. Revisión del verifier de que la tarjeta del mock sigue abriendo igual.
+- Criterios: CA-003-08 (integración), RF-78. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y el camino del mock no cambia.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A (sin elementos visuales nuevos; el aviso de expirada es T-183).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-183 — S3: puente de notificaciones en la rama MAIN y aviso «La solicitud expiró» — Evidencia de dispositivo de Anderson (2026-11-16, build release): con la app cerrada, tocar la notificación abre la solicitud y, vencido el plazo, «La solicitud expiró» (cierra STOP-2c); en el dev client NO entrega la solicitud (límite del dev launcher). Estado de la tarea sin cambio; resto «pendiente de dispositivo»
+- Spec: spec 003 (RF-75, RF-76, RF-77, D-133, D-137, CA-003-09, CA-003-21, CA-003-30, CA-003-D1)
+- Requisitos: RF-75, RF-76, RF-77
+- Depende de: T-180, T-181, T-182
+- Archivos: `src/navigation/NotificationsBridge.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`
+- Hacer: DP-64, DP-77. El puente (hijo del `AvailabilityProvider`, `MainDrawer.js:93-97`) escucha `onForegroundMessage` y entrega a `offerPushRequest`; consume `pendingIntent.take(currentUid)` UNA vez cuando hay sesión, cuenta aprobada y sin viaje (una intención de otro uid se descarta); abre la solicitud con la tarifa y la dirección calculadas al abrir (DP-77) y con la ventana de 15 s contada desde que se muestra (T-194/T-195), sin pasar de `expiresAt`; si venció (≈90 s) muestra «La solicitud expiró» en Inicio (clave de `labels.js`, región `polite`, sin `Alert`, sin aceptar). Probar en el celular con el mensaje de la consola o el endpoint: primer plano, segundo plano, cerrada.
+- Criterios: CA-003-09, CA-003-21, CA-003-30. «No verificado en dispositivo».
+- Hecho cuando: lint, suite y `check-constitution` pasan y la app arranca; la apertura real queda para STOP-2.
+- Qué debe ver Anderson en el celular: con la app en segundo plano, tocar el aviso abre la solicitud con tiempo restante; con una solicitud vencida, «La solicitud expiró». **No verificado en dispositivo**.
+- Validación: verifier distinto; Anderson en el celular.
+- Riesgo: alto (navegación y sesión).
+- Diseño hecho cuando: el aviso «La solicitud expiró» usa tokens, `labels.js`, región `polite` y sin `Alert` (lo cubre T-189).
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-184 — S4: preferencia `notificationsEnabled` y `clearOwnStorage` real
+- Spec: spec 003 (RF-71, RF-74, D-134, CA-003-04)
+- Requisitos: RF-71, RF-74
+- Depende de: T-180
+- Archivos: `src/services/notifications/preference.js`, `src/services/session/buildSessionResetDeps.js`, `scripts/tests/notificationPreference.test.mjs`
+- Hacer: DP-59. `get/set/clear` con AsyncStorage inyectable (`notificationsEnabled`, por defecto apagado). SOLO la preferencia: `clearOwnStorage` NO cambia (sigue siendo no-op, y corre antes de la espera de guardados, por eso no puede borrar nada de notificaciones; el borrado de `notificationsEnabled` lo hace T-185, después de la espera y antes de `signOut`, D-134). Pruebas: persistencia, valor por defecto, almacenamiento que falla.
+- Criterios: CA-003-04 (lógica). «No verificado en dispositivo»: reinicio de la app.
+- Hecho cuando: pruebas pasan y `clearOwnStorage` en `buildSessionResetDeps.js` sigue siendo no-op (el archivo solo se toca en T-185 para el paso nuevo; el comentario se actualiza allí).
+- Qué debe ver Anderson en el celular: el interruptor sigue activo tras reiniciar (T-187). **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-185 — S4: paso de baja del token en `resetSession`
+- Spec: spec 003 (RF-73, RF-74, D-133, D-134, CA-003-06, CA-003-07, CA-003-19, CA-003-20)
+- Requisitos: RF-73, RF-74, RNF-24
+- Depende de: T-181, T-184
+- Archivos: `src/services/session/resetSession.js`, `src/services/session/buildSessionResetDeps.js`, `src/context/useSessionReset.js`, `scripts/tests/resetSessionUnregister.test.mjs`
+- Hacer: DP-75. Paso opcional `unregisterNotifications` (baja en el backend + `deleteToken` local + borrado de `notificationsEnabled` + `pendingIntent.reset()`, todo JUNTO) entre `waitForTripSaveQueue` y `signOut` (`resetSession.js:57-111`), con tope de 3 s; su fallo o vencimiento nunca bloquea ni cambia el resultado; con `trip-save-pending` o `trip-in-progress` no se ejecuta; `sign-out-failed` deja la marca para el reintento. Actualizar el comentario de `buildSessionResetDeps.js:8` (`clearOwnStorage` sigue no-op; la preferencia y el token se borran en el paso nuevo, después de la espera de guardados). Pruebas del orden exacto, de que `notificationsEnabled` y el token local NO se borran si la espera da `trip-save-pending` o `trip-in-progress` (la sesión sigue y la preferencia queda intacta), de que se borran antes de `signOut` cuando la espera termina bien, del tope de 3 s con reloj falso y de cada resultado de D-93 a D-106 (`trip-in-progress`, `trip-save-pending`, `sign-out-failed`), y de que la intención pendiente se descarta al cerrar sesión.
+- Criterios: CA-003-06, CA-003-07, CA-003-19, CA-003-20 (parte del reset).
+- Hecho cuando: pruebas pasan, el orden coincide con RF-73 y los resultados existentes no cambian.
+- Qué debe ver Anderson en el celular: se confirma en STOP-2. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: alto (cierre de sesión).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-186 — S4: registro de token al iniciar sesión, en refresh y al apagar (STOP-2)
+- Spec: spec 003 (RF-72, RF-73, CA-003-05, CA-003-07, CA-003-21)
+- Requisitos: RF-72, RF-73
+- Depende de: T-181, T-183, T-184, T-185
+- Archivos: `src/services/notifications/registration.js`, `src/components/NotificationsBridge.js`, `src/context/useSessionReset.js`, `scripts/tests/notificationRegistration.test.mjs`
+- Hacer: controlador puro (adaptador y backend inyectados) que registra con sesión + cuenta aprobada + interruptor activo + permiso concedido, vuelve a registrar en `onTokenRefresh`, da de baja al apagar y vuelve a registrar tras `sign-out-failed` (mejor esfuerzo); enlazado en el puente. PUNTO DE PARADA 2: con el backend alcanzable desde el celular, probar de punta a punta (M3). Esperar: «Pega aquí el resultado de la prueba en el celular: <resultado>».
+- Criterios: CA-003-05, CA-003-07. «No verificado en dispositivo» hasta el resultado de Anderson.
+- Hecho cuando: las pruebas pasan y Anderson confirma el aviso de prueba, el toque y el cierre de sesión con otra cuenta en el mismo celular.
+- Qué debe ver Anderson en el celular: el aviso llega al registrar, no llega tras cerrar sesión, llega al volver a entrar.
+- Validación: verifier distinto; Anderson en el celular.
+- Riesgo: alto.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-187 — S5: sección «Notificaciones» en Configuración (interruptor, explicación, estado bloqueado)
+- Spec: spec 003 (RF-69, RF-70, RF-71, RNF-22, RNF-23, CA-003-03, CA-003-04, CA-003-D1 a CA-003-D3)
+- Requisitos: RF-69, RF-70, RF-71, RNF-22, RNF-23
+- Depende de: T-186
+- Archivos: `src/screens/main/SettingsScreen.js`, `src/components/settings/NotificationsSection.js`, `src/constants/labels.js`
+- Hacer: sección con el estilo existente de Configuración; interruptor «Avisos de solicitudes» (`accessibilityRole`, `accessibilityLabel`, `accessibilityState`, ≥48 dp); al activarlo en Android 13+ muestra primero la explicación en pantalla y luego solicita el permiso; denegado: estado «Notificaciones bloqueadas» con texto, icono y botón que abre los ajustes del sistema (`Linking.openSettings`), sin registrar token; textos solo en `labels.js`; tokens de diseño; sin `Alert`; visible con `SHOW_DEV_TOOLS=false`. Probar en el celular.
+- Criterios: CA-003-03, CA-003-04, CA-003-D1, CA-003-D2, CA-003-D3. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, no hay `Alert` ni colores sueltos y el interruptor funciona con el controlador de T-186.
+- Qué debe ver Anderson en el celular: activar → explicación → diálogo del sistema; negar → «Notificaciones bloqueadas» con acceso a ajustes; reiniciar mantiene el interruptor. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor para lo visual.
+- Riesgo: medio.
+- Diseño hecho cuando: ≥48 dp, nombre accesible en interruptor y botones, estado bloqueado con texto además de color, 200 % de texto sin corte, tokens y `labels.js`, sin `Alert`.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-188 — S5: botón «Enviar solicitud de prueba»
+- Spec: spec 003 (RF-71, RF-81, RNF-22, RNF-23, CA-003-D1 a CA-003-D3)
+- Requisitos: RF-71, RNF-22, RNF-23
+- Depende de: T-187, T-175
+- Archivos: `src/components/settings/NotificationsSection.js`, `src/constants/labels.js`
+- Hacer: DP-71. Botón habilitado solo con interruptor activo, permiso concedido y red; llama `requestTestNotification({ delaySeconds: 10 })`; estados ocupado, enviado («Llegará en unos 10 segundos…»), sin red, límite («Espera un momento…»), sin dispositivos; mensajes en línea, una sola región `polite`, ≥48 dp, sin `Alert`. Probar en el celular.
+- Criterios: CA-003-D1, CA-003-D2, CA-003-D3, RF-71. «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan y el botón envía y refleja cada estado.
+- Qué debe ver Anderson en el celular: pulsar, pasar la app a segundo plano, ver el aviso en unos 10 s, tocar y abrir la solicitud. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor.
+- Riesgo: medio.
+- Diseño hecho cuando: igual que T-187 para el botón y sus mensajes.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-189 — S5: auditoría de diseño de Notificaciones (STOP-3)
+- Spec: spec 003 (RNF-22, RNF-23, RF-69, RF-70, RF-71, RF-77, CA-003-28, CA-003-29, CA-003-D1 a CA-003-D3)
+- Requisitos: RNF-22, RNF-23, RF-69, RF-70, RF-71, RF-77
+- Depende de: T-183, T-187, T-188, T-195
+- Archivos: `docs/diseno/auditorias/ronda-1-notificaciones.md` (informe, lo escribe el design-auditor)
+- Hacer: el agente principal carga las skills de diseño y llama al `design-auditor` sobre T-183 (aviso «La solicitud expiró»), T-187, T-188 y T-195 (cuenta regresiva de 15 s en `IncomingRequestCard` y `TripRequestScreen`: contador visible y anunciado sin saturar, rechazo al llegar a 0, área de 48 dp): sección, interruptor, explicación, estado bloqueado, botón de prueba, áreas de 48 dp, nombres accesibles, 200 % de texto, tokens, `labels.js`, sin `Alert`; máximo dos rondas (los hallazgos van al `implementer`). PUNTO DE PARADA 3: capturas de Anderson (M4).
+- Criterios: CA-003-D1, CA-003-D2, CA-003-D3, CA-003-28, CA-003-29 (parte visual). «No verificado en dispositivo» hasta las capturas.
+- Hecho cuando: Diseño «Aprobado» en T-183, T-187, T-188 y T-195 o hallazgos enviados al `implementer`.
+- Qué debe ver Anderson en el celular: la sección en normal y al 200 %, el estado bloqueado, el aviso de expirada y la tarjeta de solicitud con su cuenta de 15 s. **No verificado en dispositivo**.
+- Validación: design-auditor (solo lo visual); verifier distinto (lo funcional).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto por pantalla.
+- Diseño: Aprobado parcial (solo lo que demuestra la declaración de Anderson en el celular: interruptor con chip informativo funcionando; tarjeta y pantalla de solicitud operativas, no su aspecto nuevo). Pendiente de dispositivo: contador rediseñado, O-09, O-11 y anuncios, fuente al 200 %, hallazgos H-1 (media), H-2 y H-3 (bajas). Informe: `docs/diseno/auditoria-fcm-ronda2-2026-11-16.md` (tercera pasada: escala a Anderson, sin redondear).
+- Evidencia STOP-3 (2026-11-16): Validada en dispositivo por Anderson solo el interruptor de Notificaciones, el chip informativo «Activadas», la tarjeta emergente, la pantalla de solicitud y la notificación de prueba. Pulido A1/A2/A3 (D-149, D-150, D-151: toque que abre pantalla completa, cuenta regresiva sin bloque, O-03/O-09/O-10/O-11): Implementada. A1 (D-149) quedó VALIDADO en dispositivo por Anderson en STOP-4 (2026-11-16, app en segundo plano en Configuración, Historial y Perfil); solo la app CERRADA sigue pendiente y solo se valida en la build release (en el dev client no entrega la solicitud). A2 y A3 siguen pendientes de dispositivo. El campo Estado no cambia.
+- Estado: Pendiente
+
+### T-190 — S6: verificación estática total de la spec 003 — Nota 2026-11-16: `withRequestsChannel.test.mjs` ahora usa el fixture versionado `scripts/tests/fixtures/MainApplication.template.kt` y ya no depende de `android/`; falta el `verifier` distinto
+- Spec: spec 003 (RF-67, RF-68 en configuración, RF-70 a RF-76, RF-79 a RF-85, RNF-21, RNF-22, RNF-24, RNF-25; CA-003-01, CA-003-05 a CA-003-17, CA-003-19 a CA-003-25, CA-003-27 a CA-003-30, CA-003-D1)
+- Requisitos: RF-67, RF-68, RF-70, RF-71, RF-72, RF-73, RF-74, RF-75, RF-76, RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85, RNF-21, RNF-22, RNF-24, RNF-25
+- Depende de: T-176, T-186, T-188, T-195
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`)
+- Hacer: un `verifier` distinto ejecuta toda la suite, `check-constitution` (antes y después), lint y `expo-doctor`; grep de `@react-native-firebase` fuera de `src/services/notifications/` (cero), de tokens o cuerpos en logs del backend (cero), de `Alert` en la sección (cero); `git ls-files` sin `google-services.json` ni `backend/secrets`; `git diff` de `firestore.rules` y `backend/src/middleware.js` vacío; `git diff` de `scripts/dependencies.json` y `app.json` igual a plan §8; grep de `collectionGroup`, `fcmTokenOwners`, `fcmTokens` y `calculateFare` en `backend/src` (cero); la suite incluye `decisionWindow`, `pendingIntent`, `resetSessionUnregister` y el dedupe.
+- Criterios: CA-003-01, CA-003-05 a CA-003-17, CA-003-19 a CA-003-25, CA-003-27 a CA-003-30, CA-003-D1 (todo lo verificable sin celular).
+- Hecho cuando: todo pasa y se entrega la lista de lo pendiente de celular.
+- Qué debe ver Anderson en el celular: nada. 
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-191 — S6: documentación (README, seguridad y límites)
+- Spec: spec 003 (RNF-21, RNF-25, D-126 a D-138)
+- Requisitos: RNF-25, RNF-21
+- Depende de: T-186
+- Archivos: `README.md`, `docs/seguridad.md`, `docs/omisiones-y-limites.md`
+- Hacer: README: cómo obtener y colocar `google-services.json`, habilitar la API V1, recompilar y probar. `docs/seguridad.md`: sin reglas nuevas, colección `pushTokens` solo del backend (sin `fcmTokenOwners`), titularidad del token por transacción, token solo con 6 caracteres en logs, límite de 5 por minuto. `docs/omisiones-y-limites.md`: solo Android (iOS no cubierto), aviso sin ubicación ni disponibilidad en segundo plano (D-130), solicitud de push simulada con dirección de ejemplo (DP-60), retraso perdido si el backend se reinicia, ahorro de batería de fabricantes, dos tiempos (D-137): validez ≈90 s de la solicitud frente a la ventana de decisión de 15 s del PDF desde que se muestra (el mock conserva 30 s de validez). No editar `requisitos.md` ni `decisiones.md` (los actualiza el agente principal).
+- Criterios: CA-003-17 (documentación).
+- Hecho cuando: los tres documentos reflejan el comportamiento real y no contienen secretos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-192 — S6: lista de comprobación en dispositivo
+- Spec: spec 003 (RF-68, RF-69, RF-70, RF-71, RF-74, RF-76, RF-77, RF-78, RNF-23; CA-003-02, CA-003-03, CA-003-04, CA-003-09, CA-003-26, CA-003-30, CA-003-D2)
+- Requisitos: RF-68, RF-69, RF-70, RF-71, RF-74, RF-76, RF-77, RF-78, RNF-23
+- Depende de: T-186, T-188, T-195
+- Archivos: `docs/checklist-dispositivo-fcm.md` (nuevo)
+- Hacer: lista numerada con qué ver y el resultado por caso: heads-up, permiso (concedido, negado, ajustes), interruptor tras reiniciar, cierre de sesión y otro conductor, toque con app en segundo plano y cerrada, solicitud vencida, doble toque, sin red, límite de 5 por minuto, 200 % de texto, cuenta de 15 s desde que se muestra la tarjeta, tarifa y dirección al abrir (CA-003-30) y que aceptar desde el aviso equivale a «Disponible». Cada fila «No verificado en dispositivo» hasta que Anderson la marque.
+- Criterios: CA-003-02, CA-003-03, CA-003-04, CA-003-09, CA-003-26, CA-003-30, CA-003-D2 (todos «No verificado en dispositivo»).
+- Hecho cuando: el archivo existe con todos los casos de la spec §4 y §5 que solo se ven en el celular.
+- Qué debe ver Anderson en el celular: el contenido del archivo. **No verificado en dispositivo**.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-193 — S6: demo final y cierre (STOP-4) — Nota 2026-11-16: guion de demo de 60 a 90 s en `docs/guion-video.md` (grabar con la build release); la demo con envío real y la lista siguen pendientes de Anderson
+- Spec: spec 003 (RF-67 extremo a extremo, RF-72, RF-77, RF-78, RF-81 a RF-84 con envío real; CA-003-18, CA-003-26, CA-003-28)
+- Requisitos: RF-67, RF-72, RF-77, RF-78, RF-81, RF-82, RF-83, RF-84
+- Depende de: T-189, T-190, T-191, T-192
+- Archivos: ninguno (la evidencia la escribe el `verifier` en `docs/progress.md`; Anderson marca `docs/checklist-dispositivo-fcm.md`)
+- Hacer: PUNTO DE PARADA 4. Anderson recorre la lista y la demo completa con envío real del backend: app en segundo plano → aviso emergente → toque → solicitud con tiempo restante y cuenta de 15 s → aceptar. Espera: «Pega aquí el resultado de la prueba en el celular: <resultado>». Ninguna tarea que dependa de dispositivo pasa a «Validada» sin esa evidencia.
+- Criterios: CA-003-18 y repite CA-003-26 y CA-003-28. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson reporta la demo y la lista; el `verifier` cierra el estado de las tareas de dispositivo.
+- Qué debe ver Anderson en el celular: la demo completa de CA-003-18.
+- Validación: Anderson en el celular; verifier distinto.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-194 — S3: ventana de decisión de 15 s (módulo puro y constante)
+- Spec: spec 003 (RF-77, RNF-24, D-137, CA-003-27, CA-003-28, CA-003-29)
+- Requisitos: RF-77, RNF-24
+- Depende de: T-177 (se ejecuta justo después de T-177; lleva el número final para no mover T-185, T-190, T-192 y T-193)
+- Archivos: `src/config/passengerApi.js`, `src/services/trip/decisionWindow.js`, `scripts/tests/decisionWindow.test.mjs`
+- Hacer: DP-76. `REQUEST_DECISION_WINDOW_MS = 15000` en `src/config/passengerApi.js` (junto a `MOCK_REQUEST_TTL_MS = 30000` en `:17`, que se conserva como validez del mock). Módulo puro con reloj inyectable: `markShown(requestId, now)` y `decisionDeadline(request, now) = min(shownAt(request.id) + 15 s, request.expiresAt)`; `remainingMs` nunca negativo. Pruebas con reloj falso: el conteo arranca al mostrarse (no al recibirse), el tope por `expiresAt`, ≈90 s de validez frente a 15 s de decisión, doble llamada a `markShown` conserva el primer instante, solicitud no mostrada.
+- Criterios: CA-003-27, CA-003-28, CA-003-29.
+- Hecho cuando: las pruebas pasan sin React y la app sigue arrancando; el comportamiento del mock no cambia hasta T-195.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-195 — S3: conectar la ventana de 15 s a la tarjeta y a la pantalla de solicitud — Evidencia de dispositivo de Anderson (2026-11-16, build release): la solicitud abierta desde la notificación muestra el temporizador de 15 s. Estado de la tarea sin cambio; resto «pendiente de dispositivo»
+- Spec: spec 003 (RF-77, RNF-22, RNF-23, D-137, CA-003-28, CA-003-29)
+- Requisitos: RF-77, RNF-22, RNF-23
+- Depende de: T-194 (se ejecuta justo después de T-194, antes de T-178)
+- Archivos: `src/services/trip/requestPresentation.js`, `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`
+- Hacer: DP-76. Los consumidores del tiempo restante leen `decisionDeadline` en lugar de la expiración cruda: `requestPresentation.js:26,:29`, `IncomingRequestCard.js:238-239`, `TripRequestScreen.js:93,:113`; `markShown` se llama al montar la tarjeta o la pantalla; al llegar a 0 se usa el rechazo existente (confirmar con Anderson). El mock sigue con `MOCK_REQUEST_TTL_MS = 30000` de validez, de modo que la cuenta visible pasa de 30 s a 15 s. Sin textos ni colores nuevos fuera de `labels.js` y los tokens. Probar en el celular.
+- Criterios: CA-003-28, CA-003-29 (integración). «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y la tarjeta del mock muestra una cuenta de 15 s que termina en rechazo.
+- Qué debe ver Anderson en el celular: la tarjeta de solicitud cuenta 15 s desde que aparece y, al llegar a 0, se rechaza sin aceptar. **No verificado en dispositivo**.
+- Validación: verifier distinto; design-auditor para lo visual (lo cubre T-189).
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: el contador conserva tokens, `labels.js`, anuncio accesible sin saturar y área de 48 dp (lo cubre T-189).
+- Diseño: Pendiente
+- Estado: Implementada
+
+## Spec 004 — Cierre de brechas, lote L1 (plan: `specs/004-cierre-brechas/plan.md`; planificado 2026-11-16; la spec sigue en Borrador: ninguna tarea se ejecuta hasta que Anderson la apruebe; los RC-nn son locales de la spec y cada tarea cita además un ancla provisional RNF/RF existente para C21/C22)
+
+### T-196 — B1: resolver de distancia y duración con OSRM (caché, timeout, respaldo)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01, 02, 03, 04, 05)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/routing/routeMetrics.js` (nuevo), `src/services/routing/osrmRouting.js`, `src/config/routing.js`, `scripts/tests/routeMetrics.test.mjs` (nuevo)
+- Hacer: plan §2 y §3.1-3.3. `createRouteMetrics({ fetchRoute, now, timeoutMs, cacheMax })` con `resolve(origin, destination, fallback)` que nunca rechaza. Caché por par redondeado a 5 decimales, máximo 50, promesa en vuelo compartida, timeout 2500 ms (`ROUTE_METRICS_TIMEOUT_MS`), respuesta inválida o de 0 m / 0 s = respaldo con `estimated: true`. `fetchOsrmRoute` gana `{ timeoutMs }` opcional sin cambiar su uso actual. Pruebas con OSRM falso y reloj inyectado: 8,5 km / 22 min (y tarifa 19.200 / 26.900 con `calculateFare`), timeout, error HTTP, cuerpo inválido, segunda llamada con caché, dos simultáneas = una llamada, caché acotada.
+- Hecho cuando: `node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/routeMetrics.test.mjs` pasa, la ruta del mapa sigue con 8000 ms y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-197 — B1: la solicitud simulada espera las métricas antes de emitirse
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01, 02, 03, 05)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-196
+- Archivos: `src/services/passengerApi/mockPassengerApi.js`, `scripts/tests/mockRouteMetrics.test.mjs` (nuevo)
+- Hacer: plan §3.4. En `emit`, tras reservar el turno (cuenta como `BUSY`), calcular el respaldo actual (haversine × `MOCK_ROUTE_FACTOR`, 25 km/h), esperar `resolve` (inyectable en `createMockPassengerApi`, por defecto el resolver real con `fetchOsrmRoute`) y solo entonces crear `pending`, el vencimiento y llamar a `onRequest`; comprobar que el suscriptor siga vigente. `requestNow` conserva sus cuatro resultados. Pruebas: con OSRM falso 8,5 km / 22 min la solicitud sale con esos valores y `calculateFare` se invoca una sola vez con ellos (CA-004-05); con timeout/error sale el respaldo marcado `estimated`; desuscribirse durante la espera no emite; las pruebas existentes de `mockAdoptRequest` y `pushOffer` siguen pasando.
+- Criterios: CA-004-01, 02, 03, 05 (nivel mock).
+- Hecho cuando: las pruebas pasan y la app arranca con una solicitud simulada que aparece como máximo ≈3 s más tarde.
+- Qué debe ver Anderson en el celular: nada hasta T-201. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: medio (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-198 — B1: afinar las métricas de una solicitud push (función pura)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-06)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-196
+- Archivos: `src/services/notifications/pushRequest.js`, `scripts/tests/pushRequest.test.mjs`
+- Hacer: plan §2 y §3.5. `refineRequestMetrics(request, resolver)` devuelve una copia con `distanceKm`/`durationMin` de OSRM, o los del mensaje (respaldo de la plantilla del servidor) con `estimated: true`. No toca `mappers.js` ni `calculateFare`. Pruebas con OSRM falso: éxito, fallo, y que la tarifa se calcula con los valores finales.
+- Criterios: CA-004-06.
+- Hecho cuando: las pruebas nuevas y las existentes de `pushRequest` pasan.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-200).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-199 — B1: conectar el afinado al flujo push (primer plano y toque de notificación)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-05, 06, 08)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-198
+- Archivos: `src/hooks/useTripRequests.js`, `src/services/notifications/intentFlow.js`, `src/components/NotificationsBridge.js`, `scripts/tests/intentFlow.test.mjs`, `scripts/tests/pushOffer.test.mjs`
+- Hacer: plan §3.5. `offerPushRequest` pasa a asíncrono: afina con el resolver único, vuelve a comprobar el vencimiento y solo entonces pasa por la compuerta y `adoptPushRequest`; `intentFlow.evaluate` y el puente esperan el resultado manteniendo `FLOW_RESULT`. Una llamada OSRM por solicitud (la caché cubre un reintento del mismo mensaje). Probar en el celular con una solicitud de prueba real (build release; el dev client no entrega la solicitud, ver T-183).
+- Criterios: CA-004-05, 06 (integración); CA-004-08 «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y una solicitud push muestra la tarjeta con los valores afinados.
+- Qué debe ver Anderson en el celular: solicitud push con distancia y duración reales (T-201). **No verificado en dispositivo**.
+- Validación: verifier distinto (T-200).
+- Riesgo: medio (cambia la firma de `offerPushRequest` y de `evaluate`).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-200 — B1: verificación independiente (CA-004-01 a 07)
+- Spec: spec 004 (RC-01, RC-02, RC-03; CA-004-01 a 07)
+- Requisitos: RC-01, RC-02, RC-03 (ancla RNF-24)
+- Depende de: T-197, T-199
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto del implementer. Script propio fuera del proyecto contra la fuente real; suite completa; `grep` de que nada fuera de `mappers.js` y los adaptadores conoce la forma de la API y de que `calculateFare` sigue única (`src/utils/fare.js`); `node scripts/check-constitution.mjs` antes y después sin errores nuevos; lectura de que hay una sola llamada a OSRM por solicitud y ninguna por movimiento ni redibujado.
+- Criterios: CA-004-01 a 07.
+- Hecho cuando: cada CA estático tiene evidencia archivo:línea o salida del script; CA-004-08 queda «No verificado en dispositivo».
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente, pendiente de dispositivo (CA-004-08 pendiente de T-201; spec 004 en Borrador, no «Validada»)
+
+### T-201 — B1: prueba en el celular de distancia, duración y tarifa estables (Anderson)
+- Spec: spec 004 (RC-01; CA-004-08)
+- Requisitos: RC-01 (ancla RNF-24)
+- Depende de: T-200
+- Archivos: ninguno
+- Hacer: con build release, recibir una solicitud simulada y una push; comprobar que la distancia y la duración coinciden con OSRM (±5 %), que la tarifa no cambia tras aparecer y que sin red la solicitud aparece con el respaldo sin texto nuevo.
+- Criterios: CA-004-08. «No verificado en dispositivo» hasta que Anderson responda: «Pega aquí el resultado de la prueba en el celular».
+- Hecho cuando: Anderson confirma o reporta el fallo.
+- Qué debe ver Anderson en el celular: lo descrito arriba. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-202 — B2: lectura de viajes por rango de `finishedAt` con paginación interna
+- Spec: spec 004 (RC-04; CA-004-09, 10, 11)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/tripRepository.js`, `scripts/tests/tripQuery.test.mjs` o `scripts/tests/tripsInRange.test.mjs` (nuevo)
+- Hacer: plan §3.6. `fetchTripsInRangeWith(fns, tripsCollection, { start, end, pageSize = 500, maxDocs = 5000 })` y `fetchTripsInRange(uid, opts)`: `orderBy('finishedAt','desc')` + `where` de rango sobre `finishedAt` + `limit` + `startAfter`, repitiendo hasta página incompleta o tope (`truncated: true`). Nada cambia en `fetchTripsPage` ni `listenToTrips`. Pruebas con repositorio falso: 250 viajes en el periodo suman todos (CA-004-09), periodo vacío = 0 sin error, el número de consultas es el esperado (250 → 1 con 500; con `pageSize` 100 → 3), los argumentos de la consulta solo usan `finishedAt`, y las pruebas de `fetchTripsPage` siguen pasando (CA-004-10).
+- Criterios: CA-004-09, 10, 11 (parte código).
+- Hecho cuando: las pruebas pasan y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-204).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-203 — B2: Ganancias usa el rango y `docs/seguridad.md` dice que no hace falta índice
+- Spec: spec 004 (RC-04; CA-004-09, 11, 12)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-202
+- Archivos: `src/utils/earnings.js`, `src/hooks/useTrips.js` o un hook nuevo `src/hooks/useEarningsTrips.js`, `src/screens/main/EarningsScreen.js`, `docs/seguridad.md`, `scripts/tests/earnings.test.mjs`
+- Hacer: plan §3.6 y §3.7. Función pura que devuelve el rango `[min(inicio de semana, inicio de mes), ahora)` reutilizando `periodRange`. Hook de lectura única (`fetchTripsInRange`) al enfocar y al reintentar, con estados `loading/ready/error` como `useTrips`, y limpieza al desmontar. Las métricas de hoy/semana/mes salen de esos viajes; el saldo (`computeBalance`) conserva su fuente actual y se reporta como fuera de alcance. Sin textos ni estilos nuevos (si hiciera falta un aviso de truncado, la tarea pasa a visual y se avisa). En `docs/seguridad.md`, sección nueva «Consulta de Ganancias por rango»: texto exacto «La consulta de Ganancias usa `orderBy('finishedAt')` y rango sobre `finishedAt` en `drivers/{uid}/trips`: un solo campo, índice automático. NO requiere índice compuesto ni cambios en las reglas; no hay pasos manuales.» Probar en el celular.
+- Criterios: CA-004-09, 11; CA-004-12 «No verificado en dispositivo».
+- Hecho cuando: lint y suite pasan, la app arranca y Ganancias muestra los totales del rango.
+- Qué debe ver Anderson en el celular: totales de Ganancias de un conductor con más de 200 viajes (o dato sembrado) iguales a los del Historial (T-205). **No verificado en dispositivo**.
+- Validación: verifier distinto (T-204).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A (sin cambios visuales).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-204 — B2: verificación independiente (CA-004-09 a 11)
+- Spec: spec 004 (RC-04; CA-004-09, 10, 11)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-203
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto. Script propio con 250 viajes contra la fuente real; suite completa (paginación del Historial intacta); lectura de que la consulta es una por rango (sin lectura de toda la colección) y de que el texto de `docs/seguridad.md` coincide con el código; `check-constitution`.
+- Criterios: CA-004-09, 10, 11.
+- Hecho cuando: evidencia archivo:línea o salida del script por CA.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente, pendiente de dispositivo (verifier, 2026-11-16: CA-004-09, 10 y 11 ✅ por script y suite; CA-004-12 ⏳ no verificado en dispositivo; NO «Validada»: la spec 004 sigue en Borrador y D-170 en Propuesta; hallazgo menor: `truncated` no se muestra)
+
+### T-205 — B2: prueba en el celular de los totales de Ganancias (Anderson)
+- Spec: spec 004 (RC-04; CA-004-12)
+- Requisitos: RC-04 (ancla RNF-24)
+- Depende de: T-204
+- Archivos: ninguno
+- Hacer: con un conductor con más de 200 viajes (o dato sembrado por Anderson) comparar hoy/semana/mes de Ganancias con la suma del Historial por los mismos rangos.
+- Criterios: CA-004-12. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson confirma o reporta la diferencia.
+- Qué debe ver Anderson en el celular: totales iguales. **No verificado en dispositivo**.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-206 — B3: revisión de los efectos de `TripActiveScreen` (informe)
+- Spec: spec 004 (RC-05; CA-004-13)
+- Requisitos: RC-05 (ancla RF-39)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/screens/trip/TripActiveScreen.js` (solo lectura salvo hallazgo), `specs/004-cierre-brechas/informe-b3.md` (nuevo)
+- Hacer: para cada efecto (`:69`, `:80`, `:94`) y `usePreventRemove` (`:84`) anotar qué crea (suscripción, temporizador, escucha), dónde se libera o por qué no hace falta, con archivo:línea. Lectura previa del plan: `:69` limpia `mountedRef` y libera el viaje; `:80` y `:94` no crean recursos. Si aparece una fuga real, corregir solo ese efecto (cambio mínimo) y probar en el celular; si no, sin cambio de código.
+- Criterios: CA-004-13.
+- Hecho cuando: el informe cubre los tres efectos con evidencia y `check-constitution` no da avisos nuevos.
+- Qué debe ver Anderson en el celular: nada si no hay cambio de código.
+- Validación: verifier distinto (T-207).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-207 — B3: verificación independiente del informe de efectos
+- Spec: spec 004 (RC-05; CA-004-13)
+- Requisitos: RC-05 (ancla RF-39)
+- Depende de: T-206
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee `TripActiveScreen.js` y contrasta cada línea del informe; `check-constitution` antes y después.
+- Criterios: CA-004-13.
+- Hecho cuando: cada afirmación del informe tiene su archivo:línea confirmado o corregido.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-208 — B4: script npm `test` y documentación en el README
+- Spec: spec 004 (RC-06; CA-004-14, 15)
+- Requisitos: RC-06 (ancla RNF-25)
+- Depende de: spec 004 Aprobada
+- Archivos: `package.json`, `README.md`
+- Hacer: plan §3.8. Añadir SOLO la clave `"test": "node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/*.test.mjs"` (confirmar antes la versión de Node y que el glob funciona en PowerShell y `cmd`; ajustar si no). Documentar `npm test` en el README (sin los marcadores que C20 rechaza). Sin dependencias nuevas. Ejecutar `npm test` y anotar el conteo observado y los tests que fallaban (`plateNormalization`, `registrationProgress`, `reverseGeocode`).
+- Criterios: CA-004-14, 15.
+- Hecho cuando: `npm test` pasa completo y `git diff package.json` muestra solo la clave `test`.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-209).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-209 — B4: verificación independiente de `npm test`
+- Spec: spec 004 (RC-06; CA-004-14, 15)
+- Requisitos: RC-06 (ancla RNF-25)
+- Depende de: T-208
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto ejecuta `npm test` y lee `git diff` de `package.json` (solo `test`, sin dependencias) y del README.
+- Criterios: CA-004-14, 15.
+- Hecho cuando: salida de `npm test` y diff pegados como evidencia.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-210 — B5: evaluar y, si es trivial, añadir `timeInterval` a expo-location
+- Spec: spec 004 (RC-07; CA-004-16)
+- Requisitos: RC-07 (ancla RF-39)
+- Depende de: spec 004 Aprobada
+- Archivos: `src/services/location/gpsLocationSource.js` y `src/config/location.js` (solo si se aplica), `specs/004-cierre-brechas/informe-b5.md` (nuevo)
+- Hacer: plan §3.9. Leer la doc de `expo-location` de la versión 57 (`https://docs.expo.dev/versions/v57.0.0/sdk/location/`) y confirmar plataforma y semántica de `timeInterval` frente a `distanceInterval`. Si es trivial (una constante `GPS_TIME_INTERVAL_MS = 1000` en `config/location.js` y una línea en `watchPositionAsync`) y no cambia la política (`locationPolicy.js`, `throttle.js`) ni los tests, aplicarlo; si no, no tocar y dejar el informe con el motivo. Probar en el celular solo si se tocó.
+- Criterios: CA-004-16. «No verificado en dispositivo» si se tocó.
+- Hecho cuando: hay cambio mínimo con tests de ubicación en verde, o informe que justifica no tocarlo.
+- Qué debe ver Anderson en el celular: si se aplicó, la posición se sigue actualizando con el celular quieto sin alterar el consumo notable. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-211).
+- Riesgo: medio (GPS ya validado en dispositivo).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-211 — B5: verificación independiente de `timeInterval`
+- Spec: spec 004 (RC-07; CA-004-16)
+- Requisitos: RC-07 (ancla RF-39)
+- Depende de: T-210
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee el informe y el diff (o su ausencia), corre los tests de ubicación y la suite; deja la parte de GPS real como «No verificado en dispositivo».
+- Criterios: CA-004-16.
+- Hecho cuando: evidencia archivo:línea de la decisión y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada salvo que T-210 haya tocado el código.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-212 — B6: lista de comprobación de `validTrip()` en `docs/seguridad.md`
+- Spec: spec 004 (RC-08; CA-004-17)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: spec 004 Aprobada
+- Archivos: `docs/seguridad.md`
+- Hacer: plan §3.10. Sección «Lista de comprobación: regla `validTrip()` publicada» con pasos numerados: (1) abrir Firestore → Reglas y comparar con el texto vigente de `validTrip()` (`:205`); (2) si difiere, pegar el bloque completo; (3) Publicar; (4) reiniciar la app; (5) completar un viaje simulado con propina y calificación; (6) ver el documento en `drivers/{uid}/trips` con `tip` y `rating`; (7) anotar fecha y resultado. Estado inicial: «NO VERIFICADO». Sin cambiar el texto de la regla ni crear `firestore.rules`.
+- Criterios: CA-004-17.
+- Hecho cuando: el documento contiene la lista sin ambigüedad y no afirma que la regla esté publicada.
+- Qué debe ver Anderson en el celular: nada hasta T-214.
+- Validación: verifier distinto (T-213).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-213 — B6: verificación independiente de la lista de comprobación
+- Spec: spec 004 (RC-08; CA-004-17)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: T-212
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto compara la lista con `docs/seguridad.md:205` y `:295`, confirma que los pasos son ejecutables por Anderson y que no se asume publicada; `check-constitution`.
+- Criterios: CA-004-17.
+- Hecho cuando: lectura con archivo:línea.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Verificada estáticamente (2026-11-16, verifier; no Validada: falta punto de control en celular / Anderson)
+
+### T-214 — B6: publicar la regla y guardar un viaje con propina y calificación (Anderson, G-01)
+- Spec: spec 004 (RC-08; CA-004-18)
+- Requisitos: RC-08 (ancla RF-54)
+- Depende de: T-213
+- Archivos: ninguno
+- Hacer: Anderson sigue la lista de T-212 y reporta si el viaje con `tip` y `rating` se guardó. El agente no publica reglas.
+- Criterios: CA-004-18. «No verificado en dispositivo» hasta el resultado.
+- Hecho cuando: Anderson confirma el documento en la consola o reporta el error de permiso.
+- Qué debe ver Anderson en el celular: viaje terminado guardado con propina y calificación. **Cerrada con la evidencia de STOP-5 (Anderson, 2026-11-16 14:54): regla publicada (≈14:20 Bogotá) y guardado real comprobado en la consola con `tip` 0 y `rating` null (G-01 cerrado).**
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16, STOP-5; ver T-238)
+
+### T-215 — Cierre del lote L1: `docs/progress.md` y trazabilidad
+- Spec: spec 004 (RC-01 a RC-08; todos los CA)
+- Requisitos: RC-01 a RC-08 (anclas RNF-24, RNF-25, RF-39, RF-54)
+- Depende de: T-200, T-204, T-207, T-209, T-211, T-213
+- Archivos: `docs/progress.md`
+- Hacer: registrar en la tabla de CA de `docs/progress.md` el resultado de cada CA-004-01 a 18 con su evidencia, dejando «No verificado en dispositivo» los CA-004-08, 12, 18 (y 16 si se tocó el GPS) hasta que Anderson responda; confirmar que la fila de la spec 004 de la matriz de `docs/requisitos.md` coincide con estas tareas; `node scripts/check-constitution.mjs` final sin errores nuevos. No aprueba nada propio.
+- Criterios: todos los CA de la spec 004.
+- Hecho cuando: cada CA tiene fila en `docs/progress.md` y la matriz coincide con el backlog.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada (registro en progress.md; sin verifier propio, solo documentación)
+
 ## Fase 3 — Implementar
 (vacío)
 
@@ -2577,3 +3316,1041 @@ Orden de ejecución: T-118 a T-129, luego T-109 y T-110 (ya existentes, con camb
 
 ## Fase 5 — Entrega
 (vacío)
+
+> Nota 2026-11-16 (STOP-4): las tareas T-196 a T-215 (lote L1) y la Parte A de FCM quedan **Validadas en dispositivo por Anderson** (evidencia en `docs/progress.md`). Los hallazgos del toque lento y de la solicitud con «No disponible» pasan al lote L2 (spec 005).
+
+## Lote L2 — spec 005 Estados, modelo y saldo (T-216 a T-240; plan: `specs/005-estados-modelo/plan.md`)
+
+> La spec 005 sigue en Borrador; Anderson ordenó continuar sin esperar su aprobación (no la sustituye). Anclas provisionales: RF-13 (estados y modelo), RF-24 (saldo), RF-54 (reglas). **CA-005-26 CERRADO (2026-11-16):** Anderson publicó la regla `validTrip()` nueva (≈14:20 Bogotá, T-238) y la comprobó con un guardado real; el lote L2 quedó **Validada en dispositivo por Anderson** en STOP-5 (14:54, build de desarrollo; T-239). Antes de eso era bloqueante: sin ella el guardado de TODOS los viajes podía fallar por `hasOnly`. **Sigue pendiente de dispositivo SOLO:** «Salir del viaje» a mitad de viaje y viajes antiguos. **Hallazgo visual abierto, en corrección (lote L3, A5):** en el Detalle del viaje la ruta se corta por abajo, la atribución tapa el tramo final y el marcador de destino no se ve completo. Prueba común: `node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/<archivo>.test.mjs` y `npm test`.
+
+### T-216 — Decisiones D-181 a D-186 en `docs/decisiones.md` (Propuesta)
+- Spec: spec 005 (§8; gobierno)
+- Requisitos: RE-01 a RE-16 (ancla RF-13)
+- Depende de: ninguna
+- Archivos: `docs/decisiones.md`
+- Hacer: copiar D-182 a D-186 de la sección 8 de la spec con estado «Propuesta»; añadir D-181 «La solicitud solo se ofrece con Disponible (A2)»: una notificación o solicitud que llega sin Disponible no se muestra ni deja documento. No marcar nada «Vigente».
+- Criterios: CA-005-04 (declaración de coste en D-182), CA-005-14.
+- Hecho cuando: seis decisiones nuevas, todas «Propuesta», con requisitos referenciados.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-217 — B3: `docs/omisiones-y-limites.md` (desviaciones y coste de lecturas)
+- Spec: spec 005 (RE-03, RE-04, RE-13; CA-005-04, CA-005-23)
+- Requisitos: RE-03, RE-04, RE-13 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `docs/omisiones-y-limites.md`
+- Hacer: listar las cuatro desviaciones (colección `drivers/{uid}/trips`; categoría `economico`; `finishedAt` junto a `completedAt`; `requested` no persistido), el límite de `abandon()` fuera de la máquina, el coste de lecturas del saldo (fórmula, tope 5000, 50.000 gratis/día) y el coste extra de persistir rechazos.
+- Criterios: CA-005-04, CA-005-23.
+- Hecho cuando: las cuatro desviaciones y la declaración de coste están con su ID.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-218 — B3: `validTrip()` completo y lista de publicación en `docs/seguridad.md` (CA-005-26, cerrado 2026-11-16)
+- Spec: spec 005 (RE-13; CA-005-23, 24, 26)
+- Requisitos: RE-13 (ancla RF-54)
+- Depende de: T-216
+- Archivos: `docs/seguridad.md`
+- Hacer: texto completo actualizado de `validTrip()` (estado `rejected`; claves nuevas en `hasAll`/`hasOnly`: `passengerId`, `completedAt`, `economy`, `origin`, `destination`; montos 0 y `rating` nulo en `rejected` y `cancelled`; `completedAt` ausente o nulo fuera de `completed`) y lista de comprobación: pegar completo, Publicar, reiniciar, guardar un completado, un cancelado y un rechazado y ver los documentos en la consola. Casos esperados aceptado/rechazado. Estado «NO VERIFICADO»; no se asume publicada; no se crea `firestore.rules`. Si Anderson rechaza D-185 se retiran `origin`/`destination`.
+- Criterios: CA-005-23, 24, 26.
+- Hecho cuando: el bloque es pegable sin ambigüedad y la lista va antes de la prueba en celular.
+- Qué debe ver Anderson en el celular: nada hasta T-238 (T-238 cumplida 2026-11-16).
+- Validación: verifier distinto (T-236).
+- Riesgo: medio (una regla mal escrita bloquea todos los guardados).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-219 — B1: lectura paginada de todos los viajes (`fetchAllTrips`)
+- Spec: spec 005 (RE-01, RE-02, RE-03; CA-005-01, 02, 03, 04, 05)
+- Requisitos: RE-01, RE-02, RE-03 (ancla RF-24)
+- Depende de: T-216
+- Archivos: `src/services/tripRepository.js`, `scripts/tests/fetchAllTrips.test.mjs` (nuevo)
+- Hacer: plan §3.1. `fetchAllTrips`/`fetchAllTripsWith` con páginas de 500, `startAfter`, tope 5000 y `truncated`; sin tocar `fetchTripsInRange`, `fetchTripsPage` ni `listenToTrips`. Tests con repositorio falso: 250 viajes (150 tarjeta, 100 efectivo) suman el saldo esperado con `computeBalance`; cancelados, `rejected`, sin método, legacy y tarjeta no aprobada no cambian el saldo; más de 5000 documentos corta en el tope con `truncated`; contador de lecturas ≤ tope.
+- Criterios: CA-005-01, 02, 03, 04, 05.
+- Hecho cuando: la prueba pasa, `npm test` no cambia de resultado en lo existente y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-233).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-220 — B1: el saldo de Ganancias usa todos los viajes y avisa si es parcial
+- Spec: spec 005 (RE-01, RE-02; CA-005-03, 06)
+- Requisitos: RE-01, RE-02 (ancla RF-24)
+- Depende de: T-219
+- Archivos: `src/hooks/useBalance.js` (nuevo), `src/screens/main/EarningsScreen.js`, `scripts/tests/balanceView.test.mjs` (nuevo)
+- Hacer: el saldo sale de `fetchAllTrips` + `computeBalance` (lectura al enfocar y al reintentar; cargando, vacío, error con reintento; error nunca muestra 0). Si `truncated`, texto honesto «Saldo parcial: se leyeron los N viajes más recientes» (texto en `labels.js` o el archivo de textos vigente). Ganancias de periodo sin cambios. Cubre cargando/vacío/error.
+- Criterios: CA-005-03 (presentación), CA-005-06 (**No verificado en dispositivo**).
+- Hecho cuando: el test de presentación pasa y la pantalla arranca sin avisos de efectos sin limpiar.
+- Qué debe ver Anderson en el celular: saldo igual al cálculo manual con más de 200 viajes. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-233); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: el aviso de saldo parcial usa tokens de `DESIGN.md` y no se confunde con un saldo completo.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-221 — B2: constantes `REQUESTED`/`REJECTED` y `canTransition` tabular
+- Spec: spec 005 (RE-04, RE-05; CA-005-07, 16)
+- Requisitos: RE-04, RE-05 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `src/constants/tripStatus.js`, `src/services/passengerApi/contract.js` (solo `isTripFinished`), `src/services/trip/tripMachine.js`, `scripts/tests/tripMachineTable.test.mjs` (nuevo)
+- Hacer: plan §3.2. Añadir `REQUESTED` y `REJECTED` (no renombrar nada); `rejected`, `cancelled` y `paid` terminales; `canTransition` con tabla explícita igual a la sección 4 de la spec; entradas nulas o desconocidas, falso. Test tabular que recorre todas las parejas.
+- Criterios: CA-005-07 y la parte de constante de CA-005-16.
+- Hecho cuando: el test tabular pasa, `npm test` sigue verde y la app arranca.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio (la máquina es el núcleo del viaje).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-222 — B2: cancelar solo antes de `in_progress`; `abandon()` intacto
+- Spec: spec 005 (RE-08; CA-005-08, 09)
+- Requisitos: RE-08 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/services/trip/tripController.js`, `scripts/tests/tripCancelRule.test.mjs` (nuevo)
+- Hacer: plan §3.5. `cancel()` respeta `canTransition`; en `in_progress` no llama a la API ni cambia el estado; permitido desde `accepted`, `driver_arriving`, `driver_arrived`. Test que fija el resultado actual de `abandon()` en todas sus fases. Reportar si la UI ofrece cancelar en `in_progress` (no se edita aquí; D-10 queda fuera).
+- Criterios: CA-005-08, 09.
+- Hecho cuando: los tests nuevos y los existentes del controlador pasan.
+- Qué debe ver Anderson en el celular: nada hasta T-239.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-223 — B2: acción `arrive()` («Llegué») idempotente en el controlador
+- Spec: spec 005 (RE-07; CA-005-15)
+- Requisitos: RE-07 (ancla RF-13)
+- Depende de: T-222
+- Archivos: `src/services/trip/tripController.js`, `scripts/tests/tripArrive.test.mjs` (nuevo)
+- Hacer: plan §3.4. `arrive()` solo desde `driver_arriving`; una sola transición y un solo reporte a la API si coincide con la detección automática; sin validación de proximidad ni dependencia de la ubicación o de la ruta cargada; en otro estado no hace nada.
+- Criterios: CA-005-15.
+- Hecho cuando: el test con API falsa pasa (acción manual, detección, ambas a la vez, estado equivocado).
+- Qué debe ver Anderson en el celular: nada hasta T-224.
+- Validación: verifier distinto (T-234).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-224 — B2: botón «Llegué» en la pantalla del viaje (conductor llegando)
+- Spec: spec 005 (RE-07; CA-005-15, CA-005-D3)
+- Requisitos: RE-07 (ancla RF-13)
+- Depende de: T-223
+- Archivos: `src/screens/trip/TripActiveScreen.js` (o el componente de acciones que ya renderiza «Iniciar viaje»), `src/constants/labels.js`
+- Hacer: mostrar «Llegué» solo en `driver_arriving`, con el botón primario existente, área táctil ≥ 48 dp, sin cambiar el orden visual de las demás acciones, sin dependencias nuevas; al pulsarla llama a `arrive()`; luego se habilita iniciar. Estado nativo: **probar en el celular** (T-239).
+- Criterios: CA-005-D3, CA-005-15. **No verificado en dispositivo**.
+- Hecho cuando: la pantalla arranca y el botón aparece solo en `driver_arriving`; lectura contra `DESIGN.md`.
+- Qué debe ver Anderson en el celular: tras aceptar, «Llegué» pasa a «conductor llegó» y habilita iniciar. **No verificado en dispositivo**.
+- Notas: la etiqueta `phase.toPickup` se mantiene como «Conductor llegando» (es el nombre de estado pedido). En `in_progress` «Cancelar viaje» no se ofrece (`canOfferCancel`) y se muestra «Salir del viaje».
+- Validación: verifier distinto (T-234); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: botón primario, área ≥ 48 dp, orden de acciones intacto.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-225 — B3: helper de lectura con defaults (`readTrip`)
+- Spec: spec 005 (RE-11; CA-005-20, 21)
+- Requisitos: RE-11 (ancla RF-13)
+- Depende de: T-216
+- Archivos: `src/services/trip/legacyTrip.js`, `scripts/tests/readTrip.test.mjs` (nuevo)
+- Hacer: plan §3.8. Defaults de la spec RE-11; con `economy` y montos de nivel superior mandan los de nivel superior; fixtures de viajes antiguos comparados con la salida previa. No cambia ninguna pantalla aún (el consumo es mínimo y opcional).
+- Criterios: CA-005-20, 21.
+- Hecho cuando: el test pasa y `npm test` sigue verde.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-235).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-226 — B2/B3: `buildTripRecord` guarda `rejected` y `TRIP_DOC_KEYS` base
+- Spec: spec 005 (RE-06, RE-15, RE-16; CA-005-10, 16, 19)
+- Requisitos: RE-06, RE-15 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/services/trip/tripRecord.js`, `scripts/tests/tripRecordRejected.test.mjs` (nuevo)
+- Hacer: `SAVED_STATUS.REJECTED`; un `rejected` y un `cancelled` salen con `fare`, `commission`, `driverEarnings`, `tip` en 0, `rating` nulo, `finishedAt` del cierre y `route` ausente; `buildTripRecord` nunca produce `status: 'requested'`. Los viajes `completed`/`cancelled` se construyen igual que antes (test de regresión).
+- Criterios: CA-005-10 (constructor), 16, 19 (parte de montos).
+- Hecho cuando: la prueba pasa y el constructor previo no cambia de salida.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-235).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-227 — B3: campos aditivos en el registro (`passengerId`, `completedAt`, `economy`, `origin`, `destination`)
+- Spec: spec 005 (RE-10, RE-12; CA-005-18, 19, 22)
+- Requisitos: RE-10, RE-12 (ancla RF-13)
+- Depende de: T-226, T-218
+- Archivos: `src/services/trip/tripRecord.js`, `scripts/tests/tripRecordFields.test.mjs` (nuevo)
+- Hacer: plan §3.7. Añadir los campos a `TRIP_DOC_KEYS` sin quitar ninguno; ejemplo 8,5 km / 22 min Económico: `economy` = `{ fare: 19200, commission: 3840, tip: 0, driverEarnings: 15360 }`; `completedAt` = `finishedAt` solo en `completed`; `origin`/`destination` = `{ lat, lng, address }` con coordenadas de la solicitud (sin inventar si faltan); `passengerId` si la solicitud lo trae. Privacidad D-185: si Anderson la rechaza, solo se escriben las direcciones. Test que compara la lista de claves con la previa.
+- Criterios: CA-005-18, 19, 22.
+- Hecho cuando: la prueba pasa y la lista previa sigue contenida en la nueva.
+- Qué debe ver Anderson en el celular: nada hasta T-239 (con la regla publicada, T-238; ambas cumplidas el 2026-11-16).
+- Validación: verifier distinto (T-235).
+- Riesgo: medio (si la regla no está publicada, el guardado falla; ver BLOQUEANTE).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-228 — B2: servicio `declineRequest` idempotente y de mejor esfuerzo
+- Spec: spec 005 (RE-06; CA-005-10, 12, 13)
+- Requisitos: RE-06 (ancla RF-13)
+- Depende de: T-226
+- Archivos: `src/services/trip/declineRequest.js` (nuevo), `src/services/tripRepository.js` (solo una función de guardado idempotente por id), `scripts/tests/declineRequest.test.mjs` (nuevo)
+- Hacer: plan §3.6. Comprueba existencia por id, escribe una sola vez, tiempo límite 5 s, nunca rechaza ni bloquea; si ya fue aceptada, se ignora. Tests con repositorio falso: rechazo guarda `rejected` con montos 0; dos notificaciones, una escritura; fallo o falta de respuesta, sin error. (Edita `tripRepository.js` después de T-219.)
+- Criterios: CA-005-10, 12, 13.
+- Hecho cuando: las pruebas pasan con contador de escrituras.
+- Qué debe ver Anderson en el celular: nada hasta T-239.
+- Validación: verifier distinto (T-235).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-229 — B2: conectar rechazo y vencimiento (15 s / `expiresAt`) a `declineRequest`
+- Spec: spec 005 (RE-06; CA-005-11, 14)
+- Requisitos: RE-06 (ancla RF-13)
+- Depende de: T-228
+- Archivos: `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`, `src/services/passengerApi/mockPassengerApi.js`, `scripts/tests/declineWiring.test.mjs` (nuevo)
+- Hacer: llamar a `declineRequest` (motivo `rejected` o `expired`) donde hoy se llama `rejectRequest` y donde vence la solicitud mostrada; una solicitud que no se mostró (D-181: sin Disponible) no escribe. Sin cambiar los textos ni el flujo visible; limpiar temporizadores en el retorno del efecto. Probar en el celular.
+- Criterios: CA-005-11, 14, 17 (**No verificado en dispositivo**).
+- Hecho cuando: los tests pasan con reloj inyectado y la app arranca.
+- Qué debe ver Anderson en el celular: rechazar una y dejar vencer otra deja dos documentos `rejected`. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235).
+- Riesgo: alto (toca el flujo central de solicitudes).
+- Diseño hecho cuando: N/A (sin cambios visibles).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-230 — B2: «Rechazado» en etiquetas, ítem del Historial y Detalle
+- Spec: spec 005 (RE-09, RE-14; CA-005-D1, D2, 27)
+- Requisitos: RE-09, RE-14 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `src/constants/labels.js`, `src/components/TripListItem.js`, `src/services/trip/tripDetailView.js`, `scripts/tests/rejectedView.test.mjs` (nuevo)
+- Hacer: una sola etiqueta «Rechazado» (rechazo y vencimiento) con icono y color distintos de «Cancelado», contraste ≥ 4,5:1 con tokens de `DESIGN.md` (cálculo anotado), montos «sin cobro», sin chip «Cobro simulado», anuncio accesible con el texto. Un viaje `completed` con `paymentStatus: 'rejected'` NO se muestra como «Rechazado».
+- Criterios: CA-005-D1, D2, 27 (parte de vista). D2: **No verificado en dispositivo**.
+- Hecho cuando: el test de vista pasa y la lista arranca.
+- Qué debe ver Anderson en el celular: un rechazado en el Historial con texto, icono y color propios. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235); auditoría T-237.
+- Riesgo: bajo.
+- Diseño hecho cuando: contraste AA registrado y distinción por texto e icono.
+- Diseño: Pendiente
+- Estado: Implementada
+
+### T-231 — B2: filtro/chip «Rechazados» en el Historial
+- Spec: spec 005 (RE-09; CA-005-D2, 17)
+- Requisitos: RE-09 (ancla RF-13)
+- Depende de: T-230
+- Archivos: `src/screens/main/HistoryScreen.js`, `src/components/HistoryFilters.js`
+- Hacer: añadir el filtro/chip por estado (Todos / Rechazados u opción equivalente) sin romper filtros de periodo y método; paginación de 20 por página intacta; mantiene cargando, vacío y error.
+- Criterios: CA-005-D2, 17. **No verificado en dispositivo**.
+- Hecho cuando: la pantalla arranca y el filtro cambia la lista; lectura contra `DESIGN.md`.
+- Qué debe ver Anderson en el celular: el filtro muestra solo rechazados. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-235); auditoría T-237.
+- Riesgo: medio.
+- Diseño hecho cuando: chip con tokens, área táctil ≥ 48 dp, coherente con los filtros actuales.
+- Diseño: Pendiente
+- Estado: Implementada
+- Nota (2026-11-16): chip «Rechazados» OMITIDO por decisión de Anderson; ver `docs/omisiones-y-limites.md`. No hay código de filtro; los `rejected` salen con su etiqueta.
+
+### T-232 — B4: no contaminación (tests de ganancias, saldo, cobro)
+- Spec: spec 005 (RE-14, RE-15, RE-16; CA-005-05, 25, 27)
+- Requisitos: RE-14, RE-15, RE-16 (ancla RF-13)
+- Depende de: T-221
+- Archivos: `scripts/tests/noContamination.test.mjs` (nuevo); `src/utils/earnings.js` solo si el test expone un fallo
+- Hacer: con conjuntos `completed`, `paid`, `cancelled` y `rejected` del mismo periodo, las seis métricas, hoy/semana/mes y el saldo ignoran `rejected` y `cancelled` (iguales al conjunto sin ellos); un `rejected` con `paymentStatus: 'pending'` no ofrece cobro; un `completed` con `paymentStatus: 'rejected'` sigue siendo completado con cobro rechazado.
+- Criterios: CA-005-05, 25, 27.
+- Hecho cuando: la prueba pasa y `npm test` sigue verde.
+- Qué debe ver Anderson en el celular: nada. Prueba con script.
+- Validación: verifier distinto (T-236).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+- Nota (2026-11-16): `paymentView.js` ahora también excluye `rejected` (CA-005-27); `noContamination.test.mjs` llama a `paymentView` con rechazados (mercadopago y efectivo, `pending`) y vencidos, y falla si se quita `REJECTED`.
+
+### T-233 — B1: verificación independiente del saldo (CA-005-01 a 05)
+- Spec: spec 005 (RE-01 a RE-03)
+- Requisitos: RE-01, RE-02, RE-03 (ancla RF-24)
+- Depende de: T-219, T-220
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee diff y tests, comprueba contador de lecturas, tope, `truncated`, textos de coste (D-182, `omisiones-y-limites.md`) y que `fetchTripsInRange`/`fetchTripsPage` no cambiaron; `npm test`; `check-constitution`.
+- Criterios: CA-005-01 a 05.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-234 — B2: verificación independiente de la máquina, cancelar y «Llegué»
+- Spec: spec 005 (RE-05, RE-07, RE-08)
+- Requisitos: RE-05, RE-07, RE-08 (ancla RF-13)
+- Depende de: T-221, T-222, T-223, T-224
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto compara `canTransition` con la tabla de la spec §4, comprueba que cancelar en `in_progress` no llama a la API, que `abandon()` no cambió y que la acción «Llegué» es única; `npm test`; `check-constitution`.
+- Criterios: CA-005-07, 08, 09, 15.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas; lo visual queda «No verificado en dispositivo».
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-235 — B2/B3: verificación independiente de rechazo, registro y lectura
+- Spec: spec 005 (RE-06, RE-09, RE-10 a RE-12, RE-15)
+- Requisitos: RE-06, RE-09 a RE-12, RE-15 (ancla RF-13)
+- Depende de: T-225, T-226, T-227, T-228, T-229, T-230, T-231
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto comprueba idempotencia, tiempo límite, que un `rejected` nunca tiene monto positivo ni `requested` se escribe (`grep`), que `TRIP_DOC_KEYS` conserva los campos previos y que `readTrip` no cambia los viajes antiguos; `npm test`; `check-constitution`.
+- Criterios: CA-005-10 a 14, 16, 18 a 22.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-236 — B3/B4: verificación independiente de documentos y no contaminación
+- Spec: spec 005 (RE-13, RE-14; CA-005-23, 24, 25, 27)
+- Requisitos: RE-13, RE-14 (ancla RF-13)
+- Depende de: T-216, T-217, T-218, T-232
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto lee `decisiones.md` (D-181 a D-186 «Propuesta»), `omisiones-y-limites.md` y `seguridad.md` contra los casos de CA-005-24 (ejecución en el emulador solo si existe; si no, «NO VERIFICADO»), y corre el test de no contaminación.
+- Criterios: CA-005-23, 24, 25, 27.
+- Hecho cuando: lectura con archivo:línea; la regla sigue sin afirmarse publicada.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-237 — Auditoría de diseño: «Rechazado», colores, «Conductor llegando» con «Llegué» y saldo parcial
+- Spec: spec 005 (RE-09, RE-07, RE-02; CA-005-D1, D2, D3)
+- Requisitos: RE-02, RE-07, RE-09 (ancla RF-13)
+- Depende de: T-220, T-224, T-230, T-231
+- Archivos: ninguno (design-auditor; informe de ronda y campo Diseño)
+- Hacer: el agente principal carga las skills de diseño y las pasa al `design-auditor`; revisa etiqueta y color de «Rechazado» frente a «Cancelado» (contraste ≥ 4,5:1 con script temporal sobre tokens), icono y anuncio accesible, filtro/chip del Historial, pantalla «Conductor llegando» con «Llegué» (botón primario, ≥ 48 dp, orden de acciones) y el aviso de saldo parcial. Máximo dos rondas; hallazgos al `implementer`.
+- Criterios: CA-005-D1, D2, D3.
+- Hecho cuando: Diseño «Aprobado» (o «N/A») en T-220, T-224, T-230 y T-231, con el cálculo de contraste anotado.
+- Qué debe ver Anderson en el celular: capturas de Historial con un rechazado y de «Llegué» (T-239).
+- Validación: design-auditor (solo lo visual).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-238 — Anderson publica la regla `validTrip()` a mano (CA-005-26, cerrado)
+- Spec: spec 005 (RE-13; CA-005-26)
+- Requisitos: RE-13 (ancla RF-54)
+- Depende de: T-218, T-236
+- Archivos: ninguno
+- Hacer: Anderson sigue la lista de comprobación de `docs/seguridad.md` (pegar completo, Publicar, reiniciar la app) ANTES de cualquier prueba del celular de esta spec. El agente no publica reglas. Informar fecha y resultado.
+- Criterios: CA-005-26. **Validada en dispositivo por Anderson (2026-11-16, ≈14:20 Bogotá, aprobada en STOP-5 a las 14:54):** regla publicada y comprobada con un guardado real; en la consola `drivers/{uid}/trips/mock-…-1` con `status` "rejected", `fare`/`commission`/`driverEarnings`/`tip` en 0, `rating` null, `economy` con las cuatro claves en 0, `origin` {address, lat, lng} y `originLabel`.
+- Hecho cuando: Anderson confirma «publicada» o reporta el error.
+- Qué debe ver Anderson en el celular: nada todavía.
+- Validación: Anderson.
+- Riesgo: alto (sin la regla, el guardado de todos los viajes puede fallar).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16, STOP-5)
+
+### T-239 — Prueba en el celular del lote L2 (Anderson)
+- Spec: spec 005 (RE-01, RE-06, RE-07, RE-09; CA-005-06, 17, 26, D2, D3)
+- Requisitos: RE-01, RE-06, RE-07, RE-09 (anclas RF-24, RF-13)
+- Depende de: T-233, T-234, T-235, T-237, T-238
+- Archivos: ninguno
+- Hacer: con la regla publicada: (1) saldo de un conductor con más de 200 viajes (o datos sembrados) igual al cálculo manual; (2) rechazar una solicitud y dejar vencer otra: ambas «Rechazado» en el Historial y con su documento en la consola; (3) pulsar «Llegué» y completar el flujo; (4) guardar un completado, un cancelado y un rechazado; (5) comprobar TalkBack/VoiceOver del ítem «Rechazado». Reportar «Pega aquí el resultado de la prueba en el celular».
+- Criterios: CA-005-06, 17, 26, D2, D3. **Validada en dispositivo por Anderson (2026-11-16 14:54, build de desarrollo, STOP-5):** con «No disponible» el toque de la notificación muestra el aviso de activar la disponibilidad y no ofrece la solicitud; con «Disponible» abre la pantalla completa y la rapidez («Calculando…» y luego datos) se nota; rechazo y vencimiento salen en el Historial como «Rechazado» con «Sin cobro»; el flujo completo (aceptar, conductor llegando, iniciar, finalizar, cobrar) funciona; Saldo y Ganancias coherentes con el Historial; pago con tarjeta Stripe OK (Detalle: «Pago aprobado», «Tarjeta (Stripe)», comisión y ruta de OSRM). Anderson aprueba todo el checklist STOP-5. **No mencionado por Anderson, sin marcar:** TalkBack/VoiceOver del ítem «Rechazado» (D3) y el saldo con más de 200 viajes contra cálculo manual (solo se dijo «coherente con el Historial»). **Pendiente de dispositivo SOLO:** «Salir del viaje» a mitad y viajes antiguos.
+- Hecho cuando: Anderson confirma cada punto con fecha y evidencia.
+- Qué debe ver Anderson en el celular: lo descrito arriba. Resultado de STOP-5 registrado arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16, STOP-5; con las excepciones de Criterios)
+
+### T-240 — Cierre del lote L2: `docs/progress.md` y trazabilidad
+- Spec: spec 005 (RE-01 a RE-16; todos los CA)
+- Requisitos: RE-01 a RE-16 (anclas RF-13, RF-24, RF-54)
+- Depende de: T-233, T-234, T-235, T-236, T-237
+- Archivos: `docs/progress.md`
+- Hacer: registrar en la tabla de CA de `docs/progress.md` cada CA-005-01 a 27 y D1 a D3 con evidencia, dejando «No verificado en dispositivo» CA-005-06, 17, 26 y D2/D3 hasta T-239 (T-239 respondida 2026-11-16, STOP-5: CA-005-17 y CA-005-26 cerrados; CA-005-06, D2 y D3 según lo que Anderson confirmó, ver T-239); confirmar que la fila de la spec 005 en la matriz de `docs/requisitos.md` coincide con estas tareas; `node scripts/check-constitution.mjs` sin errores nuevos. No aprueba nada propio.
+- Criterios: todos los CA de la spec 005.
+- Hecho cuando: cada CA tiene fila y la matriz coincide con el backlog.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+## Lote L3 — spec 006 Idioma español/inglés (T-241 a T-267; plan: `specs/006-idioma/plan.md`; planificado 2026-11-16; la spec sigue en Borrador y D-187 a D-192 en Propuesta: Anderson delegó ejecución continua, eso no es aprobación; los RI-nn son locales de la spec y cada tarea cita además un ancla existente RF-29, RNF-19 o RNF-14 para C21/C22)
+
+### T-241 — S1: decisiones D-187 a D-192 y plan de idioma
+- Spec: spec 006 (RI-24; gobierno)
+- Requisitos: RI-24 (ancla RNF-19)
+- Depende de: ninguna
+- Archivos: `docs/decisiones.md`, `specs/006-idioma/plan.md` (ya escritos por el planner)
+- Hacer: Anderson revisa las seis decisiones (en especial D-187, el enfoque de menor riesgo; D-188, el idioma no se guarda en el perfil, diferencia con G-05; D-189, el push sigue en español) y la numeración (el borrador de la spec llama D-187 y D-188 a lo que es D-188 y D-189). Nada pasa a «Vigente» sin él.
+- Criterios: sin CA propio; fija el marco de CA-006-14, 33 y 34.
+- Hecho cuando: las seis decisiones existen como «Propuesta» y Anderson las vio.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: Anderson.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-242 — S1: núcleo puro del idioma (normalizar, resolver, teléfono, preferencia)
+- Spec: spec 006 (RI-06, RI-07, RI-08, RI-12; CA-006-08, 09, 10, 15)
+- Requisitos: RI-06, RI-07, RI-08, RI-12 (ancla RF-29)
+- Depende de: T-241
+- Archivos: `src/i18n/languages.js`, `src/i18n/resolveLanguage.js`, `src/i18n/phoneLanguage.js`, `src/i18n/languagePreference.js` (todos nuevos), `scripts/tests/languageResolve.test.mjs`, `scripts/tests/languagePreference.test.mjs` (nuevos)
+- Hacer: `normalizeLanguage` por código base (`es_CO`, `es-419`, `en-GB`; otro valor o no cadena da `null`); `resolveLanguage({ stored, suggested, phone })` en el orden guardado, sugerencia, teléfono, `es`; `readPhoneLanguage(readers)` con lectores inyectados que no lanzan y los lectores reales (`SettingsManager.AppleLanguages`, `I18nManager.getConstants().localeIdentifier`, `Intl`) cargados de forma perezosa y a prueba de fallos (D-190); `createLanguagePreference` con clave `appLanguage` siguiendo `notifications/preference.js` (nunca lanza). Sin dependencias nuevas.
+- Criterios: CA-006-08, 09, 10, 15.
+- Hecho cuando: las pruebas cubren la tabla de CA-006-08 (cinco casos), la sugerencia, el lector que falla y el valor guardado corrupto (`fr`, vacío, número); `npm test` verde y la app arranca (nada la importa aún).
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-265).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-243 — S1: almacén del idioma activo (suscripción y guardado de mejor esfuerzo)
+- Spec: spec 006 (RI-12, RI-14, RI-15; CA-006-15, 17, 19)
+- Requisitos: RI-12, RI-14, RI-15 (ancla RF-29)
+- Depende de: T-242
+- Archivos: `src/i18n/languageStore.js` (nuevo), `scripts/tests/languageStore.test.mjs` (nuevo)
+- Hacer: `getLanguage`, `init`, `setLanguage(lang)` (cambia el idioma al instante, notifica a los suscriptores y guarda después; devuelve `{ saved }`; si el guardado lanza, el idioma cambia igual y `saved` es `false`), `subscribe` con baja. Dos cambios seguidos: gana el último y queda guardado el último. Un valor inválido se ignora.
+- Criterios: CA-006-15, 17, 19 (parte del almacén; el re-render real queda **No verificado en dispositivo** hasta T-264).
+- Hecho cuando: pruebas de notificación a suscriptores, baja, almacenamiento que falla y doble cambio; `npm test` verde.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-265).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-244 — S1: diccionario `es` movido, `en` con secciones vacías y `labels` vivo
+- Spec: spec 006 (RI-01, RI-05; CA-006-01, 07)
+- Requisitos: RI-01, RI-05 (ancla RNF-19)
+- Depende de: T-243
+- Archivos: `src/i18n/dictionaries/es.js` (nuevo, contenido de `labels.js` movido sin cambios), `src/i18n/dictionaries/en/index.js` y `src/i18n/dictionaries/en/{app,trip,account,registration}.js` (nuevos, secciones vacías), `src/i18n/liveLabels.js` (nuevo), `src/constants/labels.js` (reducido), `scripts/tests/fixtures/labelsEsPaths.json` (instantánea, generada ANTES de mover), `scripts/tests/liveLabels.test.mjs` (nuevo)
+- Hacer: (1) generar la instantánea de rutas (cadenas, arreglos, funciones) del `labels.js` actual; (2) mover el objeto a `es.js` (incluye `labels.profile.errors` como propiedad y `getSubmitErrorMessage` que lee el idioma activo al llamarse); (3) `createLiveLabels` (Proxy por ruta con respaldo a español por clave, trampas `get`, `has`, `ownKeys`, `getOwnPropertyDescriptor`); (4) `labels.js` queda con `export const labels` vivo y `export { getSubmitErrorMessage }`; (5) `en` con las cuatro secciones como `{}`. Ningún importador cambia. Probar en el celular (la app debe verse exactamente igual en español).
+- Criterios: CA-006-01 (parte `es`), CA-006-07. Hermes y Proxy: **No verificado en dispositivo**.
+- Hecho cuando: la prueba compara las rutas de `labels` vivo en `es` con la instantánea (sin rutas perdidas), `Object.keys`, `in`, `Array.isArray(weekdaysShort)`, `delayValue(15)`, `.replace` sobre cadenas, y con `en` vacío todo cae a español; `npm test` y la app arrancan; `check-constitution` sin errores nuevos.
+- Qué debe ver Anderson en el celular: la app idéntica a antes, en español. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-265).
+- Riesgo: alto (todos los textos pasan por el Proxy).
+- Diseño hecho cuando: N/A (sin cambios visibles).
+- Diseño: N/A
+- Estado: Implementada
+
+### T-245 — S1: función de traducción `t` con parámetros, plurales y respaldo
+- Spec: spec 006 (RI-02, RI-03, RI-04; CA-006-04, 05, 06)
+- Requisitos: RI-02, RI-03, RI-04 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/i18n/translate.js` (nuevo), `scripts/tests/translate.test.mjs` (nuevo)
+- Hacer: `t(key, params, language)` con sustitución `{nombre}`; parámetro ausente da cadena vacía y aviso solo en desarrollo; plural de dos formas por `params.n` (1 = singular; 0, 2 y 10 = plural); clave sin texto en el idioma activo usa español; sin texto en ninguno devuelve la clave; nunca lanza ni devuelve `undefined`. Las pruebas usan diccionarios inyectados (la prueba con `trip.countdown` real espera a T-246).
+- Criterios: CA-006-04, 05, 06.
+- Hecho cuando: pruebas de parámetro ausente, plural en ambos idiomas, clave solo en `es` y clave inexistente; `npm test` verde.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-265).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-246 — S2: diccionario `en`, sección `trip`
+- Spec: spec 006 (RI-01; CA-006-01, 02)
+- Requisitos: RI-01 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/i18n/dictionaries/en/trip.js` (solo este archivo)
+- Hacer: traducir `labels.trip` completo (solicitud, curso, resumen, cobro, avisos de pago, contador «Expires in {s} s») con las mismas rutas, plantillas `{param}` idénticas y plurales de dos formas donde haga falta. Textos cortos para botones y chips (cabrán a 200 %). Paralelizable con T-247, T-248 y T-249.
+- Criterios: CA-006-01, 02 (parte `trip`).
+- Hecho cuando: las rutas y los parámetros coinciden con `es` para `trip` (comparación con script temporal hasta que exista T-250) y la app arranca.
+- Qué debe ver Anderson en el celular: nada todavía (el selector llega en T-254).
+- Validación: verifier distinto (T-265); redacción: Anderson.
+- Riesgo: medio (volumen y calidad del inglés).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-247 — S2: diccionario `en`, secciones de cuenta y datos (`earnings`, `history`, `profile`, `settings`, `notifications`, `states`, `placeholder`, `a11y`, `actions`, `forceState`, `mapTest`, `demo`)
+- Spec: spec 006 (RI-01; CA-006-01, 02, 03)
+- Requisitos: RI-01 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/i18n/dictionaries/en/account.js` (solo este archivo)
+- Hacer: traducir las secciones listadas con las mismas rutas y parámetros; `history.weekdaysShort` con siete elementos (lunes primero); `notifications.delayValue` como función con el mismo contrato; las herramientas de desarrollo también (RI-24e).
+- Criterios: CA-006-01, 02, 03 (parte de estas secciones).
+- Hecho cuando: rutas y parámetros coinciden con `es` en estas secciones y la app arranca.
+- Qué debe ver Anderson en el celular: nada todavía.
+- Validación: verifier distinto (T-265); redacción: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-248 — S2: diccionario `en`, secciones de aplicación y acceso (`appName`, `registrationFlow`, `tabs`, `drawer`, `nav`, `home`, `auth`)
+- Spec: spec 006 (RI-01; CA-006-01, 02)
+- Requisitos: RI-01 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/i18n/dictionaries/en/app.js` (solo este archivo)
+- Hacer: traducir las secciones listadas con las mismas rutas y parámetros (inicio de sesión, alta de cuenta, recuperación de contraseña, navegación, inicio). `appName` sigue siendo la marca.
+- Criterios: CA-006-01, 02 (parte de estas secciones).
+- Hecho cuando: rutas y parámetros coinciden con `es` en estas secciones y la app arranca.
+- Qué debe ver Anderson en el celular: nada todavía.
+- Validación: verifier distinto (T-265); redacción: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-249 — S2: diccionario `en`, sección `registration` (y alias `profile.errors`)
+- Spec: spec 006 (RI-01, RI-05; CA-006-01, 02, 07)
+- Requisitos: RI-01, RI-05 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/i18n/dictionaries/en/registration.js` (solo este archivo)
+- Hacer: traducir `labels.registration` completo (datos personales, vehículo, documentos, validaciones y `submitErrors`, incluida la clave `permission-denied`); `registration.language` mantiene `Español` / `English` escritos cada uno en su idioma; asegurar que `profile.errors` y `getSubmitErrorMessage` devuelvan texto en inglés con `en` activo.
+- Criterios: CA-006-01, 02, 07.
+- Hecho cuando: rutas y parámetros coinciden con `es` en `registration`, y `getSubmitErrorMessage('permission-denied')` difiere entre idiomas (prueba).
+- Qué debe ver Anderson en el celular: nada todavía.
+- Validación: verifier distinto (T-265); redacción: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-250 — S2: pruebas de paridad es/en
+- Spec: spec 006 (RI-01, RI-05; CA-006-01, 02, 03, 07)
+- Requisitos: RI-01, RI-05 (ancla RNF-19)
+- Depende de: T-246, T-247, T-248, T-249
+- Archivos: `scripts/tests/i18nParity.test.mjs` (nuevo)
+- Hacer: recorrer `es` y `en` y comprobar mismas rutas (cadenas, arreglos y funciones), ninguna cadena vacía o solo espacios, mismo conjunto de parámetros `{...}` por par, `weekdaysShort` con siete elementos en cada idioma, `delayValue`, `getSubmitErrorMessage` y `profile.errors` distintos por idioma, y que `en` no contenga rutas que `es` no tenga. Informar el conteo exacto de rutas.
+- Criterios: CA-006-01, 02, 03, 07.
+- Hecho cuando: la prueba pasa; si falla, nombra cada ruta o parámetro que difiere; `npm test` verde.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-265).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-251 — S2: formatos por idioma (km, fecha, hora) y moneda sin cambio
+- Spec: spec 006 (RI-19, RI-20, RI-21, RI-22; CA-006-28, 29, 30)
+- Requisitos: RI-19, RI-20, RI-21, RI-22 (ancla RNF-19)
+- Depende de: T-244
+- Archivos: `src/utils/format.js`, `scripts/tests/formatLanguage.test.mjs` (nuevo)
+- Hacer: `formatKmFromMeters` y `formatKm` con coma en `es` y punto en `en` (siguen construidos con enteros); `formatClock` y `formatDateTime` según D-191 (`es` igual que hoy; `en` mes primero y 12 h con AM/PM); idioma opcional como último parámetro y, por defecto, el idioma activo leído al llamarse; `formatCop` sin cambios. Si algún formato usa nombres de mes o de día, salen del diccionario (agregar claves a `es` y a `en/app.js` solo si hace falta, sin pisar a T-248). Los llamadores actuales no cambian de firma.
+- Criterios: CA-006-28, 29, 30.
+- Hecho cuando: pruebas con instante y zona fijos (`$ 19.200`, `0`, `1234567` en ambos idiomas; `8,5 km` y `8.5 km`; fecha distinta por idioma y mismo instante; 22 min); las pruebas existentes de fechas siguen verdes; la app arranca.
+- Qué debe ver Anderson en el celular: en español, las fechas y los kilómetros iguales que antes. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-265).
+- Riesgo: medio (la fecha aparece en Historial, Detalle y Ganancias).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-252 — S3: hook `useLanguage` y resolución del idioma antes del primer cuadro
+- Spec: spec 006 (RI-06, RI-09, RI-15; CA-006-08, 10, 11, 19)
+- Requisitos: RI-06, RI-09, RI-15 (ancla RF-29)
+- Depende de: T-243, T-244
+- Archivos: `src/i18n/useLanguage.js`, `src/i18n/initLanguage.js` (nuevos), `App.js`, `scripts/tests/initLanguage.test.mjs` (nuevo)
+- Hacer: `useLanguage()` con `useSyncExternalStore(subscribe, getLanguage)`, devuelve `{ language }`; `initLanguage({ preference, readers, suggested })` lee la preferencia con tope de 1,5 s, resuelve y fija el idioma; `App.js` espera `initLanguage` junto con las fuentes en la misma compuerta de arranque (la pantalla vacía actual) sin añadir pantalla nueva ni esperar más de ese tope. La lectura lenta o fallida cae a teléfono y español. Probar en el celular (arranque normal).
+- Criterios: CA-006-08, 10, 19; CA-006-11 **No verificado en dispositivo**.
+- Hecho cuando: pruebas con almacenamiento lento, que falla y vacío; la app arranca igual que antes en español.
+- Qué debe ver Anderson en el celular: arranque sin parpadeo. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: alto (toca el arranque).
+- Diseño hecho cuando: N/A (sin cambios visibles).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-253 — S3: sugerencia del idioma del registro (solo si no hay preferencia)
+- Spec: spec 006 (RI-08; CA-006-09)
+- Requisitos: RI-08 (ancla RF-29)
+- Depende de: T-252
+- Archivos: `src/context/RegistrationFormContext.js` (solo la lectura de `personalData.language`), `src/i18n/applySuggestion.js` (nuevo), `scripts/tests/languageSuggestion.test.mjs` (nuevo)
+- Hacer: cuando el registro ya cargado trae `personalData.language` válido y no hay preferencia guardada, aplicar esa sugerencia una sola vez, sin guardarla; nunca pisar una preferencia guardada ni un cambio hecho en la sesión. T-260 no toca este archivo (ver plan §6).
+- Criterios: CA-006-09.
+- Hecho cuando: pruebas de sugerencia `en` sin preferencia (da `en`), con preferencia `es` (queda `es`) y con valor inválido (se ignora); el formulario del registro se comporta igual.
+- Qué debe ver Anderson en el celular: nada obligatorio. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-254 — S3: selector «Idioma / Language» en Configuración
+- Spec: spec 006 (RI-10, RI-11, RI-12, RI-14; CA-006-12, 13, 14, 17, D2, D3)
+- Requisitos: RI-10, RI-11, RI-12, RI-14 (anclas RF-29, RNF-14)
+- Depende de: T-252, T-249
+- Archivos: `src/components/settings/LanguageSection.js` (nuevo), `src/screens/main/SettingsScreen.js`, `src/i18n/dictionaries/es.js` y `src/i18n/dictionaries/en/account.js` (claves `settings.language.*`: título fijo «Idioma / Language», aviso de no recordado, accesibilidad), `scripts/tests/languageSection.test.mjs` (nuevo)
+- Hacer: sección con dos controles de rol radio o botón con estado «seleccionado», «Español» y «English» cada uno en su idioma, icono de marca más texto en la activa (no solo color), área táctil ≥ 48 dp, tokens y componentes existentes (`Card`, `Chip`, `Icon`), mismo orden y espaciado que las demás secciones; sin `Alert`; al elegir llama a `setLanguage`, no escribe en Firestore ni toca `validProfileEdit`; si `saved` es `false` muestra un aviso breve traducido en la sección. Llama a `useLanguage()`. Probar en el celular.
+- Criterios: CA-006-12, 13, 14, 17, D2, D3. TalkBack/VoiceOver y tamaño real: **No verificado en dispositivo**.
+- Hecho cuando: pruebas de propiedades de accesibilidad, título fijo, no escritura remota (`grep` en `validProfileEdit` y `firestore.rules` sin cambios) y aviso de guardado fallido; contraste ≥ 4,5:1 del texto y ≥ 3:1 del icono con script temporal sobre tokens; la pantalla arranca.
+- Qué debe ver Anderson en el celular: Configuración con la sección; tocar English cambia la pantalla al instante. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266); auditoría T-263.
+- Riesgo: medio.
+- Diseño hecho cuando: contraste registrado, comprobación visible sin color y área ≥ 48 dp, coherente con Configuración.
+- Diseño: Aprobado (estático, por código, ronda 2): sin depender del color, contraste holgado, ≥ 48 dp, orden coherente, P3-1 corregido. TalkBack/VoiceOver y tamaño real: No verificado en dispositivo (capa E). Informes: `docs/diseno/auditorias/ronda-1-idioma.md`, `docs/diseno/auditorias/ronda-2-idioma.md`.
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-255 — S3: pruebas de no contaminación (cierre de sesión, estado, tarifa, valores guardados)
+- Spec: spec 006 (RI-13, RI-16, RI-23; CA-006-14, 16, 20, 31, 32)
+- Requisitos: RI-13, RI-16, RI-23 (anclas RF-29, RNF-19)
+- Depende de: T-243, T-244
+- Archivos: `scripts/tests/languageNoContamination.test.mjs` (nuevo); código solo si una prueba expone un fallo
+- Hacer: (1) la limpieza real `buildSessionResetDeps` con dependencias falsas conserva `appLanguage`; (2) con una solicitud abierta y un viaje en curso (controlador y reloj inyectado) cambiar el idioma no cambia el estado, no reprograma el temporizador de 15 s y no cambia `fare`, `commission` ni `driverEarnings` (19200, 3840, 15360 para 8,5 km / 22 min Económico); (3) `buildTripRecord` y lo que va a la API son idénticos con `es` y con `en`; (4) elegir idioma no escribe en el repositorio de perfil falso.
+- Criterios: CA-006-14, 16, 20, 31, 32.
+- Hecho cuando: las pruebas pasan y `npm test` sigue verde.
+- Qué debe ver Anderson en el celular: nada. El cierre de sesión real en el celular lo prueba T-264.
+- Validación: verifier distinto (T-266).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada
+
+### T-256 — S4: prueba estática de cobertura y archivos de excepciones y pendientes
+- Spec: spec 006 (RI-17, RI-18; CA-006-22, 23, 24, 25, 26)
+- Requisitos: RI-17, RI-18 (anclas RNF-19, RNF-14)
+- Depende de: T-252
+- Archivos: `scripts/tests/i18nCoverage.test.mjs` (nuevo), `scripts/tests/fixtures/i18nExceptions.json` (nuevo), `scripts/tests/fixtures/i18nPending.json` (nuevo)
+- Hacer: implementar D-192: hook obligatorio en archivos con JSX que leen `labels`, sin lecturas de hoja a nivel de módulo, sin texto literal visible (texto JSX, `accessibilityLabel`, `accessibilityHint`, `placeholder`, `title`, `Alert.alert`) fuera de las excepciones, sin `Alert.alert` ni `scheduleNotificationAsync` no traducidos, y `labels` definido solo bajo `src/i18n`. Excepciones por archivo y razón, sin comodines de directorio, con fallo si una ya no coincide. `i18nPending.json` lista los directorios sin migrar (`screens/auth`, `screens/registration`, `screens/home`, `screens/dev`, `screens/main`, `screens/trip`, `components`, `navigation`, `context`, `hooks`, `services`, `utils`) y la prueba los omite. La prueba incluye casos de autocomprobación (un archivo falso bueno y uno malo).
+- Criterios: CA-006-22, 23, 24, 25, 26.
+- Hecho cuando: los autocasos pasan y fallan como se espera; con todos los directorios pendientes la prueba pasa y `npm test` está verde; informe del número de archivos revisados por directorio.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio (heurística por expresiones regulares; ver D-192).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-257 — S4: migrar `screens/auth`, `screens/registration`, `screens/home` y `screens/dev`
+- Spec: spec 006 (RI-15, RI-17; CA-006-22, 24, 27)
+- Requisitos: RI-15, RI-17 (anclas RNF-19, RNF-14)
+- Depende de: T-256, T-250
+- Archivos: `src/screens/auth/*`, `src/screens/registration/*`, `src/screens/home/HomeScreen.js`, `src/screens/dev/MapTestScreen.js`, `scripts/tests/fixtures/i18nExceptions.json` (solo entradas de estos directorios), `scripts/tests/fixtures/i18nPending.json` (solo borrar sus líneas)
+- Hacer: `useLanguage();` en cada pantalla; convertir en funciones o mover al render las lecturas de hoja a nivel de módulo (`HomeScreen.js:41-57`, `DocumentsScreen.js:33`, `PersonalDataScreen.js:36`, `VehicleScreen.js:33`); poner `language` en las dependencias de memorias que usen textos; traducir cualquier texto suelto que aparezca. Sin cambiar estilos ni lógica. Paralelizable con T-258 a T-261. Probar en el celular.
+- Criterios: CA-006-22, 24; CA-006-27 **No verificado en dispositivo**.
+- Hecho cuando: la prueba estática pasa con estos directorios fuera de pendientes y las pantallas arrancan.
+- Qué debe ver Anderson en el celular: las mismas pantallas en español idénticas a antes. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A (sin cambios visibles en español).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-258 — S4: migrar `screens/main` y `screens/trip`
+- Spec: spec 006 (RI-15, RI-16, RI-17; CA-006-22, 24, 27)
+- Requisitos: RI-15, RI-16, RI-17 (anclas RNF-19, RNF-14)
+- Depende de: T-256, T-250, T-251
+- Archivos: `src/screens/main/*`, `src/screens/trip/*`, `scripts/tests/fixtures/i18nExceptions.json` (solo entradas de estos directorios), `scripts/tests/fixtures/i18nPending.json` (solo borrar sus líneas)
+- Hacer: `useLanguage();` en cada pantalla (incluidas `TripRequestScreen`, `TripActiveScreen`, `TripSummaryScreen`, `HistoryScreen`, `TripDetailScreen`, `EarningsScreen`, `ProfileScreen`, `SettingsScreen`); sin tocar temporizadores, controladores ni cálculos; `language` en las dependencias de memorias con textos; traducir textos sueltos. Si pasa de ≈8 archivos, partir en dos (main y trip) y anotarlo. Probar en el celular con una solicitud abierta.
+- Criterios: CA-006-22, 24; CA-006-27 **No verificado en dispositivo**.
+- Hecho cuando: la prueba estática pasa con estos directorios fuera de pendientes, `npm test` verde y el flujo de solicitud y viaje sigue igual (el temporizador de 15 s no cambia).
+- Qué debe ver Anderson en el celular: flujo completo igual que antes. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: alto (pantallas críticas de solicitud, viaje y cobro).
+- Diseño hecho cuando: N/A (sin cambios visibles en español).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-259 — S4: migrar `components/**`
+- Spec: spec 006 (RI-15, RI-17; CA-006-22, 24, 27)
+- Requisitos: RI-15, RI-17 (anclas RNF-19, RNF-14)
+- Depende de: T-256, T-250
+- Archivos: `src/components/**` (incluidas `auth`, `home`, `map`, `registration`, `settings`), `scripts/tests/fixtures/i18nExceptions.json` (solo entradas de `components`), `scripts/tests/fixtures/i18nPending.json` (solo borrar su línea)
+- Hacer: `useLanguage();` en cada componente que lee `labels` (por ejemplo `IncomingRequestCard`, `TripListItem`, `HistoryFilters`, `BarChart`, `AvailabilitySwitch`, `ScreenHeader`, `ScreenState`, `NotificationsBridge`, `TripMap`, `PasswordField`, `AccountActions`, `PhotoField`, `DateField`, `SelectField`); lecturas de hoja a nivel de módulo (`AccountActions.js:35`, `InlineSignOut.js:32`, `AuthBackdrop.js:13`, `PasswordField.js:13` son nodos y siguen vivos; revisar el resto); memorias con `language` en dependencias; `IncomingRequestCard` sin tocar su temporizador. `LanguageSection.js` ya lo hace T-254. Si pasa de ≈8 archivos, partir por subcarpeta. Probar en el celular.
+- Criterios: CA-006-22, 24; CA-006-27 **No verificado en dispositivo**.
+- Hecho cuando: la prueba estática pasa con `components` fuera de pendientes y la app arranca.
+- Qué debe ver Anderson en el celular: componentes idénticos a antes en español. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A (sin cambios visibles en español).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-260 — S4: migrar `navigation`, `context` y `hooks`
+- Spec: spec 006 (RI-15, RI-17; CA-006-22, 24, 27)
+- Requisitos: RI-15, RI-17 (anclas RNF-19, RNF-14)
+- Depende de: T-256, T-250, T-253
+- Archivos: `src/navigation/*`, `src/context/*` (sin `RegistrationFormContext.js` salvo el uso de `getSubmitErrorMessage` ya vivo), `src/hooks/*`, `scripts/tests/fixtures/i18nExceptions.json` (solo entradas de estos directorios), `scripts/tests/fixtures/i18nPending.json` (solo borrar sus líneas)
+- Hacer: `useLanguage();` en cada navegador con `options` o títulos (`MainDrawer`, `AppDrawerContent`, `AppTabBar`, `RegistrationTabs`, `TripStack`, `AuthStack`, `RootNavigator`); convertir `RegistrationTabs.js:44-55` y `AppTabBar.js:39` en lecturas al render; contextos y hooks que arman texto leen al llamarse (`useRequestAddresses`). No cambiar la jerarquía de navegación ni las claves de pantalla. Probar en el celular.
+- Criterios: CA-006-22, 24; CA-006-27 **No verificado en dispositivo**.
+- Hecho cuando: la prueba estática pasa con estos directorios fuera de pendientes y la navegación sigue igual.
+- Qué debe ver Anderson en el celular: drawer, pestañas y encabezados idénticos en español. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio (si el navegador se remonta, se pierde estado; el hook solo re-renderiza).
+- Diseño hecho cuando: N/A (sin cambios visibles en español).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-261 — S4: servicios, utilidades y constantes (lectura al llamarse) y notificaciones locales
+- Spec: spec 006 (RI-05, RI-17, RI-18; CA-006-24, 25, 26)
+- Requisitos: RI-05, RI-17, RI-18 (anclas RNF-19, RNF-14)
+- Depende de: T-256, T-250
+- Archivos: `src/services/trip/*` (`chargePanel`, `exitCopy`, `requestClosed`, `tripDetailView`, `legacyTrip`), `src/utils/*` (`chartData`, `dateRanges`, `authErrors`, `documentsMapping`, `documentValidators`), `src/constants/registrationOptions.js`, `scripts/tests/serviceLanguage.test.mjs` (nuevo), `scripts/tests/fixtures/i18nPending.json` (solo borrar sus líneas)
+- Hacer: comprobar archivo por archivo que ninguna lectura de hoja ocurre a nivel de módulo (por ejemplo `documentValidators.js:7`, `documentsMapping.js:18`, `chargePanel.js:17` son nodos y siguen vivos); convertir las que congelen el idioma; `chartData` y los textos de etiquetas del gráfico leen `weekdaysShort` al llamarse; `registrationOptions.js` sin cambiar los valores guardados (`es`/`en`); registrar con la búsqueda hecha que no existen `Alert.alert` ni notificaciones locales (o traducirlas si aparecieron). Pruebas: la misma función devuelve texto distinto al cambiar el idioma entre dos llamadas, y el valor persistido no cambia.
+- Criterios: CA-006-24, 25, 26.
+- Hecho cuando: pruebas de lectura al llamarse en los servicios listados, estas carpetas fuera de pendientes y `npm test` verde.
+- Qué debe ver Anderson en el celular: nada nuevo en español. **No verificado en dispositivo**.
+- Validación: verifier distinto (T-266).
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6; ver T-264)
+
+### T-262 — S5: límites documentados en `docs/omisiones-y-limites.md`
+- Spec: spec 006 (RI-24; CA-006-33, 34)
+- Requisitos: RI-24 (ancla RNF-19)
+- Depende de: T-241
+- Archivos: `docs/omisiones-y-limites.md`
+- Hacer: añadir los límites (a) a (e) de RI-24, con el texto real del backend (`Nueva solicitud de viaje`; `Económico · {km} km · {min} min`, leído de `backend/src/notifications/payload.js`); la diferencia con G-05 (idioma por dispositivo, no en el perfil); el límite del lector del idioma del teléfono en iOS (D-190); el hecho de que la paridad mide presencia y no calidad; y la heurística de la prueba estática (D-192). No toca `backend/`.
+- Criterios: CA-006-33, 34.
+- Hecho cuando: lectura del documento contra `payload.js` y `git diff` de `backend/` vacío.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto (T-266).
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-263 — S5: auditoría de diseño con textos en inglés al 200 %
+- Spec: spec 006 (RI-11, RI-17, RI-19; CA-006-D1, D2, D3)
+- Requisitos: RI-11, RI-17, RI-19 (ancla RNF-14)
+- Depende de: T-254, T-257, T-258, T-259, T-260, T-251
+- Archivos: ninguno (design-auditor; informe de ronda y campo Diseño)
+- Hacer: el agente principal carga las skills de diseño y las pasa al `design-auditor`; revisa con el arnés (`scripts/visual-audit.mjs`) y capturas el selector (comprobación sin color, contraste ≥ 4,5:1 texto y ≥ 3:1 icono, ≥ 48 dp, orden de Configuración) y los textos en inglés al 200 % en botones (Accept, Reject, I've arrived, finalizar, cobro), chips, contador «Expires in {s} s», Historial (ítem, filtros, gráfica) y Detalle: sin texto cortado ni superpuesto. Máximo dos rondas; hallazgos al `implementer`.
+- Criterios: CA-006-D1, D2, D3. Lo que solo se ve en el celular queda **No verificado en dispositivo**.
+- Hecho cuando: informe de ronda con veredicto y Diseño «Aprobado» o «N/A» en T-254.
+- Qué debe ver Anderson en el celular: capturas al 200 % en inglés (T-264).
+- Validación: design-auditor (solo lo visual).
+- Riesgo: medio.
+- Diseño hecho cuando: informe de ronda con veredicto.
+- Diseño: Aprobado (estático, por código, ronda 2 de 2): P2-1 y P2-2 corregidos (`BarChart.js:62`, `Chip.js:32,42`), sin regresiones. Render real al 200 % en EN: No verificado en dispositivo (capa E, T-264). Arnés web no disponible (Playwright sin instalar). Informes: `docs/diseno/auditorias/ronda-1-idioma.md`, `docs/diseno/auditorias/ronda-2-idioma.md`.
+- Estado: Pendiente
+
+### T-264 — S5: prueba en el celular del idioma (Anderson)
+- Spec: spec 006 (RI-09, RI-11, RI-13, RI-15, RI-16, RI-17; CA-006-11, 13, 18, 21, 27, D1)
+- Requisitos: RI-09, RI-11, RI-13, RI-15, RI-16, RI-17 (anclas RF-29, RNF-14)
+- Depende de: T-250, T-254, T-257, T-258, T-259, T-260, T-261, T-263
+- Archivos: ninguno
+- Hacer: con la build de desarrollo: (1) cambiar a English en Configuración y ver el cambio al instante sin parpadeo; (2) reiniciar la app y comprobar que sigue en inglés sin ver un cuadro en español; (3) cerrar sesión y ver el inicio de sesión en inglés; (4) con una solicitud abierta (o antes de recibirla y tras terminar el viaje) cambiar el idioma y ver que el contador no salta; (5) recorrer registro, inicio, solicitud, viaje, resumen, cobro, Historial, Detalle, Ganancias, Perfil, Configuración, inicio de sesión y recuperación en ambos idiomas sin texto del otro; (6) fuente al 200 % en inglés y TalkBack/VoiceOver del selector; (7) anotar el idioma del teléfono (español, inglés, otro) y si la app lo tomó en un teléfono sin preferencia guardada, en iOS y Android. Reportar «Pega aquí el resultado de la prueba en el celular».
+- Criterios: CA-006-11, 13, 18, 21, 27, D1. **No verificado en dispositivo** hasta que Anderson confirme con fecha y evidencia.
+- Hecho cuando: Anderson confirma cada punto o reporta el fallo.
+- Qué debe ver Anderson en el celular: lo descrito arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6): cambio instantáneo a inglés, se conserva al reabrir, con solicitud abierta no reinicia contador ni tarifa, todo en inglés, se conserva tras cerrar sesión y entrar de nuevo, fuente al 200 % sin cortes y Detalle con la ruta completa. `npm test`: 337 pruebas, 336 pasan, 0 fallan, 1 omitida (PowerShell). No cubierto: TalkBack (CA-006-13), que sigue sin verificar en dispositivo.
+
+### T-265 — S6: verificación independiente del módulo, diccionarios y formatos
+- Spec: spec 006 (RI-01 a RI-08, RI-12, RI-19 a RI-22; CA-006-01 a 10, 15, 28, 29, 30)
+- Requisitos: RI-01 a RI-08, RI-12, RI-19 a RI-22 (anclas RF-29, RNF-19)
+- Depende de: T-242, T-243, T-244, T-245, T-250, T-251
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee los diffs y las pruebas; compara las rutas de `es` con la instantánea original; confirma que `labels.js` ya no tiene datos y que ningún importador cambió; revisa el Proxy (claves, `in`, arreglos, funciones); comprueba que `en` no es una copia del español (muestra de claves); `npm test`; `check-constitution`.
+- Criterios: CA-006-01 a 10, 15, 28, 29, 30.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas; lo del celular queda **No verificado en dispositivo**.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-266 — S6: verificación independiente de la integración, la cobertura y los límites
+- Spec: spec 006 (RI-09 a RI-18, RI-23, RI-24; CA-006-09 a 14, 16 a 20, 22 a 26, 31 a 34)
+- Requisitos: RI-09 a RI-18, RI-23, RI-24 (anclas RF-29, RNF-19, RNF-14)
+- Depende de: T-252, T-253, T-254, T-255, T-256, T-257, T-258, T-259, T-260, T-261, T-262
+- Archivos: ninguno (verifier; informe en `docs/progress.md`)
+- Hacer: verifier distinto relee el diff, comprueba que ningún archivo con JSX que lee `labels` omite `useLanguage()` (con `grep` independiente de la prueba), busca a mano lecturas de hoja a nivel de módulo y textos sueltos fuera de las excepciones, confirma que temporizadores y controladores no cambiaron (diff de `TripRequestScreen`, `TripActiveScreen`, `IncomingRequestCard`), que `git diff` de `backend/`, `firestore.rules` y `validProfileEdit` está vacío, que no hay dependencias nuevas, y los límites documentados; `npm test`; `check-constitution`.
+- Criterios: CA-006-09 a 14, 16 a 20, 22 a 26, 31 a 34.
+- Hecho cuando: evidencia archivo:línea y salida de las pruebas; lo del celular queda **No verificado en dispositivo**.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: es la validación.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente
+
+### T-267 — S6: cierre del lote L3 (`docs/progress.md`, pendientes vacíos y trazabilidad)
+- Spec: spec 006 (RI-01 a RI-24; todos los CA)
+- Requisitos: RI-01 a RI-24 (anclas RF-29, RNF-19, RNF-14)
+- Depende de: T-263, T-265, T-266
+- Archivos: `docs/progress.md`, `scripts/tests/fixtures/i18nPending.json` (debe quedar sin entradas)
+- Hacer: registrar en la tabla de CA de `docs/progress.md` cada CA-006-01 a 34 y D1 a D3 con evidencia, dejando **No verificado en dispositivo** lo que dependa de T-264 hasta que Anderson responda; comprobar que `i18nPending.json` está vacío y que cada excepción de `i18nExceptions.json` tiene razón; confirmar que la fila de la spec 006 en la matriz de `docs/requisitos.md` coincide con estas tareas; `node scripts/check-constitution.mjs` sin errores nuevos. No aprueba nada propio.
+- Criterios: todos los CA de la spec 006.
+- Hecho cuando: cada CA tiene fila, la lista de pendientes está vacía y la matriz coincide con el backlog.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+## Lote L3b — adenda de la spec 006 (T-268 a T-272; plan: `specs/006-idioma/plan.md`, sección «Adenda L3b»; planificado 2026-11-16)
+<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; estas tareas quedan «Pendiente» y no se empiezan hasta que Anderson la apruebe (P5). Requisitos locales RI-25 a RI-29 (anclas RF-29, RNF-19, RNF-14). No hay decisión nueva (la adenda no propone D-193). Pantallas reales localizadas con búsqueda en `src/`: bienvenida/onboarding = `src/screens/registration/WelcomeScreen.js`; inicio de sesión = `src/screens/auth/LoginScreen.js`; registro de cuenta = `src/screens/auth/SignUpScreen.js` (ambas con `src/components/auth/AuthScreenLayout.js`); pestañas del registro = `src/screens/registration/PersonalDataScreen.js`, `VehicleScreen.js`, `DocumentsScreen.js` (las tres con `src/components/PlaceholderScreen.js`, montadas en `src/navigation/RegistrationTabs.js`). `ForgotPasswordScreen.js` también es previa a la sesión pero la adenda no la lista; queda fuera de CA-006-35 (si el control va en `AuthScreenLayout` la recibirá sin coste; el implementer lo anota).
+
+### T-268 — L3b-B1/B2: «Reject», «I've arrived», «Rejected» y comentario de `delayValue`
+- Spec: spec 006, adenda L3b (RI-26, RI-27; CA-006-43, 44, 45, 46)
+- Requisitos: RI-26, RI-27 (ancla RNF-19)
+- Depende de: T-267
+- Archivos: `src/i18n/dictionaries/en/trip.js` (líneas 28, 29, 45, 59, 63, 119), `src/i18n/dictionaries/en/account.js` (líneas 38 y 191), `src/i18n/dictionaries/es.js` (comentario junto a `delayValue`, línea 488), `scripts/tests/i18nEnglishWording.test.mjs` (nuevo)
+- Hacer: en `en`: `trip.reject` = «Reject», `rejectHint` y `rejectCardHint` con «Rejects…», `trip.arrive` = «I've arrived», `arriveFirstHint` = «Tap I've arrived when you are at the pickup point», el estado rechazado del viaje y `status.rejected` del historial = «Rejected»; revisar con búsqueda que ninguna otra cadena `en` diga «Decline/Declined» o «I arrived» para la acción (los avisos «Payment declined» de tarjeta NO se tocan, CA-006-44). Añadir un comentario junto a las dos definiciones de `delayValue` (`es.js` y `en/account.js`): salida idéntica `"{seconds} s"` a propósito porque «s» es el símbolo SI de segundo. Prueba nueva: recorre el diccionario `en` y falla ante «Decline», «Declined» o «I arrived» (excepción explícita y comentada para el aviso de pago de tarjeta si existe); comprueba `delayValue(15)` igual en `es` y `en`. Sin tocar `src/services/trip/declineRequest.js`.
+- Criterios: CA-006-43, CA-006-44, CA-006-45 (`npm test`, paridad CA-006-01/02 intacta), CA-006-46 (lectura de ambos comentarios y de la nota a CA-006-07).
+- Hecho cuando: la prueba nueva y la de paridad pasan, `check-constitution` sin errores nuevos y `git diff` solo toca esos archivos.
+- Qué debe ver Anderson en el celular: en inglés, el botón «Reject», el botón «I've arrived» y el estado «Rejected» (se confirma en T-272).
+- Validación: verifier distinto; `npm test` y `node scripts/check-constitution.mjs`.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A (solo textos; el largo en inglés lo cubre T-271).
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-7, 2026-11-16): «Reject» e «I’ve arrived» en inglés
+
+### T-269 — L3b-B3/B4: zona horaria inyectable en `format.js` y `applySuggestion` sin pisar la elección del usuario
+- Spec: spec 006, adenda L3b (RI-28, RI-29; CA-006-47, 48, 49, 50)
+- Requisitos: RI-28, RI-29 (anclas RNF-19, RF-29)
+- Depende de: T-267
+- Archivos: `src/utils/format.js` (`formatDateTime`, `formatClock`, `toValidDate` y su uso de `getHours/getDate…`), `src/i18n/applySuggestion.js`, `scripts/tests/formatLanguage.test.mjs`, `scripts/tests/languageSuggestion.test.mjs`, `docs/omisiones-y-limites.md` (solo con la aprobación de Anderson, puntos 3 y 4 de la adenda)
+- Hacer: (B3) `formatDateTime` y `formatClock` aceptan un parámetro opcional de desplazamiento o zona (por ejemplo `{ utcOffsetMinutes }`) que, si falta, usa la hora local del teléfono como hoy; sin `Intl` nuevo ni dependencias. Comentario en el código de que se muestra la hora local del teléfono, no la de Colombia. Pruebas: mismo instante con UTC-5 y UTC+0 produce horas distintas y correctas en `es` y `en`; sin zona inyectada sigue igual. (B4) en `applySuggestion`, volver a leer el almacenamiento o comprobar el idioma activo tras la espera de `preference.get()` y no llamar a `store.init` si el usuario ya cambió el idioma durante ese `await`; prueba con almacenamiento falso que difiere la lectura y ejecuta `setLanguage` entre medias (idioma final = el elegido). Si el implementer concluye que no es trivial y seguro, sustituye CA-006-49 por el límite escrito en `docs/omisiones-y-limites.md` y lo informa a Anderson (no se omite en silencio). Añadir al mismo documento el límite de la hora local (CA-006-47) solo si Anderson lo aprobó.
+- Criterios: CA-006-47 (lectura), CA-006-48, CA-006-49 (o su límite documentado), CA-006-50 (las pruebas de CA-006-09 siguen pasando sin cambiar sus entradas ni salidas).
+- Hecho cuando: pruebas nuevas y existentes pasan, `check-constitution` sin errores nuevos, sin dependencias nuevas.
+- Qué debe ver Anderson en el celular: nada nuevo; las horas del historial siguen en hora local (se mira en T-272).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (toca la resolución inicial del idioma; RI-25f/RI-06 no puede cambiar).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-270 — L3b-A: selector de idioma sin sesión en bienvenida, inicio de sesión, registro de cuenta y pestañas del registro
+- Spec: spec 006, adenda L3b (RI-25a a RI-25f; CA-006-35 a 42)
+- Requisitos: RI-25a, RI-25b, RI-25c, RI-25d, RI-25e, RI-25f (anclas RF-29, RNF-14, RNF-19)
+- Depende de: T-268 (textos finales en inglés), T-254 (`LanguageSection`), T-243 (`languageStore`), T-253
+- Archivos: `src/components/settings/LanguageSection.js` (variante compacta por prop, sin segunda lógica de guardado) o un envoltorio nuevo `src/components/settings/LanguageSwitch.js` que lo importe; `src/screens/registration/WelcomeScreen.js`; `src/components/auth/AuthScreenLayout.js` (cubre `LoginScreen.js` y `SignUpScreen.js`; alternativa: tocar las dos pantallas); `src/components/PlaceholderScreen.js` o las tres pantallas `PersonalDataScreen.js`, `VehicleScreen.js`, `DocumentsScreen.js` (el implementer elige el punto con menos archivos, sin que `SettingsScreen.js` y las demás pantallas de `PlaceholderScreen` muestren el control dos veces); `src/i18n/dictionaries/es.js` y `en/*.js` solo si la clave del título no es reutilizable (mismo texto «Idioma / Language» en ambos); `scripts/tests/languageNoSession.test.mjs` (nuevo)
+- Hacer: añadir el control compacto en un sitio discreto (pie o encabezado, sin competir con el botón principal ni tapar el teclado) en las cinco pantallas listadas. Reutiliza `LanguageSection`/`setLanguage`; sin `AsyncStorage` ni `appLanguage` fuera de `src/i18n`; sin repositorios de Firestore; sin tocar `RegistrationFormContext` ni la resolución del idioma inicial. Pruebas nuevas: (CA-006-35) estática que recorre las pantallas y falla si alguna no incluye el control (ya sea directo o por el layout compartido), con la lista exacta de archivos arriba; (CA-006-36) propiedades: rol `radio`, `selected` solo en la activa, indicador no solo color, altura ≥ `touch.controlHeight` (48 dp) y contraste con script temporal fuera del proyecto; (CA-006-37) búsqueda de `appLanguage`/`AsyncStorage` en el control y las pantallas; (CA-006-38) almacenamiento falso: elegir `en` guarda `appLanguage = 'en'` y la nueva resolución devuelve `en`; (CA-006-39) repositorio falso sin llamadas; (CA-006-40) el estado del contexto de registro (valores, pestaña activa, progreso) es igual antes y después del cambio y la pantalla no se remonta; (CA-006-42) paridad de la clave del título con el mismo texto en `es` y `en`; (CA-006-41) las pruebas de CA-006-08/09 pasan sin modificarse. Casos límite: el fallo de guardado muestra el aviso de CA-006-17 sin romper el formulario; toques rápidos dejan el último idioma. Paso final «probar en el celular»: lo ejecuta Anderson en T-272.
+- Criterios: CA-006-35, 36, 37, 38, 39, 40, 41, 42. **No verificado en dispositivo**: tamaño táctil real, lector de pantalla y el comportamiento visual de CA-006-40 (T-272).
+- Hecho cuando: pruebas nuevas y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` vacío en `backend/`, `firestore.rules`, `validProfileEdit` y `package.json`; el proyecto arranca.
+- Qué debe ver Anderson en el celular: el control «Idioma / Language» en las cinco pantallas antes de iniciar sesión (T-272).
+- Validación: verifier distinto; `design-auditor` en T-271.
+- Riesgo: medio (toca el layout de pantallas con teclado y el flujo de registro).
+- Diseño hecho cuando: informe de ronda de T-271 con veredicto.
+- Diseño: Aprobado (estático por código, ronda 1, `docs/diseno/auditorias/ronda-1-idioma-sin-sesion.md`; capa E pendiente: No verificado en dispositivo)
+- Nota de implementación (2026-11-16): variante `compact` de `LanguageSection` (misma lógica `setLanguage`); punto único en `AuthScreenLayout` (Login, SignUp y también ForgotPasswordScreen, que lo hereda gratis por el layout compartido, decisión: se deja incluida), `WelcomeScreen` como último bloque, y `PlaceholderScreen` con prop `showLanguageSwitch` solo en las tres pestañas (Configuración conserva su sección completa y no activa la prop). Prueba: `scripts/tests/languageNoSession.test.mjs`. Marca IA #68.
+- Estado: Validada en dispositivo por Anderson (STOP-7, 2026-11-16): cambio de idioma en bienvenida e inicio de sesión sin perder lo escrito; el registro de conductor conserva campos y progreso; fuente al 200 % con el control visible
+
+### T-271 — L3b-A: auditoría de diseño del control de idioma sin sesión
+- Spec: spec 006, adenda L3b (RI-25b, RI-25c; CA-006-36, CA-006-D4)
+- Requisitos: RI-25b, RI-25c (ancla RNF-14)
+- Depende de: T-270
+- Archivos: ninguno (design-auditor; informe de ronda y campo Diseño de T-270)
+- Hacer: el agente principal carga las skills de diseño y las pasa al `design-auditor`; revisa con el arnés (`scripts/visual-audit.mjs`) y capturas, en es y en, y con fuente al 200 %: ubicación del control, tamaño (≥ 48 dp), inglés largo, que no compita con el botón principal, no tape campos ni el teclado y no recorte texto en bienvenida, inicio de sesión, registro de cuenta y las tres pestañas del registro. Máximo dos rondas; hallazgos al `implementer`. Lo que solo se ve en el celular queda **No verificado en dispositivo**.
+- Criterios: CA-006-D4 (y la parte visual de CA-006-36).
+- Hecho cuando: informe de ronda con veredicto y Diseño «Aprobado» o «N/A» en T-270.
+- Qué debe ver Anderson en el celular: capturas al 200 % en inglés (T-272).
+- Validación: design-auditor (solo lo visual).
+- Riesgo: bajo.
+- Diseño hecho cuando: informe de ronda con veredicto.
+- Diseño: Pendiente
+- Estado: Pendiente
+
+### T-272 — L3b: prueba en el celular (Anderson)
+- Spec: spec 006, adenda L3b (RI-25e, RI-26, RI-28; CA-006-35d, CA-006-D4, CA-006-36, CA-006-40, CA-006-43)
+- Requisitos: RI-25b, RI-25e, RI-26, RI-28 (anclas RNF-14, RF-29, RNF-19)
+- Depende de: T-268, T-269, T-270, T-271
+- Archivos: ninguno
+- Hacer: con la build de desarrollo: (1) abrir la app sin sesión y ver el control en bienvenida, inicio de sesión, registro de cuenta y las tres pestañas del registro; (2) a mitad de un registro con campos escritos, cambiar de idioma y comprobar que se conservan lo escrito y la pestaña; (3) reiniciar la app y comprobar que el idioma sigue; (4) con teclado abierto, que el control no tapa el botón principal; (5) fuente al 200 % en inglés y TalkBack/VoiceOver sobre el control; (6) en inglés, ver «Reject», «I've arrived» y «Rejected»; (7) ver la hora de un viaje del Historial en hora local. Reportar con «Pega aquí el resultado de la prueba en el celular».
+- Criterios: CA-006-35d, CA-006-D4 (capturas), CA-006-36 (táctil y lector), CA-006-40 (visual). **No verificado en dispositivo** hasta que Anderson confirme con fecha y evidencia.
+- Hecho cuando: Anderson confirma cada punto o reporta el fallo.
+- Qué debe ver Anderson en el celular: lo descrito arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson, solo lo confirmado (STOP-7, 2026-11-16): idioma sin sesión, registro con campos y progreso, «Reject»/«I’ve arrived», fuente al 200 % con el control visible. Sin evidencia todavía: CA-006-35d y CA-006-D4
+
+## Lote L4 — spec 007 Solicitudes automáticas por FCM (T-273 a T-278; plan: `specs/007-solicitudes-automaticas/plan.md`; planificado 2026-11-16)
+<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70) y eso no es aprobación formal. D-197 ya existe. Requisitos locales RA-01 a RA-19. Ninguna tarea tiene texto de UI nuevo, por eso no hay tarea de auditoría de diseño (Diseño N/A en todas). Sin dependencias nuevas ni cambios en `package.json`, `firestore.rules`, `app.json` ni nativo. Cada tarea: `npm test` y `node scripts/check-constitution.mjs` sin errores nuevos sobre la base de 14.
+
+### T-273 — L4-S1: generador puro de solicitudes automáticas en el backend
+- Spec: spec 007 (RA-01, 02, 03, 05, 10, 11, 12; CA-007-01 a 06, 10)
+- Requisitos: RA-01, RA-02, RA-03, RA-05, RA-10, RA-11, RA-12 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: ninguna (usa `backend/src/notifications/payload.js` ya existente solo vía `send` inyectado)
+- Archivos: `backend/src/notifications/generator.js` (nuevo), `scripts/tests/backendAutoRequestGenerator.test.mjs` (nuevo; usa `createFakeTimers` de `scripts/tests/helpers/notificationsFakes.mjs`)
+- Hacer: `createAvailabilityGenerator({ now, random, setTimeout, clearTimeout, send, isEligible, config })` con `report(uid, available)`, `cancel(uid)`, `close()`, `has(uid)` según plan §3 y DT-1 a DT-3. Una entrada por uid; segundo `true` solo refresca el latido; el disparo reevalúa aprobación, tokens y latido; envío que falla se captura y se reprograma; tope marca la entrada hasta un `false`. Pruebas: extremos [15, 30] y [60, 120] s con `random` 0 y 0.999; exactamente 10 envíos con tope 10 y reanudación tras `false`→`true`; dos `true` seguidos dejan un temporizador y no reinician el contador; cada causa de parada (false, inelegible, sin tokens, latido vencido a 30 min y latido a tiempo que lo mantiene, tope, `close`) sin envíos posteriores y sin temporizadores activos; `send` que lanza no impide el siguiente.
+- Criterios: CA-007-01, 02, 03, 05, 10 y la parte de generador de CA-007-04 y CA-007-06.
+- Hecho cuando: la prueba nueva y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` solo toca esos dos archivos.
+- Qué debe ver Anderson en el celular: nada (se ve en T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (temporizadores y estado en memoria).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8, 2026-11-16 19:10, y STOP-8b, 19:40): intervalos 15–30 s y 60–120 s, sin solicitudes con un viaje en curso
+
+### T-274 — L4-S1: endpoint `POST /notifications/availability`, variables de entorno y cierre
+- Spec: spec 007 (RA-04, 06, 07, 10, 11, 19, 01; CA-007-04, 06, 07, 08, 09, 11, 14)
+- Requisitos: RA-04, RA-06, RA-07, RA-10, RA-11, RA-19 (RA-01 por el payload) (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-273
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `backend/src/server.js` (solo si el cierre no queda ya cubierto por `closeNotifications()`), `backend/src/config.js`, `backend/.env.example` (solo nombres), `scripts/tests/backendAutoRequests.test.mjs` (nuevo; usa `startApp`)
+- Hacer: constantes y lectura de `AUTO_REQUEST_FIRST_MIN_S`, `AUTO_REQUEST_FIRST_MAX_S`, `AUTO_REQUEST_NEXT_MIN_S`, `AUTO_REQUEST_NEXT_MAX_S`, `AUTO_REQUEST_MAX_PER_SESSION`, `AUTO_REQUEST_HEARTBEAT_MAX_MIN` con defaults 15/30/60/120/10/30 y retorno al default si el valor es inválido o desordenado (sin leer `backend/.env`; solo nombres en `.env.example`). Handler `availability`: `available` debe ser booleano, si no `ERRORS.invalid`; campos extra ignorados; uid solo del ID token; `true` exige cuenta aprobada (`ERRORS.invalid`) y al menos un token (`ERRORS.notFound`, cancelando); `false` siempre se acepta; respuesta 200 `{ active }`. El generador se crea con `send` = `sendToUid` existente (payload sin tarifa ni direcciones) e `isEligible` = aprobación + tokens. `unregister` cancela el generador del uid si no quedan tokens (DT-9); `close()` y `closeNotifications()` lo cierran. Sin `console.*` con token, uid ni cuerpo; sin escrituras a Firestore. Pruebas: 401 sin token o inválido, 429 por IP y por usuario, cuenta no aprobada rechazada y sin envío, cuerpo no booleano, uid/tokens/textos/data extra sin efecto en el uid objetivo ni en el contenido, solo se envía a tokens del uid, baja de token detiene, `close` sin handles activos, payload sin tarifa ni direcciones (se reutilizan las pruebas de payload), cero escrituras en el `createFakeDb`.
+- Criterios: CA-007-04 (baja de token, notificaciones desactivadas, cierre), 06, 07, 08, 09, 11; CA-007-14 con `npm test` completo.
+- Hecho cuando: pruebas nuevas y existentes del backend pasan, `check-constitution` sin errores nuevos, `.env.example` contiene solo nombres.
+- Qué debe ver Anderson en el celular: nada (T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (toca el handler existente y `close`).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16): el backend registró POST /notifications/availability con 200 tras cada cambio
+
+### T-275 — L4-S2: cliente `reportAvailability` y función pura de elección de fuente
+- Spec: spec 007 (RA-08, 09, 13, 14, 18; CA-007-13, 16 parcial)
+- Requisitos: RA-08, RA-13, RA-14, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274 (contrato del endpoint)
+- Archivos: `src/services/notifications/notificationsApi.js`, `src/services/notifications/requestSource.js` (nuevo), `scripts/tests/notificationsApi.test.mjs` (ampliar), `scripts/tests/requestSource.test.mjs` (nuevo)
+- Hacer: `reportAvailability(available)` con el mismo patrón de `post` (ID token, mismos códigos de error), cuerpo solo `{ available }`, lectura del JSON `{ active }` solo en esta ruta, tiempo de espera propio de 5 s (menor que `MOCK_EMIT_MIN_MS`, con una prueba que lo afirma). `chooseRequestSource({ available, onTrip, notificationsReady, backendConfirmed })` según DT-5: `none` si no disponible o con viaje; `server` solo con notificaciones listas y confirmación; `mock` en el resto. Pruebas: las 16 combinaciones (más el valor de `available`) dan exactamente una fuente si está disponible sin viaje y ninguna si no; nunca dos; cuerpo solo con `available`; errores mapeados.
+- Criterios: CA-007-13; parte de CA-007-16 (cuerpo).
+- Hecho cuando: pruebas nuevas y las de `notificationsApi` existentes pasan, `check-constitution` sin errores nuevos, sin dependencias nuevas.
+- Qué debe ver Anderson en el celular: nada (T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16)
+
+### T-276 — L4-S2: reportador de disponibilidad, latido y cableado con `AvailabilityContext`
+- Spec: spec 007 (RA-08, 09, 13, 15, 16, 18; CA-007-04 lado app, 12, 14, 16)
+- Requisitos: RA-08, RA-09, RA-13, RA-15, RA-16, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-275
+- Archivos: `src/services/notifications/availabilityReporter.js` (nuevo), `src/hooks/useRequestSource.js` (nuevo), `src/context/AvailabilityContext.js`, `scripts/tests/availabilityReporter.test.mjs` (nuevo), `scripts/tests/availabilityPrivacy.test.mjs` (nuevo)
+- Hacer: reportador con `api`, reloj y temporizadores inyectados (plan §3, DT-4 y DT-5): disponibilidad efectiva = Disponible y sin viaje y registro de notificaciones `enabled` y `registered`; reporta al cambiar el interruptor, al iniciar y terminar un viaje, al activar y desactivar notificaciones y al volver a primer plano; latido cada 5 min en primer plano con mínimo 60 s entre reportes de latido (los cambios de estado no esperan); la confirmación se borra al instante al dejar de ser efectiva o ante un reporte fallido, y al perderla se intenta `available: false` de mejor esfuerzo. `useRequestSource` junta reportador, `getRegistrationController().subscribe` y `AppState`; `AvailabilityContext` pasa a `useTripRequests({ enabled: source === 'mock' })` (las solicitudes push se siguen adoptando sin suscripción; recepción, `reset()` y «Solicitud de prueba» intactos). Pruebas con doble de la app: cada disparador reporta; latido respeta el tope; viaje y «No disponible» reportan `false` y borran la confirmación; fallo no confirma; la confirmación se pierde antes de arrancar el mock; prueba estática: ningún `console.*` del código nuevo de T-273 a T-276 imprime token, uid ni cuerpo, sin ubicación en el cuerpo. Paso final «probar en el celular» en T-278.
+- Criterios: CA-007-12, 16; CA-007-04 (lado app: viaje y no disponible); CA-007-14 (`npm test` sin regresión). **Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16)**: segundo plano, `AppState` y ausencia de doble fuente.
+- Hecho cuando: pruebas nuevas y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` sin `backend/`, `firestore.rules`, `app.json` ni `package.json`; la app arranca.
+- Qué debe ver Anderson en el celular: con «Disponible» llega una solicitud por FCM en 15–30 s y no se mezcla con las del simulador (T-278).
+- Validación: verifier distinto; `npm test`; Anderson en T-278.
+- Riesgo: alto (toca `AvailabilityContext`, módulo nativo de notificaciones y regla de fuente única).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16): sin duplicados con notificaciones desactivadas; cerrar sesión y entrar con otra cuenta no hereda el generador
+
+### T-277 — L4-S3: documentación de límites, variables y privacidad
+- Spec: spec 007 (RA-04, 17, 19; CA-007-15, 17)
+- Requisitos: RA-04, RA-17, RA-19 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `README.md`, `docs/omisiones-y-limites.md`, `backend/.env.example` (solo si falta alguna variable)
+- Hacer: README nombra las seis variables `AUTO_REQUEST_*` (sin valores secretos) y el endpoint; `docs/omisiones-y-limites.md` añade sección «Límites del lote L4 (spec 007)» con: temporizadores en memoria perdidos al reiniciar (la app los recupera con el siguiente latido, hasta 5 min), simulación de demostración y no despacho real, app cerrada solo en release (límite del dev client), cero escrituras a Firestore, el máximo de 30 min sin latido, y el límite residual DT-6 de doble fuente por respuesta perdida. No toca decisiones (D-197 ya existe) ni `progress.md` (lo escribe el verifier al validar; CA-007-15 queda como evidencia a anotar allí).
+- Criterios: CA-007-15, CA-007-17 (`git diff` sin `package.json`, `firestore.rules`, `app.json`).
+- Hecho cuando: búsqueda de los seis nombres y de los tres límites en ambos documentos, `check-constitution` sin errores nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de revisión de Anderson
+
+### T-278 — L4-S4: checklist STOP-8, prueba en el celular (Anderson)
+- Spec: spec 007 (STOP-8 a a i; RA-01, 02, 10, 13, 15, 16, 17)
+- Requisitos: RA-01, RA-02, RA-10, RA-13, RA-15, RA-16, RA-17 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276, T-277
+- Archivos: ninguno
+- Hacer: con el backend arrancado por el humano y la build de desarrollo: (a) con «Disponible», en 15–30 s llega la notificación, con la app en primer plano (tarjeta) y en segundo plano (aviso); (b) tocarla abre la pantalla completa; (c) la siguiente llega a los 60–120 s; (d) «No disponible» la detiene; (e) iniciar un viaje la detiene; (f) cerrar sesión y entrar con otra cuenta no hereda el generador; (g) con notificaciones desactivadas funciona el simulador interno, sin duplicar; con notificaciones activas no se mezclan solicitudes del simulador con las del servidor; (h) «Solicitud de prueba» sigue funcionando; (i) app cerrada: solo se abre en release (límite del dev client). Reportar con «Pega aquí el resultado de la prueba en el celular».
+- Criterios: STOP-8 (a) a (i). **Validada en dispositivo por Anderson (STOP-8, 19:10; STOP-8b, 19:40; 2026-11-16).** Sigue pendiente de dispositivo: «Salir del viaje» a mitad, viajes antiguos y la app cerrada (solo en release).
+- Hecho cuando: Anderson confirma cada punto o reporta el fallo; si una falla, se detiene la cadena.
+- Qué debe ver Anderson en el celular: lo descrito arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8, 2026-11-16 19:10; el punto 4 falló y se corrigió en T-279 a T-281; STOP-8b, 19:40, validado)
+
+## Corrección STOP-8 — «No disponible» debe detener YA (T-279 a T-281; D-198)
+
+### T-279 — L4-C1: backend con `seq` y barrera del último reporte aceptado
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-12, RA-18, RA-19 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `backend/src/notifications/generator.js`, `backend/src/routes/notifications.js`, pruebas
+- Hacer: `seq` opcional validado (400 si inválido), último `seq` por uid en memoria con poda, reportes con `seq` menor o igual ignorados (200), y en `fire` comprobar que el último reporte aceptado es `true` antes de enviar; sin escrituras a Firestore ni cambios de 401, 429, cuenta no aprobada ni payload.
+- Criterios: CA-007-04, 05, 09, 10. **Validada en dispositivo por Anderson (STOP-8b).**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8b, 2026-11-16 19:40; verifier distinto: Aprobado)
+
+### T-280 — L4-C2: reportador de la app con `seq`, `false` inmediato y reintento acotado
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-13, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `src/services/notifications/availabilityReporter.js`, `src/services/notifications/notificationsApi.js`, pruebas
+- Hacer: `reportAvailability(available, seq)`; `seq` creciente por reporte; `false` sin esperar el mínimo; reintento con espera exponencial (1, 2, 4 s) mientras siga «no disponible», cancelado al cambiar el estado; reintento al volver a primer plano; `true` evaluado con la disponibilidad efectiva en el momento del envío; un `true` perdido no reactiva nada.
+- Criterios: CA-007-04, 12, 16. **Validada en dispositivo por Anderson (STOP-8b).**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Validada en dispositivo por Anderson (STOP-8b, 2026-11-16 19:40; verifier distinto: Aprobado)
+
+### T-281 — L4-C3: análisis, límites y cierre documental de la corrección
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-17 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `docs/analisis-no-disponible.md`, `docs/omisiones-y-limites.md`, `README.md`
+- Hacer: Análisis con `archivo:línea` de la causa real y de los riesgos; peor caso de S6 y valor actual del máximo (30 min) en límites; README con el campo `seq`.
+- Criterios: CA-007-15. **No verificado en dispositivo.**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+## Correcciones tras el build de release (T-282 a T-290; D-199, D-200, D-201)
+Requisitos: RE-AUTO (solicitudes automáticas, D-197/D-198), RE-07 (llegada), RF-08 (disponibilidad), RF-71/RF-74 (notificaciones). Prompt en AI_LOG #72.
+- T-282 — Parte A backend: `applied` y `lastSeq` en la respuesta de disponibilidad (D-199). Estado: Implementada
+- T-283 — Parte A app: `seq` monótona entre reinicios, reintento único con `applied:false`, rastro solo `__DEV__`, envío inmediato al quedar efectiva (D-199). Estado: Implementada
+- T-284 — Parte A: análisis en docs con causa real y archivo:línea. Estado: Implementada
+- T-285 — Parte B: quitar «Llegué», ayuda y «Pasajero a bordo» de «Conductor llegando»; claves es/en huérfanas; pruebas (D-200). Estado: Implementada
+- T-286 — Parte B: duración de la aproximación simulada y prueba de que no hay viaje atascado (D-200). Estado: Implementada
+- T-287 — Parte B: auditoría de diseño de la pantalla sin botones; guía de estilo, guion y progress. Diseño: Aprobado (por código; No verificado en dispositivo; ronda 2 resolvió H-1 y H-2, H-3 baja sin bloquear, `docs/diseno/auditoria-llegando-2026-11-16.md`). Estado: Pendiente
+- T-288 — Parte C: módulo de disponibilidad local por uid y limpieza al cerrar sesión (D-201). Estado: Implementada
+- T-289 — Parte C: restauración, estado de tres valores, compuerta de la notificación con tope de espera (D-201). Estado: Implementada
+- T-290 — Parte C: informe `true` único al restaurar y pruebas completas (D-201). Estado: Implementada
+
+
+## Ajustes de demo de las solicitudes automáticas (T-291 a T-299; D-202 a D-206)
+Requisitos: RE-AUTO (D-197), RF-11 (ventana de decisión, D-137), RF-71/RF-74 (notificaciones). Prompt en AI_LOG #73. Análisis en `docs/analisis-solicitud-expirada.md`.
+- T-291 — Parte A: validez y tolerancia de reloj en UN sitio (`src/config/trip.js`), módulo puro de validez y ventana completa al adoptar (D-202). Estado: Implementada
+- T-292 — Parte A: aplicar la tolerancia en la intención, la compuerta, el adaptador y el puente; rastros solo `__DEV__` con códigos fijos (D-202). Estado: Implementada
+- T-293 — Parte A: «tomó» solo tras decisión real; la pantalla conserva la copia final y reinicia el error por solicitud (D-203). Estado: Implementada
+- T-294 — Parte A: pruebas con reloj inyectado (tolerancia en ambos sentidos, arranque en frío, vencida, sin liberación antes de datos, dedupe, un solo aviso, restauración sin adopción doble). Estado: Implementada
+- T-295 — Parte B: valores por defecto del generador 8–15 s / 35–60 s / tope 8; pruebas CA-007-01 e intervalos; adenda spec 007; README y omisiones (D-204). Estado: Implementada
+- T-296 — Parte B: etiqueta `trip_request` y clave de colapso en el constructor del mensaje; pruebas del payload (D-205). Estado: Implementada
+- T-297 — Parte C: quitar «Solicitud de prueba» de Configuración, claves es/en huérfanas, código y pruebas propios de esa sección (D-206). Estado: Implementada
+- T-298 — Parte C: README, guion, checklist, progress, backlog y omisiones coherentes; endpoint conservado (D-206). Estado: Implementada
+- T-299 — Parte C: auditoría de diseño de Configuración sin la sección. Diseño: Pendiente (auditoría estática en código: sin bloqueos, 3 hallazgos P3; falta captura de celular; informe `docs/diseno/auditorias/ronda-1-configuracion-notificaciones.md`). Estado: Implementada
+- T-300 — Alternancia determinista del pago (efectivo, tarjeta, …) en las solicitudes automáticas: generador con índice de sesión, `paymentMethod` en el mensaje FCM, lectura estricta en la app y simulador alternado; pruebas (RE-AUTO, D-197, D-207). Estado: Implementada

@@ -2305,3 +2305,1704 @@ con propinas, cuenta A→B sin mezcla. Sin recapitular pasos.
 - Archivos y commit: `backend/src/chargeAmount.js`, `backend/src/routes/payments.js`, `backend/src/providers/stripe.js`, `backend/src/providers/mercadopago.js`, `backend/src/mercadopago.js`, `src/services/passengerApi/` (`simulatedFeedback.js`, `mockPassengerApi.js`, `mappers.js`, `contract.js`), `src/services/trip/tripRecord.js`, `tripDetailView.js`, `src/services/geocoding/`, `src/config/geocoding.js`, `src/hooks/useRequestAddresses.js`, `useTripRequests.js`, `src/context/TripContext.js`, `TripDetailScreen.js`, `TripActiveScreen.js`, `TripRequestScreen.js`, `TripSummaryScreen.js`, `src/constants/labels.js`, `src/utils/earnings.js`, pruebas en `scripts/tests/` (`tipFeedback`, `reverseGeocode`, `tripDetailView`), `.env.example`, `README.md`, y docs (`decisiones`, `progress`, `omisiones-y-limites`, `seguridad`, `auditoria-enunciado-2026-11-12`, `diseno/auditoria-propina-direcciones-2026-11-12`). Sin commit; lo hace Anderson.
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+### Entrada #62
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM (notificaciones push) — Fase 1: investigación, spec y plan, sin código.
+- Prompt textual:
+````
+PROMPT — FCM (notificaciones push) — FASE 1: investigación, spec y plan (SIN CÓDIGO)
+
+0. ANTES DE TODO: crea la entrada en docs/AI_LOG.md copiando ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Aprendizaje" vacío (lo escribe Anderson). Completa
+   "Archivos y commit" con los archivos que toques; el hash lo pone Anderson.
+
+METODOLOGÍA (SDD, igual que siempre)
+- Roles separados: spec-author escribe la spec; planner escribe el plan y las tareas;
+  un REVISOR distinto contrasta spec y plan contra el código y el PDF. Quien construye
+  no aprueba. Si el revisor rechaza algo, DETENTE y repórtalo.
+- Esta fase NO escribe código ni toca dependencias, app.json, package.json,
+  firestore.rules ni backend. Solo produce documentos. Al terminar, DETENTE y espera la
+  aprobación de Anderson para la Fase 2.
+
+REGLAS DURAS
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs y AI_LOG.
+- Sin commit ni push (Anderson commitea). SHOW_DEV_TOOLS debe seguir en false.
+  firestore.rules sigue fuera de git: cualquier cambio de reglas se deja como texto en
+  docs/seguridad.md para que Anderson lo publique a mano. Sin Alert. Textos visibles
+  en src/constants/labels.js (se tradurá a inglés en un lote futuro).
+- Tokens de diseño, accesibilidad (áreas ≥ 48 dp, accessibilityLabel) y las
+  decisiones D-93…D-125 siguen vigentes salvo lo que esta funcionalidad requiera
+  cambiar, y eso debe quedar explícito en la spec.
+
+CONTEXTO
+El taller (docs/enunciado-taller.pdf, sección 7) marca como OBLIGATORIA a Firebase
+Cloud Messaging (@react-native-firebase/messaging) para "notificar nuevas solicitudes
+con la app en segundo plano". Hoy está omitida (R-113 en
+docs/plan-cierre-entrega-2026-11-16.md, brecha G-04). El pasajero es simulado dentro
+de la app (mockPassengerApi), así que con la app en segundo plano ese código no corre:
+el disparador de la notificación debe vivir en el backend. La app es Expo SDK 57
+(RN 0.86), con build local (npx expo run:android) y carpeta android/ generada e
+ignorada. El backend Express ya usa firebase-admin (backend/src/admin.js). La sesión
+la maneja useSessionReset/resetSession (D-93…D-106), con cambio de cuenta A/B en el
+mismo teléfono.
+
+DECISIONES DE DISEÑO YA TOMADAS (valídalas contra el código y refínalas; si alguna es
+inviable, propón la alternativa con evidencia)
+1. Alcance: SOLO Android. iOS queda fuera (exige cuenta de Apple de pago y APNs);
+   se documenta en omisiones-y-limites.md.
+2. Cliente: preferir @react-native-firebase/app + messaging (es lo que nombra el PDF).
+   TAREA 1 obligatoria: investigar en línea (WebSearch/WebFetch a documentación
+   oficial y repos) la compatibilidad ACTUAL de RN Firebase con Expo SDK 57 y
+   React Native 0.86 (nueva arquitectura, config plugins, versión mínima de
+   firebase-admin, requisitos de google-services.json). Cita 2–3 fuentes. Plan B si
+   hay incompatibilidad: expo-notifications con getDevicePushTokenAsync (token FCM
+   nativo) enviado igual con firebase-admin. Toda la funcionalidad se escribe detrás
+   de una interfaz propia (src/services/notifications/: registrar/dar de baja token,
+   escuchar mensaje en primer plano, escuchar apertura desde notificación, permiso),
+   para cambiar de librería sin tocar pantallas.
+3. Disparador: endpoint nuevo en el backend, autenticado con el ID token de Firebase,
+   que envía una notificación SOLO a los dispositivos registrados del propio uid. El
+   contenido lo arma el servidor con una plantilla fija de solicitud simulada
+   (categoría, distancia, tarifa estimada y requestId, expiresAt); el body del
+   cliente solo puede indicar un retraso acotado (p. ej. 0–60 s). Limitado por
+   usuario (rate limit), sin aceptar tokens ni textos arbitrarios, errores genéricos,
+   log sin secretos. En la app, una sección "Notificaciones" en Configuración con un
+   interruptor y un botón "Enviar solicitud de prueba" (para que la profesora pueda
+   comprobarlo: lo envías, bloqueas el teléfono o sales de la app y llega la
+   notificación).
+4. Tokens: el backend los guarda (admin SDK) en drivers/{uid}/fcmTokens/{id} con
+   token, plataforma y updatedAt, mediante un endpoint autenticado de registro. Así NO
+   se necesitan reglas nuevas para el cliente. Maneja onTokenRefresh, varios
+   dispositivos por conductor y limpieza de tokens inválidos cuando FCM responde
+   registration-token-not-registered.
+5. Sesiones y multicuenta: resetSession agrega un paso "dar de baja el token" (mejor
+   esfuerzo, con timeout corto, sin bloquear el cierre de sesión) y borra el token local,
+   para que las notificaciones de la cuenta A no lleguen a la cuenta B en el mismo
+   teléfono. Al iniciar sesión se registra el token del uid actual. Describe el orden
+   exacto dentro de la secuencia existente sin romper D-93…D-106.
+6. Mensaje FCM: notification + data, prioridad alta en Android, ttl corto
+   (≈ 30–60 s, porque la solicitud vence), canal Android "solicitudes" con
+   importancia alta, título/cuerpo mínimos ("Nueva solicitud de viaje",
+   "Económico · $19.200 · 3,2 km"), sin datos personales innecesarios.
+7. Permiso POST_NOTIFICATIONS (Android 13+): se pide en contexto (al activar el
+   interruptor o al ponerse Disponible por primera vez) con una explicación previa;
+   maneja "denegado" con un enlace a los ajustes del sistema. La preferencia
+   notificationsEnabled se guarda en AsyncStorage (preferencia, no dato sensible; esto
+   además cubre el requisito de AsyncStorage para preferencias).
+8. Comportamiento del cliente: en primer plano, el mensaje entra al mismo flujo de
+   solicitud existente sin duplicar (dedupe por requestId); en segundo plano o cerrada,
+   el toque en la notificación abre la pantalla de solicitud mediante una "intención
+   pendiente" en memoria que consume el gate de Root DESPUÉS de resolver sesión y
+   estado de cuenta (si no hay sesión, no está aprobada o hay un viaje en curso, se
+   ignora de forma segura). Si ya pasó expiresAt, muestra "La solicitud expiró" y no
+   permite aceptar. Respeta el temporizador de 15 s.
+9. Elegibilidad: investiga cómo se publica hoy la disponibilidad al salir de la app
+   (si el seguimiento se detiene y se marca no disponible) y propón la semántica que
+   permita la demostración con la app en segundo plano sin contradecir el PDF; no se
+   implementa ubicación en segundo plano (queda como límite documentado). Para el
+   endpoint de prueba, exige cuenta aprobada.
+10. Seguridad: la service account ya existe en backend/secrets (no se lee); sin
+    llaves nuevas en la app; google-services.json queda en .gitignore y el README debe
+    explicar cómo conseguirlo (consola de Firebase → app Android con el paquete de
+    app.json → descargar). Verifica qué cambia en la política de dependencias
+    (scripts/dependencies.json: pasar a "allowed" las necesarias) y en app.json
+    (plugins y android.googleServicesFile). Esta funcionalidad SÍ está autorizada a
+    tocar app.json y agregar dependencias nativas, pero solo en la Fase 2.
+
+ENTREGABLES DE LA FASE 1 (solo documentos)
+A. Investigación (Tarea 1): conclusión sobre RN Firebase vs expo-notifications con
+   fuentes, versiones exactas recomendadas, riesgos de compatibilidad y criterio de
+   decisión; documento docs/fcm/investigacion.md.
+B. Spec: specs/003-notificaciones-fcm/spec.md (sigue el formato de specs/002):
+   requisitos funcionales y no funcionales numerados, criterios de aceptación CA-nnn
+   verificables, casos límite (token vencido, permiso denegado, cambio de cuenta,
+   solicitud expirada, app cerrada, sin red, varios dispositivos, notificación
+   duplicada, tap con sesión caducada, doble toque), seguridad, accesibilidad, y
+   fuera de alcance (iOS, ubicación en segundo plano, split). Incluye la trazabilidad
+   al PDF (sección 7 y R-113).
+C. Plan: specs/003-notificaciones-fcm/plan.md con tareas T-nnn (continúa la
+   numeración vigente), orden y dependencias, división en rebanadas ejecutables:
+   S1 spike nativo y config (dependencias, app.json, google-services.json, build,
+   obtener y mostrar el token en un log seguro) → S2 backend (endpoints, registro de
+   tokens, envío, rate limit, tests) → S3 cliente (servicio, permiso, canal,
+   registro/baja, primer plano, apertura, intención pendiente) → S4 sesiones y
+   preferencias → S5 UI de Configuración → S6 pruebas, docs y checklist. Para cada
+   rebanada: archivos a tocar, pruebas automáticas (lógica pura con inyección de
+   dependencias: armado del payload, registro de tokens con admin falso, elegibilidad,
+   expiración, dedupe, resolución de la intención de navegación, orden de baja en
+   resetSession, límites del endpoint) y verificación de dispositivo para Anderson.
+   Marca los puntos de parada obligatorios donde Anderson debe recompilar e
+   instalar (npx expo run:android) y probar antes de seguir.
+D. Registro de riesgos y plan B con criterio de activación, y líneas de corte (qué se
+   puede recortar sin dejar de cumplir la sección 7).
+E. Pasos manuales de Anderson, listos para seguir: crear/registrar la app Android en
+   la consola de Firebase con el paquete correcto, descargar google-services.json y
+   dónde ponerlo, confirmar que la API de Cloud Messaging (V1) está habilitada, qué
+   probar al recompilar, y cómo comprobar que llegó la notificación.
+F. Decisiones propuestas D-126… (Propuesta, no Vigente hasta que Anderson apruebe) en
+   docs/decisiones.md, y las dependencias a mover en scripts/dependencies.json
+   descritas (NO modificarlas aún).
+G. Estimación de horas por rebanada y total.
+
+REVISIÓN (revisor distinto)
+Verifica que la spec cubra todo lo que dice el PDF para FCM y R-113, que el plan sea
+coherente con la arquitectura real (nombres de archivos y funciones que existen, p. ej.
+resetSession, gate de Root, backend/src/admin.js, middleware de auth y rate limit),
+que ninguna tarea contradiga D-93…D-125 sin declararlo, y que no haya secretos. Haz
+una muestra de 20 referencias archivo:línea. Corrige lo que no cuadre.
+
+ENTREGA
+Informe corto: conclusión de la investigación (RN Firebase vs plan B), las 5 decisiones
+más importantes que necesitas confirmar, el plan por rebanadas con horas, los pasos
+manuales de Anderson y los riesgos principales. Termina con "ESPERANDO APROBACIÓN DE
+ANDERSON PARA LA FASE 2". Sin recapitular pasos. No escribas código.
+````
+- Resumen de la respuesta (2–3 líneas): Investigación FCM (RN Firebase 27.1.1 con spike S1 y plan B expo-notifications), spec 003 (RF-67…85, RNF-21…25), plan con T-167…T-193 en 6 rebanadas (~23,25 h) y decisiones D-126…D-136 como Propuesta. El revisor distinto RECHAZÓ de forma condicionada (9 hallazgos, 1 mayor: orden de clearOwnStorage vs. espera de guardados); la fase se detuvo sin corregirlos.
+- Usado / modificado / descartado: Usado: investigación, spec y plan. Modificado: referencia D-77/D-52 en plan.md (por el revisor) y párrafo del canal en investigación. Descartado: nada; hallazgos 1–9 del revisor pendientes de decisión.
+- Archivos y commit: docs/fcm/investigacion.md, specs/003-notificaciones-fcm/spec.md, specs/003-notificaciones-fcm/plan.md, docs/backlog.md, docs/requisitos.md, docs/decisiones.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/AI_LOG.md. Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #63
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM — Fase 1b: corregir hallazgos del revisor, ajustar diseño y segunda revisión, sin código.
+- Prompt textual:
+````
+PROMPT — FCM — FASE 1b: corregir hallazgos, ajustar diseño y segunda revisión (SIN CÓDIGO)
+
+0. ANTES DE TODO: crea una entrada NUEVA en docs/AI_LOG.md copiando ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Aprendizaje" vacío. Completa "Archivos y commit" con los
+   archivos que toques; el hash lo pone Anderson.
+
+METODOLOGÍA Y REGLAS (las mismas de la Fase 1)
+- spec-author corrige la spec; planner corrige el plan; un REVISOR DISTINTO del primero
+  y de quien corrige hace la segunda revisión. Quien corrige no aprueba. Si el
+  revisor rechaza, DETENTE y repórtalo.
+- Sigue siendo solo documentos: sin código, sin dependencias, sin app.json, sin
+  package.json, sin firestore.rules, sin backend. No leas .env, backend/.env,
+  backend/secrets/* ni google-services.json. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  Cambios de reglas, si los hubiera, solo como texto en docs/seguridad.md.
+
+DECISIONES DE ANDERSON (D-126…D-136 pasan de "Propuesta" a lo que se indica; actualiza
+docs/decisiones.md con el estado y la justificación de cada una)
+- D-126 (RN Firebase 27.1.1 con plan B expo-notifications, spike S1 de 3 h máx. como
+  puerta): APROBADA, queda "Vigente" al confirmarse el spike; antes, "Aprobada,
+  sujeta al spike".
+- D-130 (FCM no depende de "Disponible"): APROBADA con matiz: aplica al endpoint de
+  prueba porque no es una solicitud real; documenta que en un sistema real solo
+  recibiría un conductor disponible.
+- D-131 (titularidad del token): APROBADA con CAMBIO DE DISEÑO: NO uses consultas de
+  collectionGroup (exigen un índice creado a mano). Usa una colección raíz
+  pushTokens/{hash} con {uid, token, platform, updatedAt}, escrita solo por el backend
+  (el cliente no la lee ni escribe; confirma que las reglas publicadas ya la deniegan
+  por defecto y que NO hacen falta reglas nuevas), y mantiene drivers/{uid}/fcmTokens
+  si el plan lo necesita para listar los dispositivos de un uid, o sustitúyelo por una
+  consulta where(uid) sobre pushTokens. Al registrar un token, el backend lo reasigna
+  al uid actual en una transacción (se quita del uid anterior).
+- D-132 (copiar calculateFare en el backend): RECHAZADA. El PDF exige UNA sola función
+  calculateFare. El payload y el cuerpo de la notificación NO llevan tarifa; llevan
+  categoría, distancia, duración, coordenadas, requestId y expiresAt. La app calcula la
+  tarifa al abrir con la función única. Elimina la copia y la prueba de paridad; cita
+  R-084 y R-067.
+- D-136 (temporizador): RECHAZADA la opción de mantener 30 s. El temporizador de
+  decisión pasa a 15 s (PDF; brecha G-06; corrige la contradicción
+  decisiones.md:520 vs docs/requisitos.md:25 y ratifica con una decisión numerada).
+  Para que funcione con una notificación, separa DOS tiempos: (a) validez de la
+  notificación: ttl y expiresAt ≈ 90 s desde el envío; (b) ventana de decisión: 15 s
+  que empiezan cuando la solicitud se MUESTRA en pantalla, tanto si llega por el mock
+  como por la notificación. Si al tocar la notificación ya pasó expiresAt, muestra
+  "La solicitud expiró". Actualiza spec, plan y criterios de aceptación.
+
+CORRECCIONES A LOS 9 HALLAZGOS DEL REVISOR (corrige spec, plan y docs asociados)
+1. MAYOR: clearOwnStorage (resetSession.js:86) corre antes de la espera de guardados
+   (:90-98). Si esa espera da trip-save-pending, la sesión sigue abierta pero
+   notificationsEnabled ya se borró, y el token sigue activo. Corrección: la preferencia
+   notificationsEnabled y el token local se borran JUNTO con la baja del token, DESPUÉS
+   de la espera de guardados y justo antes de signOut; si la espera falla y la sesión
+   continúa, nada de eso cambia. Añade el criterio de aceptación y la prueba en la
+   tarea correspondiente (T-185).
+2. La intención pendiente de navegación se liga al uid que recibió la notificación
+   (guarda el uid destino); se descarta si el uid actual no coincide, en resetSession y
+   al iniciar sesión otro conductor. Añade criterio y prueba.
+3. Límite del token: 512 caracteres de máximo, coherente con BODY_LIMIT (revisa el
+   valor real y corrígelo en spec y plan; un token FCM mide ≈ 160-170).
+4. DP-60: elimina la dirección fija. La notificación y el payload llevan solo
+   coordenadas; la app resuelve la dirección con el geocodificador existente (D-125)
+   al abrir, con su fallback. Declara que no hay direcciones en el cuerpo de la
+   notificación.
+5. Cita D-24 donde corresponda (G2).
+6. Declara el cambio de firma de createApp y del cableado de backend/src/server.js, y
+   que backend/src/admin.js debe exportar messaging de forma explícita.
+7. Quita la edición condicional de middleware.js: ERRORS.rateLimited ya existe.
+8. Corrige la descripción de sendEachForMulticast (comportamiento real: devuelve un
+   resultado por token, hasta 500 por llamada, y los tokens inválidos se limpian a
+   partir de las respuestas; verifícalo en la documentación del Admin SDK y cita la
+   fuente).
+9. Refuerza la trazabilidad de T-192/T-193 con los RF/CA que verifican.
+
+OTROS AJUSTES
+- Token y permisos: confirma en la spec que la baja de token usa timeout corto y no
+  bloquea el cierre de sesión.
+- Re-estima las horas por rebanada con estos cambios (incluida la tarea del
+  temporizador de 15 s y la ventana de decisión separada de la validez) y actualiza
+  los puntos de parada.
+- Actualiza docs/requisitos.md, docs/omisiones-y-limites.md y docs/seguridad.md solo
+  donde cambie lo dicho. Registra en docs/decisiones.md las decisiones nuevas con
+  número (la del temporizador de 15 s y la separación validez/decisión, y la de
+  pushTokens).
+
+SEGUNDA REVISIÓN (revisor distinto, obligatoria)
+Verifica uno por uno los 9 hallazgos corregidos, que D-132 ya no deje fórmula
+duplicada, que pushTokens no necesite reglas ni índices manuales, que los dos tiempos
+(validez y decisión) sean consistentes en spec, plan y criterios, que no se
+contradiga D-93…D-125 sin declararlo, que la spec siga cubriendo la sección 7 del PDF y
+R-113, y que no haya secretos. Muestra de 20 referencias archivo:línea.
+
+ENTREGA
+Informe corto: veredicto de la segunda revisión, estado de cada uno de los 9 hallazgos
+(corregido / pendiente), las decisiones D-126…D-136 con su estado final, horas por
+rebanada y el total, los pasos manuales de Anderson (M1…M4) y los riesgos que sigan
+abiertos. Termina con "ESPERANDO APROBACIÓN DE ANDERSON PARA LA FASE 2". Sin recapitular
+pasos. No escribas código.
+````
+- Resumen de la respuesta (2–3 líneas): Se corrigieron los 9 hallazgos y se aplicaron D-126…D-136 (D-132 y D-136 rechazadas; nuevas D-137 y D-138) en decisiones, spec, plan, backlog (T-167…T-195), requisitos, seguridad y omisiones. Segunda revisión por un revisor distinto: aprueba con observaciones menores; un defecto medio (T-184/T-185 contra el hallazgo 1) y seis menores se corrigieron después sin nueva revisión.
+- Usado / modificado / descartado: Usado: pushTokens en colección raíz, una sola calculateFare, ventana de decisión 15 s separada de la validez ≈90 s. Descartado: fcmTokens por uid, collectionGroup, copia de calculateFare, temporizador de 30 s, dirección fija en la notificación.
+- Archivos y commit: docs/decisiones.md, docs/requisitos.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/backlog.md, docs/fcm/investigacion.md, docs/AI_LOG.md, specs/003-notificaciones-fcm/spec.md y plan.md. Sin commit; lo hace Anderson.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #64 — FCM — implementación (rebanadas S1–S6)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: FCM — Fase 2, implementar por rebanadas. Esta entrada recibe S1 y las siguientes.
+- Prompt S1 (textual):
+````
+PROMPT — FCM — FASE 2, REBANADA S1: spike nativo y configuración (T-167…T-170)
+
+0. REGISTRO EN AI_LOG: crea UNA entrada nueva "FCM — implementación (rebanadas S1–S6)" y
+   copia en ella este prompt textual como "Prompt S1". Las rebanadas siguientes se
+   añadirán a esta misma entrada. Deja "Aprendizaje" vacío.
+
+APROBACIONES DE ANDERSON (aplica en docs/decisiones.md)
+- Fase 1b APROBADA. D-126: "Aprobada, sujeta al spike S1". D-130 aprobada con matiz,
+  D-131 aprobada (pushTokens raíz, sin reglas ni índices manuales), D-132 y D-136
+  rechazadas, D-137 y D-138 aprobadas.
+- D-127, D-128, D-129, D-133, D-134, D-135: en tu informe, resume cada una en UNA línea
+  y márcala "Aprobada, salvo objeción de Anderson".
+- Preguntas abiertas de spec §7: resuélvelas tú, documentando cada una con tu
+  recomendación: targetUid va en el payload; con D-137 la validez de 30 s del mock ya
+  no aplica; numeración T-194/T-195, DP-62 y el código exacto de token no registrado
+  (verifícalo en la documentación del Admin SDK).
+
+METODOLOGÍA Y REGLAS
+- implementer implementa; verifier DISTINTO verifica; quien implementa no aprueba. Si el
+  verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json
+  (el plugin de config lo lee durante el build, no tú). Cero secretos en chat, código
+  o docs. Sin commit ni push. SHOW_DEV_TOOLS=false. firestore.rules fuera de git. Sin
+  Alert. Esta rebanada SÍ está autorizada a tocar app.json, package.json y
+  scripts/dependencies.json, solo en lo que el plan §S1 indique.
+- No puedes compilar Android en tu entorno: NO intentes ejecutar el build. Anderson lo
+  hace en su máquina (STOP-1).
+
+ALCANCE: SOLO S1 (T-167…T-170 del plan), nada de S2 en adelante.
+1. Instala/declara las dependencias exactas que decidió la investigación
+   (@react-native-firebase/app y @react-native-firebase/messaging 27.1.1, y cualquiera
+   que el plan exija, como expo-build-properties). Actualiza
+   scripts/dependencies.json (de "proposed" a "allowed") y package-lock.
+2. app.json: plugins de RN Firebase, android.googleServicesFile apuntando al archivo
+   de la raíz, y lo mínimo que exija el plan. Documenta cada cambio.
+3. Verifica que google-services.json está ignorado (.gitignore:46) y que la ruta del
+   plugin coincide.
+4. Crea la capa mínima del spike dentro de src/services/notifications/ (interfaz y
+   adaptador) que pueda: pedir el permiso en Android 13+, obtener el token FCM y
+   registrar el listener de actualización. El token NUNCA se imprime completo: solo los
+   primeros 8 caracteres y su longitud, y solo en __DEV__. Nada de UI nueva todavía.
+5. Pruebas automáticas de lo puro (adaptador con dependencias inyectadas). Sin romper
+   las pruebas existentes; check-constitution sin empeorar la línea base; expo-doctor
+   sin errores nuevos.
+6. Checklist para Anderson (STOP-1), con comandos para PowerShell: cómo reconstruir
+   (npx expo prebuild --clean si hace falta o npx expo run:android), qué ver en el log
+   (adb logcat filtrado), qué señales confirman que S1 pasó y qué señales activan el
+   PLAN B (expo-notifications con getDevicePushTokenAsync) con su criterio de
+   activación del plan.
+7. Si algo exige tocar fuera del alcance de S1, repórtalo en vez de hacerlo.
+
+VERIFICACIÓN (verifier distinto)
+Cambios limitados a lo autorizado, dependencias solo las aprobadas, sin secretos, el
+token no se imprime completo, pruebas y constitución sin regresión, app.json válido
+(npx expo config), y trazabilidad a T-167…T-170 y a los CA de la spec.
+
+ENTREGA
+Informe corto: qué cambió, versiones instaladas, los hallazgos del verifier, las
+decisiones D-127…D-129/D-133…D-135 en una línea cada una, cómo resolviste las preguntas
+abiertas, y el checklist STOP-1 para Anderson. Termina con "ESPERANDO RESULTADO DE
+ANDERSON EN STOP-1". No avances a S2.
+````
+- Prompt S2 (textual):
+````
+PROMPT — FCM — REBANADA S2: backend de notificaciones (T-171…T-176)
+
+0. REGISTRO EN AI_LOG: NO crees entrada nueva. Añade este prompt textual como
+   "Prompt S2" dentro de la entrada #64 "FCM — implementación (rebanadas S1–S6)".
+
+APROBACIONES Y EVIDENCIA (actualiza docs/decisiones.md y docs/progress.md)
+- STOP-1 (T-169) VALIDADO EN DISPOSITIVO por Anderson el 2026-11-16: la app compiló con
+  RN Firebase 27.1.1 sobre Expo SDK 57, se obtuvo el token FCM, se concedió el permiso, y
+  una notificación enviada desde la consola de Firebase llegó con la app en segundo plano
+  y al tocarla abrió la app. D-126 pasa a "Vigente". El plan B (T-170) queda descartado.
+- Pendiente aún de comprobar en dispositivo: que la notificación de solicitud salga como
+  aviso emergente (DP-72, canal con importancia alta). No lo resuelvas en S2; queda para S3.
+
+METODOLOGÍA Y REGLAS
+- implementer implementa; verifier DISTINTO verifica; quien implementa no aprueba. Si el
+  verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs o logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  firestore.rules fuera de git. Sin Alert. NO hagas git stash, git reset, git checkout
+  de archivos ni nada que revierta cambios; si necesitas aislar, repórtalo.
+- Alcance: SOLO S2 (backend). No toques el cliente (src/) salvo que el plan lo exija
+  para una prueba pura. No avances a S3.
+
+ALCANCE S2 (según spec/plan; resumo las decisiones vigentes)
+1. backend/src/admin.js exporta messaging de forma explícita. createApp cambia de firma
+   para recibir la dependencia de mensajería e inyectarla; actualiza server.js.
+2. Endpoints nuevos bajo /notifications, TODOS autenticados con el ID token existente y
+   con el rate limit existente (ERRORS.rateLimited ya existe; no edites middleware.js):
+   - POST /notifications/register {token, platform}: valida token (string, 20–512
+     caracteres, sin espacios) y platform 'android'. Guarda en la colección RAÍZ
+     pushTokens/{sha256(token)} con {uid, token, platform, createdAt, updatedAt}. Es una
+     transacción: si ese token ya pertenecía a otro uid, se REASIGNA al uid actual (D-131).
+     Idempotente. Sin collectionGroup ni índices nuevos.
+   - POST /notifications/unregister {token}: borra el token SOLO si pertenece al uid del
+     caller; idempotente (204 aunque no exista); nunca revela si pertenece a otro uid.
+   - POST /notifications/test-request {delaySeconds?}: delaySeconds entero 0–60 (por
+     defecto 0). Exige cuenta aprobada (lee drivers/{uid}.accountStatus con admin; D-130:
+     NO exige "Disponible"). Responde 202 y envía a los tokens del propio uid. Como máximo
+     UN envío diferido pendiente por uid (evita acumulación); el envío diferido se
+     programa en el servidor (setTimeout) y se cancela al cerrar el servidor.
+3. Mensaje FCM: sendEachForMulticast (una respuesta por token, hasta 500 por llamada)
+   con notification {title: "Nueva solicitud de viaje", body: "<Categoría> · <km> km ·
+   <min> min"} y data (todos strings): type='trip_request', requestId, targetUid,
+   expiresAt (ahora + 90 s, epoch ms), category, distanceKm, durationMin, originLat,
+   originLng, destLat, destLng, passengerName (nombre de una lista fija de prueba).
+   SIN tarifa (D-132 rechazada; la app la calcula con calculateFare) y SIN direcciones
+   (D-138; la app geocodifica con D-125). android: priority 'high', ttl 90 s,
+   notification.channelId 'solicitudes'. Los datos simulados (distancia, duración,
+   coordenadas cerca de la zona de pruebas) salen de una plantilla del servidor; el body
+   del cliente NUNCA aporta tokens, textos ni datos de la solicitud.
+4. Limpieza: tras el envío, borra de pushTokens solo los tokens cuya respuesta
+   (revisando resp.success por índice) sea error messaging/registration-token-not-
+   registered (cadena confirmada en el SDK instalado) o invalid-registration-token.
+   Otros errores no borran nada.
+5. Seguridad y operación: errores genéricos al cliente, log por petición sin tokens ni
+   cuerpos (misma línea [req] existente, y como mucho el conteo de tokens), BODY_LIMIT
+   coherente con los 512 caracteres, requestId aleatorio generado en servidor, y el
+   endpoint de prueba no puede enviar a otro uid bajo ninguna combinación de body.
+6. Pruebas automáticas en scripts/tests con admin y reloj falsos: registro (válido,
+   token corto/largo/con espacios, reasignación entre uids), baja (propia, ajena,
+   inexistente), envío (payload exacto sin tarifa ni direcciones, solo tokens del uid,
+   ttl y expiresAt), delay acotado y un envío diferido por uid, cuenta no aprobada
+   rechazada, limpieza selectiva por código de error, rate limit, errores genéricos,
+   y que ningún log contenga token ni cuerpo. Las pruebas existentes deben seguir
+   pasando (51 de 54 con la invocación por defecto; los 3 conocidos pasan con el loader).
+7. Docs: backend/.env.example sin cambios salvo variables realmente nuevas (solo
+   nombres); docs/seguridad.md con la sección de notificaciones (colección pushTokens
+   solo backend, confirmación de que NO se necesitan reglas ni índices nuevos);
+   docs/pagos-guia-rapida.md NO se toca. Añade a la guía del backend cómo probar los
+   endpoints cuando el cliente (S3) esté listo.
+
+VERIFICACIÓN (verifier distinto)
+Payload exacto vs spec (sin tarifa, sin direcciones), aislamiento por uid, idempotencia,
+transacción de reasignación, rate limit, que no haya secretos ni tokens en logs,
+trazabilidad a T-171…T-176 y a los RF/CA, pruebas y constitución sin regresión (línea base
+14 errores).
+
+ENTREGA
+Informe corto: qué se implementó, archivos tocados, resultado del verifier, cifras de
+pruebas y constitución, y los casos que quedan para prueba en dispositivo en S4. Termina
+con "S2 COMPLETA — LISTA PARA COMMIT DE ANDERSON". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): S1 implementada (T-167, T-168) y validada parcial por un verifier distinto: RN Firebase 27.1.1 exacta, plugins y googleServicesFile en app.json, firebase.json con canal «solicitudes», capa src/services/notifications con adaptador inyectable, handler en segundo plano y sonda solo en __DEV__; 14 pruebas nuevas. Pendiente STOP-1 (T-169) en el celular.
+- Usado / modificado / descartado: usado: API modular de RN Firebase 27 (los .d.ts no exponen messaging()); modificado: maskToken pasa de «últimos 6» a «primeros 8 + longitud» (docs alineadas); descartado: expo-build-properties y expo-notifications (no requeridos; plan B solo si falla STOP-1). Incidente del implementer: un git stash pop restauró 5 archivos sin seguimiento de un stash antiguo y los borró; stash@{0} intacto.
+- Archivos y commit: scripts/dependencies.json, package.json, package-lock.json, app.json, firebase.json, index.js, App.js, src/services/notifications/**, scripts/tests/notification*.test.mjs, docs (decisiones, backlog, seguridad, spec §7, investigacion, progress). Sin commit; lo hace Anderson.
+- S2 — Resumen: S2 (T-171…T-175) implementada en el backend: `messaging` en `admin.js`/`createApp`/`server.js`, rutas `POST /notifications/register`, `/unregister` y `/test-request` con el `guard` y un límite propio, `pushTokens/{sha256}` con transacción (reasigna al uid que llama), mensaje FCM sin tarifa ni direcciones y limpieza selectiva de tokens. Verifier distinto: aprobada en lo estático, sin «Validada» (envío real = STOP-2). Pruebas: 93 (90 pasan; los 3 fallos conocidos pasan con el loader: 100/100); constitución 14 errores / 222 advertencias (base 14 / 225).
+- S2 — Usado / modificado / descartado: usado: `sendEachForMulticast` y los códigos de error confirmados en `firebase-admin` 13.10.0 instalado; las rutas del ENCARGO (`register`/`unregister`) sustituyen a `POST/DELETE /notifications/token` de spec, plan, requisitos y backlog, que se alinearon; descartado: tarifa y direcciones en el mensaje (D-132, D-138), `collectionGroup` e índices. Pendiente: `token` frente a `fid` (FR-10) y `ttl` en el servidor real. Incidente: ninguno (sin stash/reset).
+- S2 — Archivos y commit (sin hash): backend/src/{admin,app,server,config}.js, backend/src/notifications/{payload,tokenStore}.js, backend/src/routes/notifications.js, scripts/tests/{backendMessagingWiring,backendNotificationPayload,backendTokenStore,backendNotificationsRoutes}.test.mjs, scripts/tests/helpers/notificationsFakes.mjs, README.md, docs/{seguridad,backlog,decisiones,progress,requisitos}.md, specs/003-notificaciones-fcm/{spec,plan}.md.
+- Prompt S3+S4 (textual):
+````
+PROMPT — FCM — REBANADAS S3 + S4: cliente e integración (hasta STOP-2)
+
+0. REGISTRO EN AI_LOG: NO crees entrada nueva. Añade este prompt textual como
+   "Prompt S3+S4" dentro de la entrada #64.
+
+CONTEXTO
+S1 validada en dispositivo (D-126 Vigente). S2 (backend) completa y verificada en lo
+estático: POST /notifications/register, /unregister y /test-request, colección raíz
+pushTokens, mensaje sin tarifa ni direcciones, ttl y expiresAt de 90 s, data con type,
+requestId, targetUid, category, distanceKm, durationMin, coordenadas y passengerName.
+Esta entrega cubre el cliente (S3) y la integración con sesiones, preferencias y el
+extremo a extremo (S4), y termina en STOP-2, donde Anderson prueba en el celular.
+
+METODOLOGÍA Y REGLAS
+- implementer implementa cada rebanada; verifier DISTINTO verifica cada rebanada (S3 y
+  luego S4); quien implementa no aprueba. Si el verifier rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json.
+  Cero secretos en chat, código, docs o logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+  firestore.rules fuera de git. Sin Alert. NO hagas git stash, git reset ni checkout de
+  archivos. Todo texto visible va en src/constants/labels.js. Tokens de diseño,
+  accesibilidad (áreas ≥ 48 dp, accessibilityLabel) y D-93…D-138 vigentes.
+- No puedes compilar Android ni probar en dispositivo: NO lo intentes.
+- Sigue el plan (specs/003-notificaciones-fcm/plan.md): S3 = T-177…T-183 y, si el plan
+  las asigna al cliente, T-194/T-195 (decisionDeadline y la tarjeta de solicitud);
+  S4 = T-184…T-186. Respeta las asignaciones del plan; si algo del plan no cuadra con el
+  código real, repórtalo antes de improvisar.
+
+DECISIONES PARA ESTA ENTREGA (regístralas en docs/decisiones.md)
+1. Canal Android (DP-72): NO uses expo-notifications (su servicio de Firebase entra en
+   conflicto con el de RN Firebase). Crea un PLUGIN DE CONFIGURACIÓN LOCAL en plugins/
+   (sin dependencias nuevas) que, vía @expo/config-plugins, añada al MainApplication
+   nativo la creación idempotente del canal "solicitudes" con IMPORTANCE_HIGH, nombre
+   visible "Solicitudes de viaje", descripción corta, sonido y vibración por defecto, y
+   regístralo en app.json. Inspecciona el MainApplication que genera el prebuild
+   actual (android/ ya existe; lee su estructura para no romperlo, sin modificarlo
+   a mano: android/ es generado e ignorado). Debe ser tolerante a que ya exista
+   y fallar con un mensaje claro en el prebuild, no en silencio. Plan B documentado si
+   el plugin no logra aplicar el cambio: avisar a Anderson con el diagnóstico. Úsalo
+   en el mensaje: el backend ya envía channelId 'solicitudes'.
+2. Ventanas de tiempo (D-137): el temporizador de decisión pasa a 15 s y empieza
+   cuando la solicitud se MUESTRA en pantalla, tanto si llega del mock como de una
+   notificación (corrige la constante en el lugar de configuración único y la
+   contradicción decisiones.md:520 vs docs/requisitos.md:25 con una decisión
+   numerada). La validez de la notificación es expiresAt (≈ 90 s del envío); si al
+   abrir ya pasó, muestra "La solicitud expiró" y no permite aceptar.
+3. Dirección: la app resuelve las direcciones con el geocodificador existente (D-125)
+   a partir de las coordenadas del payload, con su fallback.
+4. Tarifa: la app la calcula con calculateFare, la función única (R-084), usando
+   distanceKm y durationMin del payload y la categoría.
+5. Elegibilidad en cliente: la notificación solo se atiende si hay sesión, la cuenta
+   está aprobada, no hay un viaje en curso y el targetUid del payload coincide con el
+   uid actual; si no, se ignora de forma segura sin mensajes confusos.
+
+ALCANCE S3 — cliente
+- src/services/notifications/: servicio completo detrás de la interfaz ya creada en S1:
+  registrar el token con POST /notifications/register (usa el cliente HTTP y el ID
+  token existentes, como paymentsClient), dar de baja con /unregister, onTokenRefresh
+  que vuelve a registrar, permiso POST_NOTIFICATIONS en contexto con explicación
+  previa y manejo de "denegado" con enlace a los ajustes del sistema, canal
+  "solicitudes" (vía el plugin), y escucha de mensajes en primer plano y de apertura
+  desde notificación (onNotificationOpenedApp y getInitialNotification).
+- Estado de la preferencia notificationsEnabled en AsyncStorage (preferencia, no dato
+  sensible), con un hook (p. ej. useNotifications) y un contexto si el plan lo pide.
+- "Intención pendiente" en memoria (rama MAIN, D-133), ligada al targetUid: la
+  consume el gate de Root DESPUÉS de resolver sesión y estado de cuenta; se descarta si
+  el uid no coincide, al cerrar sesión o si el viaje ya está en curso.
+- Dedupe por requestId (D-135) para que el mock y la notificación no dupliquen.
+- Un adaptador puro (parsePushRequest) que convierte el data del mensaje en la
+  solicitud interna a través de mappers.js (el único archivo que conoce la forma de la
+  API del pasajero): valida tipos y rangos, rechaza datos inválidos o ajenos.
+- decisionDeadline(request, now) y la tarjeta de solicitud (IncomingRequestCard)
+  según el plan, con el temporizador de 15 s desde que se muestra.
+- Pruebas automáticas (lógica pura con dependencias inyectadas): parsePushRequest,
+  elegibilidad, expiración, dedupe, intención pendiente ligada a uid, decisionDeadline,
+  registro y baja de token con cliente falso, onTokenRefresh y permiso denegado.
+
+ALCANCE S4 — integración
+- resetSession (D-93…D-106, D-134): añade el paso "dar de baja el token" con timeout
+  corto y sin bloquear el cierre de sesión. ORDEN CRÍTICO (hallazgo del revisor): la
+  preferencia notificationsEnabled, el token local y la baja del token se borran
+  JUNTOS, DESPUÉS de la espera de guardados y justo antes de signOut. Si la espera da
+  trip-save-pending o hay viaje en curso y la sesión continúa, NADA de eso cambia.
+  Pruebas de orden y de no borrado en esos casos. clearOwnStorage (resetSession.js:86)
+  corre antes de esa espera: no puede borrar la preferencia.
+- Al iniciar sesión, registra el token del uid actual (si la preferencia está activa y
+  hay permiso). Cambio de cuenta A→B en el mismo teléfono: el token queda asociado a B
+  (D-131 reasigna) y A deja de recibir en ese dispositivo.
+- Configuración: sección mínima "Notificaciones" con el interruptor (pide el permiso en
+  contexto al activarlo) y el botón "Enviar solicitud de prueba" que llama a
+  /notifications/test-request con un retraso seleccionable de 0 a 60 s (por defecto 10),
+  con estados de carga/éxito/error en línea, sin Alert, tokens de diseño. Es la UI
+  funcional mínima; el pulido visual y la auditoría de diseño son S5.
+- Extremo a extremo: al tocar la notificación o recibirla en primer plano, la app
+  muestra la tarjeta de solicitud con la categoría, distancia, duración, tarifa
+  calculada con calculateFare y direcciones resueltas; el flujo posterior (aceptar,
+  rechazar, vencer 15 s) es el existente.
+- Actualiza la guía del backend (cómo probar con la app) y los docs de omisiones y
+  límites (iOS fuera, sin ubicación en segundo plano).
+
+VERIFICACIÓN (verifier distinto, por rebanada)
+Trazabilidad a T-177…T-186 y a los RF/CA; el plugin no usa dependencias nuevas y falla
+con mensaje claro; ninguna pantalla importa RN Firebase directamente (solo el
+adaptador); el orden de borrado en resetSession; la intención ligada al uid; D-137
+(15 s desde que se muestra); sin tarifa ni direcciones en el payload; sin secretos ni
+tokens completos en logs; pruebas y constitución sin regresión (base 14 errores); que
+la suite por defecto no pierda pruebas.
+
+ENTREGA
+Informe corto: por rebanada, qué se implementó, archivos, resultado de los dos
+verifiers, cifras de pruebas y constitución, decisiones nuevas, y el CHECKLIST STOP-2
+para Anderson en PowerShell: reiniciar el backend y el túnel, actualizar
+EXPO_PUBLIC_BACKEND_URL si cambió, npx expo prebuild --clean y npx expo run:android,
+y las pruebas: (1) activar notificaciones y conceder el permiso, (2) enviar solicitud
+de prueba con la app abierta, en segundo plano y cerrada, (3) comprobar el aviso
+emergente y el sonido, (4) tocar la notificación y ver la tarjeta con el temporizador
+de 15 s, (5) tocarla pasados 90 s y ver "La solicitud expiró", (6) cerrar sesión en A,
+entrar con B y comprobar que A no recibe y B sí, (7) denegar el permiso y ver el manejo,
+(8) sin red al registrar. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-2". No
+avances a S5.
+````
+- S3 — Resumen: cliente de notificaciones detrás de la interfaz de S1 (T-177…T-183, T-194, T-195): registro/baja vía backend, permiso, primer plano y apertura desde notificación, intención pendiente ligada a uid (D-133), dedupe por requestId (D-135), `parsePushRequest` vía `mappers.js`, `decisionDeadline` y tarjeta con 15 s desde que se muestra (D-137/D-140), plugin local `plugins/withRequestsChannel.js` para el canal «solicitudes» (D-139). Verifier distinto: validada en lo estático, sin «Validada» (DP-72 y entrega con la app cerrada = STOP-2).
+- S4 — Resumen: T-184…T-186 más la sección mínima «Notificaciones» en Configuración (D-144): preferencia `notificationsEnabled`, controlador de registro (A→B, onTokenRefresh), paso de baja en `resetSession` tras la espera de guardados y antes de `signOut`, con tope de 3 s y restauración si `signOut` falla (D-134, D-141), oferta con compuerta antes de adoptar (D-142), regex decimal estricta (D-143). Verifier distinto: aprobada en lo estático. Hallazgo mayor (literales RF-70/RF-71 y estado bloqueado) y carrera de `enable()` corregidos tras el verifier.
+- S3+S4 — Cifras: suite por defecto 107 pruebas / 104 pasan (3 fallos conocidos); con loader 114/114; constitución 14 errores / 241 advertencias (base 14); `--selftest` pasa. No se ejecutó `expo lint` ni expo-doctor tras S3/S4.
+- S3+S4 — Usado / modificado / descartado: decisiones D-139…D-144; descartado `expo-notifications` (conflicto con el servicio de RN Firebase). Marca de IA `#64` (la entrada #65 inicial del implementer se corrigió a #64, sin entrada nueva). Pendiente: tarjeta y sección sin auditoría de diseño (T-183, T-187, T-195), STOP-2 en dispositivo.
+- S3+S4 — Archivos y commit (sin hash): plugins/withRequestsChannel.js, app.json, App.js, src/services/notifications/*, src/services/trip/{decisionWindow,pushOffer,pendingRequest,requestPresentation}.js, src/services/session/*, src/components/{NotificationsBridge,IncomingRequestCard}.js, src/components/settings/NotificationsSection.js, src/hooks/useTripRequests.js, src/constants/labels.js, scripts/tests/* (14 archivos nuevos), docs/{decisiones,backlog,progress,seguridad,omisiones-y-limites}.md.
+- S3+S4 — Fallo STOP-2 (arranque en frío): con la app cerrada, al tocar la notificación salía pantalla roja «Cannot read property 'EventEmitter' of undefined». Causa: RN Firebase inicia un contexto JS headless que evalúa `index.js` completo sin `globalThis.expo`, y `expo-modules-core` lo lee al cargar (`EventEmitter.ts:22`).
+- S3+S4 — Corrección (D-145): `index.js` solo registra el manejador mínimo en segundo plano y carga `expo` y `App` de forma perezosa al montar `main`; guardia estática `scripts/tests/headlessEntry.test.mjs`. No verificado en dispositivo (app cerrada).
+- S3+S4 — Fallo STOP-2c (arranque en frío, tras D-145): sin pantalla roja, pero con la app cerrada la solicitud no se mostró ni «La solicitud expiró»; con la app abierta o en segundo plano sí. La hipótesis «se juzga la elegibilidad antes de que Root resuelva» resultó falsa (el puente solo se monta con sesión y cuenta aprobada). Causa probable por código, no verificada en celular: en la build de desarrollo `expo-dev-launcher` relanza la actividad sin los extras del intent y `getInitialNotification` devuelve `null`.
+- S3+S4 — Corrección STOP-2c (D-146): `intentFlow.js` evalúa la intención solo con la compuerta lista, trazas `[push] …` solo en `__DEV__`, `intentFlow.test.mjs` (10 pruebas). El arranque en frío se prueba en build release; en dev client queda como límite conocido.
+- Hoy (2026-11-16), corrección logPushEvent: revisión estática con parser sin identificadores libres (D-147); causa probable bundle obsoleto de Metro, NO confirmada; pendiente de dispositivo reiniciar con `npx expo start -c`; prueba `notificationsFreeSymbols.test.mjs`.
+- Hoy, S5 diseño: ronda 1 del auditor aplicada (D-148: `SwitchTrack`, botón de prueba legible, tope de fuente, Drawer renombrado a `MainHome`); Diseño sigue «Pendiente» (ronda 2 del auditor, O-03 sin decidir y faltan capturas).
+- Hoy, S6 cierre: T-190 (`withRequestsChannel.test.mjs` usa el fixture versionado `scripts/tests/fixtures/MainApplication.template.kt`, ya no lee `android/`), T-191 (README «Notificaciones push (FCM)», sin secretos), T-192 (requisitos, auditoría del enunciado, plan de cierre, backlog, progress y omisiones) y T-193 (guion de demo de 75 s en `docs/guion-video.md`). T-192 sin checklist de dispositivo creado; T-190 y T-193 siguen «Pendiente».
+- Hoy, evidencia de dispositivo de Anderson: build RELEASE con la app cerrada abre la solicitud con la cuenta de 15 s y luego «La solicitud expiró» (cierra STOP-2c); dev client con la app cerrada `getInitialNotification` = `null` (límite del dev launcher, no del código). Se documentó como validada solo eso; el resto, pendiente de dispositivo.
+- Hoy, DP-72: resuelto en dispositivo (heads-up con sonido); D-139 anotada como validada.
+- Hoy, D-145: funciona en dispositivo (un solo módulo en el contexto headless); D-146 con hipótesis refutada y arranque en frío validado en release; D-137 marcada «Vigente» por la ventana de 15 s y el mensaje de vencida.
+- Hoy — Usado / modificado / descartado: usado el fixture de plantilla Expo para la prueba del plugin; modificados README, requisitos, auditoría, plan de cierre, decisiones (solo líneas de estado de D-137, D-139, D-145, D-146), backlog, progress, omisiones, spec 003 (sección «Comportamiento vigente», sin cambio de alcance) y guion; descartado dejar la prueba dependiente de `android/` y marcar «Vigente» decisiones sin evidencia (D-127 a D-135 siguen como están). Marca de IA `#64`; no se creó entrada nueva.
+- Hoy — Cifras: suite por defecto 127 pruebas / 124 pasan (fallos conocidos: plateNormalization, registrationProgress, reverseGeocode; `withRequestsChannel` ya pasa); con loader 134/134; constitución 14 errores / 244 advertencias (base 14).
+- Hoy — Archivos y commit (sin hash; según `git status`): docs/{AI_LOG,auditoria-enunciado-2026-11-12,backlog,decisiones,guion-video,omisiones-y-limites,plan-cierre-entrega-2026-11-16,progress,requisitos}.md, README.md, specs/003-notificaciones-fcm/spec.md, scripts/tests/withRequestsChannel.test.mjs, scripts/tests/fixtures/MainApplication.template.kt; en el árbol además, de otros pasos del día: docs/diseno/auditoria-fcm-2026-11-16.md, scripts/tests/{drawerRouteNames,headlessEntry,intentFlow,notificationsFreeSymbols}.test.mjs, index.js, src/components/{AvailabilitySwitch,IncomingRequestCard,NotificationsBridge,PrimaryButton,SecondaryButton,SwitchTrack}.js, src/components/settings/NotificationsSection.js, src/constants/labels.js, src/navigation/{AppDrawerContent,MainDrawer}.js, src/screens/home/HomeScreen.js, src/screens/trip/TripRequestScreen.js, src/services/notifications/{backgroundHandler,eligibility,index,intentFlow,safeLog}.js, src/services/trip/requestPresentation.js, src/theme/tokens.js. Sin commit.
+- Hoy (2026-11-16), Parte A (notificación → pantalla completa + contador + cierre de diseño FCM): D-149 (tocar la notificación abre siempre la solicitud a pantalla completa desde cualquier pantalla del Drawer; una solicitud ya mostrada como tarjeta se promueve sin duplicarla ni reiniciar los 15 s; la llegada pasiva queda como antes; rechazar/vencer/cerrar vuelve a la pantalla de origen; aceptar va al viaje y Atrás no vuelve a la solicitud), D-150 (contador: texto de énfasis más barra fina sobre pista clara, sin bloque relleno, contrastes AA recalculados 6,08 / 6,54 / 5,12 / 5,50, anuncio accesible solo a 10, 5 y 0 s) y D-151 (O-03 «La solicitud expiró», O-09 borde del botón inactivo, O-10 topes de fuente, O-11 valor accesible del interruptor). Elegibilidad D-133/D-146 intacta. Nueva lógica pura en `src/services/trip/requestNavigation.js` con 10 pruebas.
+- Hoy, Parte A — Revisión: verifier distinto aprobó en lo estático (sin hallazgos críticos ni mayores). Design-auditor (sin capturas, solo la declaración textual de Anderson): Diseño «Aprobado parcial» solo para interruptor con chip informativo, tarjeta y pantalla de solicitud operativas; contador nuevo, O-09, O-11 y fuente al 200 % siguen «Pendiente de dispositivo». Hallazgo H-1 (urgente solo por color) enviado al implementer para añadir un icono; H-2 y H-3 esperan captura/TalkBack. Límite conocido documentado: con la app cerrada en el dev client `getInitialNotification` devuelve null; la demo usa la build release. No existe `docs/fcm/capturas/` aunque Anderson dijo haber guardado capturas allí.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #65 — Cierre de brechas del taller — lote L1
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar el lote L1 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md): G-02 distancia/duración reales con OSRM, G-22 Ganancias sobre todos los viajes del periodo, G-15 efectos de TripActive, G-21 script npm test, G-17 timeInterval, G-01 lista de comprobación de validTrip(). Spec 004.
+- Prompt (textual):
+````
+PROMPT — Notificación → pantalla completa + contador + cierre de diseño FCM + LOTE L1 del plan de cierre
+
+0. AI_LOG: la PARTE A se registra como líneas añadidas al resumen de la entrada #64 (no la copies
+   como prompt). Para la PARTE B crea UNA entrada nueva "Cierre de brechas del taller — lote L1"
+   copiando ESTE PROMPT COMPLETO, textual, como "Prompt". Deja "Verificación" y "Aprendizaje"
+   para Anderson; el hash lo pone él.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 12:51, build de desarrollo)
+- STOP-3 pasó: el interruptor de Notificaciones se ve y funciona (chip "Activadas" solo
+  informativo), la tarjeta emergente y la pantalla de solicitud funcionan, la prueba de
+  notificación llega. Las capturas están en docs/fcm/capturas/ (léelas con tus herramientas
+  de imagen). Regístralo en progress.md/backlog como "Validada en dispositivo por Anderson".
+- Observación de diseño: en la tarjeta emergente el bloque "Vence en N s" es un rectángulo
+  verde relleno con texto blanco, visualmente igual al botón "Aceptar": puede confundirse con
+  un control.
+- Mejora pedida: al TOCAR la notificación, la app debe abrir SIEMPRE la pantalla completa de
+  la solicitud, sin importar en qué pantalla estaba la app (hoy, si estaba en Configuración,
+  muestra la tarjeta emergente sobre esa pantalla).
+- Límite conocido (NO intentes arreglarlo): en el dev client, con la app cerrada, el toque de
+  la notificación no entrega la solicitud (getInitialNotification devuelve null; es el dev
+  launcher). En release funciona (validado por Anderson). Documéntalo en
+  docs/omisiones-y-limites.md y en el README: la demostración debe hacerse con el build de
+  release.
+
+METODOLOGÍA Y REGLAS
+- Roles separados: implementer implementa; verifier DISTINTO verifica cada parte;
+  design-auditor distinto audita lo visual; spec-author y planner para la Parte B. Quien
+  implementa no aprueba. Si un revisor rechaza, DETENTE y repórtalo.
+- No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json. Cero
+  secretos en docs, README ni logs. Sin commit ni push. SHOW_DEV_TOOLS=false. NO hagas git
+  stash, git reset ni checkout de archivos. No puedes compilar ni probar en el dispositivo.
+  Sin Alert. Textos visibles en src/constants/labels.js. Tokens de diseño. D-93…D-147 vigentes
+  salvo lo que esta tarea cambie y declare. firestore.rules fuera de git (cambios de reglas,
+  solo como texto en docs/seguridad.md para que Anderson los publique a mano).
+- Por ahora no se añaden dependencias nuevas ni se toca app.json ni código nativo.
+
+PARTE A — FCM: pulido final (sin spec ni plan nuevos)
+A1. Al tocar la notificación (app en segundo plano o cerrada, y también el caso en que el
+    toque ocurre con la app ya visible), abrir SIEMPRE la pantalla completa de la solicitud
+    ("Solicitud entrante"), navegando desde cualquier pantalla del Drawer.
+    - Se mantiene toda la elegibilidad de D-133/D-146 (sesión, cuenta aprobada, targetUid, sin
+      viaje en curso, expiresAt → "La solicitud expiró", dedupe por requestId, intención
+      ligada al uid). Lo que cambia es la PRESENTACIÓN al adoptar una intención por toque:
+      pantalla completa, no tarjeta emergente.
+    - Si la solicitud ya se estaba mostrando como tarjeta emergente (mismo requestId), el
+      toque la promueve a pantalla completa sin duplicarla y sin reiniciar su temporizador
+      de 15 s.
+    - Las solicitudes que llegan SIN que el usuario toque nada (mock, o push recibido con la
+      app en primer plano) siguen mostrándose como hoy (tarjeta emergente sobre cualquier
+      pantalla, o pantalla completa desde Inicio). No cambies ese comportamiento.
+    - Navegación: usa los nombres únicos vigentes (el Drawer ya usa MainHome). Rechazar,
+      vencer los 15 s o cerrar devuelven al usuario a la pantalla donde estaba, sin pila
+      duplicada; Aceptar lleva al viaje y Atrás desde el viaje no regresa a la solicitud.
+    - Pruebas puras: la decisión de presentación (toque → pantalla completa; llegada pasiva →
+      tarjeta/pantalla según hoy), promoción sin duplicado, y que el estado de navegación no
+      acumule entradas repetidas.
+A2. Contador "Vence en N s": que NO parezca un botón. Hoy es un bloque verde relleno con
+    texto blanco. Usa texto con color de énfasis más una barra de progreso fina sobre una
+    pista clara, sin relleno de bloque, manteniendo contraste AA, el anuncio accesible sin
+    repetir cada segundo, tope de fuente y la prioridad visual del botón Aceptar. Aplica a la
+    tarjeta emergente y a la pantalla completa de solicitud.
+A3. O-03: unifica el mensaje a "La solicitud expiró" (labels.js, donde hoy hay "venció").
+    O-09, O-10, O-11 (hallazgos de baja severidad de la auditoría de diseño): corrígelos si
+    son baratos y sin riesgo (forma de quietDisabled, maxFontSizeMultiplier del contador y los
+    montos de TripRequestScreen, estado busy del switch); si no, déjalos en el informe.
+A4. Cierre de diseño: con las capturas de docs/fcm/capturas/ y la auditoría
+    docs/diseno/auditoria-fcm-2026-11-16.md, el design-auditor deja el Diseño de S5 en
+    "Validada" SOLO para lo que las capturas demuestran; lo no comprobable queda "Pendiente
+    de dispositivo". Actualiza docs/progress.md y docs/diseno/guia-de-estilo.md (patrón del
+    switch con chip informativo y del contador).
+
+PARTE B — LOTE L1 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md)
+Metodología SDD ligera: spec-author escribe specs/004-cierre-brechas/spec.md y planner el
+plan.md (cortos, con criterios de aceptación CA-nnn verificables y tareas T-nnn que continúan
+la numeración vigente), y CONTINÚAS con la implementación sin detenerte a pedir aprobación,
+rebanada por rebanada con su verifier.
+B1. Distancia y duración reales (G-02, R-040, R-090, R-121). Hoy las solicitudes simuladas
+    (mockPassengerApi.js) y las que llegan por push traen distancia/duración inventadas
+    (haversine × 1,3 y 25 km/h en el mock; valores de plantilla en el servidor). Cámbialo
+    para que, al crear la solicitud en la app, la distancia y la duración salgan de UNA llamada
+    a OSRM (origen → destino) con timeout corto (≈ 2–3 s) y caché por par de coordenadas, y
+    SOLO ENTONCES se calcule la tarifa con calculateFare (la función única, R-084) y se muestre
+    la solicitud, de modo que la tarifa no cambie después de aparecer. Si OSRM falla o tarda,
+    usa el cálculo actual como respaldo y márcalo internamente (sin mensaje al usuario). Una
+    llamada por solicitud, nunca por cada movimiento (recomendación de consumo del PDF).
+    Reutiliza el cliente OSRM existente (osrmRouting.js) y respeta que mappers.js es el único
+    archivo que conoce la forma de la API del pasajero. Pruebas con OSRM falso: tiempo de
+    espera, respaldo, caché, una sola llamada por solicitud, y que la tarifa se calcula con los
+    valores finales. El ejemplo 8,5 km / 22 min debe seguir dando 19.200 / 26.900.
+B2. Ganancias sin truncar (G-22, R-088). listenToTrips limita a 200 viajes
+    (tripRepository.js:14,47) y los totales de hoy/semana/mes pueden quedar erróneos. Corrige
+    para que cada periodo se calcule sobre TODOS sus viajes (consulta por rango de fechas con
+    paginación interna o equivalente, sin romper la paginación del Historial ni subir mucho el
+    costo de lecturas). Pruebas con más de 200 viajes simulados. Si el cambio exige un índice
+    compuesto de Firestore o reglas, deja el texto exacto y los pasos manuales para Anderson en
+    docs/seguridad.md y en el informe.
+B3. Efectos de TripActive (G-15, R-039, R-058). Revisa los tres efectos de
+    TripActiveScreen.js (≈ líneas 69, 80, 94): confirma que cada uno devuelve una función de
+    limpieza correcta (temporizadores, suscripciones, seguimiento) y corrige cualquier fuga
+    con pruebas cuando sea posible. Si ya están bien, repórtalo con evidencia archivo:línea.
+B4. Script de pruebas (G-21). Añade el script "test" en package.json (solo el script, sin
+    dependencias) que ejecute toda la suite con el loader de src para que los 3 tests que hoy
+    fallan por imports sin extensión pasen con `npm test`. Documéntalo en el README.
+B5. Si es trivial y sin riesgo, revisa G-17 (timeInterval en expo-location); si no, repórtalo y
+    no lo toques.
+B6. Reglas de Firestore (G-01): lee el texto de validTrip() publicado en docs/seguridad.md y
+    deja en el informe una lista de comprobación para que Anderson confirme en la consola que
+    la regla vigente acepta tip, rating y los campos actuales. No asumas que está publicada.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: elegibilidad intacta, presentación correcta por tipo de llegada, navegación sin pila
+duplicada, contador accesible y no confundible con un botón, textos unificados. Parte B:
+trazabilidad a CA-nnn, tarifa con los valores finales, una llamada OSRM por solicitud,
+totales correctos con más de 200 viajes, limpieza de efectos, `npm test` en verde. Pruebas
+completas y check-constitution (base 14 errores) sin regresión; cita cifras reales. Docs sin
+inflar: "Validada" solo con evidencia de Anderson; el resto "Implementada, pendiente de
+dispositivo".
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-148…), hallazgos de los verifiers,
+cifras de pruebas y constitución, pasos manuales para Anderson (índice o reglas de Firestore si
+los hubiera, comprobación de la regla de trips) y el CHECKLIST STOP-4 de dispositivo, solo
+JavaScript, sin recompilar: (1) app en segundo plano en Configuración, enviar prueba, tocar la
+notificación → pantalla completa; (2) igual desde Historial y Perfil; (3) Rechazar/vencer
+devuelve a la pantalla anterior; (4) Aceptar lleva al viaje; (5) contador que no parezca
+botón y fuente al 200 %; (6) distancia/duración de una solicitud coherentes con la ruta del
+mapa; (7) Ganancias; (8) `npm test`. Y recuerda que el caso de la app cerrada se valida en
+RELEASE. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-4". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Parte A (el toque abre la pantalla completa, contador sin bloque, icono de urgencia H-1) y lote L1 (B1 métricas OSRM, B2 ganancias por rango, B3–B6) implementados, cada parte con un verifier distinto: todas «Verificada estáticamente», ninguna «Validada» (falta el celular). `npm test` 159/159; `check-constitution` 14 errores (línea base). La spec 004 sigue en Borrador; D-149, D-150, D-151, D-160, D-170 y D-180 en Propuesta.
+- Pulidos posteriores a STOP-4 (se hicieron en el lote L2, entrada #66): A1 pantalla de solicitud inmediata con «calculando»; A2 solicitud con «No disponible» no se ofrece y muestra aviso; A3 silenciar avisos de `npm test` y `engines`; A4 aviso de tope en Ganancias, texto de auditoría FCM y comentarios del backend.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #66 — Cierre de brechas del taller — lote L2
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar STOP-4 (lote L1 y Parte A de FCM validados en dispositivo), pulir (retraso al tocar la notificación, solicitud con «No disponible», ruido de `npm test`, menores) e implementar el lote L2 del plan de cierre: saldo sin tope de 200, estados del viaje que faltan, campos aditivos del modelo y no contaminar Ganancias, saldo, Historial, Detalle ni pago.
+- Prompt (textual):
+````
+PROMPT — Cierre de STOP-4 + LOTE L2 (estados del viaje y modelo de datos) + pulidos
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lote L2" con ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Deja "Verificación" y "Aprendizaje" para Anderson; el hash lo pone él.
+   Los pulidos de la Parte A se registran como líneas añadidas a la entrada del lote L1.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 13:47, build de desarrollo)
+- STOP-4 validado: el toque de la notificación abre la pantalla completa desde otra pantalla; Rechazar
+  y vencer devuelven a la pantalla anterior; Aceptar lleva al viaje; el contador ya no parece botón;
+  distancia y duración reales (OSRM) coherentes con la ruta; Ganancias, Historial y Detalle coinciden.
+  npm test: 159/159 en PowerShell. Regístralo como "Validada en dispositivo por Anderson" en
+  progress.md y backlog (lote L1 y Parte A de FCM).
+- Hallazgo 1: hay un retraso perceptible entre el toque y la aparición de la pantalla completa.
+- Hallazgo 2: con el conductor en "No disponible" y la ubicación desactivada, Anderson pudo aceptar
+  una solicitud e iniciar el viaje. La ubicación desactivada NO se trata (el viaje es simulado).
+
+METODOLOGÍA Y REGLAS (iguales a las del lote anterior)
+Roles separados: implementer implementa, verifier DISTINTO verifica cada parte, design-auditor
+distinto audita lo visual, spec-author y planner para la Parte B. Quien implementa no aprueba; si un
+revisor rechaza, DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos en docs, README ni logs. Sin commit ni push. SHOW_DEV_TOOLS=false.
+Sin git stash, reset ni checkout de archivos. Sin Alert. Textos en src/constants/labels.js. Tokens de
+diseño. D-93…D-180 vigentes salvo lo que esta tarea cambie y declare. firestore.rules fuera de git
+(reglas solo como texto en docs/seguridad.md para que Anderson las publique a mano). No se añaden
+dependencias ni se toca app.json ni código nativo. No puedes compilar ni probar en el dispositivo.
+
+PARTE A — Pulidos (sin spec nueva)
+A1. Retraso al tocar la notificación. Mide primero (logs solo de desarrollo, con códigos fijos y sin
+    datos personales) dónde se va el tiempo entre el toque y la pantalla: llamada OSRM de B1 (timeout
+    2,5 s), geocodificación Nominatim, espera de la puerta de sesión. Luego aplica lo mínimo que lo
+    quite sin romper las reglas de D-133/D-137/D-146 y B1:
+    - La pantalla completa de "Solicitud entrante" se abre de inmediato con la información que ya
+      tiene el mensaje (pasajero, categoría) y un estado "calculando" (esqueleto) en distancia,
+      duración y tarifa; los botones quedan inactivos hasta que haya datos finales.
+    - La ventana de decisión de 15 s empieza cuando los datos finales se muestran, no antes (D-137).
+    - La tarifa no cambia después de aparecer (R-084, B1): no la muestres hasta tener distancia y
+      duración finales.
+    - Si OSRM falla o vence, usa el respaldo ya existente y sigue; nunca dejes la pantalla en
+      "calculando" más de ≈ 3 s.
+    - Dirección "Buscando dirección…": que no bloquee nada y que se resuelva sola.
+    Pruebas puras del orden (pantalla antes que datos, ventana tras datos, respaldo) y cifras reales.
+A2. Solicitud con el conductor "No disponible". Decisión: una solicitud (por toque de push, push
+    recibida o mock) solo se ofrece/acepta si el conductor está "Disponible". Si llega o se toca con
+    "No disponible": no se ofrece y se muestra un aviso breve y no bloqueante "Activa Disponible para
+    recibir solicitudes" (labels.js; sin Alert). Mantén toda la elegibilidad de D-133/D-146 y declara
+    la decisión nueva (D-181…). El aviso no debe repetirse ni apilarse. Pruebas puras sobre
+    eligibility/intentFlow para los dos estados (Disponible / No disponible) y el aviso.
+A3. Ruido de `npm test`. En el script "test" de package.json silencia SOLO los avisos DEP0205 y
+    MODULE_TYPELESS_PACKAGE_JSON (por ejemplo con la bandera --no-warnings de Node, comprobando que
+    funciona en Node ≥ 21). NO añadas "type": "module" a package.json. Añade "engines": {"node":
+    ">=21"} o una nota en el README. Confirma 159/159 (o más) en verde.
+A4. Menores del informe anterior: (a) Ganancias muestra un aviso discreto si el periodo supera el tope
+    de 5.000 viajes (flag truncated ya existente); (b) docs/diseno/auditoria-fcm-2026-11-16.md líneas
+    ≈131-132 describe onPrimary sobre primary: actualízalo al diseño vigente; (c) comentarios
+    obsoletos "trip.fare" en backend/src/providers/stripe.js (≈2), providers/mercadopago.js (≈12) y
+    backend/src/stripe.js (≈10): corrígelos (solo comentarios; el cobro es tarifa + propina leída de
+    Firestore, nunca del cuerpo).
+
+PARTE B — LOTE L2 del plan de cierre (docs/plan-cierre-entrega-2026-11-16.md)
+SDD ligera: spec-author escribe specs/005-estados-modelo/spec.md y planner el plan.md (cortos, con
+CA-nnn verificables y T-nnn que continúan la numeración), y CONTINÚAS con la implementación sin
+detenerte a pedir aprobación, rebanada por rebanada con su verifier.
+B1. Saldo sin tope de 200 (D-170). Hoy el saldo se calcula con los últimos 200 viajes. Debe calcularse
+    sobre TODOS los viajes de la cuenta (saldo = ganancias de tarjeta aprobadas − comisiones de
+    efectivo), con lectura paginada como en Ganancias o, si es más barato y seguro, con un agregado
+    acotado documentado. Pruebas con más de 200 viajes y sin romper las cifras validadas en
+    dispositivo. Declara el coste de lecturas y el cambio de decisión (D-170 → nueva).
+B2. Estados del viaje que faltan (G-07, R-xxx del plan). Revisa en el plan y en el enunciado
+    (docs/enunciado-taller.pdf) los estados exigidos: solicitado, aceptado, rechazado, conductor
+    llegando, en curso, finalizado, cancelado. Implementa solo los que faltan y de forma ADITIVA,
+    sin romper los viajes ya guardados: al menos "rechazado" (si el conductor rechaza o la solicitud
+    vence se registra con un estado propio, sin ganancia ni pago, visible en el Historial con su
+    etiqueta y color AA) y "conductor llegando" (paso entre aceptar e iniciar el viaje, con acción
+    "Llegué" y texto claro). "Solicitado" puede quedar como estado de la solicitud previa a la
+    decisión si ya existe de forma implícita: documéntalo. Cada estado nuevo con su etiqueta en
+    labels.js, filtro/chip si el Historial ya filtra por estado, y tests de la máquina de estados
+    (transiciones válidas e inválidas).
+B3. Campos aditivos del modelo (G-11). Añade a los viajes, sin romper los existentes (lecturas con
+    valores por defecto, como legacyTrip.js): passengerId, completedAt, economy como objeto con
+    {fare, commission, tip, driverEarnings} si el enunciado lo pide, y origen/destino como
+    {lat, lng, address}. Mantén los campos actuales (compatibilidad) y documenta cualquier
+    desviación del enunciado en docs/omisiones-y-limites.md. Actualiza el texto de validTrip() en
+    docs/seguridad.md para que acepte los campos nuevos y los estados nuevos, y deja la lista de
+    comprobación para que Anderson publique las reglas a mano. No asumas que ya está publicada.
+B4. Con los estados nuevos, comprueba que Ganancias, saldo, Historial, Detalle y el pago no se
+    contaminen: rechazado y vencido no suman ganancia ni comisión; cancelado sigue con rating nulo.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: pantalla antes que datos, ventana de 15 s tras datos, tarifa estable, no ofrecer con "No
+disponible", aviso sin apilar. Parte B: trazabilidad a CA-nnn, máquina de estados, compatibilidad con
+viajes antiguos, totales con más de 200 viajes, reglas en docs/seguridad.md. design-auditor para las
+etiquetas/colores de los estados nuevos y la pantalla "Conductor llegando". Pruebas completas
+(npm test) y check-constitution (base 14 errores) sin regresión; cita cifras reales. "Validada" solo
+con evidencia de Anderson; el resto "Implementada, pendiente de dispositivo".
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-181…), hallazgos de los verifiers, cifras de
+pruebas y constitución, pasos manuales para Anderson (publicar reglas de Firestore con el texto
+exacto, comprobar en consola) y el CHECKLIST STOP-5 de dispositivo, solo JavaScript, sin recompilar:
+(1) tocar la notificación: la pantalla aparece al instante con "calculando" y luego los datos, sin
+cambiar la tarifa; (2) con "No disponible", enviar una prueba y tocarla: aviso y no se ofrece; con
+"Disponible" funciona; (3) rechazar y vencer: aparece "Rechazado" en Historial sin ganancia;
+(4) aceptar → "Conductor llegando" → "Llegué" → iniciar → finalizar → cobro; (5) un viaje en efectivo y
+uno con tarjeta de prueba siguen igual; (6) saldo y Ganancias coherentes; (7) viajes antiguos se ven
+bien; (8) npm test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-5". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Lote L2 cerrado sin rechazos pendientes: Parte A (retraso al tocar, solo «Disponible», ruido de `npm test`, menores), B1 saldo sobre todos los viajes, B2 estados `rejected` y «Conductor llegando», B3 campos aditivos y B4 sin contaminación. `paymentView` ya excluye `rejected` con un test que falla sin esa línea. Menores C2a-C2d corregidos, C3 documentado, D-181…D-186 aprobadas salvo objeción. 245/245 pruebas, check-constitution 14 errores (base). Nada «Validada»: pendiente de dispositivo.
+
+#### Adenda de cierre (prompt «Cierre de T-232 y de los menores del LOTE L2», 2026-11-16 14:13)
+Decisiones de Anderson: aprobar el arreglo de `paymentView.js`; omitir el chip «Rechazados» (T-231); aceptar D-185 (coordenadas); pasar D-181…D-186 a «Aprobada salvo objeción» reconciliando D-181. Tareas: C1 `paymentView` + test real de no contaminación; C2 `useBalance` sin sesión, 5.000 exactos sin truncar, `exitCopy` por estado, «Cancelada: ya no estás disponible»; C3 límites en omisiones-y-limites.md; C4 segunda ronda del design-auditor (Pendiente de dispositivo); C5 cifras reales.
+
+#### Adenda del lote L3, Parte A (pulidos, prompt de la entrada #67, 2026-11-16)
+Evidencia de dispositivo STOP-5 de Anderson (14:54): L2 completo aprobado; ver progress.md. Pulidos: A1 ícono `warning` en el aviso parcial del saldo de Ganancias; A2 ícono de información sin reloj en «Cancelada: ya no estás disponible» (`closedReasonIcon`); A3 duración del aviso de la tarjeta = 2,5 s × factor de fuente con tope 6 s (`noticeDurationMs`); A4 la premisa del tope de 200 era falsa (ya paginaba a 5.000), se corrigió el falso positivo de `truncated` con exactamente 5.000 viajes y se añadieron pruebas de más de 200; A5 encuadre del mapa del Detalle con padding según atribución y fuente (`detailFitPadding`). Verifier distinto: A1–A5 aprobadas en lo estático; 261/261 pruebas, check-constitution 14 errores (base). Lo visual: No verificado en dispositivo.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #67 — Cierre de brechas del taller — lote L3 (idioma)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Cerrar el lote L2 con la evidencia de dispositivo (STOP-5), pulir (avisos, Ganancias por rango sin tope, encuadre del mapa del Detalle) e implementar el lote L3: idioma español/inglés.
+- Prompt (textual):
+````
+PROMPT — LOTE L3: idioma español/inglés + cierre de L2 + pulido del mapa del Detalle
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lote L3 (idioma)" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de la Parte A se añaden a la entrada del lote L2 (#66).
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 14:54, build de desarrollo, STOP-5 del lote L2)
+- Con «No disponible», tocar la notificación muestra un aviso de que debe activar la disponibilidad y
+  no ofrece la solicitud. Con «Disponible», el toque abre la pantalla completa y la mejora de rapidez
+  («Calculando…» y luego los datos) se nota.
+- Rechazo y vencimiento aparecen en el Historial como «Rechazado» con «Sin cobro».
+- Flujo completo de un viaje (aceptar, conductor llegando, iniciar, finalizar, cobrar): funciona.
+- Saldo y Ganancias coherentes con el Historial. Pago con tarjeta con Stripe: funciona; el Detalle
+  muestra «Pago aprobado», «Tarjeta (Stripe)», comisión y ruta de OSRM.
+- Anderson aprueba todo el checklist STOP-5.
+- Reglas de Firestore con los estados nuevos PUBLICADAS por Anderson (2026-11-16, ≈ 14:20 Bogotá) y
+  comprobadas con un guardado real: en la consola, drivers/{uid}/trips/mock-…-1 con status
+  "rejected", fare/commission/driverEarnings/tip en 0, rating null, economy con las cuatro claves en
+  0, origin {address, lat, lng} y originLabel.
+- Registra en progress.md, backlog y omisiones-y-limites.md: L2 completo (estados rechazado y
+  conductor llegando, campos aditivos, saldo completo, aviso de «No disponible», rapidez al tocar la
+  notificación) como "Validada en dispositivo por Anderson". G-01 y CA-005-26 cerrados con esta
+  evidencia. Corrige en docs/seguridad.md todo lo que aún diga que tip, rating o los estados nuevos
+  están «pendientes de publicar» o «NO VERIFICADO». Sigue pendiente de dispositivo SOLO lo que Anderson
+  no mencionó: «Salir del viaje» a mitad y viajes antiguos.
+- Hallazgo visual en el Detalle del viaje (dos capturas): la ruta se corta por abajo, el tramo final
+  queda tapado por la atribución del mapa y el marcador de destino no se ve completo.
+
+REGLAS (iguales a los lotes anteriores)
+Implementer implementa, verifier DISTINTO verifica cada parte, design-auditor distinto para lo
+visual, spec-author y planner para la Parte B. Quien implementa no aprueba; si un revisor rechaza,
+DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout de
+archivos. SHOW_DEV_TOOLS=false. Sin Alert. Sin dependencias nuevas, sin tocar app.json ni código
+nativo. firestore.rules fuera de git. No puedes probar en dispositivo. No dejes procesos de fondo.
+Textos solo en src/constants/labels.js (o el módulo que lo sustituya con esta tarea).
+
+PARTE A — Pulidos (sin spec nueva)
+A1. Aviso parcial de Ganancias: ícono `warning` en vez de `information-circle`.
+A2. Aviso «Cancelada: ya no estás disponible» en pantalla completa: sin ícono de reloj (sugiere
+    «expiró»); ícono neutro de información. «La solicitud expiró» conserva el reloj.
+A3. Duración del aviso de la tarjeta: de 2,5 s a un tiempo que escale con el tamaño de fuente (base
+    2,5 s por el factor de fuente, tope 6 s), visible completo con fuente al 200 %.
+A4. fetchTripsInRangeWith (Ganancias por rango) tiene el mismo defecto de tope de 200: usa la misma
+    lectura paginada con tope de 5.000 que Ganancias de hoy, semana y mes, con pruebas de más de 200
+    viajes y el mismo aviso por encima de 5.000. Sin índice nuevo (rango sobre finishedAt).
+A5. Mapa del Detalle del viaje: encuadra la ruta completa con margen suficiente (padding) para que
+    ni la ruta ni los marcadores de origen y destino queden tapados por la atribución ni cortados por
+    el borde. Reutiliza routeBounds y la política de cámara existentes; no cambies la ruta ni la
+    atribución (debe seguir visible y legible). Cubre rutas muy cortas y muy largas y un viaje sin
+    ruta guardada (respaldo actual). Pruebas puras del cálculo de encuadre y margen.
+
+PARTE B — LOTE L3: idioma español/inglés
+Contexto: el enunciado (docs/enunciado-taller.pdf) y el plan (docs/plan-cierre-entrega-2026-11-16.md,
+G-05, D-15) exigen español e inglés. Hoy solo hay español.
+SDD ligera: spec-author escribe specs/006-idioma/spec.md y planner el plan.md (cortos, con CA-nnn
+verificables y T-nnn que continúan la numeración) y CONTINÚAS con la implementación sin detenerte a
+pedir aprobación, rebanada por rebanada con su verifier. El planner elige el enfoque de MENOR riesgo
+y lo justifica en una decisión (D-187…).
+B1. Mecanismo. Sin librerías: un módulo propio de internacionalización con diccionarios `es` y `en`
+    (todas las claves de labels.js existentes), función de traducción con parámetros («Vence en
+    {n} s»), plurales simples donde haga falta y respaldo al español si falta una clave. Idioma
+    inicial: el guardado por el usuario; si no hay, el del teléfono si es en o es; si no, español.
+    Cambiar el idioma actualiza la app al instante, sin reiniciar (contexto de React), sin
+    parpadeos ni pérdida del estado de viaje o de una solicitud abierta (no reinicia el
+    temporizador de 15 s ni cambia la tarifa).
+B2. Selector. Sección «Idioma / Language» en Configuración (dos opciones, la actual marcada con
+    comprobación visual clara y accesible, sin Alert). La preferencia se guarda en el teléfono, por
+    dispositivo. NO se escribe en Firestore: las reglas de edición del perfil no permiten cambiar
+    personalData.language (decisión de Anderson: no ampliar validProfileEdit). Si el registro ya
+    guarda personalData.language, solo úsalo como idioma inicial sugerido. Cerrar sesión conserva la
+    preferencia (no es dato de cuenta).
+B3. Cobertura. Todo texto visible: pantallas, botones, avisos, estados, errores, placeholders,
+    accesibilidad (accessibilityLabel y hint), validaciones, onboarding, registro, viaje, Historial,
+    Ganancias, Perfil, Configuración y notificaciones LOCALES. Formatos: pesos colombianos siguen
+    como COP con puntos de miles en ambos idiomas; fechas y horas con el formato del idioma elegido;
+    distancias en km. Estados, categorías y métodos de pago se traducen solo en pantalla: los valores
+    guardados en Firestore no cambian (las reglas publicadas no deben tocarse).
+B4. Límites declarados (en omisiones-y-limites.md, sin ocultarlos): (a) el texto de la notificación
+    push lo arma el backend: di cuál es el comportamiento real en inglés; (b) direcciones de
+    Nominatim y nombres simulados de pasajeros no se traducen; (c) Stripe Checkout sigue el idioma de
+    la pasarela.
+B5. Pruebas. Paridad es/en (toda clave en ambos, mismos parámetros, sin cadenas vacías); un test que
+    detecte texto visible nuevo escrito a mano fuera del módulo de idioma en las pantallas
+    (heurística razonable con lista de excepciones justificada); función de traducción (parámetros,
+    respaldo, plurales); orden de resolución del idioma inicial; prueba de que cambiar el idioma no
+    altera los valores guardados ni la tarifa.
+B6. Diseño. El design-auditor revisa los textos en inglés (más largos o cortos): sin cortes ni
+    solapes con fuente al 200 % en botones, chips, el contador de la solicitud, el Historial y el
+    Detalle. Lo no comprobable queda «Pendiente de dispositivo».
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: íconos, duración del aviso, lectura por rango sin tope, encuadre del mapa. Parte B:
+trazabilidad a CA-nnn, paridad es/en, sin texto suelto, cambio de idioma sin perder estado, valores
+guardados intactos, límites declarados. Pruebas completas (npm test) y check-constitution (base 14
+errores) sin regresión; cita cifras reales. «Validada» solo con evidencia de Anderson; lo demás
+«Implementada, pendiente de dispositivo».
+
+ENTREGA
+Informe corto: qué se hizo por parte, decisiones nuevas (D-187…), hallazgos de los verifiers, cifras
+reales, pasos manuales de Anderson y el CHECKLIST STOP-6 (solo JavaScript, sin recompilar):
+(1) Configuración → English: toda la app cambia al instante; volver a Español; (2) cerrar la app y
+abrirla: se conserva el idioma; (3) con una solicitud abierta, cambiar el idioma no reinicia el
+contador ni cambia la tarifa; (4) recorrer Historial, Ganancias, Perfil, el viaje completo y el
+resumen en inglés, y anotar los textos que sigan en español; (5) fuente al 200 % en inglés: botones,
+chips y contador sin cortes; (6) cerrar sesión e iniciar otra: el idioma se conserva; (7) onboarding
+y registro en inglés; (8) Detalle del viaje: la ruta y los marcadores se ven completos; (9) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-6". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Cierre de L2 con la evidencia de Anderson, Parte A (íconos, aviso escalado, Ganancias por rango sin tope, encuadre del mapa del Detalle) y Parte B: módulo i18n propio es/en (D-187…D-192, Propuesta), selector en Configuración con preferencia por dispositivo, migración de todas las pantallas, componentes, navegación y servicios, y límites declarados. Verificado estáticamente por verifiers distintos y design-auditor (2 rondas); `npm test` 337/336 pasan/1 omitida, check-constitution 14 errores (base). Todo «Implementada, pendiente de dispositivo» (T-264, STOP-6).
+- Evento del proceso (añadido en el lote L3b, 2026-11-16): el design-auditor RECHAZÓ T-263 en la ronda 1 (`docs/diseno/auditorias/ronda-1-idioma.md`, Diseño «Rechazado») por hallazgos visuales del inglés con fuente grande. Se hizo UNA ronda de corrección con el implementer y el design-auditor volvió a revisar (`ronda-2-idioma.md`, Diseño «Aprobado»). Se siguió AGENTS.md P4 (corrección y segunda ronda) en lugar de la regla antigua del prompt «ante un rechazo, DETENTE», y se declaró así; el prompt del lote L3b formaliza esta regla.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #68 — Cierre de brechas del taller — lotes L3b, L4 y L7
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Registrar el lote L3 como validado en dispositivo, añadir el selector de idioma al inicio (sin sesión), corregir los menores del informe de L3, documentar la evidencia de pagos (L4) y hacer la parte de proceso del cierre documental (L7).
+- Prompt (textual):
+````
+PROMPT — LOTE L3b + L4 + L7 (parte de proceso): selector de idioma al inicio, pagos, cierre documental
+
+0. AI_LOG: crea UNA entrada nueva "Cierre de brechas del taller — lotes L3b, L4 y L7" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de la Parte B se añaden a la entrada #67 (lote L3).
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16 15:59, STOP-6 del lote L3)
+- Idioma: cambia al instante a inglés, se conserva al cerrar y abrir la app, con una solicitud abierta
+  no reinicia el contador ni cambia la tarifa, todas las pantallas y mensajes en inglés sin texto en
+  español, se conserva al cerrar sesión e iniciar otra, fuente al 200 % sin cortes, Detalle con la ruta
+  completa. npm test en PowerShell: 337 pruebas, 336 pasan, 0 fallan, 1 omitida.
+- Registra el lote L3 y la Parte A del lote anterior en progress.md, backlog y omisiones-y-limites.md
+  como "Validada en dispositivo por Anderson". La Parte B del lote L3 (límites a, b, c) sigue
+  documentada tal cual.
+- Mejora pedida por Anderson: poder cambiar el idioma desde el onboarding (hoy solo en Configuración,
+  que requiere sesión; el onboarding hereda el idioma ya elegido pero no deja cambiarlo).
+
+REGLAS (iguales) Y UNA AJUSTADA
+Implementer implementa, verifier DISTINTO verifica cada parte, design-auditor distinto para lo
+visual, spec-author y planner para lo que lleve spec. Quien implementa no aprueba. Ante un rechazo de
+un revisor: regístralo como evento en la bitácora (qué se rechazó y por qué), haz UNA ronda de
+corrección con un implementer y vuelve a verificar con un verifier distinto del que implementó (puede
+ser el mismo revisor que rechazó); si hay un segundo rechazo, DETENTE y repórtalo. No leas ni imprimas
+.env, backend/.env, backend/secrets/* ni google-services.json. Cero secretos en docs, README ni logs.
+Sin commit ni push. Sin git stash, reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin Alert.
+Sin dependencias nuevas, sin tocar app.json ni código nativo. firestore.rules fuera de git; el texto
+publicado de las reglas no cambia con este lote. No puedes probar en dispositivo. No dejes procesos de
+fondo. Textos solo en el módulo de idioma (es y en con paridad).
+
+PARTE A — Selector de idioma al inicio (sin spec larga: una nota en specs/006-idioma/ como adenda y
+tareas T-nnn que continúan la numeración)
+A1. Un control compacto «Idioma / Language» con dos opciones (Español | English), accesible (rol
+    radio, estado seleccionado, ≥ 48 dp, no depende solo del color), SIN sesión, visible en:
+    bienvenida/onboarding, inicio de sesión, registro de cuenta y las pestañas del registro de
+    conductor (en un sitio discreto del encabezado o del pie, que no compita con el botón principal).
+    Reutiliza el componente y el módulo de idioma existentes; no dupliques lógica.
+A2. Cambiar el idioma ahí actualiza la pantalla al instante, NO borra lo escrito en formularios ni
+    reinicia el progreso del registro, y se guarda con la misma preferencia local (sin Firestore). El
+    orden de resolución del idioma inicial no cambia.
+A3. Pruebas: el control aparece en las pantallas listadas (heurística o prueba de importación), el
+    cambio persiste, los formularios conservan su estado, y paridad es/en intacta. Design-auditor:
+    ubicación, tamaño, inglés largo y fuente al 200 %; lo no comprobable queda «Pendiente de
+    dispositivo».
+
+PARTE B — Menores del informe del lote L3
+B1. Unifica los textos en inglés con la decisión de Anderson: «Reject» (no «Decline») y «I've
+    arrived» (no «I arrived»); revisa el resto del inglés por coherencia entre botones, avisos y
+    estados («Rejected» para el estado).
+B2. delayValue(15): que el valor en pantalla respete el idioma donde difiera, o documenta en
+    CA-006-07 por qué es idéntico en ambos (queda explicado en un comentario y en la spec).
+B3. format.js usa la hora local del teléfono: acepta una zona horaria inyectable para pruebas y
+    documenta el comportamiento real (la app muestra la hora del teléfono). Añade una prueba con zona
+    inyectada.
+B4. applySuggestion puede pisar un cambio de idioma hecho durante el arranque: si es trivial y seguro,
+    evita que lo haga cuando el usuario ya eligió; si no, déjalo como límite documentado.
+B5. Registra en la bitácora (#67) el rechazo y la corrección de T-263 como evento del proceso.
+
+PARTE C — LOTE L4: pagos (documental; sin código nuevo salvo que una prueba lo exija)
+C1. Crea docs/pagos-evidencia.md con lo que Anderson validó en dispositivo, por fecha y sin secretos:
+    pago con tarjeta de prueba de Stripe aprobado, rechazado y pendiente; efectivo con «Confirmar
+    cobro»; propina y calificación simuladas; saldo y Ganancias coherentes; Detalle con «Pago
+    aprobado» y «Tarjeta (Stripe)». Enlaza a las capturas existentes y a las decisiones D-xxx
+    relevantes (monto leído de Firestore, comisión del 20 % solo sobre la tarifa).
+C2. Mercado Pago: decisión recomendada y registrada: «implementado, no verificado con usuarios de
+    prueba»; Stripe es la pasarela verificada de punta a punta. Déjalo así en README,
+    omisiones-y-limites.md y en el guion del video, sin afirmar que Mercado Pago funciona. Si algún
+    texto de la app o de la documentación lo presenta como verificado, corrígelo.
+C3. Comprueba que ningún documento mezcla la tarjeta de prueba con datos reales y que el texto de
+    «Pago de prueba: no se mueve dinero real» sigue visible donde corresponde.
+
+PARTE D — LOTE L7 (parte de proceso que puede hacer un agente)
+D1. Auditoría de la bitácora docs/AI_LOG.md: lista (tabla en docs/auditoria-bitacora-2026-11-16.md)
+    las entradas a las que les falten campos obligatorios (Verificación, Aprendizaje, hashes,
+    Usado/modificado/descartado) y cuáles las completa solo Anderson. Rellena TÚ únicamente lo que
+    sea objetivo y verificable: la tabla de hashes de commit sacada de `git log` (solo lectura),
+    relacionando cada commit con su entrada; nunca escribas «Aprendizaje» ni «Verificación» por
+    Anderson.
+D2. Marcador colgante #62: o apunta a una entrada que exista o corrige el marcador; reduce el error
+    C18 de check-constitution y reporta la nueva cifra real (base 14).
+D3. README: sección «Uso de IA» que explique el criterio de qué se registra en la bitácora (trabajo
+    sustancial se registra, agrupando funciones grandes en una entrada; consultas triviales y pulidos
+    menores no) y cómo se verifica (verifier distinto, design-auditor, el constructor no aprueba, se
+    detiene ante un rechazo). Revisa el README contra el enunciado: instalación, variables de entorno
+    (solo nombres), backend, túnel, build local de APK (con la nota de que la URL del backend se
+    graba al compilar), pruebas (`npm test`, Node ≥ 21), idioma, FCM y su limitación en el dev client.
+D4. Barrido de secretos solo sobre lo versionado: `git grep` de patrones de claves (sk_live, sk_test
+    con valor, AIza, private_key, tokens largos, correos y teléfonos personales) y reporta SOLO ruta y
+    número de línea, NUNCA el valor. No leas .env, backend/.env, backend/secrets ni google-services.json.
+D5. Guion del video (docs/guion-video.md, máx. 5 min): actualízalo con lo que existe hoy: onboarding
+    con selector de idioma, solicitud por notificación (release), rechazo/vencimiento, estados del
+    viaje, cobro en efectivo y con tarjeta de Stripe, Historial/Ganancias/saldo, cambio a inglés,
+    Mercado Pago como no verificado. Indica la duración por escena y el plan B si la tarjeta falla.
+D6. Checklist de entrega final en docs/checklist-entrega-final.md con casillas, separando lo que hace
+    Anderson: PDF de la bitácora, video, limpieza de datos de prueba con datos reales en
+    Firestore/Auth/Cloudinary, cerrar el túnel de cloudflared, compilar el APK de release con la URL
+    final del backend y copiarlo fuera del repo, PR final a main con merge commit y autorrevisión,
+    verificación de las reglas publicadas y de que firestore.rules local es copia. Con el enlace al
+    plan de cierre y a cada lote cerrado.
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: control visible sin sesión, formularios intactos, paridad. B: textos y pruebas. C y D:
+exactitud documental (nada afirmado sin evidencia, ningún secreto, hashes iguales a git log, cifras de
+check-constitution reales). Pruebas completas (npm test) y check-constitution (base 14 errores) sin
+regresión; cita cifras reales. «Validada» solo con evidencia de Anderson.
+
+ENTREGA
+Informe corto: qué se hizo por parte, hallazgos de los verifiers, cifras reales, la lista de lo que
+solo Anderson puede completar (bitácora, PDF, video, limpieza, túnel, APK, PR) y el CHECKLIST STOP-7,
+solo JavaScript, sin recompilar: (1) en la bienvenida y en el inicio de sesión cambiar el idioma sin
+perder lo escrito; (2) en el registro de conductor cambiar de idioma a mitad: los campos y el
+progreso se conservan; (3) el inglés muestra «Reject» e «I've arrived»; (4) fuente al 200 % con el
+control visible; (5) npm test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-7". Sin recapitular
+pasos.
+````
+- Resumen de la respuesta (2–3 líneas): Lote L3b + L4 + L7 (proceso) implementado: selector de idioma sin sesión (Partes A/B, con auditoría de diseño ronda 1), pagos documentales, auditoría de la bitácora, README, guion (4:50) y checklist. El verifier documental rechazó una vez; una ronda de corrección y un segundo verifier aprobó. Cifras finales: `npm test` 358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores (base), 341 advertencias. Nada «Validada»: pendiente STOP-7.
+- Evento del proceso: el verifier documental rechazó Partes C/D (2 mayores: omisiones-y-limites.md omisión #3 de idioma obsoleta y estado inconsistente del toque de notificación entre README y omisiones; 3 menores: duración 4:45 vs 4:50, afirmación amplia en guion, referencia a checklist inexistente). Una ronda de corrección con implementer.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+- Tareas E1–E5 (cierre final): E1 datos de ejemplo (datos de prueba/ejemplo del cierre); E2 entrada reconstruida de la normalización de placa (#69); E3 coherencia documental (A1 validado por STOP-4, app cerrada pendiente solo en release, STOP-7 reportado por Anderson, cifras de pruebas actual e históricas); E4 conformidad final; E5 cifras (358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores base). Solo documentos, sin código.
+
+### Entrada #69 — Normalización de la placa (T-174, RF-67)
+- RECONSTRUIDA, no registrada en el momento — reconstruida a posteriori el 2026-11-16 (fecha de registro de esta entrada).
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: no registrada
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: no registrada (no se conserva)
+- Objetivo: normalización de la placa del vehículo en el registro (solo letras y números ASCII en mayúsculas, sin autocorrección del teclado), según el marcador «T-174, RF-67» del código.
+- Prompt (textual): no se conserva el prompt textual.
+- Resumen de la respuesta (2–3 líneas): no se conserva. Solo es comprobable en el repositorio el resultado: `normalizePlate` / `isValidPlate` en `src/utils/validators.js`, la prueba `scripts/tests/plateNormalization.test.mjs` y el comentario «T-174: no autocorrect/suggestions on the plate» en `src/screens/registration/VehicleScreen.js`.
+- Usado / modificado / descartado: no registrado.
+- Archivos: `src/utils/validators.js`, `scripts/tests/plateNormalization.test.mjs`, `src/screens/registration/VehicleScreen.js`. Nota de trazabilidad: el código cita «T-174», pero en `docs/backlog.md` T-174 es hoy la tarea de rutas `POST /notifications/register` y `/unregister` (FCM, S2); la numeración de la placa no coincide con el backlog actual. Según `docs/auditoria-bitacora-2026-11-16.md` (D2), el marcador original `#62` apuntaba por error a la entrada de FCM Fase 1 y se retiró del código; la restitución de la marca con este número la decide Anderson.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #70 — FCM — solicitudes automáticas (pasajero simulado)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Que llegue una notificación de solicitud por FCM, sola, mientras el conductor está «Disponible» (generador de pasajero simulado en el backend, disponibilidad reportada por la app, sin duplicar con el simulador interno). Cambia D-130 en lo que se opone.
+- Prompt (textual):
+````
+PROMPT — Solicitudes automáticas por FCM mientras el conductor está «Disponible» (pasajero simulado en el servidor)
+
+0. AI_LOG: crea UNA entrada nueva "FCM — solicitudes automáticas (pasajero simulado)" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Esta tarea CAMBIA la decisión D-130 (el backend solo enviaba bajo demanda): declárala como
+   decisión nueva (D-1xx, siguiente número libre) que sustituye a D-130 en lo que se opone, y deja
+   D-130 como «Modificada» con enlace.
+
+PROBLEMA (Anderson, 2026-11-16 16:36)
+Hoy, con «Disponible» activo y la app en segundo plano, no llega ninguna notificación: solo el botón
+«Solicitud de prueba» de Configuración envía una. Eso no representa una app de conductor. Debe llegar
+una notificación de solicitud, sola, mientras el conductor está disponible.
+
+METODOLOGÍA Y REGLAS
+Mismos roles que los lotes anteriores: spec-author y planner (specs/007-solicitudes-automaticas,
+cortos, con CA-nnn y T-nnn que continúan la numeración), implementer, verifier DISTINTO por
+rebanada, design-auditor para lo visual. Quien implementa no aprueba. Ante un rechazo: regístralo como
+evento, una ronda de corrección con otro implementer, nueva verificación; segundo rechazo → DETENTE.
+Continúas con la implementación sin pedir aprobación. No leas ni imprimas .env, backend/.env,
+backend/secrets/* ni google-services.json. Cero secretos en docs, README, logs ni tests. Sin commit
+ni push. Sin git stash, reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin Alert. Textos en el
+módulo de idioma con paridad es/en. Sin dependencias nuevas, sin tocar app.json ni código nativo.
+firestore.rules fuera de git y SIN cambios de reglas (si necesitaras uno, detente y repórtalo). No
+puedes probar en dispositivo ni con el servidor real. No dejes procesos de fondo.
+
+REQUISITOS
+R1. Pasajero simulado en el backend. Un generador por conductor DISPONIBLE que envía, por FCM y con el
+    constructor de payload ya existente (sin tarifa y sin direcciones; D-138 vigente), una solicitud
+    simulada en intervalos aleatorios: la primera a los 15–30 s de quedar disponible; las siguientes
+    cada 60–120 s; tope por sesión de disponibilidad (por defecto 10) tras el cual deja de enviar
+    hasta que el conductor vuelva a ponerse disponible. Los intervalos y el tope se configuran en el
+    backend por variables de entorno (solo nombres en README y .env.example, con valores por defecto
+    seguros). Un solo envío pendiente por uid; sin ráfagas.
+R2. Disponibilidad reportada por la app. Endpoint nuevo autenticado con el ID token (mismo guard que
+    los de notificaciones: límite por IP, límite por usuario, cuenta aprobada, token inválido → 401):
+    la app informa «disponible» o «no disponible». Disponibilidad EFECTIVA = el conductor está
+    «Disponible» Y no hay un viaje en curso Y las notificaciones están activadas con token
+    registrado. La app informa al backend al cambiar el interruptor, al empezar y terminar un viaje, al
+    activar o desactivar las notificaciones y al volver a primer plano (latido ligero, con un tope de
+    frecuencia). El backend ignora lo que venga de otro uid y el cuerpo no puede aportar uid, tokens,
+    textos ni datos.
+R3. Cuándo se detiene el generador: «No disponible», viaje en curso, cierre de sesión (la baja del
+    token ya existente debe cancelarlo), token dado de baja, notificaciones desactivadas, tope de la
+    sesión alcanzado, cierre del backend (cancela todo, como los envíos diferidos actuales) y falta de
+    latido más allá de un tiempo máximo configurable (por defecto 30 min) para no dejar conductores
+    «fantasma». Nunca se envía a una cuenta no aprobada ni a un token distinto de los del uid.
+R4. Sin duplicados. NO pueden coexistir el generador del servidor y el simulador interno de la app
+    (mockPassengerApi). Investiga cómo se generan hoy las solicitudes mientras el conductor está
+    disponible y decide: si la disponibilidad efectiva está activa y el backend responde, la fuente
+    es el servidor y el simulador interno no genera; si las notificaciones están desactivadas o el
+    backend no responde, el simulador interno sigue como respaldo. Declara la decisión y demuéstrala
+    con pruebas (nunca dos fuentes a la vez; nunca cero fuentes cuando el conductor está disponible).
+R5. Mismo flujo de recepción ya validado: elegibilidad de D-133/D-146, aviso de «No disponible», dedupe
+    por requestId, pantalla completa al tocar, tarjeta emergente si llega en primer plano, expiración a
+    los 90 s y 15 s de decisión, «Rechazado» al rechazar o vencer. No rompas nada de eso.
+R6. «Solicitud de prueba» de Configuración se conserva tal cual (ensayo y video).
+R7. Límites declarados en omisiones-y-limites.md y README: los temporizadores viven en la memoria del
+    backend y se pierden si este se reinicia (la app los recupera con el siguiente latido); el
+    generador es una simulación para la demostración, no un servicio de despacho real; con la app
+    cerrada la solicitud llega y se abre solo en release (limitación del dev client ya documentada).
+R8. Privacidad y consumo: el latido no envía ubicación ni datos personales; el backend no registra
+    tokens, uid ni cuerpos en logs (solo códigos fijos, como hoy). Documenta el costo en escrituras
+    (el estado de disponibilidad vive en memoria del backend, no en Firestore, salvo que una razón
+    fuerte lo justifique y la declares).
+
+PRUEBAS (con reloj y generador de números aleatorios inyectados; sin esperas reales)
+- Primera solicitud en 15–30 s; siguientes en 60–120 s; tope por sesión; un solo pendiente por uid.
+- Se detiene en cada caso de R3; reanuda al volver a quedar disponible; sin latido > máximo se detiene.
+- Envía solo a los tokens del uid autenticado y solo si la cuenta está aprobada; cuerpo con uid o
+  tokens ignorado; endpoint con 401, 429 y validación de tipos.
+- Cierre del backend cancela todos los temporizadores; un fallo de envío no rompe el generador.
+- El payload no lleva tarifa ni direcciones (reutiliza las pruebas existentes).
+- Lado app: informa al cambiar el interruptor, al empezar y terminar un viaje, al activar y
+  desactivar notificaciones, y con el latido; nunca dos fuentes (R4); sin Alert y con textos es/en.
+- Estáticas: sin secretos, sin console.log de tokens, sin dependencias nuevas.
+
+VERIFICACIÓN (verifiers distintos, por rebanada)
+Backend (generador, endpoint, detención), app (reporte de disponibilidad, R4), integración con el flujo
+de recepción, documentación. Pruebas completas (npm test) y check-constitution (base 14 errores) sin
+regresión; cita cifras reales. «Validada» solo con evidencia de Anderson; el resto «Implementada,
+pendiente de dispositivo».
+
+ENTREGA
+Informe corto: qué se hizo por rebanada, decisiones nuevas (con qué reemplaza a D-130), hallazgos de
+los verifiers, cifras reales, pasos manuales de Anderson (reiniciar el backend; el túnel y la
+variable EXPO_PUBLIC_BACKEND_URL no cambian) y el CHECKLIST STOP-8 de dispositivo, con la app en el
+build de desarrollo y Metro reiniciado con `npx expo start -c`; el caso de la app cerrada se valida
+en RELEASE:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible»: en 15–30 s llega una notificación
+    con la app en primer plano (tarjeta) o en segundo plano (aviso del sistema); (2) tocarla desde
+    Configuración abre la pantalla completa; (3) la siguiente llega entre 60 y 120 s después; (4) al
+    ponerse «No disponible» dejan de llegar; (5) con un viaje en curso no llegan; (6) cerrar sesión y
+    entrar con otra cuenta no hereda el generador; (7) con las notificaciones desactivadas sigue
+    funcionando el simulador interno sin duplicar; (8) «Solicitud de prueba» sigue funcionando;
+    (9) `npm test`. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): lote L4 (spec 007, T-273 a T-277) implementado con verifier distinto por rebanada y sin rechazos: generador en memoria del backend (T-273), endpoint `POST /notifications/availability` (T-274), reporte y función pura de fuente única server/mock en la app (T-275, T-276) y documentación de límites (T-277). T-278 (checklist STOP-8) queda para Anderson. Todo «Implementada, pendiente de dispositivo»; spec 007 sigue en Borrador. Hallazgos abiertos: DT-9 (baja de token), posible retiro de una tarjeta push al pasar de mock a server, sin prueba del hook.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+- **Corrección STOP-8 (Anderson, 2026-11-16 19:10, mismo #70, sin entrada nueva):** al ponerse «No disponible» con la app en segundo plano seguían llegando notificaciones nuevas. Prompt (textual):
+````
+PROMPT — Corrección: al ponerse «No disponible» las solicitudes automáticas deben detenerse YA
+
+0. AI_LOG: añade estas líneas a la entrada #70 (no crees entrada nueva); si cambia el contrato del
+   endpoint, declara la decisión nueva (D-1xx, siguiente número libre) y enlaza a D-197.
+
+EVIDENCIA (Anderson, 2026-11-16 19:10, STOP-8)
+Validado en dispositivo: llegan notificaciones automáticas a los 15–30 s y luego cada 60–120 s con la
+app en primer y segundo plano, tocar desde Configuración abre la pantalla completa, con un viaje en
+curso no llegan, cerrar sesión y entrar con otra cuenta no hereda el generador, sin duplicados con
+las notificaciones desactivadas y «Solicitud de prueba» sigue funcionando. npm test: 399 de 400
+(1 omitida).
+FALLO: con el interruptor en «No disponible» y la app en segundo plano las notificaciones SIGUEN
+llegando. Al tocarlas sale correctamente «Activa Disponible para recibir solicitudes», pero no
+deberían llegar. Ten en cuenta que una solicitud ya enviada a FCM puede llegar hasta 90 s después
+(TTL): eso es normal y no es el fallo; el fallo es que lleguen solicitudes NUEVAS.
+
+TAREA (sin spec nueva; tareas T-nnn que continúan la numeración)
+Diagnostica por lectura de código y pruebas, sin suponer, y corrige. Sospechosos, en orden:
+S1. El reportador de la app (availabilityReporter y el hook useRequestSource) aplica un mínimo de 60 s
+    entre latidos. Comprueba si un `available: false` puede quedar descartado o retrasado por ese
+    mínimo. REGLA: un cambio de estado a no disponible (apagar el interruptor, empezar un viaje,
+    desactivar notificaciones, cerrar sesión) se envía de inmediato, sin pasar por el mínimo entre
+    latidos; el mínimo solo limita los latidos periódicos de «sigo disponible».
+S2. Orden de llegada: un `true` y un `false` enviados en rápida sucesión pueden llegar al backend en
+    orden inverso y dejar el generador activo. Corrige con un número de secuencia monótono enviado por
+    la app en cada reporte (por ejemplo, el instante en milisegundos o un contador por sesión) y el
+    backend ignora cualquier reporte con secuencia menor o igual a la última aceptada de ese uid. El
+    cuerpo sigue sin poder aportar uid, tokens ni textos; validación de tipos y límites de la
+    secuencia. Declara el cambio de contrato.
+S3. Un `false` que falla (red, 429, 5xx) no se reintenta: reintenta con retroceso exponencial acotado
+    (por ejemplo 3 intentos) mientras el estado deseado siga siendo «no disponible», y cancela el
+    reintento si el estado cambia. Un `true` perdido no debe reactivar el generador por su cuenta.
+S4. Latido que reactiva: comprueba que ningún latido ni reporte al volver a primer plano puede enviar
+    `true` cuando el interruptor está en «No disponible», un viaje está en curso o las notificaciones
+    están desactivadas; la disponibilidad efectiva se evalúa al momento de enviar, no con un valor
+    capturado antes.
+S5. Backend: confirma que `available: false` cancela el temporizador pendiente y que el envío en vuelo
+    no programa otro; y añade una barrera adicional: al dispararse el temporizador se vuelve a
+    comprobar que el último reporte aceptado sea `true` y que el latido siga vigente (ya se
+    comprueba el latido; añade lo primero si no está).
+S6. Estado de la app en segundo plano: comprueba si al ir a segundo plano algún camino deja de
+    reportar un `false` pendiente (por ejemplo, la petición se cancela al suspender el JS) y, si es
+    así, intenta enviarlo antes de suspender y, si no se puede, reintenta al volver a primer plano o
+    al siguiente latido; además deja registrado en omisiones-y-limites.md el peor caso real (el
+    generador puede enviar hasta el próximo latido o hasta el máximo de 30 min si el teléfono pierde
+    la red justo al apagar el interruptor; la barrera del backend lo acota) y cuánto vale hoy ese
+    máximo.
+Entrega junto con la corrección un análisis breve (en docs/, sin secretos) de cuál de los sospechosos
+era la causa real según el código, con archivo:línea, y cuáles eran solo riesgos.
+
+PRUEBAS (reloj y aleatorio inyectados, sin esperas reales)
+- Un `false` justo después de un `true` (dentro de los 60 s) llega de inmediato y detiene el generador.
+- Reportes desordenados (`true` con secuencia 5, `false` con secuencia 6, llegando 6 y luego 5): el
+  backend queda en no disponible; secuencia repetida o menor se ignora; secuencia inválida da 400.
+- Un `false` fallido se reintenta hasta 3 veces y se detiene si el estado cambia; el retroceso es el
+  esperado con reloj inyectado.
+- Ningún latido ni reporte de foco envía `true` con el interruptor apagado, con un viaje en curso o
+  con las notificaciones desactivadas.
+- El temporizador del backend no envía si el último reporte aceptado es `false`.
+- Las pruebas existentes del generador y del endpoint siguen en verde (401, 429, cuenta no aprobada,
+  payload sin tarifa ni direcciones, cierre cancela todo, cero escrituras a Firestore).
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, el constructor no aprueba. Ante un rechazo:
+regístralo, una ronda de corrección con otro implementer, nueva verificación; segundo rechazo → DETENTE.
+No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json. Cero secretos.
+Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS=false. Sin dependencias nuevas,
+sin tocar app.json ni código nativo. Sin cambios de reglas de Firestore. Textos con paridad es/en.
+No puedes probar en dispositivo. No dejes procesos de fondo. Pruebas completas (npm test) y
+check-constitution (base 14 errores) sin regresión; cita cifras reales. «Validada» solo con
+evidencia de Anderson.
+
+ENTREGA
+Informe corto: causa real encontrada, qué se corrigió, decisiones nuevas, hallazgos de los verifiers,
+cifras reales y el CHECKLIST STOP-8b, con el backend reiniciado y Metro con `npx expo start -c`:
+(1) activar notificaciones, ponerse «Disponible» y esperar la primera notificación;
+(2) apagar «Disponible» e inmediatamente mandar la app a segundo plano: esperar 3 minutos, no debe
+    llegar ninguna nueva (una ya enviada en los últimos 90 s puede llegar);
+(3) repetir encendiendo y apagando rápido tres veces seguidas y dejarlo en «No disponible»: no deben
+    llegar nuevas;
+(4) volver a «Disponible»: reanudan en 15–30 s;
+(5) en la consola del backend, la línea POST /notifications/availability aparece con 200 justo
+    después de cada cambio; pégala aquí;
+(6) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8b". Sin recapitular pasos.
+````
+- Respuesta de la corrección (borrador): decisión D-198 (número de secuencia por reporte y reintento acotado del `false`), tareas T-279 a T-281, análisis en `docs/analisis-no-disponible.md`. Verificación y Aprendizaje de esta corrección: los completa Anderson.
+- Pulido (cierre final, #71): STOP-8 y STOP-8b quedan Validadas en dispositivo por Anderson (2026-11-16, 19:10 y 19:40); el punto 4 de STOP-8 falló y se corrigió con T-279 a T-281. Cifra de `npm test`: 410 pruebas, 409 pasan, 0 fallan, 1 omitida.
+
+### Entrada #71 — Cierre final del taller — evidencias y conformidad
+<!-- AI-assisted: see docs/AI_LOG.md #71 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: registrar la evidencia de dispositivo de STOP-7, STOP-8 y STOP-8b, cambiar datos de ejemplo por datos ficticios, dejar coherente la documentación, actualizar el guion del video y obtener una verificación de conformidad final contra el enunciado.
+- Prompt (textual):
+````
+PROMPT — CIERRE FINAL: evidencias, datos de ejemplo, entrada reconstruida, guion y conformidad
+
+0. AI_LOG: crea UNA entrada nueva "Cierre final del taller — evidencias y conformidad" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de pulido se añaden a #68 (lote L3b/L4/L7) y a #70 (solicitudes automáticas) según
+   corresponda.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16)
+- STOP-7 (selector de idioma sin sesión): validado. Cambio de idioma en bienvenida e inicio de sesión
+  sin perder lo escrito; registro de conductor conserva campos y progreso; «Reject» e «I've arrived»;
+  fuente al 200 % con el control visible.
+- STOP-8 (solicitudes automáticas, 19:10): validado en dispositivo — notificación en 15–30 s con la
+  app en primer y segundo plano; siguiente entre 60 y 120 s; tocar desde Configuración abre la
+  pantalla completa; con un viaje en curso no llegan; cerrar sesión y entrar con otra cuenta no
+  hereda el generador; sin duplicados con notificaciones desactivadas; «Solicitud de prueba» sigue
+  funcionando. El punto 4 (apagar «Disponible») falló en esa corrida y se corrigió en T-279 a T-281.
+- STOP-8b (19:40): validado — con «No disponible» y la app en segundo plano no llega ninguna
+  notificación nueva durante la espera; encender y apagar rápido varias veces y dejarlo apagado no
+  genera nuevas; volver a «Disponible» reanuda en ≈ 30 s. El backend registró
+  POST /notifications/availability con 200 tras cada cambio (las respuestas de 1 ms son reportes con
+  secuencia vieja ignorados, como se diseñó en D-198).
+- npm test en PowerShell: 410 pruebas, 409 pasan, 0 fallan, 1 omitida.
+- Registra todo esto en progress.md, backlog y omisiones-y-limites.md como «Validada en dispositivo
+  por Anderson», SOLO lo que arriba está confirmado. Sigue pendiente de dispositivo: «Salir del viaje»
+  a mitad, viajes antiguos, la app cerrada (solo en release) y el estado visual del Historial con
+  fuente al 200 % si no hay captura.
+- Decisión de Anderson: el toque de la notificación desde otra pantalla (A1) queda VALIDADO por el
+  STOP-4. Haz que progress.md (≈ línea 360), README y omisiones-y-limites.md digan lo mismo.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, el constructor no aprueba. Ante un rechazo:
+regístralo como evento, una ronda de corrección con otro implementer, nueva verificación; segundo
+rechazo → DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos en docs, README, logs ni tests. Sin commit ni push. Sin git stash,
+reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin dependencias nuevas ni app.json ni código
+nativo. firestore.rules fuera de git; el texto de las reglas publicado no cambia. No puedes probar en
+dispositivo. No dejes procesos de fondo.
+
+TAREAS
+E1. Datos de ejemplo. src/utils/mask.js:2 trae un ejemplo con un correo de Gmail y los tests
+    scripts/tests/profileEdit*.test.mjs traen teléfonos. Cámbialos por datos claramente ficticios
+    (usuario@example.com y teléfonos inventados) sin alterar el comportamiento ni romper pruebas.
+    Con git grep revisa si queda otro correo o teléfono personal versionado; reporta solo ruta y
+    línea, NUNCA el valor.
+E2. Entrada «RECONSTRUIDA» de la normalización de placa en docs/AI_LOG.md: regístrala marcada
+    expresamente como «reconstruida a posteriori», con la fecha de registro real (hoy) y sin inventar
+    un prompt, una fecha de trabajo ni una verificación. Deja Verificación y Aprendizaje vacíos para
+    Anderson y ajusta la tabla de auditoría de la bitácora.
+E3. Coherencia documental: corrige la cifra de pruebas de omisiones-y-limites.md (≈ línea 130) diciendo
+    cuál es la cifra actual y cuál la histórica de cada STOP; deja README, progress.md, backlog,
+    omisiones, pagos-evidencia.md y checklist-entrega-final.md coherentes entre sí. Nada «Validada» sin
+    evidencia de Anderson.
+E4. Guion del video (docs/guion-video.md, máx. 5 min). Actualízalo con lo que existe hoy y con tiempos
+    por escena: onboarding con selector de idioma; ponerse «Disponible» y recibir una solicitud
+    automática por notificación (con el build de RELEASE, app en segundo plano); tocarla y abrir la
+    pantalla completa; aceptar, conductor llegando, viaje, finalizar y cobro; rechazo/vencimiento con
+    «Rechazado» en el Historial; pago en efectivo y con tarjeta de Stripe; Historial, Ganancias y
+    saldo; cambio a inglés; Mercado Pago como no verificado. Indica el plan B si la tarjeta falla
+    (efectivo) y el plan B si la notificación automática tarda (botón «Solicitud de prueba» con retraso
+    corto, que es predecible). Documenta que para la grabación se pueden acortar los intervalos del
+    generador con las variables AUTO_REQUEST_* del backend (solo nombres y valores sugeridos, sin
+    cambiar los valores por defecto del repositorio) y recuerda que el backend debe estar corriendo con
+    el túnel activo y que la URL se graba al compilar el release.
+E5. README: deja la sección del pasajero simulado (variables AUTO_REQUEST_*, endpoint de
+    disponibilidad, límites de D-197 y D-198) coherente con el código y con omisiones-y-limites.md, y
+    que `npm test` y Node ≥ 21 figuren con claridad.
+E6. Verificación de conformidad final (verifier distinto, solo lectura): compara el producto con
+    docs/enunciado-taller.pdf requisito por requisito y entrega docs/conformidad-final-2026-11-16.md con
+    una tabla: requisito, estado (Cumplido y validado en dispositivo / Cumplido, pendiente de
+    dispositivo / Parcial / Omitido con razón), evidencia (archivo:línea, captura o STOP) y decisión de
+    Anderson si la hay. No afirmes nada sin evidencia. Lista los huecos reales que queden (por ejemplo
+    Google Directions y Distance Matrix si el enunciado los pide, Mercado Pago no verificado, push con
+    app cerrada solo en release, idioma de la notificación push) y propón un texto breve, en español,
+    para explicárselos al profesor.
+E7. Cifras reales: npm test y check-constitution (base 14 errores) sin regresión; cita las cifras.
+
+ENTREGA
+Informe corto: qué se hizo, hallazgos del verifier, cifras reales y la lista corta de lo que solo
+Anderson puede completar, EN ORDEN: (1) completar Verificación y Aprendizaje de las entradas #64 a #71
+y las vacías según la tabla de auditoría; (2) levantar backend y túnel, poner la URL en .env y compilar
+el APK de release (último build); (3) ensayar y grabar el video con ese release; (4) exportar el PDF de
+la bitácora; (5) limpiar los datos de prueba con datos reales en Firestore, Auth y Cloudinary DESPUÉS
+del video; (6) cerrar el túnel y el backend; (7) PR final a main con merge commit y autorrevisión.
+Termina con "LISTO PARA CIERRE MANUAL DE ANDERSON". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote. E1: ejemplos y teléfonos ficticios; E2: la entrada reconstruida de la placa ya existía como #69 y se ajustó la tabla de auditoría; E3 a E6: ver informe final.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: lo completa Anderson tras la entrega.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #72 — Correcciones tras el build de release
+<!-- AI-assisted: see docs/AI_LOG.md #72 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: corregir lo hallado en el APK de release: solicitudes automáticas que no llegaban (secuencia del reporte de disponibilidad), «Disponible» que no sobrevive al cierre de la app y botón manual «Llegué». Decisiones nuevas: D-199, D-200 y D-201 (enlazan a D-197 y D-198).
+- Prompt (textual):
+````
+PROMPT — Release: solicitudes automáticas que no llegan + «Disponible» que sobrevive al cierre + quitar el botón manual «Llegué»
+
+0. AI_LOG: crea UNA entrada nueva "Correcciones tras el build de release" con ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson. Declara las
+   decisiones nuevas (D-1xx, siguiente número libre) y enlaza a D-197 y D-198.
+
+EVIDENCIA (Anderson, 2026-11-16 20:16, APK de release compilado con el backend y el túnel activos)
+A) Con la app en release y «Disponible» activo, NO llegaban solicitudes automáticas, ni en segundo
+   plano ni con la pantalla de inicio abierta. La «Solicitud de prueba» sí llegaba. En desarrollo
+   (STOP-8 y STOP-8b) funcionaban. Anderson reinició el backend SIN tocar la app y las notificaciones
+   automáticas empezaron a llegar: queda CONFIRMADA la hipótesis del número de secuencia (el backend
+   recordaba en memoria un `seq` mayor que los que enviaba la app recién instalada y los ignoraba con
+   200). Log del backend tras el reinicio: POST /notifications/availability 200 (1578 ms, aplicada),
+   200 (1 ms, ignorada), 200 (439 ms, aplicada).
+B) La fase «Conductor llegando» tiene un botón «Llegué» habilitado: al pulsarlo desde lejos del cliente
+   pasa al paso siguiente como si el pasajero se teletransportara. Anderson no le ve propósito:
+   cuando el conductor llega de verdad al punto de recogida la app ya lo detecta sola («Llegaste al
+   punto de recogida») y aparece «Pasajero a bordo».
+C) El estado «Disponible» no se guarda: si el conductor lo deja activo y cierra la app del todo, el
+   backend sigue enviando solicitudes (su generador sigue vivo hasta el máximo de latido), llega la
+   notificación y, al abrirla, la app arranca en «No disponible» y muestra «Activa Disponible para
+   recibir solicitudes» aunque el conductor había dejado Disponible activado.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, design-auditor para lo visual, el constructor no
+aprueba. Ante un rechazo: regístralo como evento, una ronda de corrección con otro implementer, nueva
+verificación; segundo rechazo → DETENTE. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS
+=false. Sin dependencias nuevas, sin tocar app.json ni código nativo. Sin cambios de reglas de
+Firestore. Textos con paridad es/en. No puedes probar en dispositivo ni compilar. No dejes procesos de
+fondo. Sin spec larga: tareas T-nnn que continúan la numeración.
+
+PARTE A — Solicitudes automáticas en release (causa confirmada: número de secuencia)
+A1. El `seq` de la app debe ser monótono ENTRE reinicios y reinstalaciones. Comprueba de dónde sale hoy
+    (contador que empieza en cero o uno al abrir la app) y corrige: el instante en milisegundos como
+    base más un contador para desempatar en el mismo milisegundo, calculado como max(ahora, último + 1).
+    El backend sigue ignorando SOLO lo estrictamente más viejo o igual (la protección contra
+    reordenamiento de D-198 no puede regresar). Pruebas: arranque nuevo con el backend habiendo visto
+    números mayores, dos reinicios sucesivos de la app, reportes desordenados, reloj que retrocede un
+    poco (se conserva el máximo).
+A2. Reporte en release: comprueba que el reporte y el latido corren igual que en desarrollo (sin
+    __DEV__ ni dependencias del cliente de desarrollo) y que la disponibilidad efectiva se reenvía en
+    cuanto pasa a verdadera (notificaciones activadas, token registrado, sesión lista), sin esperar
+    al latido de 5 min. Prueba ese orden.
+A3. Visibilidad: SOLO en __DEV__, con códigos fijos y sin datos personales, una traza del resultado de
+    cada reporte (enviado, aplicado, ignorado por secuencia, falló y reintentará). En release no se
+    imprime nada. En el backend, un campo booleano `applied` en el cuerpo de la respuesta (el estado
+    HTTP no cambia) para que un ignorado no parezca éxito; declara el cambio de contrato. Si el
+    backend responde `applied: false` por secuencia vieja a un `true`, la app debe reintentar con un
+    `seq` mayor una sola vez (sin bucles) y dejar la traza de desarrollo.
+A4. Entrega un análisis breve en docs/ (sin secretos) con la causa real y archivo:línea.
+
+PARTE B — Quitar el botón manual «Llegué»
+B1. En la fase «Conductor llegando» no debe existir ningún control para forzar la llegada: quita
+    «Llegué», su texto de ayuda («Toca Llegué cuando…») y el botón «Pasajero a bordo» de esa fase. Solo
+    quedan el estado, la distancia y el tiempo restantes, el pasajero, la dirección de recogida y
+    «Cancelar viaje». «Pasajero a bordo» aparece únicamente en el estado «llegó al punto de recogida».
+B2. La llegada se detecta sola por cercanía al punto de recogida (ya existe). Conserva la función de
+    transición (la usa la detección y la máquina de estados) y la prueba de una sola transición y un
+    solo reporte; ajusta o elimina solo las pruebas del camino manual. Demuestra con archivo:línea
+    que sin el botón no puede quedar un viaje atascado en «conductor llegando» (ubicación desactivada
+    o fuente simulada).
+B3. Duración de la aproximación: mide por lectura de código cuánto dura la fase simulada de punta a
+    punta. Para una demostración de ≤ 5 minutos debe completarse en unos 20–30 s. Si hoy tarda mucho
+    más, acota SOLO la velocidad de la simulación en esa fase (un único sitio configurable) sin cambiar
+    la distancia, la duración ni la tarifa mostradas, y declara la decisión. Si la ubicación es real,
+    no la toques y repórtalo.
+B4. El design-auditor revisa la pantalla sin los botones (jerarquía, «Cancelar viaje» accesible y no el
+    único control destacado, fuente al 200 %). Elimina las claves es/en huérfanas manteniendo la
+    paridad y actualiza progress.md, la guía de estilo y el guion del video si mencionan «Llegué».
+B5. Documenta: «Llegué» manual se retira; el estado «conductor llegando» se conserva y la llegada es
+    automática (comportamiento correcto, no una limitación).
+
+PARTE C — «Disponible» sobrevive al cierre de la app
+C1. Guarda la disponibilidad en el almacenamiento local, por conductor (clave ligada al uid), con un
+    módulo en src/services como el de la preferencia de notificaciones; lecturas y escrituras a prueba
+    de fallos (nunca lanzan, un valor corrupto se lee como «no disponible»). Se escribe cuando el
+    conductor cambia el interruptor. Se BORRA al cerrar sesión y en el cierre por cambio de cuenta,
+    junto con la preferencia de notificaciones (mismo punto de limpieza, D-134), y nunca se hereda a
+    otro uid.
+C2. Al abrir la app y con sesión restaurada, se restaura SOLO si siguen cumpliéndose las condiciones
+    que hoy permiten estar disponible (cuenta aprobada, sin viaje en curso). Si no se cumplen,
+    arranca en «No disponible» sin error ni aviso. Comprueba si estar disponible exige además el
+    permiso de ubicación o la posición; si es así, restaura solo cuando se cumpla y, si no, arranca
+    en «No disponible» sin mensaje. Declara la regla.
+C3. Estado intermedio «restaurando»: la disponibilidad es tri-estado (restaurando, disponible, no
+    disponible). Mientras está «restaurando», la elegibilidad de una notificación tocada con la app
+    cerrada NO se evalúa ni muestra «Activa Disponible…»: la intención espera (puerta de D-146) hasta
+    que la disponibilidad se resuelva, con un tope de espera corto (≈ 2 s, configurable) tras el cual
+    se considera «no disponible». Mantén las reglas existentes: «No disponible» explícito sigue
+    mostrando el aviso una sola vez, sin apilar, y no se ofrece la solicitud. Ajusta
+    isDriverAvailable y su contrato para distinguir «aún no sé» de «false explícito».
+C4. Al restaurar «Disponible» la app reporta `true` al backend con un `seq` nuevo (A1) para
+    resincronizar el generador, y el reporte sigue las mismas reglas (sin viaje en curso, con
+    notificaciones activadas). Si el estado restaurado es «no disponible», no reporta `true`.
+C5. Pruebas (con almacenamiento falso y reloj inyectado): se guarda y se restaura por uid; el cierre
+    de sesión lo borra y otro uid no lo hereda; con viaje en curso o cuenta no aprobada arranca en «no
+    disponible»; un valor corrupto o un fallo de lectura arranca en «no disponible» sin lanzar; la
+    notificación tocada con la app cerrada y disponibilidad guardada «Disponible» se ofrece, no
+    muestra el aviso; con guardado «No disponible» muestra el aviso una vez; la espera tiene tope; la
+    restauración reporta `true` una sola vez; la preferencia no se escribe en Firestore (cero
+    escrituras, sin cambio de reglas).
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: `seq` monótono entre arranques, contrato `applied`, nada de __DEV__ en el camino de release.
+Parte B: sin botones de forzado, sin viajes atascados, transiciones intactas, es/en en paridad. Parte C:
+persistencia por uid, limpieza en cierre de sesión, tri-estado, el aviso engañoso ya no sale en el
+arranque en frío, sin escrituras a Firestore. Pruebas completas (npm test) y check-constitution (base
+14 errores) sin regresión; cita cifras reales. «Validada» solo con evidencia de Anderson.
+
+ENTREGA
+Informe corto: causas reales, qué se corrigió, decisiones nuevas, hallazgos de los verifiers, cifras
+reales y el CHECKLIST STOP-9. Aclara que todo es JavaScript pero va DENTRO del APK de release, así que
+hay que recompilarlo: backend arriba, túnel con la MISMA URL que ya está en .env, `npx expo run:android
+--variant release`. Checklist en el release, SIN reiniciar el backend en ningún punto:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible»: la primera solicitud llega en 15–30 s
+    con la app en primer plano y las siguientes entre 60 y 120 s; (2) con la app en segundo plano
+    también llegan; (3) dejar «Disponible», cerrar la app del todo, esperar la notificación, tocarla:
+    la app abre la solicitud directamente, SIN el mensaje «Activa Disponible»; (4) cerrar la app del
+    todo, abrirla desde el ícono: el interruptor sigue en «Disponible»; (5) apagar «Disponible», cerrar
+    del todo y abrir: sigue en «No disponible» y no llegan nuevas; (6) cerrar sesión y entrar con otra
+    cuenta: arranca en «No disponible»; (7) cerrar y reabrir la app varias veces: siguen llegando
+    solicitudes sin tocar el backend; (8) aceptar una solicitud: «Conductor llegando» sin botones
+    «Llegué» ni «Pasajero a bordo»; la aproximación termina sola en unos 20–30 s y aparece «Pasajero a
+    bordo»; (9) completar el viaje y cobrar en efectivo; (10) «Cancelar viaje» funciona; (11) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-9". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): A) seq monótono persistido, `applied`/`lastSeq` en el backend y un reintento con seq mayor (D-199); B) se retiró el botón «Llegué», llegada automática y aproximación simulada acotada a 25 s (D-200); C) «Disponible» persistido por uid, restaurado con condiciones y tri-estado con tope de 2 s en la compuerta (D-201). Verifiers distintos aprobaron A, B y C por código; diseño aprobado por código tras una ronda de corrección. Pruebas: 453 (452 ok, 0 fallan, 1 omitida); check-constitution 14 errores (base). Nada probado en dispositivo.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: backend/src/notifications/generator.js, backend/src/routes/notifications.js, src/services/notifications/{seqStore,availabilityReporter,notificationsApi,notificationsService,eligibility,intentFlow}.js, src/services/{availabilityPreference,availabilityRestore}.js, src/config/{availability,trip}.js, src/context/{AvailabilityContext,TripContext,useSessionReset}.js, src/components/NotificationsBridge.js, src/screens/trip/TripActiveScreen.js, src/services/trip/tripController.js, i18n es/en, pruebas nuevas y ajustadas, docs (decisiones D-199..D-201, backlog T-282..T-290, analisis-solicitudes-release, auditoria-llegando). Anderson confirma con git status.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #73 — Ajustes de demo de las solicitudes automáticas
+<!-- AI-assisted: see docs/AI_LOG.md #73 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: diagnosticar y corregir «La solicitud expiró» / «Otro conductor tomó esta solicitud» al abrir desde la notificación, acortar los tiempos del generador para la demo, evitar que las notificaciones se apilen en la bandeja y quitar «Solicitud de prueba» de Configuración.
+- Prompt (textual):
+````
+PROMPT — Solicitudes: caducidad al abrir desde la notificación, tiempos de demo, bandeja sin apilar y quitar «Solicitud de prueba»
+
+0. AI_LOG: crea UNA entrada nueva "Ajustes de demo de las solicitudes automáticas" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson. Declara
+   las decisiones nuevas (D-1xx, siguiente número libre) y enlaza a D-137, D-197, D-199, D-201.
+
+EVIDENCIA (Anderson, 2026-11-16 20:49, APK de release, backend sin reiniciar)
+A) Con «Disponible» activo en la pantalla de inicio las solicitudes tardan demasiado en llegar. Hoy:
+   primera a los 15–30 s, siguientes cada 60–120 s.
+B) Al abrir una solicitud desde la notificación aparece «La solicitud expiró» o «Otro conductor tomó
+   esta solicitud». Anderson nota que le pasa sobre todo cuando deja «Disponible» activo, cierra la
+   app del todo y la abre tocando la notificación. Captura 1 (8:45): pantalla «Solicitud entrante» con
+   la tarifa y la dirección de destino todavía en «Calculando…» (esqueletos) y, a la vez, el aviso
+   «Otro conductor tomó esta solicitud» con «Volver a Inicio». Captura 2 (8:47): «La solicitud
+   expiró — Volviendo a Inicio…». En capturas anteriores la bandeja mostraba «Nueva solicitud de
+   viaje» con un contador de 2 (notificaciones apiladas).
+C) Anderson pide: acortar los tiempos para pruebas y para la demo a la profesora, pero que no se llene
+   la bandeja de notificaciones.
+D) Anderson pide quitar de Configuración la sección «Solicitud de prueba» (retraso y botón «Enviar
+   solicitud de prueba»): ya no hace falta y no se ve bien en la demo.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, design-auditor para lo visual, el constructor no
+aprueba. Ante un rechazo: regístralo como evento, una ronda de corrección con otro implementer, nueva
+verificación; segundo rechazo → DETENTE. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS
+=false. Sin dependencias nuevas, sin tocar app.json ni código nativo. Sin cambios de reglas de
+Firestore. Textos con paridad es/en. No puedes probar en dispositivo ni compilar. No dejes procesos de
+fondo. Sin spec larga: tareas T-nnn que continúan la numeración.
+
+PARTE A — Diagnóstico y corrección de «expiró» / «Otro conductor tomó» al abrir desde la notificación
+A1. Diagnostica por lectura de código y pruebas, sin suponer, y entrega el análisis en docs/ (sin
+    secretos) con archivo:línea. Hipótesis a descartar o confirmar:
+    1) Notificaciones apiladas: tocar una antigua (>90 s) expira legítimamente.
+    2) Entrega tardía con la app cerrada: el mensaje llega con poca validez restante.
+    3) Reloj del teléfono contra el del servidor: la caducidad se compara con Date.now() del teléfono
+       frente a expiresAt del servidor; un desfase de unos segundos hace parecer vencida una solicitud
+       vigente. Evalúa usar la hora de envío del mensaje y una tolerancia configurable, o medir
+       la validez de forma relativa al recibirla, sin romper D-137 (validez de la notificación ≈ 90 s
+       y ventana de decisión de 15 s que empieza al mostrar los datos finales).
+    4) Origen del aviso «Otro conductor tomó esta solicitud»: encuentra en qué rama se produce (¿el
+       pasajero simulado la usa para simular competencia, o es un error de aceptación/liberación de una
+       solicitud que no conoce?). Explica por qué aparece sobre una solicitud que aún está
+       «Calculando…» y sin que Anderson haya pulsado nada: revisa que la ventana de 15 s, la
+       liberación (declineRequest/release) y la adopción de la intención no se disparen antes de
+       tener datos finales o por duplicado (restauración de «Disponible», puerta de D-146, intención
+       de arranque en frío, dedupe por requestId).
+    5) Cualquier otra causa que encuentres.
+A2. Corrige lo que confirmes. Reglas que deben cumplirse al terminar: una solicitud vigente (dentro
+    de su validez, con tolerancia de reloj documentada) abierta desde la notificación, también con la
+    app cerrada, SIEMPRE muestra la pantalla con sus datos y la ventana de 15 s; «La solicitud expiró»
+    solo sale si de verdad pasó su validez; «Otro conductor tomó…» nunca sale sobre una solicitud que
+    aún está calculando ni sin acción del conductor; si es una simulación intencional del pasajero
+    simulado, déjala solo cuando haya pasado un tiempo razonable de decisión, documenta su propósito y
+    comprueba que no aparezca en la primera carga. Dev-only: trazas con códigos fijos y sin datos
+    personales de cada decisión (adoptada, expirada por reloj, liberada, tomada por otro).
+A3. Si el análisis muestra que la validez de 90 s es insuficiente en el arranque en frío, súbela
+    (por ejemplo a 120 s) en UN solo sitio configurable y declara la decisión; si no, déjala en 90 s.
+A4. Pruebas con reloj inyectado: tolerancia de desfase en ambos sentidos; arranque en frío con
+    solicitud vigente; solicitud realmente vencida; sin liberación antes de los datos; dedupe; nunca
+    dos avisos distintos para la misma solicitud; el camino de la restauración de «Disponible» no
+    duplica la adopción.
+
+PARTE B — Tiempos de demo y bandeja sin apilar
+B1. Nuevos valores por defecto del generador (siguen siendo configurables con las variables
+    AUTO_REQUEST_* del backend y validadas como hoy): primera solicitud a los 8–15 s de quedar
+    disponible; siguientes cada 35–60 s; tope por sesión de 8. Declara la decisión y actualiza las
+    pruebas CA-007-01 y las de intervalos con los rangos nuevos, la spec 007 (adenda breve, sin
+    reescribirla), README y omisiones-y-limites.md.
+B2. Bandeja sin apilar: cada solicitud nueva debe reemplazar a la notificación de solicitud anterior
+    en la bandeja del sistema. Usa los mecanismos de FCM para Android, sin dependencias nuevas: una
+    etiqueta de notificación fija para las solicitudes (por ejemplo `trip_request`) y la clave de
+    colapso de FCM. Comprueba que el constructor de payload de backend lo incluye, que no rompe el
+    canal «solicitudes», que el payload sigue sin tarifa ni direcciones y que el formato del mensaje
+    sigue siendo el esperado por las pruebas (actualízalas). Declara la decisión y el límite: la
+    notificación anterior de una solicitud ya aceptada o vencida solo desaparece cuando llega la
+    siguiente o la descarta el usuario.
+
+PARTE C — Quitar «Solicitud de prueba» de Configuración
+C1. Elimina de la pantalla de Configuración la sección «Solicitud de prueba» completa (descripción,
+    selector de retraso y botón «Enviar solicitud de prueba»). Se conserva la sección «Notificaciones»
+    con el interruptor «Avisos de solicitudes», el chip de estado, los mensajes de permiso denegado y
+    el botón a los ajustes del sistema.
+C2. Elimina las claves es/en huérfanas manteniendo la paridad, el código y los componentes que solo
+    usaba esa sección (si algo es compartido, déjalo), y actualiza o elimina las pruebas que solo
+    cubrían esa interfaz, sin dejar ninguna prueba sin sentido ni falsa.
+C3. Backend: se CONSERVA el endpoint POST /notifications/test-request tal cual (autenticado, limitado,
+    solo al propio uid, cuenta aprobada, sin cambios de contrato): queda como herramienta de pruebas
+    sin interfaz. Declara la decisión y refléjala en README y omisiones-y-limites.md.
+C4. Documentos: README, docs/guion-video.md (el plan B de la notificación lenta pasa a ser acortar los
+    intervalos con AUTO_REQUEST_* y reiniciar el backend, que ya es seguro gracias a D-199; quita
+    toda mención del botón), checklist-entrega-final.md, progress.md, backlog y omisiones-y-limites.md
+    coherentes entre sí. Nada «Validada» sin evidencia de Anderson.
+C5. El design-auditor revisa Configuración sin esa sección (jerarquía, espacios, fuente al 200 %).
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: causa documentada con evidencia, ninguna liberación antes de los datos, caducidad con
+tolerancia, aviso «tomó» solo donde corresponde. Parte B: intervalos nuevos validados y configurables,
+etiqueta y clave de colapso presentes, payload sin tarifa ni direcciones. Parte C: sin restos de la
+sección, paridad es/en, endpoint intacto, documentos coherentes. Pruebas completas (npm test) y
+check-constitution (base 14 errores) sin regresión; cita cifras reales. «Validada» solo con evidencia
+de Anderson.
+
+ENTREGA
+Informe corto: causas reales encontradas, qué se corrigió, decisiones nuevas, hallazgos de los
+verifiers, cifras reales y el CHECKLIST STOP-10. Aclara que hay que REINICIAR EL BACKEND (cambian los
+intervalos y el formato del mensaje) y RECOMPILAR el release (`npx expo run:android --variant
+release`, con el túnel en la misma URL del .env). Checklist en el release:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible» en la pantalla de inicio: la primera
+solicitud llega en ≈ 8–15 s y las siguientes cada ≈ 35–60 s; (2) la bandeja del sistema muestra UNA
+sola notificación de solicitud, que se reemplaza por la siguiente (nunca 2, 3, 4); (3) con «Disponible»
+activo, cerrar la app del todo, esperar una notificación y tocarla dentro de sus primeros 90 s: abre la
+solicitud con sus datos y la cuenta de 15 s, SIN «La solicitud expiró» ni «Otro conductor tomó…»;
+(4) tocar una notificación que ya pasó de 90 s sí dice «La solicitud expiró»; (5) con la app abierta en
+la pantalla de inicio la solicitud llega como tarjeta y Aceptar, Rechazar y vencer funcionan; (6)
+Configuración ya no tiene «Solicitud de prueba» y conserva el interruptor de notificaciones; (7)
+aceptar una solicitud, aproximación sola, «Pasajero a bordo», completar y cobrar en efectivo; (8) npm
+test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-10". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: lo completa Anderson tras la entrega.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+### Entrada #74 — Tipo de pago alternado en las solicitudes automáticas
+<!-- AI-assisted: see docs/AI_LOG.md #74 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: que las solicitudes automáticas alternen de forma determinista efectivo / tarjeta / efectivo / tarjeta (D-207, completa D-197), sin azar.
+- Prompt (textual):
+````
+sabes qué todo me ha parecido perfecto, pero haciendo pruebas manuales noto que no me estan llegando solicitudes de carrera con pago en efectivo así que quiero que el backend envíe las solicitudes de manera escalonada, es decir, una de efectivo otra de tarjeta, y así sucesivamente no quiero que sea random o aleatorio el tema del tipo de pago en las solicitudes, vamos allá entonces.
+````
+- Resultado: ver D-207 en docs/decisiones.md y T-300 en docs/backlog.md. No verificado en dispositivo.
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+- Hash del commit (lo completa Anderson):

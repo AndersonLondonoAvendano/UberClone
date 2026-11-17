@@ -60,13 +60,18 @@ export const type = {
   numeric: { fontVariant: ['tabular-nums'] },
 };
 
+// AI-assisted: see docs/AI_LOG.md #64
+// Cap for the system font scale on critical blocks (amounts, countdown, action buttons): the text still
+// grows with the user's setting (never allowFontScaling={false}) but not past this multiplier.
+export const maxFontScale = 1.5;
+
 export const space = { 0: 2, 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48 };
 
 export const radius = { sm: 8, md: 12, lg: 20, xl: 28, full: 999 };
 
 export const touch = { min: 44, controlHeight: 48, gap: 8 };
 
-export const opacity = { pressed: 0.9, disabled: 0.5 };
+export const opacity = { pressed: 0.9, disabled: 0.5, muted: 0.65 };
 
 export const borderWidth = { thin: 1, thick: 2 };
 

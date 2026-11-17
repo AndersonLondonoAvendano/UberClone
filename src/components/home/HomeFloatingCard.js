@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #55
 // Floating card over the Home map (F1b, RF-39): availability switch with its written state, the
 // hint or notice, and the grant-permission button when the location permission is missing.
@@ -6,6 +7,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { color, elevation, iconSize, radius, space, type } from '../../theme/tokens';
 import { AvailabilitySwitch } from '../AvailabilitySwitch';
 import { Card } from '../Card';
@@ -22,6 +24,7 @@ export function HomeFloatingCard({
   onGrantPermission,
   leading,
 }) {
+  useLanguage();
   const insets = useSafeAreaInsets();
   return (
     <View testID="home-floating-card" style={[styles.wrap, { top: insets.top + space[2] }]} pointerEvents="box-none">

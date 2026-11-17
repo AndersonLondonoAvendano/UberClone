@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
 // AI-assisted: see docs/AI_LOG.md #15
 // AI-assisted: see docs/AI_LOG.md #16
 // AI-assisted: see docs/AI_LOG.md #26
@@ -15,6 +16,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useState } from 'react';
 import { labels } from '../constants/labels';
 import { useAppState } from '../context/AppStateContext';
+import { useLanguage } from '../i18n/useLanguage';
 import { RegistrationFormProvider, useRegistrationForm } from '../context/RegistrationFormContext';
 import { DocumentsScreen } from '../screens/registration/DocumentsScreen';
 import { PersonalDataScreen } from '../screens/registration/PersonalDataScreen';
@@ -40,21 +42,26 @@ const SCREEN_OPTIONS = {
   sceneStyle: { backgroundColor: color.bg },
 };
 
-const PERSONAL_DATA_OPTIONS = tabOptions({
-  text: labels.registrationFlow.tabShort.personalData,
-  accessibilityLabel: labels.a11y.tabs.personalData,
-  testID: 'tab-personal-data',
-});
-const VEHICLE_OPTIONS = tabOptions({
-  text: labels.registrationFlow.tabShort.vehicle,
-  accessibilityLabel: labels.a11y.tabs.vehicle,
-  testID: 'tab-vehicle',
-});
-const DOCUMENTS_OPTIONS = tabOptions({
-  text: labels.registrationFlow.tabShort.documents,
-  accessibilityLabel: labels.a11y.tabs.documents,
-  testID: 'tab-documents',
-});
+// Read at render time so a language change shows without a remount.
+function buildTabOptions() {
+  return {
+    personalData: tabOptions({
+      text: labels.registrationFlow.tabShort.personalData,
+      accessibilityLabel: labels.a11y.tabs.personalData,
+      testID: 'tab-personal-data',
+    }),
+    vehicle: tabOptions({
+      text: labels.registrationFlow.tabShort.vehicle,
+      accessibilityLabel: labels.a11y.tabs.vehicle,
+      testID: 'tab-vehicle',
+    }),
+    documents: tabOptions({
+      text: labels.registrationFlow.tabShort.documents,
+      accessibilityLabel: labels.a11y.tabs.documents,
+      testID: 'tab-documents',
+    }),
+  };
+}
 
 const renderTabBar = (props) => <AppTabBar {...props} />;
 
@@ -65,7 +72,9 @@ const ROUTE_TO_TAB = {
 };
 
 function RegistrationTabsNavigator({ initialRoute }) {
+  useLanguage();
   const { markTabVisited } = useRegistrationForm();
+  const tabOptionsByRoute = buildTabOptions();
 
   return (
     <Tab.Navigator
@@ -76,9 +85,9 @@ function RegistrationTabsNavigator({ initialRoute }) {
       })}
       tabBar={renderTabBar}
     >
-      <Tab.Screen name="PersonalData" component={PersonalDataScreen} options={PERSONAL_DATA_OPTIONS} />
-      <Tab.Screen name="Vehicle" component={VehicleScreen} options={VEHICLE_OPTIONS} />
-      <Tab.Screen name="Documents" component={DocumentsScreen} options={DOCUMENTS_OPTIONS} />
+      <Tab.Screen name="PersonalData" component={PersonalDataScreen} options={tabOptionsByRoute.personalData} />
+      <Tab.Screen name="Vehicle" component={VehicleScreen} options={tabOptionsByRoute.vehicle} />
+      <Tab.Screen name="Documents" component={DocumentsScreen} options={tabOptionsByRoute.documents} />
     </Tab.Navigator>
   );
 }

@@ -60,7 +60,9 @@ export const NEXT_TRIP_STATUS = {
   [TRIP_STATUS.IN_PROGRESS]: TRIP_STATUS.COMPLETED,
 };
 
-export const isTripFinished = (status) => status === TRIP_STATUS.COMPLETED || status === TRIP_STATUS.CANCELLED;
+// AI-assisted: see docs/AI_LOG.md #66 (rejected is terminal too)
+export const isTripFinished = (status) =>
+  status === TRIP_STATUS.COMPLETED || status === TRIP_STATUS.CANCELLED || status === TRIP_STATUS.REJECTED;
 
 // Same values as the registration's vehicle category (RF-06) and pricing.js.
 export const TRIP_CATEGORIES = ['economico', 'xl', 'premium'];

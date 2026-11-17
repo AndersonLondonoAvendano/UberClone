@@ -12,12 +12,12 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#009688",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.andersonlondono.uberclone",
+      "googleServicesFile": "./google-services.json",
       "userInterfaceStyle": "light"
     },
     "plugins": [
@@ -38,7 +38,11 @@
           "locationWhenInUsePermission": "UberClone Conductor necesita tu ubicación mientras usas la app para mostrar tu posición en el mapa y calcular la ruta hacia el pasajero."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "./plugins/withRequestsChannel",
+      "./plugins/withBrandAssets"
     ]
   }
 }

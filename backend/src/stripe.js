@@ -7,7 +7,7 @@ import { MAX_AMOUNT_COP, SIGNATURE_TOLERANCE_SEC } from './config.js';
 // Stripe's minimum charge is 0.50 in any two-decimal currency, that is 50 minor units.
 const MIN_UNIT_AMOUNT = 50;
 
-// Converts a whole-peso fare into Stripe's minor units. COP is a two-decimal currency (inferred from
+// Converts a whole-peso charge amount (fare + tip, read from Firestore) into Stripe's minor units. COP is a two-decimal currency (inferred from
 // the currencies page: it is not one of the listed exceptions), so 10 000 COP -> 1 000 000.
 // Fallback (test only): currency 'usd' with a positive copPerUsd written by the operator.
 // Returns { amount, currency } or null for anything invalid, over the cap, or below the minimum.

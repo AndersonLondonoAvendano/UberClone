@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: status chip, origin/destination icons, DataRow amounts)
@@ -19,6 +20,7 @@ import { ScreenState } from '../../components/ScreenState';
 import { SecondaryButton } from '../../components/SecondaryButton';
 import { TripListItem } from '../../components/TripListItem';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useTripHistory } from '../../hooks/useTripHistory';
 import { color, space } from '../../theme/tokens';
 import { groupNetEarnings } from '../../utils/chartData';
@@ -28,6 +30,7 @@ import { HISTORY_METHOD } from '../../utils/historyQuery';
 const keyExtractor = (trip) => trip.id;
 
 export function HistoryScreen({ navigation }) {
+  const { language } = useLanguage(); // re-render on language change (RI-15)
   const [period, setPeriod] = useState(HISTORY_PERIOD.DAY);
   const [method, setMethod] = useState(HISTORY_METHOD.ALL);
   const [startDate, setStartDate] = useState(null);
@@ -43,7 +46,7 @@ export function HistoryScreen({ navigation }) {
   const { trips, status, loadingMore, hasMore, error, loadMore, retry } = useTripHistory({ start: query.start, end: query.end, method });
   const groups = useMemo(
     () => groupNetEarnings(trips, period, period === HISTORY_PERIOD.RANGE ? { start: query.start, end: query.end } : null, now),
-    [trips, period, query.start, query.end, now],
+    [trips, period, query.start, query.end, now, language],
   );
 
   // AI-assisted: see docs/AI_LOG.md #57 (T-110)

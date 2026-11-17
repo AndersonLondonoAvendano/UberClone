@@ -1,3 +1,5 @@
+// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
 // AI-assisted: see docs/AI_LOG.md #26
 // AI-assisted: see docs/AI_LOG.md #34
 // AI-assisted: see docs/AI_LOG.md #36
@@ -15,6 +17,7 @@ import { SelectField } from '../../components/registration/SelectField';
 import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { GENDER_OPTIONS, LANGUAGE_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useRegistrationForm } from '../../context/RegistrationFormContext';
@@ -33,9 +36,10 @@ import {
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.personalData.fields;
 // AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
-const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '1').replace('{total}', '3');
 
 export function PersonalDataScreen() {
+  useLanguage();
+  const STEP_TITLE = labels.registrationFlow.stepOf.replace('{n}', '1').replace('{total}', '3');
   const {
     personalData,
     setPersonalDataField,
@@ -51,7 +55,7 @@ export function PersonalDataScreen() {
     !isValid && (personalData.touched[key] || showErrors) ? FIELDS[key].error : null;
 
   return (
-    <PlaceholderScreen name="personal-data" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES}>
+    <PlaceholderScreen name="personal-data" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
           // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)

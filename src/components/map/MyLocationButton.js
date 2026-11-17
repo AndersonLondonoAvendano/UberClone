@@ -1,13 +1,16 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #57
 // "My location" button over the Home map (H-1, RF-53): icon only, so it carries its own
 // accessibilityLabel. 44 x 44 touch target, tokens only. The camera move is decided by the parent.
 
 import { Pressable, StyleSheet } from 'react-native';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { color, elevation, iconSize, opacity, radius, touch } from '../../theme/tokens';
 import { Icon } from '../Icon';
 
 export function MyLocationButton({ onPress, style }) {
+  useLanguage();
   return (
     <Pressable
       testID="home-my-location"

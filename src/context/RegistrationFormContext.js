@@ -44,6 +44,7 @@ import { getDriverRegistration, submitDriverRegistration } from '../services/dri
 import { labels, getSubmitErrorMessage } from '../constants/labels';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { COMMISSION_RATE } from '../config/pricing';
+import { applySuggestion } from '../i18n/applySuggestion';
 
 // RF-07/RF-21 (T-38): the commission rate comes only from src/config/pricing.js as a fraction
 // (0.2). It is shown on the terms checkbox as a percentage and stored with the registration as the
@@ -127,6 +128,9 @@ export function RegistrationFormProvider({ children }) {
       if (!isMounted || !stored) return;
       if (stored.personalData) {
         const { birthDate, ...restPersonalData } = stored.personalData;
+        // AI-assisted: see docs/AI_LOG.md #67
+        // RI-08: the stored language is only a suggestion for the app language (once, never saved).
+        applySuggestion(restPersonalData.language);
         setPersonalDataState((current) => ({
           ...current,
           ...restPersonalData,

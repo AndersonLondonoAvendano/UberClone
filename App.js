@@ -4,6 +4,7 @@
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #20
+// AI-assisted: see docs/AI_LOG.md #67
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
@@ -21,6 +22,7 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { color } from './src/theme/tokens';
+import { initLanguage } from './src/i18n/initLanguage';
 
 // AI-assisted: see docs/AI_LOG.md #52 (Inter font, safe loading)
 // Waits for Inter at most FONT_WAIT_MS. If the font fails or is slow the app continues with the
@@ -35,6 +37,25 @@ function useInterReady() {
     return () => clearTimeout(timer);
   }, []);
   return loaded || error != null || timedOut;
+}
+
+// AI-assisted: see docs/AI_LOG.md #67
+// Resolves the language in the same boot gate as the fonts (capped at 1.5 s inside initLanguage,
+// which never throws); the app starts in Spanish if anything goes wrong.
+function useLanguageReady() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let active = true;
+    initLanguage()
+      .catch(() => {})
+      .finally(() => {
+        if (active) setReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return ready;
 }
 
 // Navigation theme built only from design tokens. The accent is not used in the navigation chrome,
@@ -54,7 +75,8 @@ const NAVIGATION_THEME = {
 
 export default function App() {
   const fontsReady = useInterReady();
-  if (!fontsReady) {
+  const languageReady = useLanguageReady();
+  if (!fontsReady || !languageReady) {
     return <View style={styles.boot} />;
   }
   return (

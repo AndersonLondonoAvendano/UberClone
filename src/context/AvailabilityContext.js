@@ -3,7 +3,13 @@
 // AI-assisted: see docs/AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
 // AI-assisted: see docs/AI_LOG.md #55 (F1b: local tracking while Home is focused; publishing only while available)
 // AI-assisted: see docs/AI_LOG.md #54 (reset: session reset puts everything back to the initial state)
-// Driver availability (T-42, RF-08). In memory only: no Firestore writes for availability.
+// AI-assisted: see docs/AI_LOG.md #72 (D-201: the choice is saved per uid on the phone and restored on open)
+// Driver availability (T-42, RF-08). Kept in memory and, per uid, in local storage (availabilityPreference):
+// no Firestore writes for availability. Three states (availabilityState): 'restoring' while the saved choice
+// is read at open, 'available', 'unavailable'; isAvailable stays a boolean (true only for 'available').
+// Restore rule (shouldRestoreAvailability): only if the saved choice is true, the account is approved, there
+// is no trip and the location permission and phone location are already on; no dialog, no notice, otherwise
+// it opens 'unavailable' in silence.
 // Turning it on (a user action) asks the location permission if missing, then checks that the phone
 // location is on; if it is off it shows the system dialog ONCE (askToEnableServices). If location is
 // still off, availability stays off with the 'services_off' notice and nothing retries by itself.
@@ -18,6 +24,9 @@
 
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { AVAILABILITY_STATE } from '../services/notifications/eligibility';
+import { availabilityPreference } from '../services/availabilityPreference';
+import { shouldRestoreAvailability } from '../services/availabilityRestore';
 import { useAppState } from './AppStateContext';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { DRIVER_LOCATION_IDLE_STATUS } from '../constants/tripStatus';
@@ -25,18 +34,21 @@ import { locationPolicy } from '../services/locationPolicy';
 import { publishDriverLocation } from '../services/driverLocationPublisher';
 import { useDriverLocation } from '../hooks/useDriverLocation';
 import { useTripRequests } from '../hooks/useTripRequests';
+import { useRequestSource } from '../hooks/useRequestSource';
+import { REQUEST_SOURCE } from '../services/notifications/requestSource';
 import { getLocationSource } from '../services/location';
 import { requestSimulatedTripNow } from '../services/passengerApi';
 
 const AvailabilityContext = createContext(null);
 
 export function AvailabilityProvider({ children }) {
-  const [isAvailable, setIsAvailable] = useState(false);
+  const [isAvailable, setIsAvailableState] = useState(false);
+  const [restoring, setRestoring] = useState(true);
   const [isChanging, setIsChanging] = useState(false);
   const [onTrip, setOnTripState] = useState(false);
   const [notice, setNotice] = useState(null); // null | 'denied' | 'unavailable' | 'services_off'
   const [requestScreenId, setRequestScreenId] = useState(null);
-  const { accountStatus } = useAppState();
+  const { accountStatus, driverId } = useAppState();
   const [homeFocused, setHomeFocused] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const mountedRef = useRef(true);
@@ -48,10 +60,76 @@ export function AvailabilityProvider({ children }) {
   const isAvailableRef = useRef(false);
   // Bumped by reset(): an enable() that started before a reset must not turn availability back on.
   const resetGenerationRef = useRef(0);
+  // AI-assisted: see docs/AI_LOG.md #64 (D-149): drawer screen the driver was on when a notification tap
+  // opened the request; the request screen returns there when it closes. A ref: it never renders.
+  const requestOriginRef = useRef(null);
+  const setRequestOrigin = useCallback((route) => {
+    requestOriginRef.current = typeof route === 'string' && route !== '' ? route : null;
+  }, []);
+  const takeRequestOrigin = useCallback(() => {
+    const origin = requestOriginRef.current;
+    requestOriginRef.current = null;
+    return origin;
+  }, []);
 
   useEffect(() => {
     isAvailableRef.current = isAvailable;
   }, [isAvailable]);
+
+  // The ref is updated at once (not only in the effect above) so a consumer that reacts in the same commit
+  // already sees the new value.
+  const setIsAvailable = useCallback((value) => {
+    isAvailableRef.current = value;
+    setIsAvailableState(value);
+  }, []);
+  const driverIdRef = useRef(driverId);
+  driverIdRef.current = driverId;
+  const onTripRef = useRef(false);
+  // The uid whose saved choice was already resolved; a toggle or a reset also marks it as resolved.
+  const resolvedUidRef = useRef(null);
+  const persistAvailability = useCallback((value) => {
+    const uid = driverIdRef.current;
+    if (uid) availabilityPreference.set(uid, value).catch(() => {});
+  }, []);
+
+  // D-201: restore the saved choice once per uid, when the account status is resolved.
+  useEffect(() => {
+    if (!driverId) {
+      resolvedUidRef.current = null;
+      setRestoring(false);
+      return undefined;
+    }
+    if (resolvedUidRef.current === driverId) return undefined;
+    if (accountStatus === ACCOUNT_STATUS.LOADING) {
+      setRestoring(true);
+      return undefined;
+    }
+    resolvedUidRef.current = driverId;
+    setRestoring(true);
+    // No cancel on dependency changes: the uid is already marked as resolved, so a re-run would never
+    // clear 'restoring'. Unmount and reset are guarded below.
+    const generation = resetGenerationRef.current;
+    shouldRestoreAvailability({
+      uid: driverId,
+      accountApproved: accountStatus === ACCOUNT_STATUS.APPROVED,
+      onTrip: onTripRef.current,
+      preference: availabilityPreference,
+      locationSource: getLocationSource(),
+    })
+      .catch(() => false)
+      .then((restore) => {
+        if (!mountedRef.current || generation !== resetGenerationRef.current) return;
+        // A switch touch while restoring wins over the saved value.
+        if (restore && !changingRef.current && !isAvailableRef.current) {
+          blockedRef.current = false;
+          setNotice(null);
+          setPermissionGranted(true);
+          setIsAvailable(true);
+        }
+        setRestoring(false);
+      });
+    return undefined;
+  }, [driverId, accountStatus, setIsAvailable]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -60,7 +138,6 @@ export function AvailabilityProvider({ children }) {
     };
   }, []);
 
-  const watching = isAvailable && !onTrip;
   const policy = locationPolicy({
     available: isAvailable,
     accountApproved: accountStatus === ACCOUNT_STATUS.APPROVED,
@@ -112,18 +189,31 @@ export function AvailabilityProvider({ children }) {
   }, [location.position]);
   const getDriverPosition = useCallback(() => positionRef.current, []);
 
+  // AI-assisted: see docs/AI_LOG.md #70 (D-197): the in-app simulator runs only when it is the single source;
+  // otherwise the backend generator sends the requests as pushes (adopted without a subscription).
+  const requestSource = useRequestSource({ available: isAvailable, onTrip });
+
   const {
     pendingRequest,
     lastRequest,
     error: requestsError,
     clearPendingRequest,
-  } = useTripRequests({ enabled: watching, getDriverPosition });
+    offerPushRequest: offerPushRequestUnchecked,
+    pushOffered,
+  } = useTripRequests({ enabled: requestSource === REQUEST_SOURCE.MOCK, getDriverPosition });
+
+  // A2 (D-181), defense in depth: a push request is never offered while the driver is not Disponible.
+  // AI-assisted: see docs/AI_LOG.md #66
+  const offerPushRequest = useCallback(
+    (request, options) => (isAvailableRef.current ? offerPushRequestUnchecked(request, options) : Promise.resolve(false)),
+    [offerPushRequestUnchecked],
+  );
 
   const blockForServices = useCallback(() => {
     blockedRef.current = true;
     setNotice('services_off');
     setIsAvailable(false);
-  }, []);
+  }, [setIsAvailable]);
 
   // Enables availability: permission (may prompt only on a user action), then the phone location.
   // `allowDialog` is true only for a switch touch; the foreground retry never shows a dialog.
@@ -161,23 +251,27 @@ export function AvailabilityProvider({ children }) {
       setNotice(null);
       setPermissionGranted(true);
       setIsAvailable(true);
+      persistAvailability(true);
       return finish();
     },
-    [blockForServices],
+    [blockForServices, persistAvailability, setIsAvailable],
   );
 
   const setAvailable = useCallback(
     async (next) => {
       if (changingRef.current) return;
+      resolvedUidRef.current = driverIdRef.current;
+      setRestoring(false);
       if (!next) {
         blockedRef.current = false;
         setIsAvailable(false);
         setNotice(null);
+        persistAvailability(false);
         return;
       }
       await enable(true);
     },
-    [enable],
+    [enable, persistAvailability, setIsAvailable],
   );
 
   // The phone location was turned off while available: switch off, no automatic restart.
@@ -197,7 +291,10 @@ export function AvailabilityProvider({ children }) {
     return () => subscription.remove();
   }, [enable]);
 
-  const setOnTrip = useCallback((value) => setOnTripState(Boolean(value)), []);
+  const setOnTrip = useCallback((value) => {
+    onTripRef.current = Boolean(value);
+    setOnTripState(Boolean(value));
+  }, []);
 
   const requestSimulatedTrip = useCallback(() => requestSimulatedTripNow(), []);
 
@@ -206,6 +303,9 @@ export function AvailabilityProvider({ children }) {
   // subscription), pending request freed, trip flag and notices cleared. Idempotent.
   const reset = useCallback(() => {
     resetGenerationRef.current += 1;
+    resolvedUidRef.current = driverIdRef.current;
+    setRestoring(false);
+    onTripRef.current = false;
     blockedRef.current = false;
     changingRef.current = false;
     positionRef.current = null;
@@ -216,12 +316,20 @@ export function AvailabilityProvider({ children }) {
     setOnTripState(false);
     setNotice(null);
     setRequestScreenId(null);
+    requestOriginRef.current = null;
     clearPendingRequest();
-  }, [clearPendingRequest]);
+  }, [clearPendingRequest, setIsAvailable]);
+
+  const availabilityState = restoring
+    ? AVAILABILITY_STATE.RESTORING
+    : isAvailable
+      ? AVAILABILITY_STATE.AVAILABLE
+      : AVAILABILITY_STATE.UNAVAILABLE;
 
   const value = useMemo(
     () => ({
       isAvailable,
+      availabilityState,
       isChanging,
       notice,
       setAvailable,
@@ -232,8 +340,12 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      offerPushRequest,
+      pushOffered,
       requestScreenId,
       setRequestScreenId,
+      setRequestOrigin,
+      takeRequestOrigin,
       lastRequest,
       requestsError,
       requestSimulatedTrip,
@@ -245,6 +357,7 @@ export function AvailabilityProvider({ children }) {
     }),
     [
       isAvailable,
+      availabilityState,
       isChanging,
       notice,
       setAvailable,
@@ -255,7 +368,11 @@ export function AvailabilityProvider({ children }) {
       getDriverPosition,
       pendingRequest,
       clearPendingRequest,
+      offerPushRequest,
+      pushOffered,
       requestScreenId,
+      setRequestOrigin,
+      takeRequestOrigin,
       lastRequest,
       requestsError,
       requestSimulatedTrip,

@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #41
 // Development-only map test (reachable only while SHOW_DEV_TOOLS is on): MapLibre map with the
 // OpenFreeMap style, the driver's current position from expo-location, and the street route between
@@ -24,6 +25,7 @@ import {
 } from '../../config/map';
 import { TEST_ROUTE_FROM, TEST_ROUTE_TO } from '../../config/routing';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { getRoute } from '../../services/routing';
 import { borderWidth, color, opacity, radius, space, touch, type } from '../../theme/tokens';
 
@@ -59,6 +61,7 @@ const fill = (template, values) =>
 const decimal = (value, digits) => value.toFixed(digits).replace('.', ',');
 
 export function MapTestScreen({ navigation }) {
+  useLanguage();
   const cameraRef = useRef(null);
   // route: { status: 'loading' | 'ready' | 'error', data }
   const [route, setRoute] = useState({ status: 'loading', data: null });

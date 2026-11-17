@@ -1,0 +1,2406 @@
+{
+ "appName": {
+  "type": "string",
+  "value": "UberClone Conductor"
+ },
+ "registrationFlow.tabShort.personalData": {
+  "type": "string",
+  "value": "Datos"
+ },
+ "registrationFlow.tabShort.vehicle": {
+  "type": "string",
+  "value": "Vehículo"
+ },
+ "registrationFlow.tabShort.documents": {
+  "type": "string",
+  "value": "Documentos"
+ },
+ "registrationFlow.stepOf": {
+  "type": "string",
+  "value": "Paso {n} de {total}"
+ },
+ "registrationFlow.welcome.title": {
+  "type": "string",
+  "value": "Completa tu perfil de conductor"
+ },
+ "registrationFlow.welcome.intro": {
+  "type": "string",
+  "value": "Para recibir viajes necesitas completar 3 pasos. Cuando los envíes, revisamos tu cuenta y, si todo está bien, la aprobamos."
+ },
+ "registrationFlow.welcome.progress": {
+  "type": "string",
+  "value": "{n} de {total} pasos completos"
+ },
+ "registrationFlow.welcome.estimate": {
+  "type": "string",
+  "value": "Tiempo estimado: unos 10 minutos"
+ },
+ "registrationFlow.welcome.stepPending": {
+  "type": "string",
+  "value": "Pendiente"
+ },
+ "registrationFlow.welcome.stepComplete": {
+  "type": "string",
+  "value": "Completo"
+ },
+ "registrationFlow.welcome.start": {
+  "type": "string",
+  "value": "Empezar"
+ },
+ "registrationFlow.welcome.continue": {
+  "type": "string",
+  "value": "Continuar"
+ },
+ "registrationFlow.welcome.review": {
+  "type": "string",
+  "value": "Revisar y enviar"
+ },
+ "registrationFlow.welcome.steps.personalData.title": {
+  "type": "string",
+  "value": "Datos personales"
+ },
+ "registrationFlow.welcome.steps.personalData.hint": {
+  "type": "string",
+  "value": "Nombre, documento, contacto y foto"
+ },
+ "registrationFlow.welcome.steps.vehicle.title": {
+  "type": "string",
+  "value": "Vehículo"
+ },
+ "registrationFlow.welcome.steps.vehicle.hint": {
+  "type": "string",
+  "value": "Placa, marca, modelo y foto"
+ },
+ "registrationFlow.welcome.steps.documents.title": {
+  "type": "string",
+  "value": "Documentos"
+ },
+ "registrationFlow.welcome.steps.documents.hint": {
+  "type": "string",
+  "value": "Licencia, SOAT y correo de cobros"
+ },
+ "registrationFlow.welcome.signedInAs": {
+  "type": "string",
+  "value": "Estás con {email}. ¿No eres tú?"
+ },
+ "registrationFlow.welcome.signedInAsA11y": {
+  "type": "string",
+  "value": "Sesión iniciada con {email}"
+ },
+ "registrationFlow.account.open": {
+  "type": "string",
+  "value": "Cuenta"
+ },
+ "registrationFlow.account.a11yOpen": {
+  "type": "string",
+  "value": "Cuenta: ver correo y cerrar sesión"
+ },
+ "registrationFlow.account.a11yClose": {
+  "type": "string",
+  "value": "Cerrar el menú de cuenta"
+ },
+ "registrationFlow.account.signedInAs": {
+  "type": "string",
+  "value": "Sesión iniciada con {email}"
+ },
+ "tabs.personalData": {
+  "type": "string",
+  "value": "Datos personales"
+ },
+ "tabs.vehicle": {
+  "type": "string",
+  "value": "Vehículo"
+ },
+ "tabs.documents": {
+  "type": "string",
+  "value": "Documentos"
+ },
+ "drawer.title": {
+  "type": "string",
+  "value": "UberClone Conductor"
+ },
+ "drawer.home": {
+  "type": "string",
+  "value": "Inicio"
+ },
+ "drawer.profile": {
+  "type": "string",
+  "value": "Perfil"
+ },
+ "drawer.history": {
+  "type": "string",
+  "value": "Historial"
+ },
+ "drawer.earnings": {
+  "type": "string",
+  "value": "Ganancias"
+ },
+ "drawer.settings": {
+  "type": "string",
+  "value": "Configuración"
+ },
+ "nav.openDrawer": {
+  "type": "string",
+  "value": "Menú"
+ },
+ "nav.back": {
+  "type": "string",
+  "value": "Atrás"
+ },
+ "home.startTrip": {
+  "type": "string",
+  "value": "Simular solicitud (provisional)"
+ },
+ "home.availabilityLabel": {
+  "type": "string",
+  "value": "Disponibilidad"
+ },
+ "home.available": {
+  "type": "string",
+  "value": "Disponible"
+ },
+ "home.unavailable": {
+  "type": "string",
+  "value": "No disponible"
+ },
+ "home.turnOnHint": {
+  "type": "string",
+  "value": "Activa para recibir solicitudes de viaje"
+ },
+ "home.turnOffHint": {
+  "type": "string",
+  "value": "Desactiva para dejar de recibir solicitudes"
+ },
+ "home.hintOff": {
+  "type": "string",
+  "value": "Activa Disponible para recibir solicitudes cerca de ti."
+ },
+ "home.hintWaiting": {
+  "type": "string",
+  "value": "Obteniendo tu ubicación…"
+ },
+ "home.hintActive": {
+  "type": "string",
+  "value": "Buscando solicitudes cerca de ti."
+ },
+ "home.hintPaused": {
+  "type": "string",
+  "value": "Ubicación en pausa mientras la app está en segundo plano."
+ },
+ "home.hintNoLocation": {
+  "type": "string",
+  "value": "No pudimos obtener tu ubicación. Revisa que el GPS esté encendido."
+ },
+ "home.permissionDenied": {
+  "type": "string",
+  "value": "Para estar disponible necesitas permitir la ubicación. Actívala en los ajustes del teléfono."
+ },
+ "home.permissionUnavailable": {
+  "type": "string",
+  "value": "La ubicación no está disponible en este momento. Inténtalo de nuevo."
+ },
+ "home.debugRequest": {
+  "type": "string",
+  "value": "Solicitud recibida: {id}"
+ },
+ "home.devNeedsAvailable": {
+  "type": "string",
+  "value": "Activa Disponible para simular una solicitud."
+ },
+ "home.devNoPosition": {
+  "type": "string",
+  "value": "Aún no hay ubicación; espera unos segundos."
+ },
+ "home.devBusy": {
+  "type": "string",
+  "value": "Ya hay una solicitud o un viaje en curso."
+ },
+ "home.devNotSupported": {
+  "type": "string",
+  "value": "La API real no permite simular solicitudes."
+ },
+ "home.servicesOff": {
+  "type": "string",
+  "value": "Activa la ubicación del teléfono para estar disponible."
+ },
+ "home.hintLocalOnly": {
+  "type": "string",
+  "value": "Solo tú ves tu posición. Activa Disponible para recibir solicitudes."
+ },
+ "home.permissionNeeded": {
+  "type": "string",
+  "value": "Necesitamos tu ubicación para mostrarte en el mapa y recibir solicitudes."
+ },
+ "home.grantPermission": {
+  "type": "string",
+  "value": "Permitir ubicación"
+ },
+ "home.mapLabel": {
+  "type": "string",
+  "value": "Mapa con tu posición"
+ },
+ "home.noSignal": {
+  "type": "string",
+  "value": "Aún sin señal de ubicación."
+ },
+ "trip.requestTitle": {
+  "type": "string",
+  "value": "Solicitud entrante"
+ },
+ "trip.activeTitle": {
+  "type": "string",
+  "value": "Viaje en curso"
+ },
+ "trip.summaryTitle": {
+  "type": "string",
+  "value": "Resumen del viaje"
+ },
+ "trip.backToHome": {
+  "type": "string",
+  "value": "Volver a Inicio"
+ },
+ "trip.passenger": {
+  "type": "string",
+  "value": "Pasajero"
+ },
+ "trip.rating": {
+  "type": "string",
+  "value": "★ {rating}"
+ },
+ "trip.ratingA11y": {
+  "type": "string",
+  "value": "Calificación {rating} de 5"
+ },
+ "trip.pickup": {
+  "type": "string",
+  "value": "Recogida"
+ },
+ "trip.destination": {
+  "type": "string",
+  "value": "Destino"
+ },
+ "trip.toPickup": {
+  "type": "string",
+  "value": "A {km} km · {min} min del pasajero"
+ },
+ "trip.tripLength": {
+  "type": "string",
+  "value": "Viaje de {km} km · {min} min"
+ },
+ "trip.category": {
+  "type": "string",
+  "value": "Categoría"
+ },
+ "trip.payment": {
+  "type": "string",
+  "value": "Pago"
+ },
+ "trip.paymentMethod.card": {
+  "type": "string",
+  "value": "Tarjeta"
+ },
+ "trip.paymentMethod.mercadopago": {
+  "type": "string",
+  "value": "Mercado Pago"
+ },
+ "trip.paymentMethod.stripe": {
+  "type": "string",
+  "value": "Stripe"
+ },
+ "trip.paymentMethod.cash": {
+  "type": "string",
+  "value": "Efectivo"
+ },
+ "trip.fare": {
+  "type": "string",
+  "value": "Tarifa"
+ },
+ "trip.commission": {
+  "type": "string",
+  "value": "Comisión ({pct} %)"
+ },
+ "trip.tip": {
+  "type": "string",
+  "value": "Propina"
+ },
+ "trip.totalCharged": {
+  "type": "string",
+  "value": "Total cobrado"
+ },
+ "trip.net": {
+  "type": "string",
+  "value": "Tu ganancia"
+ },
+ "trip.countdown": {
+  "type": "string",
+  "value": "Vence en {s} s"
+ },
+ "trip.countdownA11y": {
+  "type": "string",
+  "value": "La solicitud vence en {s} segundos"
+ },
+ "trip.accept": {
+  "type": "string",
+  "value": "Aceptar"
+ },
+ "trip.acceptHint": {
+  "type": "string",
+  "value": "Acepta el viaje y abre la ruta al pasajero"
+ },
+ "trip.reject": {
+  "type": "string",
+  "value": "Rechazar"
+ },
+ "trip.rejectHint": {
+  "type": "string",
+  "value": "Rechaza la solicitud y vuelve a Inicio"
+ },
+ "trip.working": {
+  "type": "string",
+  "value": "Un momento…"
+ },
+ "trip.calculating": {
+  "type": "string",
+  "value": "Calculando…"
+ },
+ "trip.calculatingA11y": {
+  "type": "string",
+  "value": "Calculando distancia, duración y tarifa"
+ },
+ "trip.unavailableNotice": {
+  "type": "string",
+  "value": "Activa Disponible para recibir solicitudes"
+ },
+ "trip.expired": {
+  "type": "string",
+  "value": "La solicitud expiró"
+ },
+ "trip.closedUnavailable": {
+  "type": "string",
+  "value": "Cancelada: ya no estás disponible"
+ },
+ "trip.pushExpired": {
+  "type": "string",
+  "value": "La solicitud expiró"
+ },
+ "trip.backingHome": {
+  "type": "string",
+  "value": "Volviendo a Inicio…"
+ },
+ "trip.noRequest": {
+  "type": "string",
+  "value": "No hay una solicitud pendiente."
+ },
+ "trip.errorTaken": {
+  "type": "string",
+  "value": "Otro conductor tomó esta solicitud."
+ },
+ "trip.errorNetwork": {
+  "type": "string",
+  "value": "No hay conexión. Revisa tu internet e inténtalo de nuevo."
+ },
+ "trip.errorGeneric": {
+  "type": "string",
+  "value": "Algo salió mal. Inténtalo de nuevo."
+ },
+ "trip.newRequest": {
+  "type": "string",
+  "value": "Nueva solicitud de {name}"
+ },
+ "trip.dismiss": {
+  "type": "string",
+  "value": "Cerrar"
+ },
+ "trip.dismissHint": {
+  "type": "string",
+  "value": "Oculta la tarjeta sin rechazar; la solicitud vence sola"
+ },
+ "trip.rejectCardHint": {
+  "type": "string",
+  "value": "Rechaza la solicitud y te quedas en esta pantalla"
+ },
+ "trip.phase.starting": {
+  "type": "string",
+  "value": "Preparando el viaje…"
+ },
+ "trip.phase.toPickup": {
+  "type": "string",
+  "value": "Conductor llegando"
+ },
+ "trip.phase.atPickup": {
+  "type": "string",
+  "value": "Llegaste al punto de recogida"
+ },
+ "trip.phase.toDestination": {
+  "type": "string",
+  "value": "En camino al destino"
+ },
+ "trip.phase.atDestination": {
+  "type": "string",
+  "value": "Llegaste al destino"
+ },
+ "trip.remaining": {
+  "type": "string",
+  "value": "{km} km · {min} min"
+ },
+ "trip.remainingCaption": {
+  "type": "string",
+  "value": "restantes"
+ },
+ "trip.pickupPointA11y": {
+  "type": "string",
+  "value": "Punto de recogida: {address}"
+ },
+ "trip.destinationA11y": {
+  "type": "string",
+  "value": "Destino: {address}"
+ },
+ "trip.routeLoading": {
+  "type": "string",
+  "value": "Calculando la ruta…"
+ },
+ "trip.addressSearching": {
+  "type": "string",
+  "value": "Buscando dirección…"
+ },
+ "trip.addressFallback": {
+  "type": "string",
+  "value": "Calle cercana (simulada)"
+ },
+ "trip.approxRoute": {
+  "type": "string",
+  "value": "Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles."
+ },
+ "trip.startRide": {
+  "type": "string",
+  "value": "Pasajero a bordo"
+ },
+ "trip.finishRide": {
+  "type": "string",
+  "value": "Finalizar viaje"
+ },
+ "trip.finishRideHint": {
+  "type": "string",
+  "value": "Llega al destino para continuar"
+ },
+ "trip.finishing": {
+  "type": "string",
+  "value": "Avisando al pasajero que el viaje terminó…"
+ },
+ "trip.finishErrorNetwork": {
+  "type": "string",
+  "value": "No pudimos confirmar el final del viaje: no hay conexión."
+ },
+ "trip.finishErrorTimeout": {
+  "type": "string",
+  "value": "El servidor no respondió a tiempo al finalizar el viaje."
+ },
+ "trip.finishErrorRejected": {
+  "type": "string",
+  "value": "El servidor no aceptó el final del viaje. Puedes salir del viaje."
+ },
+ "trip.exitTrip": {
+  "type": "string",
+  "value": "Salir del viaje"
+ },
+ "trip.exitQuestionServer": {
+  "type": "string",
+  "value": "¿Salir del viaje sin la confirmación del servidor?"
+ },
+ "trip.exitQuestionInProgress": {
+  "type": "string",
+  "value": "¿Salir del viaje en curso?"
+ },
+ "trip.exitQuestionPlain": {
+  "type": "string",
+  "value": "¿Salir del viaje?"
+ },
+ "trip.exitMessageCancelled": {
+  "type": "string",
+  "value": "El viaje queda cancelado y sin cobro. Vuelves a Inicio y el pasajero puede no recibir el aviso."
+ },
+ "trip.exitMessageAtDestination": {
+  "type": "string",
+  "value": "El viaje se cierra en este teléfono y no se registra el cobro. Vuelves a Inicio y el pasajero puede no recibir el aviso."
+ },
+ "trip.exitConfirm": {
+  "type": "string",
+  "value": "Sí, salir"
+ },
+ "trip.exitKeep": {
+  "type": "string",
+  "value": "Quedarme aquí"
+ },
+ "trip.reportError": {
+  "type": "string",
+  "value": "No pudimos avisar el cambio al pasajero. Revisa tu conexión."
+ },
+ "trip.locationError": {
+  "type": "string",
+  "value": "No pudimos obtener tu ubicación. Revisa que la ubicación del teléfono esté activada."
+ },
+ "trip.mapError": {
+  "type": "string",
+  "value": "No pudimos cargar el mapa. Revisa tu conexión a internet."
+ },
+ "trip.cancel": {
+  "type": "string",
+  "value": "Cancelar viaje"
+ },
+ "trip.cancelQuestion": {
+  "type": "string",
+  "value": "¿Cancelar este viaje?"
+ },
+ "trip.cancelMessage": {
+  "type": "string",
+  "value": "El pasajero recibirá el aviso y volverás a Inicio."
+ },
+ "trip.cancelConfirm": {
+  "type": "string",
+  "value": "Sí, cancelar"
+ },
+ "trip.cancelKeep": {
+  "type": "string",
+  "value": "Seguir con el viaje"
+ },
+ "trip.cancelError": {
+  "type": "string",
+  "value": "No pudimos cancelar el viaje. Revisa tu conexión."
+ },
+ "trip.distance": {
+  "type": "string",
+  "value": "Distancia"
+ },
+ "trip.duration": {
+  "type": "string",
+  "value": "Duración"
+ },
+ "trip.finishedAt": {
+  "type": "string",
+  "value": "Hora de llegada"
+ },
+ "trip.kmValue": {
+  "type": "string",
+  "value": "{km} km"
+ },
+ "trip.minValue": {
+  "type": "string",
+  "value": "{min} min"
+ },
+ "trip.paymentTitle": {
+  "type": "string",
+  "value": "Cobro"
+ },
+ "trip.paymentSimulated": {
+  "type": "string",
+  "value": "Pago de prueba: no se mueve dinero real."
+ },
+ "trip.paymentCash": {
+  "type": "string",
+  "value": "Efectivo: recibe el pago del pasajero en mano."
+ },
+ "trip.paymentTransfer": {
+  "type": "string",
+  "value": "Transferencia a tu correo de cobros ({email})."
+ },
+ "trip.paymentTransferNoEmail": {
+  "type": "string",
+  "value": "Transferencia a tu correo de cobros registrado."
+ },
+ "trip.paymentCardGeneric": {
+  "type": "string",
+  "value": "El pago se cobra con tarjeta."
+ },
+ "trip.paymentCardChosen.mercadopago": {
+  "type": "string",
+  "value": "El pago se cobra con tarjeta (Mercado Pago)."
+ },
+ "trip.paymentCardChosen.stripe": {
+  "type": "string",
+  "value": "El pago se cobra con tarjeta (Stripe)."
+ },
+ "trip.confirmCharge": {
+  "type": "string",
+  "value": "Confirmar cobro"
+ },
+ "trip.confirmChargeHint": {
+  "type": "string",
+  "value": "Guarda este viaje en tu historial"
+ },
+ "trip.saving": {
+  "type": "string",
+  "value": "Guardando el viaje…"
+ },
+ "trip.saved": {
+  "type": "string",
+  "value": "Cobro confirmado. El viaje quedó guardado en tu historial."
+ },
+ "trip.saveErrorNetwork": {
+  "type": "string",
+  "value": "No pudimos guardar el viaje: no hay conexión."
+ },
+ "trip.saveErrorTimeout": {
+  "type": "string",
+  "value": "El servidor no respondió a tiempo al guardar el viaje."
+ },
+ "trip.saveErrorDenied": {
+  "type": "string",
+  "value": "No tienes permiso para guardar este viaje. Revisa que tu cuenta esté aprobada."
+ },
+ "trip.saveErrorGeneric": {
+  "type": "string",
+  "value": "No pudimos guardar el viaje. Inténtalo de nuevo."
+ },
+ "trip.saveUnavailable": {
+  "type": "string",
+  "value": "No pudimos calcular o guardar este cobro. Vuelve a Inicio; el viaje no se registrará."
+ },
+ "trip.leaveUnsaved": {
+  "type": "string",
+  "value": "Volver a Inicio sin guardar"
+ },
+ "trip.leaveQuestion": {
+  "type": "string",
+  "value": "¿Volver a Inicio sin guardar el viaje?"
+ },
+ "trip.leaveMessage": {
+  "type": "string",
+  "value": "Este viaje no quedará en tu historial ni en tus ganancias."
+ },
+ "trip.leaveConfirm": {
+  "type": "string",
+  "value": "Sí, volver sin guardar"
+ },
+ "trip.leaveKeep": {
+  "type": "string",
+  "value": "Seguir en el resumen"
+ },
+ "trip.noTrip": {
+  "type": "string",
+  "value": "No hay un viaje para mostrar."
+ },
+ "trip.paymentChip.approved": {
+  "type": "string",
+  "value": "Aprobado"
+ },
+ "trip.paymentChip.pending": {
+  "type": "string",
+  "value": "Pendiente"
+ },
+ "trip.paymentChip.rejected": {
+  "type": "string",
+  "value": "Rechazado"
+ },
+ "trip.paymentChip.cash": {
+  "type": "string",
+  "value": "Efectivo"
+ },
+ "trip.paymentChip.unavailable": {
+  "type": "string",
+  "value": "No disponible"
+ },
+ "trip.paymentStateTitle": {
+  "type": "string",
+  "value": "Estado del cobro"
+ },
+ "trip.paymentLoading": {
+  "type": "string",
+  "value": "Consultando el estado del cobro"
+ },
+ "trip.paymentOffline.title": {
+  "type": "string",
+  "value": "Sin conexión"
+ },
+ "trip.paymentOffline.message": {
+  "type": "string",
+  "value": "No podemos consultar el estado del cobro sin internet. Tu viaje está guardado; puedes volver a Inicio y revisarlo después."
+ },
+ "trip.paymentBackendUnavailable.title": {
+  "type": "string",
+  "value": "Servicio de cobro no disponible"
+ },
+ "trip.paymentBackendUnavailable.message": {
+  "type": "string",
+  "value": "No pudimos contactar el servicio de cobro. Tu viaje está guardado; puedes volver a Inicio y cobrar más tarde."
+ },
+ "trip.paymentError.title": {
+  "type": "string",
+  "value": "No pudimos consultar el cobro"
+ },
+ "trip.paymentError.message": {
+  "type": "string",
+  "value": "Algo falló al traer el estado del cobro. Tu viaje está guardado; vuelve a Inicio e inténtalo más tarde."
+ },
+ "trip.paymentAction.charge": {
+  "type": "string",
+  "value": "Cobrar con Mercado Pago"
+ },
+ "trip.paymentAction.retry": {
+  "type": "string",
+  "value": "Reintentar pago"
+ },
+ "trip.paymentAction.reloadProviders": {
+  "type": "string",
+  "value": "Reintentar"
+ },
+ "trip.paymentAction.verify": {
+  "type": "string",
+  "value": "Verificar pago"
+ },
+ "trip.paymentAction.confirmCash": {
+  "type": "string",
+  "value": "Confirmar efectivo recibido"
+ },
+ "trip.chargeProvider.mercadopago": {
+  "type": "string",
+  "value": "Cobrar con Mercado Pago"
+ },
+ "trip.chargeProvider.stripe": {
+  "type": "string",
+  "value": "Cobrar con Stripe (tarjeta de prueba)"
+ },
+ "trip.retryProvider.mercadopago": {
+  "type": "string",
+  "value": "Reintentar pago con Mercado Pago"
+ },
+ "trip.retryProvider.stripe": {
+  "type": "string",
+  "value": "Reintentar pago con Stripe (tarjeta de prueba)"
+ },
+ "trip.chargePanel.cashPending": {
+  "type": "string",
+  "value": "Falta confirmar que recibiste el efectivo."
+ },
+ "trip.chargePanel.cashCollected": {
+  "type": "string",
+  "value": "Efectivo recibido. El viaje quedó guardado en tu historial."
+ },
+ "trip.chargePanel.cardApproved": {
+  "type": "string",
+  "value": "Pago aprobado. El viaje quedó guardado en tu historial."
+ },
+ "trip.chargePanel.cardRejected": {
+  "type": "string",
+  "value": "Pago rechazado. Toca “Reintentar pago”."
+ },
+ "trip.chargePanel.cardRejectedChoose": {
+  "type": "string",
+  "value": "Pago rechazado. Elige una opción de reintento."
+ },
+ "trip.chargePanel.savedOnly": {
+  "type": "string",
+  "value": "Viaje guardado en tu historial."
+ },
+ "trip.chargePanel.noGateway": {
+  "type": "string",
+  "value": "No hay una pasarela de pago configurada"
+ },
+ "trip.chargePanel.providersFailed": {
+  "type": "string",
+  "value": "No pudimos consultar las pasarelas de pago. Revisa tu conexión y que el servicio esté encendido."
+ },
+ "trip.chargePanel.cardPendingGeneric": {
+  "type": "string",
+  "value": "Viaje guardado. Falta el pago con tarjeta."
+ },
+ "trip.chargePanel.serviceError": {
+  "type": "string",
+  "value": "No pudimos completar la acción con el servicio de cobro. Inténtalo de nuevo."
+ },
+ "trip.paymentActionsTitle": {
+  "type": "string",
+  "value": "Acciones de cobro"
+ },
+ "trip.paymentActionBusy": {
+  "type": "string",
+  "value": "Procesando…"
+ },
+ "trip.paymentCardNote": {
+  "type": "string",
+  "value": "Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando Mercado Pago lo confirma; esta pantalla no lo marca."
+ },
+ "trip.paymentCardNoteGeneric": {
+  "type": "string",
+  "value": "Después de pagar en el navegador, vuelve a la app. El estado cambia solo cuando la pasarela lo confirma; esta pantalla no lo marca."
+ },
+ "trip.paymentCashCollected": {
+  "type": "string",
+  "value": "Efectivo cobrado."
+ },
+ "trip.paymentServiceError.notConfigured.title": {
+  "type": "string",
+  "value": "Servicio de cobro sin configurar"
+ },
+ "trip.paymentServiceError.notConfigured.message": {
+  "type": "string",
+  "value": "El servicio de cobro no está configurado en esta app. Avisa a soporte o revisa la configuración de la app."
+ },
+ "trip.paymentServiceError.offline.title": {
+  "type": "string",
+  "value": "Sin conexión con el cobro"
+ },
+ "trip.paymentServiceError.offline.message": {
+  "type": "string",
+  "value": "No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido."
+ },
+ "trip.paymentServiceError.timeout.title": {
+  "type": "string",
+  "value": "El cobro tardó demasiado"
+ },
+ "trip.paymentServiceError.timeout.message": {
+  "type": "string",
+  "value": "No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido."
+ },
+ "trip.paymentServiceError.serverError.title": {
+  "type": "string",
+  "value": "Servicio de cobro con problemas"
+ },
+ "trip.paymentServiceError.serverError.message": {
+  "type": "string",
+  "value": "No se pudo conectar con el servicio de cobro. Revisa tu conexión y que el servicio esté encendido."
+ },
+ "trip.paymentServiceError.sessionExpired.title": {
+  "type": "string",
+  "value": "Sesión expirada"
+ },
+ "trip.paymentServiceError.sessionExpired.message": {
+  "type": "string",
+  "value": "Tu sesión expiró; vuelve a iniciar sesión."
+ },
+ "trip.paymentServiceError.notFound.title": {
+  "type": "string",
+  "value": "No encontramos el cobro"
+ },
+ "trip.paymentServiceError.notFound.message": {
+  "type": "string",
+  "value": "El servicio de cobro no encontró este viaje. Actualiza la pantalla o inténtalo más tarde."
+ },
+ "trip.paymentServiceError.invalidResponse.title": {
+  "type": "string",
+  "value": "Respuesta inesperada"
+ },
+ "trip.paymentServiceError.invalidResponse.message": {
+  "type": "string",
+  "value": "El servicio de cobro respondió algo que no entendemos. Inténtalo de nuevo en unos minutos."
+ },
+ "trip.paymentServiceError.providerError.title": {
+  "type": "string",
+  "value": "La pasarela no respondió"
+ },
+ "trip.paymentServiceError.providerError.message": {
+  "type": "string",
+  "value": "La pasarela de pago no pudo procesar la solicitud. Inténtalo de nuevo en unos minutos."
+ },
+ "trip.paymentServiceError.providerNotConfigured.title": {
+  "type": "string",
+  "value": "Pasarela no configurada"
+ },
+ "trip.paymentServiceError.providerNotConfigured.message": {
+  "type": "string",
+  "value": "Esa pasarela de pago no está configurada en el servicio. Elige otra o avisa a soporte."
+ },
+ "trip.paymentActionError.offline.title": {
+  "type": "string",
+  "value": "Sin conexión"
+ },
+ "trip.paymentActionError.offline.message": {
+  "type": "string",
+  "value": "No pudimos completar la acción sin internet. Inténtalo de nuevo cuando vuelvas a tener conexión."
+ },
+ "trip.paymentActionError.backendUnavailable.title": {
+  "type": "string",
+  "value": "Servicio de cobro no disponible"
+ },
+ "trip.paymentActionError.backendUnavailable.message": {
+  "type": "string",
+  "value": "No pudimos contactar el servicio de cobro. Inténtalo de nuevo en unos minutos."
+ },
+ "trip.paymentActionError.failed.title": {
+  "type": "string",
+  "value": "No pudimos completar la acción"
+ },
+ "trip.paymentActionError.failed.message": {
+  "type": "string",
+  "value": "Algo falló con el cobro. Inténtalo de nuevo."
+ },
+ "trip.paymentActionError.openFailed.title": {
+  "type": "string",
+  "value": "No pudimos abrir el pago"
+ },
+ "trip.paymentActionError.openFailed.message": {
+  "type": "string",
+  "value": "No se pudo abrir el navegador con el enlace de pago. Inténtalo de nuevo."
+ },
+ "trip.paymentActionError.cashFailed.title": {
+  "type": "string",
+  "value": "No pudimos confirmar el efectivo"
+ },
+ "trip.paymentActionError.cashFailed.message": {
+  "type": "string",
+  "value": "No se guardó la confirmación. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "earnings.periods.day": {
+  "type": "string",
+  "value": "Hoy"
+ },
+ "earnings.periods.week": {
+  "type": "string",
+  "value": "Esta semana"
+ },
+ "earnings.periods.month": {
+  "type": "string",
+  "value": "Este mes"
+ },
+ "earnings.periodsA11y": {
+  "type": "string",
+  "value": "Periodo de las ganancias"
+ },
+ "earnings.net": {
+  "type": "string",
+  "value": "Ganaste"
+ },
+ "earnings.commission": {
+  "type": "string",
+  "value": "Comisión descontada"
+ },
+ "earnings.count": {
+  "type": "string",
+  "value": "Viajes completados"
+ },
+ "earnings.tripsTitle": {
+  "type": "string",
+  "value": "Viajes del periodo"
+ },
+ "earnings.weekNote": {
+  "type": "string",
+  "value": "La semana empieza el lunes."
+ },
+ "earnings.truncatedNote": {
+  "type": "string",
+  "value": "Hay más viajes de los que se pueden mostrar; los totales pueden ser parciales."
+ },
+ "earnings.emptyTitle": {
+  "type": "string",
+  "value": "Aún no hay viajes en este periodo"
+ },
+ "earnings.emptyMessage": {
+  "type": "string",
+  "value": "Cuando completes un viaje y confirmes el cobro, aparece aquí."
+ },
+ "earnings.errorMessage": {
+  "type": "string",
+  "value": "No pudimos traer tus ganancias. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "earnings.tripLine": {
+  "type": "string",
+  "value": "{passenger} · {time}"
+ },
+ "earnings.timeUnknown": {
+  "type": "string",
+  "value": "Hora no disponible"
+ },
+ "earnings.balance": {
+  "type": "string",
+  "value": "Saldo con la plataforma"
+ },
+ "earnings.balanceCredit": {
+  "type": "string",
+  "value": "Saldo a favor de la plataforma"
+ },
+ "earnings.balanceHint": {
+  "type": "string",
+  "value": "La plataforma te debe esta cantidad por los cobros con tarjeta."
+ },
+ "earnings.gross": {
+  "type": "string",
+  "value": "Total facturado"
+ },
+ "earnings.tips": {
+  "type": "string",
+  "value": "Propinas"
+ },
+ "earnings.average": {
+  "type": "string",
+  "value": "Promedio por viaje"
+ },
+ "earnings.metricsTitle": {
+  "type": "string",
+  "value": "Resumen del periodo"
+ },
+ "earnings.balanceCreditHint": {
+  "type": "string",
+  "value": "Debes esta cantidad a la plataforma por la comisión de los viajes en efectivo."
+ },
+ "earnings.balancePartial": {
+  "type": "string",
+  "value": "Saldo parcial: se leyeron los {count} viajes más recientes."
+ },
+ "earnings.balanceErrorMessage": {
+  "type": "string",
+  "value": "No pudimos traer tu saldo. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "earnings.balanceNoSessionTitle": {
+  "type": "string",
+  "value": "Saldo no disponible"
+ },
+ "earnings.balanceNoSessionMessage": {
+  "type": "string",
+  "value": "Inicia sesión para ver tu saldo con la plataforma."
+ },
+ "history.emptyTitle": {
+  "type": "string",
+  "value": "Todavía no tienes viajes"
+ },
+ "history.emptyMessage": {
+  "type": "string",
+  "value": "Tus viajes completados y cancelados aparecen aquí cuando termines uno."
+ },
+ "history.errorMessage": {
+  "type": "string",
+  "value": "No pudimos traer tu historial. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "history.status.completed": {
+  "type": "string",
+  "value": "Completado"
+ },
+ "history.status.cancelled": {
+  "type": "string",
+  "value": "Cancelado"
+ },
+ "history.status.rejected": {
+  "type": "string",
+  "value": "Rechazado"
+ },
+ "history.cancelledAmounts": {
+  "type": "string",
+  "value": "Sin cobro"
+ },
+ "history.fare": {
+  "type": "string",
+  "value": "Tarifa"
+ },
+ "history.net": {
+  "type": "string",
+  "value": "Tu ganancia"
+ },
+ "history.showMore": {
+  "type": "string",
+  "value": "Ver más"
+ },
+ "history.showMoreHint": {
+  "type": "string",
+  "value": "Muestra más viajes anteriores"
+ },
+ "history.itemA11y": {
+  "type": "string",
+  "value": "{status}. {date}. {passenger}. De {origin} a {destination}."
+ },
+ "history.itemA11yAmounts": {
+  "type": "string",
+  "value": " Tarifa {fare}. Tu ganancia {net}."
+ },
+ "history.dateUnknown": {
+  "type": "string",
+  "value": "Fecha no disponible"
+ },
+ "history.rangeMissing": {
+  "type": "string",
+  "value": "Elige la fecha de inicio y la fecha de fin."
+ },
+ "history.rangeOrder": {
+  "type": "string",
+  "value": "La fecha de inicio no puede ser posterior a la fecha de fin."
+ },
+ "history.rangeTooLong": {
+  "type": "string",
+  "value": "El rango no puede superar 366 días."
+ },
+ "history.weekdaysShort": {
+  "type": "array",
+  "value": [
+   "lun",
+   "mar",
+   "mié",
+   "jue",
+   "vie",
+   "sáb",
+   "dom"
+  ]
+ },
+ "history.periodsA11y": {
+  "type": "string",
+  "value": "Periodo del historial"
+ },
+ "history.periods.day": {
+  "type": "string",
+  "value": "Hoy"
+ },
+ "history.periods.week": {
+  "type": "string",
+  "value": "Semana"
+ },
+ "history.periods.month": {
+  "type": "string",
+  "value": "Mes"
+ },
+ "history.periods.range": {
+  "type": "string",
+  "value": "Rango"
+ },
+ "history.methodsA11y": {
+  "type": "string",
+  "value": "Método de pago"
+ },
+ "history.methods.all": {
+  "type": "string",
+  "value": "Todos"
+ },
+ "history.methods.mercadopago": {
+  "type": "string",
+  "value": "Tarjeta"
+ },
+ "history.methods.cash": {
+  "type": "string",
+  "value": "Efectivo"
+ },
+ "history.rangeStart": {
+  "type": "string",
+  "value": "Desde"
+ },
+ "history.rangeEnd": {
+  "type": "string",
+  "value": "Hasta"
+ },
+ "history.rangeHint": {
+  "type": "string",
+  "value": "Elige las fechas para ver tus viajes."
+ },
+ "history.loadMore": {
+  "type": "string",
+  "value": "Cargar más"
+ },
+ "history.loadMoreHint": {
+  "type": "string",
+  "value": "Trae los siguientes 20 viajes"
+ },
+ "history.loadingMore": {
+  "type": "string",
+  "value": "Cargando más viajes"
+ },
+ "history.loadMoreError": {
+  "type": "string",
+  "value": "No pudimos traer más viajes. Inténtalo de nuevo."
+ },
+ "history.paymentStatus.pending": {
+  "type": "string",
+  "value": "Pago pendiente"
+ },
+ "history.paymentStatus.approved": {
+  "type": "string",
+  "value": "Pago aprobado"
+ },
+ "history.paymentStatus.rejected": {
+  "type": "string",
+  "value": "Pago rechazado"
+ },
+ "history.paymentStatus.paid": {
+  "type": "string",
+  "value": "Pagado"
+ },
+ "history.paymentUnknown": {
+  "type": "string",
+  "value": "Pago sin estado"
+ },
+ "history.legacyPayment": {
+  "type": "string",
+  "value": "Cobro simulado"
+ },
+ "history.itemPayment": {
+  "type": "string",
+  "value": " {payment}."
+ },
+ "history.itemCategory": {
+  "type": "string",
+  "value": " Categoría {category}."
+ },
+ "history.chartTitle": {
+  "type": "string",
+  "value": "Ganancia neta"
+ },
+ "history.chartEmpty": {
+  "type": "string",
+  "value": "Sin ganancias en este periodo"
+ },
+ "history.chartSummary": {
+  "type": "string",
+  "value": "Gráfica de ganancia neta. Total {total}."
+ },
+ "history.chartTop": {
+  "type": "string",
+  "value": " Mayor ganancia: {label}, {value}."
+ },
+ "history.chartBar": {
+  "type": "string",
+  "value": "{label}: {value}"
+ },
+ "history.chartTotalLine": {
+  "type": "string",
+  "value": "Total {total}"
+ },
+ "history.chartTopLine": {
+  "type": "string",
+  "value": "Mayor: {label} · {value}"
+ },
+ "history.chartNote": {
+  "type": "string",
+  "value": "La gráfica suma los viajes cargados."
+ },
+ "history.detail.title": {
+  "type": "string",
+  "value": "Detalle del viaje"
+ },
+ "history.detail.duration": {
+  "type": "string",
+  "value": "Duración"
+ },
+ "history.detail.distance": {
+  "type": "string",
+  "value": "Distancia"
+ },
+ "history.detail.commission": {
+  "type": "string",
+  "value": "Comisión"
+ },
+ "history.detail.tip": {
+  "type": "string",
+  "value": "Propina"
+ },
+ "history.detail.noTip": {
+  "type": "string",
+  "value": "Sin propina"
+ },
+ "history.detail.method": {
+  "type": "string",
+  "value": "Método de pago"
+ },
+ "history.detail.status": {
+  "type": "string",
+  "value": "Estado"
+ },
+ "history.detail.rating": {
+  "type": "string",
+  "value": "Calificación"
+ },
+ "history.detail.ratingValue": {
+  "type": "string",
+  "value": "★ {rating}"
+ },
+ "history.detail.ratingA11y": {
+  "type": "string",
+  "value": "Calificación {rating} de 5"
+ },
+ "history.detail.noRating": {
+  "type": "string",
+  "value": "Sin calificación"
+ },
+ "history.detail.noRatingA11y": {
+  "type": "string",
+  "value": "Calificación: sin calificación"
+ },
+ "history.detail.durationValue": {
+  "type": "string",
+  "value": "{minutes} min"
+ },
+ "history.detail.distanceValue": {
+  "type": "string",
+  "value": "{km} km"
+ },
+ "history.detail.methods.card": {
+  "type": "string",
+  "value": "Tarjeta"
+ },
+ "history.detail.methods.mercadopago": {
+  "type": "string",
+  "value": "Tarjeta (Mercado Pago)"
+ },
+ "history.detail.methods.stripe": {
+  "type": "string",
+  "value": "Tarjeta (Stripe)"
+ },
+ "history.detail.methods.cash": {
+  "type": "string",
+  "value": "Efectivo"
+ },
+ "history.detail.methodUnknown": {
+  "type": "string",
+  "value": "No disponible"
+ },
+ "history.detail.routeUnavailable": {
+  "type": "string",
+  "value": "Ruta no disponible"
+ },
+ "history.detail.routeA11y": {
+  "type": "string",
+  "value": "Ruta del viaje"
+ },
+ "history.detail.back": {
+  "type": "string",
+  "value": "Volver al historial"
+ },
+ "history.detail.openHint": {
+  "type": "string",
+  "value": "Abre el detalle del viaje"
+ },
+ "history.detail.emptyTitle": {
+  "type": "string",
+  "value": "No encontramos este viaje"
+ },
+ "history.detail.emptyMessage": {
+  "type": "string",
+  "value": "Vuelve al historial y elige otro viaje."
+ },
+ "profile.photoA11y": {
+  "type": "string",
+  "value": "Foto de perfil"
+ },
+ "profile.noPhoto": {
+  "type": "string",
+  "value": "Sin foto"
+ },
+ "profile.personal": {
+  "type": "string",
+  "value": "Datos personales"
+ },
+ "profile.name": {
+  "type": "string",
+  "value": "Nombre"
+ },
+ "profile.phone": {
+  "type": "string",
+  "value": "Celular"
+ },
+ "profile.vehicle": {
+  "type": "string",
+  "value": "Vehículo"
+ },
+ "profile.brandModel": {
+  "type": "string",
+  "value": "Marca y modelo"
+ },
+ "profile.plate": {
+  "type": "string",
+  "value": "Placa"
+ },
+ "profile.year": {
+  "type": "string",
+  "value": "Año"
+ },
+ "profile.color": {
+  "type": "string",
+  "value": "Color"
+ },
+ "profile.category": {
+  "type": "string",
+  "value": "Categoría"
+ },
+ "profile.payments": {
+  "type": "string",
+  "value": "Cobros"
+ },
+ "profile.payoutEmail": {
+  "type": "string",
+  "value": "Correo de cobros"
+ },
+ "profile.payoutEmailHelp": {
+  "type": "string",
+  "value": "Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión."
+ },
+ "profile.account": {
+  "type": "string",
+  "value": "Estado de la cuenta"
+ },
+ "profile.accountRow": {
+  "type": "string",
+  "value": "Estado"
+ },
+ "profile.accountStatus.pending": {
+  "type": "string",
+  "value": "Pendiente de aprobación"
+ },
+ "profile.accountStatus.approved": {
+  "type": "string",
+  "value": "Aprobada"
+ },
+ "profile.missing": {
+  "type": "string",
+  "value": "Sin dato"
+ },
+ "profile.emptyTitle": {
+  "type": "string",
+  "value": "Aún no hay datos de tu perfil"
+ },
+ "profile.emptyMessage": {
+  "type": "string",
+  "value": "Completa tu registro para ver aquí tu perfil."
+ },
+ "profile.errorMessage": {
+  "type": "string",
+  "value": "No pudimos traer tu perfil. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "profile.readOnly": {
+  "type": "string",
+  "value": "Para cambiar estos datos contacta a soporte."
+ },
+ "profile.edit.edit": {
+  "type": "string",
+  "value": "Editar"
+ },
+ "profile.edit.save": {
+  "type": "string",
+  "value": "Guardar"
+ },
+ "profile.edit.cancel": {
+  "type": "string",
+  "value": "Cancelar"
+ },
+ "profile.edit.retry": {
+  "type": "string",
+  "value": "Reintentar"
+ },
+ "profile.edit.editHint": {
+  "type": "string",
+  "value": "Abre la edición de nombre, celular, color del vehículo y correo de cobros."
+ },
+ "profile.edit.editField": {
+  "type": "string",
+  "value": "Editar"
+ },
+ "profile.edit.editFieldHint": {
+  "type": "string",
+  "value": "Abre la edición de este dato. Solo se edita un dato a la vez."
+ },
+ "profile.edit.editBusyHint": {
+  "type": "string",
+  "value": "Guarda o cancela la edición en curso para editar otro dato."
+ },
+ "profile.edit.saveHint": {
+  "type": "string",
+  "value": "Guarda los cambios de tu perfil."
+ },
+ "profile.edit.cancelHint": {
+  "type": "string",
+  "value": "Descarta los cambios y vuelve a ver tu perfil."
+ },
+ "profile.edit.retryHint": {
+  "type": "string",
+  "value": "Vuelve a intentar guardar los cambios."
+ },
+ "profile.status.saving": {
+  "type": "string",
+  "value": "Guardando…"
+ },
+ "profile.status.saved": {
+  "type": "string",
+  "value": "Cambios guardados."
+ },
+ "profile.status.networkError": {
+  "type": "string",
+  "value": "No pudimos guardar. Revisa tu conexión e inténtalo de nuevo. Lo que escribiste se conserva."
+ },
+ "profile.errors.fullName": {
+  "type": "string",
+  "value": "Escribe tu nombre completo (máximo 50 letras, solo letras y espacios)."
+ },
+ "profile.errors.phone": {
+  "type": "string",
+  "value": "Escribe un número de celular válido de 10 dígitos."
+ },
+ "profile.errors.vehicleColor": {
+  "type": "string",
+  "value": "Selecciona un color."
+ },
+ "profile.errors.payoutEmail": {
+  "type": "string",
+  "value": "Escribe un correo válido, con @ y dominio."
+ },
+ "settings.appTitle": {
+  "type": "string",
+  "value": "Información de la app"
+ },
+ "settings.appName": {
+  "type": "string",
+  "value": "Aplicación"
+ },
+ "settings.appNameValue": {
+  "type": "string",
+  "value": "UberClone Conductor"
+ },
+ "settings.version": {
+  "type": "string",
+  "value": "Versión"
+ },
+ "settings.paymentNote": {
+  "type": "string",
+  "value": "El cobro es simulado: no hay pasarela de pago real ni se mueve dinero."
+ },
+ "settings.mapsNote": {
+  "type": "string",
+  "value": "Las rutas usan OSRM y los mapas son de OpenStreetMap y OpenFreeMap."
+ },
+ "settings.accountTitle": {
+  "type": "string",
+  "value": "Cuenta"
+ },
+ "settings.accountEmail": {
+  "type": "string",
+  "value": "Correo de la cuenta"
+ },
+ "notifications.title": {
+  "type": "string",
+  "value": "Notificaciones"
+ },
+ "notifications.switchLabel": {
+  "type": "string",
+  "value": "Avisos de solicitudes"
+ },
+ "notifications.blockedTitle": {
+  "type": "string",
+  "value": "Notificaciones bloqueadas"
+ },
+ "notifications.switchHint": {
+  "type": "string",
+  "value": "Activa o desactiva las notificaciones de solicitudes de viaje."
+ },
+ "notifications.stateOn": {
+  "type": "string",
+  "value": "Activadas"
+ },
+ "notifications.stateOff": {
+  "type": "string",
+  "value": "Desactivadas"
+ },
+ "notifications.stateEnabling": {
+  "type": "string",
+  "value": "Activando…"
+ },
+ "notifications.stateDisabling": {
+  "type": "string",
+  "value": "Desactivando…"
+ },
+ "notifications.explainBody": {
+  "type": "string",
+  "value": "Te avisaremos cuando llegue una solicitud de viaje aunque la app esté en segundo plano. El sistema te pedirá permiso."
+ },
+ "notifications.explainContinue": {
+  "type": "string",
+  "value": "Continuar"
+ },
+ "notifications.explainCancel": {
+  "type": "string",
+  "value": "Ahora no"
+ },
+ "notifications.denied": {
+  "type": "string",
+  "value": "No diste permiso. Puedes intentarlo de nuevo cuando quieras."
+ },
+ "notifications.blocked": {
+  "type": "string",
+  "value": "El permiso está bloqueado. Actívalo en los ajustes del sistema."
+ },
+ "notifications.unsupported": {
+  "type": "string",
+  "value": "Este dispositivo no admite notificaciones."
+ },
+ "notifications.storage": {
+  "type": "string",
+  "value": "No pudimos guardar tu preferencia. Inténtalo de nuevo."
+ },
+ "notifications.openSettings": {
+  "type": "string",
+  "value": "Abrir ajustes del sistema"
+ },
+ "notifications.delayValue": {
+  "type": "function",
+  "sample": "15 s"
+ },
+ "states.loading.title": {
+  "type": "string",
+  "value": "Cargando"
+ },
+ "states.loading.message": {
+  "type": "string",
+  "value": "Estamos trayendo tu información."
+ },
+ "states.empty.title": {
+  "type": "string",
+  "value": "Todavía no hay nada aquí"
+ },
+ "states.empty.message": {
+  "type": "string",
+  "value": "Aún no hay información que mostrar. Vuelve a esta pantalla más tarde."
+ },
+ "states.error.title": {
+  "type": "string",
+  "value": "No pudimos cargar"
+ },
+ "states.error.message": {
+  "type": "string",
+  "value": "Algo falló al traer tu información. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "placeholder.body": {
+  "type": "string",
+  "value": "Pantalla marcador. Su contenido llega con su spec."
+ },
+ "a11y.openDrawer": {
+  "type": "string",
+  "value": "Abrir menú"
+ },
+ "a11y.myLocation": {
+  "type": "string",
+  "value": "Mi ubicación"
+ },
+ "a11y.back": {
+  "type": "string",
+  "value": "Volver a la pantalla anterior"
+ },
+ "a11y.drawerItems.profile": {
+  "type": "string",
+  "value": "Ir a Perfil"
+ },
+ "a11y.drawerItems.history": {
+  "type": "string",
+  "value": "Ir a Historial"
+ },
+ "a11y.drawerItems.earnings": {
+  "type": "string",
+  "value": "Ir a Ganancias"
+ },
+ "a11y.drawerItems.settings": {
+  "type": "string",
+  "value": "Ir a Configuración"
+ },
+ "a11y.tabs.personalData": {
+  "type": "string",
+  "value": "Pestaña Datos personales"
+ },
+ "a11y.tabs.vehicle": {
+  "type": "string",
+  "value": "Pestaña Vehículo"
+ },
+ "a11y.tabs.documents": {
+  "type": "string",
+  "value": "Pestaña Documentos"
+ },
+ "actions.retry": {
+  "type": "string",
+  "value": "Reintentar"
+ },
+ "forceState.legend": {
+  "type": "string",
+  "value": "Estado de la pantalla (prueba)"
+ },
+ "forceState.content": {
+  "type": "string",
+  "value": "Contenido"
+ },
+ "forceState.loading": {
+  "type": "string",
+  "value": "Cargando"
+ },
+ "forceState.empty": {
+  "type": "string",
+  "value": "Vacío"
+ },
+ "forceState.error": {
+  "type": "string",
+  "value": "Error"
+ },
+ "mapTest.title": {
+  "type": "string",
+  "value": "Prueba del mapa"
+ },
+ "mapTest.openFromHome": {
+  "type": "string",
+  "value": "Probar mapa y ruta (provisional)"
+ },
+ "mapTest.attribution": {
+  "type": "string",
+  "value": "© OpenFreeMap · © OpenMapTiles · Datos © colaboradores de OpenStreetMap · Rutas: OSRM"
+ },
+ "mapTest.routeErrorHint": {
+  "type": "string",
+  "value": "No pudimos calcular la ruta de prueba."
+ },
+ "mapTest.mapErrorHint": {
+  "type": "string",
+  "value": "No pudimos cargar el mapa. Revisa tu conexión a internet."
+ },
+ "mapTest.fallbackNotice": {
+  "type": "string",
+  "value": "Ruta de respaldo: no hubo conexión con el servidor de rutas y se muestra una ruta guardada."
+ },
+ "mapTest.straightNotice": {
+  "type": "string",
+  "value": "Ruta aproximada: no hubo conexión con el servidor de rutas y se muestra una línea recta que no sigue las calles."
+ },
+ "mapTest.routeSummary": {
+  "type": "string",
+  "value": "Ruta: {km} km · {min} min aprox."
+ },
+ "mapTest.locationPending": {
+  "type": "string",
+  "value": "Buscando tu posición…"
+ },
+ "mapTest.locationDenied": {
+  "type": "string",
+  "value": "No diste permiso de ubicación. El mapa y la ruta se ven igual, pero sin tu posición. Puedes activarlo en los ajustes del teléfono."
+ },
+ "mapTest.locationUnavailable": {
+  "type": "string",
+  "value": "No pudimos obtener tu posición. Revisa que la ubicación del teléfono esté activada."
+ },
+ "mapTest.locationReady": {
+  "type": "string",
+  "value": "Tu posición: {lat}, {lng}"
+ },
+ "mapTest.showRoute": {
+  "type": "string",
+  "value": "Ver ruta"
+ },
+ "mapTest.showMe": {
+  "type": "string",
+  "value": "Ver mi posición"
+ },
+ "demo.sharedFieldLabel": {
+  "type": "string",
+  "value": "Valor de prueba compartido"
+ },
+ "demo.sharedValueLabel": {
+  "type": "string",
+  "value": "Valor escrito en Datos personales"
+ },
+ "demo.sharedValueEmpty": {
+  "type": "string",
+  "value": "Todavía no escribiste nada"
+ },
+ "auth.brand": {
+  "type": "string",
+  "value": "UberClone"
+ },
+ "auth.tagline": {
+  "type": "string",
+  "value": "Conduce y gana a tu ritmo"
+ },
+ "auth.login.title": {
+  "type": "string",
+  "value": "Iniciar sesión"
+ },
+ "auth.login.submit": {
+  "type": "string",
+  "value": "Iniciar sesión"
+ },
+ "auth.login.submitting": {
+  "type": "string",
+  "value": "Entrando…"
+ },
+ "auth.login.forgotLink": {
+  "type": "string",
+  "value": "Recuperar contraseña"
+ },
+ "auth.login.signUpPrompt": {
+  "type": "string",
+  "value": "¿Aún no tienes cuenta?"
+ },
+ "auth.login.signUpLink": {
+  "type": "string",
+  "value": "Crear cuenta"
+ },
+ "auth.signUp.title": {
+  "type": "string",
+  "value": "Crear cuenta"
+ },
+ "auth.signUp.submit": {
+  "type": "string",
+  "value": "Crear cuenta"
+ },
+ "auth.signUp.submitting": {
+  "type": "string",
+  "value": "Creando cuenta…"
+ },
+ "auth.signUp.loginLink": {
+  "type": "string",
+  "value": "Ya tengo cuenta"
+ },
+ "auth.reset.title": {
+  "type": "string",
+  "value": "Recuperar contraseña"
+ },
+ "auth.reset.submit": {
+  "type": "string",
+  "value": "Enviar instrucciones"
+ },
+ "auth.reset.submitting": {
+  "type": "string",
+  "value": "Enviando…"
+ },
+ "auth.reset.neutral": {
+  "type": "string",
+  "value": "Si el correo tiene una cuenta, te enviamos instrucciones para restablecer tu contraseña."
+ },
+ "auth.reset.intro": {
+  "type": "string",
+  "value": "Escribe el correo de tu cuenta y te enviaremos instrucciones para restablecer tu contraseña."
+ },
+ "auth.reset.backLink": {
+  "type": "string",
+  "value": "Volver a iniciar sesión"
+ },
+ "auth.fields.email.label": {
+  "type": "string",
+  "value": "Correo electrónico"
+ },
+ "auth.fields.email.placeholder": {
+  "type": "string",
+  "value": "nombre@correo.com"
+ },
+ "auth.fields.password.label": {
+  "type": "string",
+  "value": "Contraseña"
+ },
+ "auth.fields.confirmation.label": {
+  "type": "string",
+  "value": "Confirmar contraseña"
+ },
+ "auth.fieldErrors.emailRequired": {
+  "type": "string",
+  "value": "Escribe tu correo."
+ },
+ "auth.fieldErrors.emailInvalid": {
+  "type": "string",
+  "value": "Escribe un correo válido, con @ y dominio."
+ },
+ "auth.fieldErrors.passwordRequired": {
+  "type": "string",
+  "value": "Escribe tu contraseña."
+ },
+ "auth.fieldErrors.passwordTooShort": {
+  "type": "string",
+  "value": "La contraseña debe tener al menos 8 caracteres."
+ },
+ "auth.fieldErrors.confirmationRequired": {
+  "type": "string",
+  "value": "Confirma tu contraseña."
+ },
+ "auth.fieldErrors.confirmationMismatch": {
+  "type": "string",
+  "value": "Las contraseñas no coinciden."
+ },
+ "auth.passwordHelp.title": {
+  "type": "string",
+  "value": "Tu contraseña debe tener:"
+ },
+ "auth.passwordHelp.minLength": {
+  "type": "string",
+  "value": "Al menos 8 caracteres"
+ },
+ "auth.passwordHelp.met": {
+  "type": "string",
+  "value": "Cumple"
+ },
+ "auth.passwordHelp.unmet": {
+  "type": "string",
+  "value": "Pendiente"
+ },
+ "auth.errors.invalidCredentials": {
+  "type": "string",
+  "value": "Correo o contraseña incorrectos."
+ },
+ "auth.errors.network": {
+  "type": "string",
+  "value": "No hay conexión. Revisa tu internet e inténtalo de nuevo."
+ },
+ "auth.errors.tooManyRequests": {
+  "type": "string",
+  "value": "Demasiados intentos. Espera un momento e inténtalo de nuevo."
+ },
+ "auth.errors.emailInUse": {
+  "type": "string",
+  "value": "Ese correo ya tiene una cuenta. Inicia sesión o usa otro correo."
+ },
+ "auth.errors.weakPassword": {
+  "type": "string",
+  "value": "La contraseña es muy débil. Usa al menos 8 caracteres."
+ },
+ "auth.errors.invalidEmail": {
+  "type": "string",
+  "value": "Escribe un correo válido, con @ y dominio."
+ },
+ "auth.errors.generic": {
+  "type": "string",
+  "value": "No se pudo completar la acción. Inténtalo de nuevo."
+ },
+ "auth.signOut.blockedByTrip": {
+  "type": "string",
+  "value": "Termina o cancela el viaje antes de cerrar sesión"
+ },
+ "auth.signOut.confirmTitle": {
+  "type": "string",
+  "value": "¿Cerrar sesión?"
+ },
+ "auth.signOut.confirmBody": {
+  "type": "string",
+  "value": "Dejarás de estar disponible y tendrás que iniciar sesión de nuevo."
+ },
+ "auth.signOut.confirmSwitchTitle": {
+  "type": "string",
+  "value": "¿Cambiar de cuenta?"
+ },
+ "auth.signOut.confirmSwitchBody": {
+  "type": "string",
+  "value": "Cerraremos la sesión actual para que inicies con otra cuenta."
+ },
+ "auth.signOut.confirm": {
+  "type": "string",
+  "value": "Cerrar sesión"
+ },
+ "auth.signOut.confirmSwitch": {
+  "type": "string",
+  "value": "Cambiar de cuenta"
+ },
+ "auth.signOut.cancel": {
+  "type": "string",
+  "value": "Cancelar"
+ },
+ "auth.signOut.error": {
+  "type": "string",
+  "value": "No pudimos cerrar la sesión. Inténtalo de nuevo."
+ },
+ "auth.signOut.retry": {
+  "type": "string",
+  "value": "Reintentar"
+ },
+ "auth.signOut.processing": {
+  "type": "string",
+  "value": "Cerrando sesión…"
+ },
+ "auth.signOut.dismiss": {
+  "type": "string",
+  "value": "Entendido"
+ },
+ "auth.signOut.registrationWarning": {
+  "type": "string",
+  "value": "Dejarás de tener sesión y lo que no hayas enviado se perderá."
+ },
+ "auth.signOut.tripSavePending": {
+  "type": "string",
+  "value": "No se pudo guardar tu último viaje. Reintentar o cerrar sesión de todos modos"
+ },
+ "auth.signOut.forceSignOut": {
+  "type": "string",
+  "value": "Cerrar sesión de todos modos"
+ },
+ "auth.signOut.forceConfirmTitle": {
+  "type": "string",
+  "value": "¿Cerrar sesión sin guardar el viaje?"
+ },
+ "auth.signOut.forceConfirmBody": {
+  "type": "string",
+  "value": "Si cierras sesión ahora, tu último viaje podría no quedar en el historial."
+ },
+ "auth.a11y.showPassword": {
+  "type": "string",
+  "value": "Mostrar contraseña"
+ },
+ "auth.a11y.hidePassword": {
+  "type": "string",
+  "value": "Ocultar contraseña"
+ },
+ "auth.a11y.passwordShown": {
+  "type": "string",
+  "value": "La contraseña está visible"
+ },
+ "auth.a11y.passwordHidden": {
+  "type": "string",
+  "value": "La contraseña está oculta"
+ },
+ "auth.a11y.submitting": {
+  "type": "string",
+  "value": "Enviando, espera un momento"
+ },
+ "registration.pendingNotice": {
+  "type": "string",
+  "value": "Pendiente de aprobación. Mientras tu cuenta se revisa, no puedes editar ni reenviar tu registro."
+ },
+ "registration.gender.femenino": {
+  "type": "string",
+  "value": "Femenino"
+ },
+ "registration.gender.masculino": {
+  "type": "string",
+  "value": "Masculino"
+ },
+ "registration.gender.otro": {
+  "type": "string",
+  "value": "Otro"
+ },
+ "registration.gender.prefieroNoDecir": {
+  "type": "string",
+  "value": "Prefiero no decir"
+ },
+ "registration.language.es": {
+  "type": "string",
+  "value": "Español"
+ },
+ "registration.language.en": {
+  "type": "string",
+  "value": "Inglés"
+ },
+ "registration.vehicleCategory.economico": {
+  "type": "string",
+  "value": "Económico"
+ },
+ "registration.vehicleCategory.xl": {
+  "type": "string",
+  "value": "XL"
+ },
+ "registration.vehicleCategory.premium": {
+  "type": "string",
+  "value": "Premium"
+ },
+ "registration.vehicleColor.blanco": {
+  "type": "string",
+  "value": "Blanco"
+ },
+ "registration.vehicleColor.negro": {
+  "type": "string",
+  "value": "Negro"
+ },
+ "registration.vehicleColor.gris": {
+  "type": "string",
+  "value": "Gris"
+ },
+ "registration.vehicleColor.plata": {
+  "type": "string",
+  "value": "Plata"
+ },
+ "registration.vehicleColor.rojo": {
+  "type": "string",
+  "value": "Rojo"
+ },
+ "registration.vehicleColor.azul": {
+  "type": "string",
+  "value": "Azul"
+ },
+ "registration.vehicleColor.verde": {
+  "type": "string",
+  "value": "Verde"
+ },
+ "registration.vehicleColor.amarillo": {
+  "type": "string",
+  "value": "Amarillo"
+ },
+ "registration.vehicleColor.otro": {
+  "type": "string",
+  "value": "Otro"
+ },
+ "registration.unselected": {
+  "type": "string",
+  "value": "sin seleccionar"
+ },
+ "registration.photo.instruction": {
+  "type": "string",
+  "value": "Elige una foto con la cámara o la galería."
+ },
+ "registration.photo.camera": {
+  "type": "string",
+  "value": "Cámara"
+ },
+ "registration.photo.gallery": {
+  "type": "string",
+  "value": "Galería"
+ },
+ "registration.photo.uploading": {
+  "type": "string",
+  "value": "Subiendo foto"
+ },
+ "registration.photo.permissionDenied": {
+  "type": "string",
+  "value": "Necesitamos tu permiso para continuar. Revisa los permisos de la app y vuelve a intentarlo."
+ },
+ "registration.photo.removePhoto": {
+  "type": "string",
+  "value": "Quitar foto"
+ },
+ "registration.personalData.fields.profilePhotoUrl.label": {
+  "type": "string",
+  "value": "Foto de perfil"
+ },
+ "registration.personalData.fields.profilePhotoUrl.error": {
+  "type": "string",
+  "value": "Elige una foto de perfil con la cámara o la galería."
+ },
+ "registration.personalData.fields.fullName.label": {
+  "type": "string",
+  "value": "Nombre completo"
+ },
+ "registration.personalData.fields.fullName.error": {
+  "type": "string",
+  "value": "Escribe tu nombre completo (máximo 50 letras, solo letras y espacios)."
+ },
+ "registration.personalData.fields.documentNumber.label": {
+  "type": "string",
+  "value": "Número de documento"
+ },
+ "registration.personalData.fields.documentNumber.error": {
+  "type": "string",
+  "value": "Escribe un número de documento válido (6 a 10 dígitos)."
+ },
+ "registration.personalData.fields.phone.label": {
+  "type": "string",
+  "value": "Celular"
+ },
+ "registration.personalData.fields.phone.error": {
+  "type": "string",
+  "value": "Escribe un número de celular válido de 10 dígitos."
+ },
+ "registration.personalData.fields.birthDate.label": {
+  "type": "string",
+  "value": "Fecha de nacimiento"
+ },
+ "registration.personalData.fields.birthDate.error": {
+  "type": "string",
+  "value": "Elige tu fecha de nacimiento; debes ser mayor de 18 años."
+ },
+ "registration.personalData.fields.gender.label": {
+  "type": "string",
+  "value": "Género"
+ },
+ "registration.personalData.fields.gender.error": {
+  "type": "string",
+  "value": "Selecciona una opción."
+ },
+ "registration.personalData.fields.email.label": {
+  "type": "string",
+  "value": "Correo electrónico"
+ },
+ "registration.personalData.fields.email.error": {
+  "type": "string",
+  "value": "Escribe un correo válido, con @ y dominio."
+ },
+ "registration.personalData.fields.language.label": {
+  "type": "string",
+  "value": "Idioma"
+ },
+ "registration.personalData.fields.language.error": {
+  "type": "string",
+  "value": "Selecciona un idioma."
+ },
+ "registration.vehicle.fields.category.label": {
+  "type": "string",
+  "value": "Categoría"
+ },
+ "registration.vehicle.fields.category.error": {
+  "type": "string",
+  "value": "Selecciona una categoría."
+ },
+ "registration.vehicle.fields.plate.label": {
+  "type": "string",
+  "value": "Placa"
+ },
+ "registration.vehicle.fields.plate.error": {
+  "type": "string",
+  "value": "Escribe una placa válida, con el formato ABC123."
+ },
+ "registration.vehicle.fields.brand.label": {
+  "type": "string",
+  "value": "Marca"
+ },
+ "registration.vehicle.fields.brand.error": {
+  "type": "string",
+  "value": "Escribe la marca del vehículo (máximo 30 caracteres)."
+ },
+ "registration.vehicle.fields.model.label": {
+  "type": "string",
+  "value": "Modelo"
+ },
+ "registration.vehicle.fields.model.error": {
+  "type": "string",
+  "value": "Escribe el modelo del vehículo (máximo 30 caracteres)."
+ },
+ "registration.vehicle.fields.year.label": {
+  "type": "string",
+  "value": "Año"
+ },
+ "registration.vehicle.fields.year.error": {
+  "type": "string",
+  "value": "Escribe un año válido (4 dígitos, no mayor al año actual)."
+ },
+ "registration.vehicle.fields.color.label": {
+  "type": "string",
+  "value": "Color"
+ },
+ "registration.vehicle.fields.color.error": {
+  "type": "string",
+  "value": "Selecciona un color."
+ },
+ "registration.vehicle.fields.capacity.label": {
+  "type": "string",
+  "value": "Capacidad"
+ },
+ "registration.vehicle.fields.capacity.error": {
+  "type": "string",
+  "value": "Escribe una capacidad válida (mínimo 6 para la categoría XL)."
+ },
+ "registration.vehicle.fields.photoUrl.label": {
+  "type": "string",
+  "value": "Foto del vehículo (con la placa visible)"
+ },
+ "registration.vehicle.fields.photoUrl.error": {
+  "type": "string",
+  "value": "Elige una foto del vehículo con la placa visible, con la cámara o la galería."
+ },
+ "registration.documents.fields.mercadoPagoEmail.label": {
+  "type": "string",
+  "value": "Correo de cobros"
+ },
+ "registration.documents.fields.mercadoPagoEmail.help": {
+  "type": "string",
+  "value": "Correo asociado a tu cuenta de la pasarela de pagos. Solo informativo en esta versión."
+ },
+ "registration.documents.fields.mercadoPagoEmail.error": {
+  "type": "string",
+  "value": "Escribe un correo válido, con @ y dominio."
+ },
+ "registration.documents.fields.termsAccepted.error": {
+  "type": "string",
+  "value": "Debes aceptar los términos para continuar."
+ },
+ "registration.documents.fields.licenseNumber.label": {
+  "type": "string",
+  "value": "Número de licencia de conducción"
+ },
+ "registration.documents.fields.licenseNumber.error": {
+  "type": "string",
+  "value": "Escribe un número de licencia válido (5 a 20 letras o números)."
+ },
+ "registration.documents.fields.licensePhotoUrl.label": {
+  "type": "string",
+  "value": "Foto de la licencia de conducción"
+ },
+ "registration.documents.fields.licensePhotoUrl.error": {
+  "type": "string",
+  "value": "Elige una foto de tu licencia con la cámara o la galería."
+ },
+ "registration.documents.fields.licenseExpiresAt.label": {
+  "type": "string",
+  "value": "Vencimiento de la licencia"
+ },
+ "registration.documents.fields.licenseExpiresAt.error": {
+  "type": "string",
+  "value": "Elige una fecha de vencimiento posterior a hoy."
+ },
+ "registration.documents.fields.soatPhotoUrl.label": {
+  "type": "string",
+  "value": "Foto del SOAT"
+ },
+ "registration.documents.fields.soatPhotoUrl.error": {
+  "type": "string",
+  "value": "Elige una foto de tu SOAT con la cámara o la galería."
+ },
+ "registration.documents.fields.soatExpiresAt.label": {
+  "type": "string",
+  "value": "Vencimiento del SOAT"
+ },
+ "registration.documents.fields.soatExpiresAt.error": {
+  "type": "string",
+  "value": "Elige una fecha de vencimiento posterior a hoy."
+ },
+ "registration.documents.fields.technicalReviewPhotoUrl.label": {
+  "type": "string",
+  "value": "Foto de la revisión técnico-mecánica"
+ },
+ "registration.documents.fields.technicalReviewPhotoUrl.error": {
+  "type": "string",
+  "value": "Elige una foto de tu revisión técnico-mecánica con la cámara o la galería."
+ },
+ "registration.documents.fields.technicalReviewExpiresAt.label": {
+  "type": "string",
+  "value": "Vencimiento de la revisión técnico-mecánica"
+ },
+ "registration.documents.fields.technicalReviewExpiresAt.error": {
+  "type": "string",
+  "value": "Elige una fecha de vencimiento posterior a hoy."
+ },
+ "registration.documents.sections.license": {
+  "type": "string",
+  "value": "Licencia de conducción"
+ },
+ "registration.documents.sections.soat": {
+  "type": "string",
+  "value": "SOAT"
+ },
+ "registration.documents.sections.technicalReview": {
+  "type": "string",
+  "value": "Revisión técnico-mecánica"
+ },
+ "registration.documents.sections.payments": {
+  "type": "string",
+  "value": "Pagos y términos"
+ },
+ "registration.documents.validation.expiryInvalid": {
+  "type": "string",
+  "value": "Elige una fecha de vencimiento posterior a hoy."
+ },
+ "registration.documents.validation.licenseNumberInvalid": {
+  "type": "string",
+  "value": "Escribe un número de licencia válido (5 a 20 letras o números)."
+ },
+ "registration.documents.validation.technicalReviewNotRequired": {
+  "type": "string",
+  "value": "No se exige: tu vehículo tiene menos de 5 años."
+ },
+ "registration.documents.termsLabel": {
+  "type": "string",
+  "value": "Acepto los términos y condiciones. La plataforma retiene una comisión del {percent} % sobre cada viaje."
+ },
+ "registration.documents.submit": {
+  "type": "string",
+  "value": "Enviar registro"
+ },
+ "registration.documents.submitting": {
+  "type": "string",
+  "value": "Enviando…"
+ },
+ "registration.documents.submitSuccess": {
+  "type": "string",
+  "value": "Registro enviado. Tu cuenta está pendiente de aprobación."
+ },
+ "registration.documents.submitError": {
+  "type": "string",
+  "value": "No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo."
+ },
+ "registration.documents.submitErrors.permission-denied": {
+  "type": "string",
+  "value": "No pudimos enviar tu registro por un problema de permisos de tu cuenta. Cierra sesión y vuelve a intentarlo."
+ },
+ "registration.documents.submitErrors.unavailable": {
+  "type": "string",
+  "value": "No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo."
+ },
+ "registration.documents.submitErrors.deadline-exceeded": {
+  "type": "string",
+  "value": "La conexión tardó demasiado. Revisa tu internet e inténtalo de nuevo."
+ },
+ "registration.documents.submitErrors.unauthenticated": {
+  "type": "string",
+  "value": "Tu sesión expiró. Vuelve a iniciar sesión."
+ },
+ "#submitError(permission-denied)": {
+  "type": "string",
+  "value": "No pudimos enviar tu registro por un problema de permisos de tu cuenta. Cierra sesión y vuelve a intentarlo."
+ },
+ "#submitError(zzz)": {
+  "type": "string",
+  "value": "No pudimos enviar tu registro. Revisa tu conexión e inténtalo de nuevo."
+ }
+}

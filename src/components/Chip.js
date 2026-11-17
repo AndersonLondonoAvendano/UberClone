@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #51
 // Status chip: soft background plus text, so meaning never depends on colour alone.
 // tone: 'neutral' | 'brand' | 'success' | 'warning' | 'danger'. Tokens only.
@@ -28,6 +29,7 @@ export function Chip({ label, tone = 'neutral', testID, icon }) {
 const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
+    flexShrink: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[1],
@@ -37,5 +39,6 @@ const styles = StyleSheet.create({
   },
   text: {
     ...type.label,
+    flexShrink: 1,
   },
 });

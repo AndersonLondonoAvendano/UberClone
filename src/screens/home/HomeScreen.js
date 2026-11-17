@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #18
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #35
@@ -32,32 +33,34 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { SHOW_DEV_TOOLS } from '../../constants/devTools';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useAppState } from '../../context/AppStateContext';
 import { useAvailability } from '../../context/AvailabilityContext';
-import { PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
+import { HOME_ROUTE, PRESENTATION, decideRequestPresentation } from '../../services/trip/requestPresentation';
 import { color, iconSize, radius, space, touch, type } from '../../theme/tokens';
 
-const HINT_BY_LOCATION_STATUS = {
-  waiting: labels.home.hintWaiting,
-  active: labels.home.hintActive,
-  paused: labels.home.hintPaused,
-  unavailable: labels.home.hintNoLocation,
-};
-
-const DEV_MESSAGE_BY_RESULT = {
-  not_subscribed: labels.home.devNeedsAvailable,
-  no_position: labels.home.devNoPosition,
-  busy: labels.home.devBusy,
-  not_supported: labels.home.devNotSupported,
-};
-
-const NOTICE_TEXT = {
-  denied: labels.home.permissionDenied,
-  unavailable: labels.home.permissionUnavailable,
-  services_off: labels.home.servicesOff,
-};
-
 export function HomeScreen({ navigation }) {
+  useLanguage();
+  const HINT_BY_LOCATION_STATUS = {
+    waiting: labels.home.hintWaiting,
+    active: labels.home.hintActive,
+    paused: labels.home.hintPaused,
+    unavailable: labels.home.hintNoLocation,
+  };
+
+  const DEV_MESSAGE_BY_RESULT = {
+    not_subscribed: labels.home.devNeedsAvailable,
+    no_position: labels.home.devNoPosition,
+    busy: labels.home.devBusy,
+    not_supported: labels.home.devNotSupported,
+  };
+
+  const NOTICE_TEXT = {
+    denied: labels.home.permissionDenied,
+    unavailable: labels.home.permissionUnavailable,
+    services_off: labels.home.servicesOff,
+  };
+
   // Live profile from AppStateContext (refreshed by the profile snapshot after saving); the same source as
   // the active trip. CarMarker maps the raw value to its token (unknown or 'otro' -> brand colour).
   const { driverProfile } = useAppState();
@@ -69,6 +72,7 @@ export function HomeScreen({ navigation }) {
     onTrip,
     locationStatus,
     pendingRequest,
+    pushOffered,
     lastRequest,
     requestSimulatedTrip,
     position,
@@ -90,18 +94,19 @@ export function HomeScreen({ navigation }) {
 
   // Opens the card once per request id, only while available and without a trip.
   useEffect(() => {
-    if (!pendingRequest || !isAvailable || onTrip) return;
+    // A request that arrived by push (D-130) is opened even when the driver is not available.
+    if (!pendingRequest || !(isAvailable || pushOffered) || onTrip) return;
     // AI-assisted: see docs/AI_LOG.md #47
     // Full screen only while Home is the screen in front; elsewhere the bottom card shows it, and
     // coming back to Home with the request still pending opens it here with the real time left.
     if (!focused) return;
-    if (decideRequestPresentation('Home', onTrip, ACCOUNT_STATUS.APPROVED, true) !== PRESENTATION.FULLSCREEN) return;
+    if (decideRequestPresentation(HOME_ROUTE, onTrip, ACCOUNT_STATUS.APPROVED, true) !== PRESENTATION.FULLSCREEN) return;
     if (announcedIdRef.current === pendingRequest.id) return;
     announcedIdRef.current = pendingRequest.id;
     setDevMessage(null);
     const alreadyOpen = navigation.getState().routes.some((r) => r.name === 'TripRequest');
     if (!alreadyOpen) navigation.navigate('TripRequest');
-  }, [pendingRequest, isAvailable, onTrip, navigation, focused]);
+  }, [pendingRequest, isAvailable, pushOffered, onTrip, navigation, focused]);
 
   const hint = isAvailable
     ? (HINT_BY_LOCATION_STATUS[locationStatus] ?? labels.home.hintWaiting)

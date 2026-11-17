@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: bordered avatar, category chip, DataRow groups)
@@ -24,6 +25,7 @@ import { SelectField } from '../../components/registration/SelectField';
 import { TextField } from '../../components/registration/TextField';
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { VEHICLE_COLOR_OPTIONS } from '../../constants/registrationOptions';
 import { useAppState } from '../../context/AppStateContext';
 import { useProfileEdit } from '../../hooks/useProfileEdit';
@@ -34,6 +36,7 @@ const PHONE_MAX_LENGTH = 10;
 const EMAIL_INPUT_PROPS = { autoCapitalize: 'none', autoCorrect: false, autoComplete: 'email' };
 
 export function ProfileScreen({ navigation }) {
+  useLanguage(); // re-render on language change (RI-15)
   const { driverId, driverProfile, accountStatus, retryAccountStatus } = useAppState();
   const personal = driverProfile?.personalData;
   const vehicle = driverProfile?.vehicle;

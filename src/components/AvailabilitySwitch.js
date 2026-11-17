@@ -1,47 +1,23 @@
+// AI-assisted: see docs/AI_LOG.md #67
 // AI-assisted: see docs/AI_LOG.md #42
 // AI-assisted: see docs/AI_LOG.md #53
+// AI-assisted: see docs/AI_LOG.md #64 (track and thumb extracted to SwitchTrack, same look and behavior)
 // Availability switch (T-42, RF-08): the whole card is the touch target (>= touch.min) and the state
 // is always written in a chip («Disponible» / «No disponible») next to an icon, never shown by color
 // alone. accessibilityRole "switch" with the checked state for screen readers. The thumb slides with
-// a transform animation unless the system asks to reduce motion.
+// a transform animation (see SwitchTrack) unless the system asks to reduce motion.
 
-import { useEffect, useRef } from 'react';
-import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { labels } from '../constants/labels';
-import { badgeSize, borderWidth, color, elevation, iconSize, motion, opacity, radius, space, type } from '../theme/tokens';
+import { useLanguage } from '../i18n/useLanguage';
+import { badgeSize, borderWidth, color, elevation, iconSize, opacity, radius, space, type } from '../theme/tokens';
 import { Chip } from './Chip';
 import { Icon } from './Icon';
-
-const TRACK_PADDING = space[1];
-const THUMB_SIZE = space[5]; // 24
-const TRACK_WIDTH = space[6] + space[5]; // 56
-const THUMB_TRAVEL = TRACK_WIDTH - THUMB_SIZE - TRACK_PADDING * 2;
+import { SwitchTrack } from './SwitchTrack';
 
 export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
+  useLanguage();
   const stateLabel = value ? labels.home.available : labels.home.unavailable;
-  const position = useRef(new Animated.Value(value ? 1 : 0)).current;
-
-  useEffect(() => {
-    let cancelled = false;
-    let animation = null;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .catch(() => false)
-      .then((reduce) => {
-        if (cancelled) return;
-        if (reduce) {
-          position.setValue(value ? 1 : 0);
-          return;
-        }
-        animation = Animated.timing(position, { toValue: value ? 1 : 0, duration: motion.fast, useNativeDriver: true });
-        animation.start();
-      });
-    return () => {
-      cancelled = true;
-      if (animation) animation.stop();
-    };
-  }, [value, position]);
-
-  const translateX = position.interpolate({ inputRange: [0, 1], outputRange: [0, THUMB_TRAVEL] });
 
   return (
     <Pressable
@@ -70,9 +46,7 @@ export function AvailabilitySwitch({ value, onValueChange, disabled = false }) {
         <Text style={styles.label}>{labels.home.availabilityLabel}</Text>
         <Chip label={stateLabel} tone={value ? 'success' : 'neutral'} />
       </View>
-      <View style={[styles.track, value ? styles.trackOn : styles.trackOff]}>
-        <Animated.View style={[styles.thumb, { transform: [{ translateX }] }]} />
-      </View>
+      <SwitchTrack value={value} />
     </Pressable>
   );
 }
@@ -113,24 +87,5 @@ const styles = StyleSheet.create({
   label: {
     ...type.bodyStrong,
     color: color.text,
-  },
-  track: {
-    width: TRACK_WIDTH,
-    height: THUMB_SIZE + TRACK_PADDING * 2,
-    borderRadius: radius.full,
-    padding: TRACK_PADDING,
-    justifyContent: 'center',
-  },
-  trackOn: {
-    backgroundColor: color.success,
-  },
-  trackOff: {
-    backgroundColor: color.border,
-  },
-  thumb: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: radius.full,
-    backgroundColor: color.surface,
   },
 });

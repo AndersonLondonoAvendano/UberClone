@@ -6,7 +6,8 @@ export async function initAdmin(config) {
   const { initializeApp, cert } = await import('firebase-admin/app');
   const { getAuth } = await import('firebase-admin/auth');
   const { getFirestore } = await import('firebase-admin/firestore');
+  const { getMessaging } = await import('firebase-admin/messaging');
   const serviceAccount = JSON.parse(readFileSync(config.serviceAccountPath, 'utf8'));
   const app = initializeApp({ credential: cert(serviceAccount) });
-  return { adminAuth: getAuth(app), db: getFirestore(app) };
+  return { adminAuth: getAuth(app), db: getFirestore(app), messaging: getMessaging(app) };
 }

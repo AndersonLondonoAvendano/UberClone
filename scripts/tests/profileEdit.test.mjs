@@ -10,14 +10,14 @@ const { maskEmail } = await import('../../src/utils/mask.js');
 
 const profile = {
   accountStatus: 'approved',
-  personalData: { fullName: 'Ana Perez', phone: '3001234567', documentNumber: '123456' },
+  personalData: { fullName: 'Ana Perez', phone: '3000000001', documentNumber: '123456' },
   vehicle: { color: 'blanco', category: 'standard', plate: 'ABC123' },
   documents: { mercadoPagoEmail: 'ana@example.com' },
 };
 const baseline = profileValuesFrom(profile);
 
 // profileValuesFrom
-assert.deepEqual(baseline, { fullName: 'Ana Perez', phone: '3001234567', vehicleColor: 'blanco', payoutEmail: 'ana@example.com' });
+assert.deepEqual(baseline, { fullName: 'Ana Perez', phone: '3000000001', vehicleColor: 'blanco', payoutEmail: 'ana@example.com' });
 assert.deepEqual(profileValuesFrom(null), { fullName: '', phone: '', vehicleColor: '', payoutEmail: '' });
 assert.deepEqual(profileValuesFrom({ personalData: {} }), { fullName: '', phone: '', vehicleColor: '', payoutEmail: '' });
 
@@ -30,8 +30,8 @@ const invalid = [
   ['fullName', 'Ana 123'],
   ['fullName', ''],
   ['fullName', '   '],
-  ['phone', '300123456'],
-  ['phone', '30012345678'],
+  ['phone', '300000000'],
+  ['phone', '30000000030'],
   ['phone', '300 123 4567'],
   ['phone', ''],
   ['vehicleColor', 'transparente'],
@@ -55,8 +55,8 @@ assert.equal(validateProfileDraft({ ...baseline, vehicleColor: 'blanco' }).isVal
 // diff / canSave.
 assert.deepEqual(diffProfile(baseline, baseline), []);
 assert.equal(canSave(baseline, baseline), false);
-assert.deepEqual(diffProfile(baseline, { ...baseline, phone: '3109876543' }), ['phone']);
-assert.equal(canSave(baseline, { ...baseline, phone: '3109876543' }), true);
+assert.deepEqual(diffProfile(baseline, { ...baseline, phone: '3000000004' }), ['phone']);
+assert.equal(canSave(baseline, { ...baseline, phone: '3000000004' }), true);
 // Typing and returning to the original is not a change; spaces around name/email do not count.
 assert.deepEqual(diffProfile(baseline, { ...baseline, fullName: 'Ana Perez ' }), []);
 assert.deepEqual(diffProfile(baseline, { ...baseline, payoutEmail: ' ana@example.com' }), []);
@@ -82,7 +82,7 @@ const payload = buildProfilePayload({
   category: 'xl',
   plate: 'ZZZ999',
 });
-assert.deepEqual(payload, { fullName: 'Luis Gomez', phone: '3001234567', vehicleColor: 'blanco', payoutEmail: 'luis@example.com' });
+assert.deepEqual(payload, { fullName: 'Luis Gomez', phone: '3000000001', vehicleColor: 'blanco', payoutEmail: 'luis@example.com' });
 assert.deepEqual(Object.keys(payload), PROFILE_FIELDS);
 assert.equal(Object.keys(payload).length, 4);
 for (const forbidden of ['accountStatus', 'category', 'plate']) assert.equal(forbidden in payload, false);

@@ -16,6 +16,41 @@ export function isLegacySimulatedTrip(trip) {
   return isMissing(trip.paymentMethod) && isMissing(trip.paymentStatus);
 }
 
+// AI-assisted: see docs/AI_LOG.md #66
+// Tolerant read of a saved trip (RE-11): adds the fields introduced after the first documents with
+// defaults and never changes the existing ones. When both exist, the top-level amounts win over
+// `economy` (they stay the single source of the totals).
+const AMOUNT_KEYS = ['fare', 'commission', 'tip', 'driverEarnings'];
+const isFiniteNumber = (value) => typeof value === 'number' && Number.isFinite(value);
+
+function readPoint(point, label) {
+  const source = point && typeof point === 'object' ? point : {};
+  return {
+    lat: isFiniteNumber(source.lat) ? source.lat : null,
+    lng: isFiniteNumber(source.lng) ? source.lng : null,
+    address: typeof source.address === 'string' ? source.address : label ?? '',
+  };
+}
+
+export function readTrip(trip) {
+  const source = trip && typeof trip === 'object' ? trip : {};
+  const stored = source.economy && typeof source.economy === 'object' ? source.economy : {};
+  const economy = {};
+  for (const key of AMOUNT_KEYS) {
+    if (isFiniteNumber(source[key])) economy[key] = source[key];
+    else economy[key] = isFiniteNumber(stored[key]) ? stored[key] : 0;
+  }
+  const finished = source.status === 'completed' || source.status === 'paid';
+  return {
+    ...source,
+    passengerId: isMissing(source.passengerId) ? null : source.passengerId,
+    completedAt: !isMissing(source.completedAt) ? source.completedAt : finished ? source.finishedAt ?? null : null,
+    economy,
+    origin: readPoint(source.origin, source.originLabel),
+    destination: readPoint(source.destination, source.destinationLabel),
+  };
+}
+
 // { label, tone, icon } for the shared Chip, or null when the trip is not legacy.
 export function legacyPaymentChip(trip) {
   if (!isLegacySimulatedTrip(trip)) return null;

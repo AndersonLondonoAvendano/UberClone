@@ -41,7 +41,7 @@ export function createTripController({
   api, // { reportTripStatus, cancelTrip, reportDriverLocation }
   getRoute, // (from, to) => Promise<route>, rejects on failure (no fallback)
   buildStraightLineRoute, // (from, to) => route
-  createLocationSource, // ({ coordinates, start }) => { start({ onPosition, onError, onEnd }) => stop }
+  createLocationSource, // ({ coordinates, phase }) => { start({ onPosition, onError, onEnd }) => stop }
   publishLocation = () => Promise.resolve(false),
   // AI-assisted: see docs/AI_LOG.md #44
   publishStatus = () => Promise.resolve(false), // (finalStatus, position) => Promise, never awaited
@@ -298,7 +298,11 @@ export function createTripController({
     return true;
   }
 
-  function arrive() {
+  // AI-assisted: see docs/AI_LOG.md #72 (D-200)
+  // The arrival is automatic: distance threshold, end of the route, or already at the target when the leg
+  // begins. There is no manual "I've arrived". Calling it again does nothing: the phase check makes the
+  // driver_arrived transition and its single report happen once.
+  function handleArrival() {
     stopMovement();
     if (state.phase === TRIP_PHASE.TO_PICKUP) {
       set({ phase: TRIP_PHASE.AT_PICKUP, remainingM: 0, remainingS: 0 });
@@ -322,7 +326,7 @@ export function createTripController({
     if (!moving) return;
     const nearTarget = hasArrived(position, state.target, config.ARRIVAL_THRESHOLD_M);
     const nearRouteEnd = patch.remainingM !== undefined && patch.remainingM <= config.ARRIVAL_THRESHOLD_M;
-    if (nearTarget || nearRouteEnd) arrive();
+    if (nearTarget || nearRouteEnd) handleArrival();
   }
 
   function startMovement() {
@@ -336,7 +340,7 @@ export function createTripController({
     movementRound += 1;
     const round = movementRound;
     const active = () => !disposed && round === movementRound;
-    const source = createLocationSource({ coordinates });
+    const source = createLocationSource({ coordinates, phase: state.phase });
     const stop = source.start({
       onPosition: (position) => {
         if (active()) handlePosition(position);
@@ -349,7 +353,7 @@ export function createTripController({
       // The simulated walk reached the end of the polyline: that is the target.
       onEnd: () => {
         if (!active()) return;
-        if (state.phase === TRIP_PHASE.TO_PICKUP || state.phase === TRIP_PHASE.TO_DESTINATION) arrive();
+        if (state.phase === TRIP_PHASE.TO_PICKUP || state.phase === TRIP_PHASE.TO_DESTINATION) handleArrival();
       },
     });
     if (active()) stopSource = stop;
@@ -400,7 +404,7 @@ export function createTripController({
     stopMovement();
     set({ phase, target, route: null, remainingM: null, remainingS: null, routeApproximate: false });
     if (state.position && hasArrived(state.position, target, config.ARRIVAL_THRESHOLD_M)) {
-      arrive();
+      handleArrival();
       return;
     }
     const route = await loadRoute(target);
@@ -468,6 +472,9 @@ export function createTripController({
     // AI-assisted: see docs/AI_LOG.md #44 (timeout, single flight, final status published)
     async cancel() {
       if (state.finished || cancelling || disposed) return false;
+      // AI-assisted: see docs/AI_LOG.md #66
+      // RE-08: an ongoing ride cannot be cancelled; the API is not called and nothing changes.
+      if (!canTransition(state.status, TRIP_STATUS.CANCELLED)) return false;
       if (completedResult === 'delivered') {
         complete();
         return false;

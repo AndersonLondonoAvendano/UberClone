@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
 // AI-assisted: see docs/AI_LOG.md #19
 // AI-assisted: see docs/AI_LOG.md #50
 // AI-assisted: see docs/AI_LOG.md #53 (presentation: cards, DataRow, clear selected period)
@@ -14,8 +15,10 @@ import { Icon } from '../../components/Icon';
 import { PlaceholderScreen } from '../../components/PlaceholderScreen';
 import { ScreenState } from '../../components/ScreenState';
 import { labels } from '../../constants/labels';
+import { useLanguage } from '../../i18n/useLanguage';
 import { useEarnings } from '../../hooks/useEarnings';
-import { useTrips } from '../../hooks/useTrips';
+import { useEarningsTrips } from '../../hooks/useEarningsTrips';
+import { useBalance } from '../../hooks/useBalance';
 import { badgeSize, borderWidth, color, iconSize, opacity, radius, space, touch, type } from '../../theme/tokens';
 import { PERIOD } from '../../utils/earnings';
 import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/format';
@@ -23,12 +26,17 @@ import { fillLabel, formatClock, formatCop, formatDateTime } from '../../utils/f
 const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 
 export function EarningsScreen({ navigation }) {
-  const { status, trips, retry } = useTrips();
+  useLanguage(); // re-render on language change (RI-15)
+  // AI-assisted: see docs/AI_LOG.md #65 (RC-04: day/week/month come from the range read, not the 200 latest;
+  // the balance keeps its own source, useTrips)
+  const { status, trips: rangeTrips, truncated, retry } = useEarningsTrips();
+  // AI-assisted: see docs/AI_LOG.md #66 (B1: the balance reads every trip, not the 200 latest)
+  const balanceView = useBalance();
   const [period, setPeriod] = useState(PERIOD.DAY);
   // AI-assisted: see docs/AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
-  const earnings = useEarnings(trips);
+  const earnings = useEarnings(rangeTrips);
   const totals = earnings[period];
-  const balance = earnings.balance;
+  const balance = balanceView.balance;
 
   return (
     <PlaceholderScreen
@@ -59,6 +67,13 @@ export function EarningsScreen({ navigation }) {
         </View>
         {period === PERIOD.WEEK ? <Text style={styles.muted}>{labels.earnings.weekNote}</Text> : null}
 
+        {/* AI-assisted: see docs/AI_LOG.md #66 (A4a): the range read hit its 5,000-trip cap */}
+        {status === 'ready' && truncated ? (
+          <View style={styles.hintRow} testID="earnings-truncated-note" accessibilityLiveRegion="polite">
+            <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
+            <Text style={styles.hintText}>{labels.earnings.truncatedNote}</Text>
+          </View>
+        ) : null}
         {status === 'loading' ? <ScreenState kind="loading" /> : null}
         {status === 'error' ? <ScreenState kind="error" message={labels.earnings.errorMessage} onRetry={retry} /> : null}
         {status === 'ready' && totals.count === 0 ? (
@@ -112,7 +127,15 @@ export function EarningsScreen({ navigation }) {
           </>
         ) : null}
         {/* AI-assisted: see docs/AI_LOG.md #55 (T-100) */}
-        {status === 'ready' && trips.length > 0 ? (
+        {/* AI-assisted: see docs/AI_LOG.md #66 (B1): own read of every trip, own loading/error; never 0 on error */}
+        {balanceView.kind === 'loading' ? <ScreenState kind="loading" /> : null}
+        {balanceView.kind === 'error' ? (
+          <ScreenState kind="error" message={labels.earnings.balanceErrorMessage} onRetry={balanceView.retry} />
+        ) : null}
+        {balanceView.kind === 'noSession' ? (
+          <ScreenState kind="empty" title={labels.earnings.balanceNoSessionTitle} message={labels.earnings.balanceNoSessionMessage} />
+        ) : null}
+        {balanceView.kind === 'ready' ? (
           <Card style={styles.card} testID="earnings-balance">
             <Line
               label={balance < 0 ? labels.earnings.balanceCredit : labels.earnings.balance}
@@ -123,6 +146,13 @@ export function EarningsScreen({ navigation }) {
               <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
               <Text style={styles.hintText}>{balance < 0 ? labels.earnings.balanceCreditHint : labels.earnings.balanceHint}</Text>
             </View>
+            {balanceView.partial ? (
+              <View style={styles.hintRow} testID="earnings-balance-partial" accessibilityLiveRegion="polite">
+                {/* AI-assisted: see docs/AI_LOG.md #67 (A1: a partial figure is a warning, not plain information) */}
+                <Icon name="warning" size={iconSize.md} tint={color.warning} />
+                <Text style={styles.partialText}>{fillLabel(labels.earnings.balancePartial, { count: String(balanceView.count) })}</Text>
+              </View>
+            ) : null}
           </Card>
         ) : null}
       </View>
@@ -144,6 +174,8 @@ const styles = StyleSheet.create({
   // width or height and no numberOfLines, so the card grows with the text.
   hintRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2], paddingTop: space[2] },
   hintText: { ...type.caption, color: color.textMuted, flex: 1, flexShrink: 1 },
+  // AI-assisted: see docs/AI_LOG.md #66 (H-2): the partial notice weighs more than the plain note (14 px, warning tone)
+  partialText: { ...type.label, color: color.warning, flex: 1, flexShrink: 1 },
   periods: { flexDirection: 'row', gap: space[2] },
   period: {
     flex: 1,
