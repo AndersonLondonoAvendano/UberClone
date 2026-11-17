@@ -25,6 +25,8 @@ import { locationPolicy } from '../services/locationPolicy';
 import { publishDriverLocation } from '../services/driverLocationPublisher';
 import { useDriverLocation } from '../hooks/useDriverLocation';
 import { useTripRequests } from '../hooks/useTripRequests';
+import { useRequestSource } from '../hooks/useRequestSource';
+import { REQUEST_SOURCE } from '../services/notifications/requestSource';
 import { getLocationSource } from '../services/location';
 import { requestSimulatedTripNow } from '../services/passengerApi';
 
@@ -71,7 +73,6 @@ export function AvailabilityProvider({ children }) {
     };
   }, []);
 
-  const watching = isAvailable && !onTrip;
   const policy = locationPolicy({
     available: isAvailable,
     accountApproved: accountStatus === ACCOUNT_STATUS.APPROVED,
@@ -123,6 +124,10 @@ export function AvailabilityProvider({ children }) {
   }, [location.position]);
   const getDriverPosition = useCallback(() => positionRef.current, []);
 
+  // AI-assisted: see docs/AI_LOG.md #70 (D-197): the in-app simulator runs only when it is the single source;
+  // otherwise the backend generator sends the requests as pushes (adopted without a subscription).
+  const requestSource = useRequestSource({ available: isAvailable, onTrip });
+
   const {
     pendingRequest,
     lastRequest,
@@ -130,7 +135,7 @@ export function AvailabilityProvider({ children }) {
     clearPendingRequest,
     offerPushRequest: offerPushRequestUnchecked,
     pushOffered,
-  } = useTripRequests({ enabled: watching, getDriverPosition });
+  } = useTripRequests({ enabled: requestSource === REQUEST_SOURCE.MOCK, getDriverPosition });
 
   // A2 (D-181), defense in depth: a push request is never offered while the driver is not Disponible.
   // AI-assisted: see docs/AI_LOG.md #66

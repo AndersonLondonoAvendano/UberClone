@@ -15,8 +15,12 @@ export const NOTIFICATIONS_ERROR = {
 
 const fail = (error) => ({ ok: false, error });
 
+// Own timeout of the availability report: shorter than MOCK_EMIT_MIN_MS so a slow answer never delays the mock fallback.
+export const AVAILABILITY_TIMEOUT_MS = 5000;
+
 export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs = 15000 }) {
-  async function post(path, body) {
+  // options.timeoutMs overrides the default; options.readJson makes a success carry the parsed body.
+  async function post(path, body, options = {}) {
     if (typeof baseUrl !== 'string' || !baseUrl.trim()) return fail(NOTIFICATIONS_ERROR.OFFLINE);
     let idToken;
     try {
@@ -27,7 +31,7 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     if (!idToken) return fail(NOTIFICATIONS_ERROR.SESSION);
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? timeoutMs);
     let response;
     try {
       response = await fetchFn(`${baseUrl.replace(/\/+$/, '')}${path}`, {
@@ -47,6 +51,15 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     if (status === 404) return fail(NOTIFICATIONS_ERROR.NO_DEVICES);
     if (status === 429) return fail(NOTIFICATIONS_ERROR.RATE_LIMITED);
     if (!response?.ok) return fail(NOTIFICATIONS_ERROR.SERVER);
+    if (options.readJson) {
+      try {
+        const json = await response.json();
+        if (typeof json?.active !== 'boolean') return fail(NOTIFICATIONS_ERROR.SERVER);
+        return { ok: true, active: json.active };
+      } catch {
+        return fail(NOTIFICATIONS_ERROR.SERVER);
+      }
+    }
     return { ok: true };
   }
 
@@ -62,6 +75,15 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     // Asks the backend to send the simulated request to this driver's devices (optionally delayed).
     requestTestNotification({ delaySeconds } = {}) {
       return post('/notifications/test-request', delaySeconds === undefined ? {} : { delaySeconds });
+    },
+    // Tells the backend whether the driver is available. The body is only { available } or { available, seq }
+    // (seq only when it is a safe integer > 0): no location, no uid, no personal data. Resolves
+    // { ok: true, active } (server generator running) or { ok: false, error }.
+    // AI-assisted: see docs/AI_LOG.md #70
+    reportAvailability(available, seq) {
+      if (typeof available !== 'boolean') return Promise.resolve(fail(NOTIFICATIONS_ERROR.SERVER));
+      const body = Number.isSafeInteger(seq) && seq > 0 ? { available, seq } : { available };
+      return post('/notifications/availability', body, { timeoutMs: AVAILABILITY_TIMEOUT_MS, readJson: true });
     },
   };
 }

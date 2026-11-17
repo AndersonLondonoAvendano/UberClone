@@ -3409,3 +3409,202 @@ pasos.
 - Hash de commit:
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #70 — FCM — solicitudes automáticas (pasajero simulado)
+- Fecha: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Claude Sonnet 5.5, claude-sonnet-5-5)
+- Objetivo: Que llegue una notificación de solicitud por FCM, sola, mientras el conductor está «Disponible» (generador de pasajero simulado en el backend, disponibilidad reportada por la app, sin duplicar con el simulador interno). Cambia D-130 en lo que se opone.
+- Prompt (textual):
+````
+PROMPT — Solicitudes automáticas por FCM mientras el conductor está «Disponible» (pasajero simulado en el servidor)
+
+0. AI_LOG: crea UNA entrada nueva "FCM — solicitudes automáticas (pasajero simulado)" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Esta tarea CAMBIA la decisión D-130 (el backend solo enviaba bajo demanda): declárala como
+   decisión nueva (D-1xx, siguiente número libre) que sustituye a D-130 en lo que se opone, y deja
+   D-130 como «Modificada» con enlace.
+
+PROBLEMA (Anderson, 2026-11-16 16:36)
+Hoy, con «Disponible» activo y la app en segundo plano, no llega ninguna notificación: solo el botón
+«Solicitud de prueba» de Configuración envía una. Eso no representa una app de conductor. Debe llegar
+una notificación de solicitud, sola, mientras el conductor está disponible.
+
+METODOLOGÍA Y REGLAS
+Mismos roles que los lotes anteriores: spec-author y planner (specs/007-solicitudes-automaticas,
+cortos, con CA-nnn y T-nnn que continúan la numeración), implementer, verifier DISTINTO por
+rebanada, design-auditor para lo visual. Quien implementa no aprueba. Ante un rechazo: regístralo como
+evento, una ronda de corrección con otro implementer, nueva verificación; segundo rechazo → DETENTE.
+Continúas con la implementación sin pedir aprobación. No leas ni imprimas .env, backend/.env,
+backend/secrets/* ni google-services.json. Cero secretos en docs, README, logs ni tests. Sin commit
+ni push. Sin git stash, reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin Alert. Textos en el
+módulo de idioma con paridad es/en. Sin dependencias nuevas, sin tocar app.json ni código nativo.
+firestore.rules fuera de git y SIN cambios de reglas (si necesitaras uno, detente y repórtalo). No
+puedes probar en dispositivo ni con el servidor real. No dejes procesos de fondo.
+
+REQUISITOS
+R1. Pasajero simulado en el backend. Un generador por conductor DISPONIBLE que envía, por FCM y con el
+    constructor de payload ya existente (sin tarifa y sin direcciones; D-138 vigente), una solicitud
+    simulada en intervalos aleatorios: la primera a los 15–30 s de quedar disponible; las siguientes
+    cada 60–120 s; tope por sesión de disponibilidad (por defecto 10) tras el cual deja de enviar
+    hasta que el conductor vuelva a ponerse disponible. Los intervalos y el tope se configuran en el
+    backend por variables de entorno (solo nombres en README y .env.example, con valores por defecto
+    seguros). Un solo envío pendiente por uid; sin ráfagas.
+R2. Disponibilidad reportada por la app. Endpoint nuevo autenticado con el ID token (mismo guard que
+    los de notificaciones: límite por IP, límite por usuario, cuenta aprobada, token inválido → 401):
+    la app informa «disponible» o «no disponible». Disponibilidad EFECTIVA = el conductor está
+    «Disponible» Y no hay un viaje en curso Y las notificaciones están activadas con token
+    registrado. La app informa al backend al cambiar el interruptor, al empezar y terminar un viaje, al
+    activar o desactivar las notificaciones y al volver a primer plano (latido ligero, con un tope de
+    frecuencia). El backend ignora lo que venga de otro uid y el cuerpo no puede aportar uid, tokens,
+    textos ni datos.
+R3. Cuándo se detiene el generador: «No disponible», viaje en curso, cierre de sesión (la baja del
+    token ya existente debe cancelarlo), token dado de baja, notificaciones desactivadas, tope de la
+    sesión alcanzado, cierre del backend (cancela todo, como los envíos diferidos actuales) y falta de
+    latido más allá de un tiempo máximo configurable (por defecto 30 min) para no dejar conductores
+    «fantasma». Nunca se envía a una cuenta no aprobada ni a un token distinto de los del uid.
+R4. Sin duplicados. NO pueden coexistir el generador del servidor y el simulador interno de la app
+    (mockPassengerApi). Investiga cómo se generan hoy las solicitudes mientras el conductor está
+    disponible y decide: si la disponibilidad efectiva está activa y el backend responde, la fuente
+    es el servidor y el simulador interno no genera; si las notificaciones están desactivadas o el
+    backend no responde, el simulador interno sigue como respaldo. Declara la decisión y demuéstrala
+    con pruebas (nunca dos fuentes a la vez; nunca cero fuentes cuando el conductor está disponible).
+R5. Mismo flujo de recepción ya validado: elegibilidad de D-133/D-146, aviso de «No disponible», dedupe
+    por requestId, pantalla completa al tocar, tarjeta emergente si llega en primer plano, expiración a
+    los 90 s y 15 s de decisión, «Rechazado» al rechazar o vencer. No rompas nada de eso.
+R6. «Solicitud de prueba» de Configuración se conserva tal cual (ensayo y video).
+R7. Límites declarados en omisiones-y-limites.md y README: los temporizadores viven en la memoria del
+    backend y se pierden si este se reinicia (la app los recupera con el siguiente latido); el
+    generador es una simulación para la demostración, no un servicio de despacho real; con la app
+    cerrada la solicitud llega y se abre solo en release (limitación del dev client ya documentada).
+R8. Privacidad y consumo: el latido no envía ubicación ni datos personales; el backend no registra
+    tokens, uid ni cuerpos en logs (solo códigos fijos, como hoy). Documenta el costo en escrituras
+    (el estado de disponibilidad vive en memoria del backend, no en Firestore, salvo que una razón
+    fuerte lo justifique y la declares).
+
+PRUEBAS (con reloj y generador de números aleatorios inyectados; sin esperas reales)
+- Primera solicitud en 15–30 s; siguientes en 60–120 s; tope por sesión; un solo pendiente por uid.
+- Se detiene en cada caso de R3; reanuda al volver a quedar disponible; sin latido > máximo se detiene.
+- Envía solo a los tokens del uid autenticado y solo si la cuenta está aprobada; cuerpo con uid o
+  tokens ignorado; endpoint con 401, 429 y validación de tipos.
+- Cierre del backend cancela todos los temporizadores; un fallo de envío no rompe el generador.
+- El payload no lleva tarifa ni direcciones (reutiliza las pruebas existentes).
+- Lado app: informa al cambiar el interruptor, al empezar y terminar un viaje, al activar y
+  desactivar notificaciones, y con el latido; nunca dos fuentes (R4); sin Alert y con textos es/en.
+- Estáticas: sin secretos, sin console.log de tokens, sin dependencias nuevas.
+
+VERIFICACIÓN (verifiers distintos, por rebanada)
+Backend (generador, endpoint, detención), app (reporte de disponibilidad, R4), integración con el flujo
+de recepción, documentación. Pruebas completas (npm test) y check-constitution (base 14 errores) sin
+regresión; cita cifras reales. «Validada» solo con evidencia de Anderson; el resto «Implementada,
+pendiente de dispositivo».
+
+ENTREGA
+Informe corto: qué se hizo por rebanada, decisiones nuevas (con qué reemplaza a D-130), hallazgos de
+los verifiers, cifras reales, pasos manuales de Anderson (reiniciar el backend; el túnel y la
+variable EXPO_PUBLIC_BACKEND_URL no cambian) y el CHECKLIST STOP-8 de dispositivo, con la app en el
+build de desarrollo y Metro reiniciado con `npx expo start -c`; el caso de la app cerrada se valida
+en RELEASE:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible»: en 15–30 s llega una notificación
+    con la app en primer plano (tarjeta) o en segundo plano (aviso del sistema); (2) tocarla desde
+    Configuración abre la pantalla completa; (3) la siguiente llega entre 60 y 120 s después; (4) al
+    ponerse «No disponible» dejan de llegar; (5) con un viaje en curso no llegan; (6) cerrar sesión y
+    entrar con otra cuenta no hereda el generador; (7) con las notificaciones desactivadas sigue
+    funcionando el simulador interno sin duplicar; (8) «Solicitud de prueba» sigue funcionando;
+    (9) `npm test`. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): lote L4 (spec 007, T-273 a T-277) implementado con verifier distinto por rebanada y sin rechazos: generador en memoria del backend (T-273), endpoint `POST /notifications/availability` (T-274), reporte y función pura de fuente única server/mock en la app (T-275, T-276) y documentación de límites (T-277). T-278 (checklist STOP-8) queda para Anderson. Todo «Implementada, pendiente de dispositivo»; spec 007 sigue en Borrador. Hallazgos abiertos: DT-9 (baja de token), posible retiro de una tarjeta push al pasar de mock a server, sin prueba del hook.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
+
+- **Corrección STOP-8 (Anderson, 2026-11-16 19:10, mismo #70, sin entrada nueva):** al ponerse «No disponible» con la app en segundo plano seguían llegando notificaciones nuevas. Prompt (textual):
+````
+PROMPT — Corrección: al ponerse «No disponible» las solicitudes automáticas deben detenerse YA
+
+0. AI_LOG: añade estas líneas a la entrada #70 (no crees entrada nueva); si cambia el contrato del
+   endpoint, declara la decisión nueva (D-1xx, siguiente número libre) y enlaza a D-197.
+
+EVIDENCIA (Anderson, 2026-11-16 19:10, STOP-8)
+Validado en dispositivo: llegan notificaciones automáticas a los 15–30 s y luego cada 60–120 s con la
+app en primer y segundo plano, tocar desde Configuración abre la pantalla completa, con un viaje en
+curso no llegan, cerrar sesión y entrar con otra cuenta no hereda el generador, sin duplicados con
+las notificaciones desactivadas y «Solicitud de prueba» sigue funcionando. npm test: 399 de 400
+(1 omitida).
+FALLO: con el interruptor en «No disponible» y la app en segundo plano las notificaciones SIGUEN
+llegando. Al tocarlas sale correctamente «Activa Disponible para recibir solicitudes», pero no
+deberían llegar. Ten en cuenta que una solicitud ya enviada a FCM puede llegar hasta 90 s después
+(TTL): eso es normal y no es el fallo; el fallo es que lleguen solicitudes NUEVAS.
+
+TAREA (sin spec nueva; tareas T-nnn que continúan la numeración)
+Diagnostica por lectura de código y pruebas, sin suponer, y corrige. Sospechosos, en orden:
+S1. El reportador de la app (availabilityReporter y el hook useRequestSource) aplica un mínimo de 60 s
+    entre latidos. Comprueba si un `available: false` puede quedar descartado o retrasado por ese
+    mínimo. REGLA: un cambio de estado a no disponible (apagar el interruptor, empezar un viaje,
+    desactivar notificaciones, cerrar sesión) se envía de inmediato, sin pasar por el mínimo entre
+    latidos; el mínimo solo limita los latidos periódicos de «sigo disponible».
+S2. Orden de llegada: un `true` y un `false` enviados en rápida sucesión pueden llegar al backend en
+    orden inverso y dejar el generador activo. Corrige con un número de secuencia monótono enviado por
+    la app en cada reporte (por ejemplo, el instante en milisegundos o un contador por sesión) y el
+    backend ignora cualquier reporte con secuencia menor o igual a la última aceptada de ese uid. El
+    cuerpo sigue sin poder aportar uid, tokens ni textos; validación de tipos y límites de la
+    secuencia. Declara el cambio de contrato.
+S3. Un `false` que falla (red, 429, 5xx) no se reintenta: reintenta con retroceso exponencial acotado
+    (por ejemplo 3 intentos) mientras el estado deseado siga siendo «no disponible», y cancela el
+    reintento si el estado cambia. Un `true` perdido no debe reactivar el generador por su cuenta.
+S4. Latido que reactiva: comprueba que ningún latido ni reporte al volver a primer plano puede enviar
+    `true` cuando el interruptor está en «No disponible», un viaje está en curso o las notificaciones
+    están desactivadas; la disponibilidad efectiva se evalúa al momento de enviar, no con un valor
+    capturado antes.
+S5. Backend: confirma que `available: false` cancela el temporizador pendiente y que el envío en vuelo
+    no programa otro; y añade una barrera adicional: al dispararse el temporizador se vuelve a
+    comprobar que el último reporte aceptado sea `true` y que el latido siga vigente (ya se
+    comprueba el latido; añade lo primero si no está).
+S6. Estado de la app en segundo plano: comprueba si al ir a segundo plano algún camino deja de
+    reportar un `false` pendiente (por ejemplo, la petición se cancela al suspender el JS) y, si es
+    así, intenta enviarlo antes de suspender y, si no se puede, reintenta al volver a primer plano o
+    al siguiente latido; además deja registrado en omisiones-y-limites.md el peor caso real (el
+    generador puede enviar hasta el próximo latido o hasta el máximo de 30 min si el teléfono pierde
+    la red justo al apagar el interruptor; la barrera del backend lo acota) y cuánto vale hoy ese
+    máximo.
+Entrega junto con la corrección un análisis breve (en docs/, sin secretos) de cuál de los sospechosos
+era la causa real según el código, con archivo:línea, y cuáles eran solo riesgos.
+
+PRUEBAS (reloj y aleatorio inyectados, sin esperas reales)
+- Un `false` justo después de un `true` (dentro de los 60 s) llega de inmediato y detiene el generador.
+- Reportes desordenados (`true` con secuencia 5, `false` con secuencia 6, llegando 6 y luego 5): el
+  backend queda en no disponible; secuencia repetida o menor se ignora; secuencia inválida da 400.
+- Un `false` fallido se reintenta hasta 3 veces y se detiene si el estado cambia; el retroceso es el
+  esperado con reloj inyectado.
+- Ningún latido ni reporte de foco envía `true` con el interruptor apagado, con un viaje en curso o
+  con las notificaciones desactivadas.
+- El temporizador del backend no envía si el último reporte aceptado es `false`.
+- Las pruebas existentes del generador y del endpoint siguen en verde (401, 429, cuenta no aprobada,
+  payload sin tarifa ni direcciones, cierre cancela todo, cero escrituras a Firestore).
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, el constructor no aprueba. Ante un rechazo:
+regístralo, una ronda de corrección con otro implementer, nueva verificación; segundo rechazo → DETENTE.
+No leas ni imprimas .env, backend/.env, backend/secrets/* ni google-services.json. Cero secretos.
+Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS=false. Sin dependencias nuevas,
+sin tocar app.json ni código nativo. Sin cambios de reglas de Firestore. Textos con paridad es/en.
+No puedes probar en dispositivo. No dejes procesos de fondo. Pruebas completas (npm test) y
+check-constitution (base 14 errores) sin regresión; cita cifras reales. «Validada» solo con
+evidencia de Anderson.
+
+ENTREGA
+Informe corto: causa real encontrada, qué se corrigió, decisiones nuevas, hallazgos de los verifiers,
+cifras reales y el CHECKLIST STOP-8b, con el backend reiniciado y Metro con `npx expo start -c`:
+(1) activar notificaciones, ponerse «Disponible» y esperar la primera notificación;
+(2) apagar «Disponible» e inmediatamente mandar la app a segundo plano: esperar 3 minutos, no debe
+    llegar ninguna nueva (una ya enviada en los últimos 90 s puede llegar);
+(3) repetir encendiendo y apagando rápido tres veces seguidas y dejarlo en «No disponible»: no deben
+    llegar nuevas;
+(4) volver a «Disponible»: reanudan en 15–30 s;
+(5) en la consola del backend, la línea POST /notifications/availability aparece con 200 justo
+    después de cada cambio; pégala aquí;
+(6) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8b". Sin recapitular pasos.
+````
+- Respuesta de la corrección (borrador): decisión D-198 (número de secuencia por reporte y reintento acotado del `false`), tareas T-279 a T-281, análisis en `docs/analisis-no-disponible.md`. Verificación y Aprendizaje de esta corrección: los completa Anderson.

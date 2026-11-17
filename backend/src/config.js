@@ -23,6 +23,50 @@ export const FCM_BATCH_SIZE = 500;
 // Stripe events are larger than the JSON bodies of the app routes, but still small and bounded.
 export const STRIPE_WEBHOOK_BODY_LIMIT = '64kb';
 
+// AI-assisted: see docs/AI_LOG.md #70
+// Automatic simulated requests (spec 007). Seconds/minutes come from the environment; the generator receives ms.
+export const AUTO_REQUEST_DEFAULTS = {
+  firstMinS: 15,
+  firstMaxS: 30,
+  nextMinS: 60,
+  nextMaxS: 120,
+  maxPerSession: 10,
+  heartbeatMaxMin: 30,
+};
+const AUTO_REQUEST_LIMITS = { maxSeconds: 3600, maxPerSession: 1000, maxHeartbeatMin: 1440 };
+
+// Positive integer within [1, max], or null when absent, not numeric or out of range.
+function readBoundedInt(raw, max) {
+  const text = clean(raw);
+  if (!/^\d+$/.test(text)) return null;
+  const value = Number(text);
+  return value >= 1 && value <= max ? value : null;
+}
+
+// A min/max pair: both valid and ordered, otherwise both go back to their defaults.
+function readRange(env, minName, maxName, defaults) {
+  const min = readBoundedInt(env[minName], AUTO_REQUEST_LIMITS.maxSeconds);
+  const max = readBoundedInt(env[maxName], AUTO_REQUEST_LIMITS.maxSeconds);
+  return min !== null && max !== null && min <= max ? [min, max] : defaults;
+}
+
+// Reads the AUTO_REQUEST_* variables (names only are ever reported). Returns the generator config in ms.
+export function loadAutoRequestConfig(env = process.env) {
+  const d = AUTO_REQUEST_DEFAULTS;
+  const [firstMinS, firstMaxS] = readRange(env, 'AUTO_REQUEST_FIRST_MIN_S', 'AUTO_REQUEST_FIRST_MAX_S', [d.firstMinS, d.firstMaxS]);
+  const [nextMinS, nextMaxS] = readRange(env, 'AUTO_REQUEST_NEXT_MIN_S', 'AUTO_REQUEST_NEXT_MAX_S', [d.nextMinS, d.nextMaxS]);
+  const maxPerSession = readBoundedInt(env.AUTO_REQUEST_MAX_PER_SESSION, AUTO_REQUEST_LIMITS.maxPerSession) ?? d.maxPerSession;
+  const heartbeatMaxMin = readBoundedInt(env.AUTO_REQUEST_HEARTBEAT_MAX_MIN, AUTO_REQUEST_LIMITS.maxHeartbeatMin) ?? d.heartbeatMaxMin;
+  return {
+    firstMinMs: firstMinS * 1000,
+    firstMaxMs: firstMaxS * 1000,
+    nextMinMs: nextMinS * 1000,
+    nextMaxMs: nextMaxS * 1000,
+    maxPerSession,
+    heartbeatMaxMs: heartbeatMaxMin * 60_000,
+  };
+}
+
 const REQUIRED = ['MP_ACCESS_TOKEN', 'FIREBASE_SERVICE_ACCOUNT_PATH', 'PUBLIC_BASE_URL'];
 const STRIPE_TEST_KEY = /^(sk|rk)_test_\S+$/;
 const STRIPE_CURRENCIES = ['cop', 'usd'];
@@ -109,5 +153,6 @@ export function loadConfig(env = process.env, { allowNoProvider = false } = {}) 
     warnings: warning ? [warning] : [],
     maxAmountCop: MAX_AMOUNT_COP,
     currency: CURRENCY,
+    autoRequest: loadAutoRequestConfig(env),
   };
 }

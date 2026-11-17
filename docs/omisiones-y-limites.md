@@ -155,3 +155,30 @@ Se declaran como límites, no como defectos. Estado en dispositivo: **No verific
 - **`delayValue(15)`** muestra «15 s» en ambos idiomas (caso CA-006-07); no es un texto sin traducir.
 - **CA-006-19** no tiene prueba de renderizado (no hay entorno de render en el proyecto); el re-render real al cambiar el idioma quedó **Validada en dispositivo por Anderson** (2026-11-16 15:59, STOP-6).
 - **`useMemo` sin `language`:** el de `toPickup` en `TripRequestScreen` y el de `documentFields` en `RegistrationFormContext` no dependen de `language`. Hoy es inalcanzable porque el idioma solo cambia en Configuración; si algún día cambia desde otra pantalla, deben recibirlo como dependencia.
+
+## Límites del lote L4 (spec 007)
+<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+Solicitudes automáticas simuladas (RA-04, RA-17, RA-18, RA-19; D-197). Estado en dispositivo: **No verificado en dispositivo** hasta el checklist STOP-8.
+
+**Los tres límites de RA-17.**
+- **(a) Temporizadores en memoria.** Los temporizadores y el estado de disponibilidad viven en la memoria del backend y se pierden al reiniciarlo. La app los recupera con el siguiente latido (hasta unos 5 min).
+- **(b) Simulación de demostración.** Las solicitudes son una simulación; no hay despacho real ni pasajeros reales.
+- **(c) App cerrada.** Con la app cerrada la solicitud llega y se abre sola únicamente en la build release; en el dev client no se entrega (límite del modo desarrollo, igual que en FCM).
+
+**Cero escrituras a Firestore (RA-19).** El reporte de disponibilidad no escribe en Firestore: el estado está en memoria. Costo en escrituras: ninguno por reporte. Si el backend se reinicia, no queda rastro persistido.
+
+**Privacidad (RA-18).** `POST /notifications/availability` recibe solo `{"available": true|false}`; no envía ubicación ni datos personales. El backend toma el uid del ID token, ignora campos extra y no registra tokens, uid ni cuerpos.
+
+**Variables (RA-04).** Seis, todas opcionales, con valores por defecto seguros en `backend/src/config.js`: `AUTO_REQUEST_FIRST_MIN_S`, `AUTO_REQUEST_FIRST_MAX_S`, `AUTO_REQUEST_NEXT_MIN_S`, `AUTO_REQUEST_NEXT_MAX_S`, `AUTO_REQUEST_MAX_PER_SESSION` y `AUTO_REQUEST_HEARTBEAT_MAX_MIN`. Solo se documentan los nombres.
+
+**Máximo de 30 min sin latido.** Por defecto, el generador se detiene tras 30 min sin latido (`AUTO_REQUEST_HEARTBEAT_MAX_MIN`).
+
+**Límite residual DT-6: doble fuente.** Regla de fuente única: la app usa el servidor si este confirmó el reporte, y el simulador local como respaldo. Si el servidor procesó el reporte pero la respuesta se pierde, o el teléfono no alcanza el backend con el generador activo, el simulador local y el servidor pueden generar a la vez y duplicar solicitudes hasta el `available: false` (de mejor esfuerzo) o hasta el vencimiento de 30 min sin latido. El control de duplicados por `requestId` (D-135) no cubre dos fuentes distintas.
+
+**Peor caso tras la corrección STOP-8 (D-198, S6).** Si el teléfono pierde la red justo al poner «No disponible» (o pasa a segundo plano sin red) y los 3 reintentos (1, 2 y 4 s) fallan, el `false` queda pendiente y el generador del backend puede seguir enviando hasta que la app lo reintente (al volver a primer plano o en el siguiente cambio de estado) o hasta el máximo sin latido, hoy **30 min** (`AUTO_REQUEST_HEARTBEAT_MAX_MIN`). Una solicitud ya entregada a FCM puede llegar hasta 90 s después (TTL). Análisis: `docs/analisis-no-disponible.md`.
+- Hallazgo menor del verifier (T-280): un `false` enviado en segundo plano que queda colgado, o cuyo temporizador de reintento se suspende con la app, bloquea el reenvío al volver a primer plano (`falseBusy`, `availabilityReporter.js:131`) hasta que venza el tiempo de espera de la API o se reanude el temporizador. Si el `false` nunca llega, solo la barrera de latido del backend (`generator.js:55`, 30 min) detiene el envío. Es el mismo peor caso de arriba; no se corrigió en esta ronda.
+- Un `true` sin `seq` se acepta por compatibilidad y no mueve el contador.
+- La poda del mapa de `seq` (más de 1000 uid, entradas de más de 2× el máximo o 1 h) podría olvidar un `false` antiguo; sin efecto práctico.
+- La barrera de `fire()` no tiene prueba aislada; se cubre de forma indirecta con las pruebas de orden y de temporizador.
+
+**Operación.** Hay que reiniciar el backend para que lea las variables y el endpoint. El túnel y `EXPO_PUBLIC_BACKEND_URL` no cambian.

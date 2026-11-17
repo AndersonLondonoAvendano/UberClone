@@ -43,9 +43,10 @@ export function createApp({ auth, store, mp = null, config, registry = null, log
   const handlers = createPaymentsHandlers({ store, mp, config, registry: providers });
   registerProvidersRoute(app, { guard, handlers, send });
   registerPaymentsRoutes(app, { guard, handlers, send });
-  const notificationsHandlers = createNotificationsHandlers({ db, messaging, ...notifications });
+  const notificationsHandlers = createNotificationsHandlers({ db, messaging, autoRequest: config?.autoRequest, ...notifications });
   registerNotificationsRoutes(app, { guard, handlers: notificationsHandlers, send });
-  // Cancels the deferred test notifications still pending (called by server.js on shutdown).
+  // AI-assisted: see docs/AI_LOG.md #70
+  // Cancels the deferred test notifications and the automatic-request timers still pending (called by server.js on shutdown).
   app.closeNotifications = () => notificationsHandlers.close();
   registerReturnRoute(app, { ipLimiter, send });
   registerWebhookRoutes(app, {

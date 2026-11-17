@@ -4187,3 +4187,144 @@ La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; e
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
 - Estado: Pendiente
+
+## Lote L4 — spec 007 Solicitudes automáticas por FCM (T-273 a T-278; plan: `specs/007-solicitudes-automaticas/plan.md`; planificado 2026-11-16)
+<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70) y eso no es aprobación formal. D-197 ya existe. Requisitos locales RA-01 a RA-19. Ninguna tarea tiene texto de UI nuevo, por eso no hay tarea de auditoría de diseño (Diseño N/A en todas). Sin dependencias nuevas ni cambios en `package.json`, `firestore.rules`, `app.json` ni nativo. Cada tarea: `npm test` y `node scripts/check-constitution.mjs` sin errores nuevos sobre la base de 14.
+
+### T-273 — L4-S1: generador puro de solicitudes automáticas en el backend
+- Spec: spec 007 (RA-01, 02, 03, 05, 10, 11, 12; CA-007-01 a 06, 10)
+- Requisitos: RA-01, RA-02, RA-03, RA-05, RA-10, RA-11, RA-12 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: ninguna (usa `backend/src/notifications/payload.js` ya existente solo vía `send` inyectado)
+- Archivos: `backend/src/notifications/generator.js` (nuevo), `scripts/tests/backendAutoRequestGenerator.test.mjs` (nuevo; usa `createFakeTimers` de `scripts/tests/helpers/notificationsFakes.mjs`)
+- Hacer: `createAvailabilityGenerator({ now, random, setTimeout, clearTimeout, send, isEligible, config })` con `report(uid, available)`, `cancel(uid)`, `close()`, `has(uid)` según plan §3 y DT-1 a DT-3. Una entrada por uid; segundo `true` solo refresca el latido; el disparo reevalúa aprobación, tokens y latido; envío que falla se captura y se reprograma; tope marca la entrada hasta un `false`. Pruebas: extremos [15, 30] y [60, 120] s con `random` 0 y 0.999; exactamente 10 envíos con tope 10 y reanudación tras `false`→`true`; dos `true` seguidos dejan un temporizador y no reinician el contador; cada causa de parada (false, inelegible, sin tokens, latido vencido a 30 min y latido a tiempo que lo mantiene, tope, `close`) sin envíos posteriores y sin temporizadores activos; `send` que lanza no impide el siguiente.
+- Criterios: CA-007-01, 02, 03, 05, 10 y la parte de generador de CA-007-04 y CA-007-06.
+- Hecho cuando: la prueba nueva y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` solo toca esos dos archivos.
+- Qué debe ver Anderson en el celular: nada (se ve en T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (temporizadores y estado en memoria).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de dispositivo (verificada estáticamente por un verifier distinto; «Validada» solo con la evidencia de Anderson en STOP-8)
+
+### T-274 — L4-S1: endpoint `POST /notifications/availability`, variables de entorno y cierre
+- Spec: spec 007 (RA-04, 06, 07, 10, 11, 19, 01; CA-007-04, 06, 07, 08, 09, 11, 14)
+- Requisitos: RA-04, RA-06, RA-07, RA-10, RA-11, RA-19 (RA-01 por el payload) (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-273
+- Archivos: `backend/src/routes/notifications.js`, `backend/src/app.js`, `backend/src/server.js` (solo si el cierre no queda ya cubierto por `closeNotifications()`), `backend/src/config.js`, `backend/.env.example` (solo nombres), `scripts/tests/backendAutoRequests.test.mjs` (nuevo; usa `startApp`)
+- Hacer: constantes y lectura de `AUTO_REQUEST_FIRST_MIN_S`, `AUTO_REQUEST_FIRST_MAX_S`, `AUTO_REQUEST_NEXT_MIN_S`, `AUTO_REQUEST_NEXT_MAX_S`, `AUTO_REQUEST_MAX_PER_SESSION`, `AUTO_REQUEST_HEARTBEAT_MAX_MIN` con defaults 15/30/60/120/10/30 y retorno al default si el valor es inválido o desordenado (sin leer `backend/.env`; solo nombres en `.env.example`). Handler `availability`: `available` debe ser booleano, si no `ERRORS.invalid`; campos extra ignorados; uid solo del ID token; `true` exige cuenta aprobada (`ERRORS.invalid`) y al menos un token (`ERRORS.notFound`, cancelando); `false` siempre se acepta; respuesta 200 `{ active }`. El generador se crea con `send` = `sendToUid` existente (payload sin tarifa ni direcciones) e `isEligible` = aprobación + tokens. `unregister` cancela el generador del uid si no quedan tokens (DT-9); `close()` y `closeNotifications()` lo cierran. Sin `console.*` con token, uid ni cuerpo; sin escrituras a Firestore. Pruebas: 401 sin token o inválido, 429 por IP y por usuario, cuenta no aprobada rechazada y sin envío, cuerpo no booleano, uid/tokens/textos/data extra sin efecto en el uid objetivo ni en el contenido, solo se envía a tokens del uid, baja de token detiene, `close` sin handles activos, payload sin tarifa ni direcciones (se reutilizan las pruebas de payload), cero escrituras en el `createFakeDb`.
+- Criterios: CA-007-04 (baja de token, notificaciones desactivadas, cierre), 06, 07, 08, 09, 11; CA-007-14 con `npm test` completo.
+- Hecho cuando: pruebas nuevas y existentes del backend pasan, `check-constitution` sin errores nuevos, `.env.example` contiene solo nombres.
+- Qué debe ver Anderson en el celular: nada (T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: medio (toca el handler existente y `close`).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de dispositivo (verificada estáticamente por un verifier distinto; «Validada» solo con la evidencia de Anderson en STOP-8)
+
+### T-275 — L4-S2: cliente `reportAvailability` y función pura de elección de fuente
+- Spec: spec 007 (RA-08, 09, 13, 14, 18; CA-007-13, 16 parcial)
+- Requisitos: RA-08, RA-13, RA-14, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274 (contrato del endpoint)
+- Archivos: `src/services/notifications/notificationsApi.js`, `src/services/notifications/requestSource.js` (nuevo), `scripts/tests/notificationsApi.test.mjs` (ampliar), `scripts/tests/requestSource.test.mjs` (nuevo)
+- Hacer: `reportAvailability(available)` con el mismo patrón de `post` (ID token, mismos códigos de error), cuerpo solo `{ available }`, lectura del JSON `{ active }` solo en esta ruta, tiempo de espera propio de 5 s (menor que `MOCK_EMIT_MIN_MS`, con una prueba que lo afirma). `chooseRequestSource({ available, onTrip, notificationsReady, backendConfirmed })` según DT-5: `none` si no disponible o con viaje; `server` solo con notificaciones listas y confirmación; `mock` en el resto. Pruebas: las 16 combinaciones (más el valor de `available`) dan exactamente una fuente si está disponible sin viaje y ninguna si no; nunca dos; cuerpo solo con `available`; errores mapeados.
+- Criterios: CA-007-13; parte de CA-007-16 (cuerpo).
+- Hecho cuando: pruebas nuevas y las de `notificationsApi` existentes pasan, `check-constitution` sin errores nuevos, sin dependencias nuevas.
+- Qué debe ver Anderson en el celular: nada (T-278).
+- Validación: verifier distinto; `npm test`.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de dispositivo
+
+### T-276 — L4-S2: reportador de disponibilidad, latido y cableado con `AvailabilityContext`
+- Spec: spec 007 (RA-08, 09, 13, 15, 16, 18; CA-007-04 lado app, 12, 14, 16)
+- Requisitos: RA-08, RA-09, RA-13, RA-15, RA-16, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-275
+- Archivos: `src/services/notifications/availabilityReporter.js` (nuevo), `src/hooks/useRequestSource.js` (nuevo), `src/context/AvailabilityContext.js`, `scripts/tests/availabilityReporter.test.mjs` (nuevo), `scripts/tests/availabilityPrivacy.test.mjs` (nuevo)
+- Hacer: reportador con `api`, reloj y temporizadores inyectados (plan §3, DT-4 y DT-5): disponibilidad efectiva = Disponible y sin viaje y registro de notificaciones `enabled` y `registered`; reporta al cambiar el interruptor, al iniciar y terminar un viaje, al activar y desactivar notificaciones y al volver a primer plano; latido cada 5 min en primer plano con mínimo 60 s entre reportes de latido (los cambios de estado no esperan); la confirmación se borra al instante al dejar de ser efectiva o ante un reporte fallido, y al perderla se intenta `available: false` de mejor esfuerzo. `useRequestSource` junta reportador, `getRegistrationController().subscribe` y `AppState`; `AvailabilityContext` pasa a `useTripRequests({ enabled: source === 'mock' })` (las solicitudes push se siguen adoptando sin suscripción; recepción, `reset()` y «Solicitud de prueba» intactos). Pruebas con doble de la app: cada disparador reporta; latido respeta el tope; viaje y «No disponible» reportan `false` y borran la confirmación; fallo no confirma; la confirmación se pierde antes de arrancar el mock; prueba estática: ningún `console.*` del código nuevo de T-273 a T-276 imprime token, uid ni cuerpo, sin ubicación en el cuerpo. Paso final «probar en el celular» en T-278.
+- Criterios: CA-007-12, 16; CA-007-04 (lado app: viaje y no disponible); CA-007-14 (`npm test` sin regresión). **No verificado en dispositivo**: el comportamiento real de segundo plano, `AppState` y la ausencia de doble fuente se confirman en T-278.
+- Hecho cuando: pruebas nuevas y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` sin `backend/`, `firestore.rules`, `app.json` ni `package.json`; la app arranca.
+- Qué debe ver Anderson en el celular: con «Disponible» llega una solicitud por FCM en 15–30 s y no se mezcla con las del simulador (T-278).
+- Validación: verifier distinto; `npm test`; Anderson en T-278.
+- Riesgo: alto (toca `AvailabilityContext`, módulo nativo de notificaciones y regla de fuente única).
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de dispositivo
+
+### T-277 — L4-S3: documentación de límites, variables y privacidad
+- Spec: spec 007 (RA-04, 17, 19; CA-007-15, 17)
+- Requisitos: RA-04, RA-17, RA-19 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `README.md`, `docs/omisiones-y-limites.md`, `backend/.env.example` (solo si falta alguna variable)
+- Hacer: README nombra las seis variables `AUTO_REQUEST_*` (sin valores secretos) y el endpoint; `docs/omisiones-y-limites.md` añade sección «Límites del lote L4 (spec 007)» con: temporizadores en memoria perdidos al reiniciar (la app los recupera con el siguiente latido, hasta 5 min), simulación de demostración y no despacho real, app cerrada solo en release (límite del dev client), cero escrituras a Firestore, el máximo de 30 min sin latido, y el límite residual DT-6 de doble fuente por respuesta perdida. No toca decisiones (D-197 ya existe) ni `progress.md` (lo escribe el verifier al validar; CA-007-15 queda como evidencia a anotar allí).
+- Criterios: CA-007-15, CA-007-17 (`git diff` sin `package.json`, `firestore.rules`, `app.json`).
+- Hecho cuando: búsqueda de los seis nombres y de los tres límites en ambos documentos, `check-constitution` sin errores nuevos.
+- Qué debe ver Anderson en el celular: nada.
+- Validación: verifier distinto.
+- Riesgo: bajo.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada, pendiente de revisión de Anderson
+
+### T-278 — L4-S4: checklist STOP-8, prueba en el celular (Anderson)
+- Spec: spec 007 (STOP-8 a a i; RA-01, 02, 10, 13, 15, 16, 17)
+- Requisitos: RA-01, RA-02, RA-10, RA-13, RA-15, RA-16, RA-17 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276, T-277
+- Archivos: ninguno
+- Hacer: con el backend arrancado por el humano y la build de desarrollo: (a) con «Disponible», en 15–30 s llega la notificación, con la app en primer plano (tarjeta) y en segundo plano (aviso); (b) tocarla abre la pantalla completa; (c) la siguiente llega a los 60–120 s; (d) «No disponible» la detiene; (e) iniciar un viaje la detiene; (f) cerrar sesión y entrar con otra cuenta no hereda el generador; (g) con notificaciones desactivadas funciona el simulador interno, sin duplicar; con notificaciones activas no se mezclan solicitudes del simulador con las del servidor; (h) «Solicitud de prueba» sigue funcionando; (i) app cerrada: solo se abre en release (límite del dev client). Reportar con «Pega aquí el resultado de la prueba en el celular».
+- Criterios: STOP-8 (a) a (i). **No verificado en dispositivo** hasta que Anderson confirme con fecha y evidencia.
+- Hecho cuando: Anderson confirma cada punto o reporta el fallo; si una falla, se detiene la cadena.
+- Qué debe ver Anderson en el celular: lo descrito arriba.
+- Validación: Anderson.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Pendiente de Anderson (checklist entregado 2026-11-16; esperando resultado de STOP-8)
+
+## Corrección STOP-8 — «No disponible» debe detener YA (T-279 a T-281; D-198)
+
+### T-279 — L4-C1: backend con `seq` y barrera del último reporte aceptado
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-12, RA-18, RA-19 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `backend/src/notifications/generator.js`, `backend/src/routes/notifications.js`, pruebas
+- Hacer: `seq` opcional validado (400 si inválido), último `seq` por uid en memoria con poda, reportes con `seq` menor o igual ignorados (200), y en `fire` comprobar que el último reporte aceptado es `true` antes de enviar; sin escrituras a Firestore ni cambios de 401, 429, cuenta no aprobada ni payload.
+- Criterios: CA-007-04, 05, 09, 10. **No verificado en dispositivo.**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-280 — L4-C2: reportador de la app con `seq`, `false` inmediato y reintento acotado
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-13, RA-18 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `src/services/notifications/availabilityReporter.js`, `src/services/notifications/notificationsApi.js`, pruebas
+- Hacer: `reportAvailability(available, seq)`; `seq` creciente por reporte; `false` sin esperar el mínimo; reintento con espera exponencial (1, 2, 4 s) mientras siga «no disponible», cancelado al cambiar el estado; reintento al volver a primer plano; `true` evaluado con la disponibilidad efectiva en el momento del envío; un `true` perdido no reactiva nada.
+- Criterios: CA-007-04, 12, 16. **No verificado en dispositivo.**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada
+
+### T-281 — L4-C3: análisis, límites y cierre documental de la corrección
+- Spec: spec 007 (corrección STOP-8, D-198)
+- Requisitos: RA-10, RA-17 (anclas RF-67, RF-68, RF-77, RNF-24)
+- Depende de: T-274, T-276
+- Archivos: `docs/analisis-no-disponible.md`, `docs/omisiones-y-limites.md`, `README.md`
+- Hacer: Análisis con `archivo:línea` de la causa real y de los riesgos; peor caso de S6 y valor actual del máximo (30 min) en límites; README con el campo `seq`.
+- Criterios: CA-007-15. **No verificado en dispositivo.**
+- Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
+- Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
+- Validación: verifier distinto; Anderson en STOP-8b.
+- Riesgo: medio.
+- Diseño hecho cuando: N/A.
+- Diseño: N/A
+- Estado: Implementada

@@ -115,6 +115,20 @@ Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, gana
 
 **Límites.** La app no publica ubicación ni disponibilidad en segundo plano (el conductor decide al abrir la solicitud) y el disparo real de la solicitud está simulado: sale del endpoint de prueba, no de un pasajero real. Más en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).
 
+### Solicitudes automáticas simuladas (spec 007)
+<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+**Qué hace.** Con la app abierta y el conductor disponible, el backend genera solicitudes de viaje simuladas a intervalos aleatorios y las envía por FCM. La app avisa su disponibilidad con un latido: `POST /notifications/availability`, con sesión y cuerpo solo `{"available": true|false}` o, con orden, `{"available": true|false, "seq": N}` (`seq` es un entero creciente: el backend ignora un reporte con `seq` menor o igual al último aceptado, y un `false` fallido se reintenta hasta 3 veces; D-198). El latido no envía ubicación ni datos personales; el backend toma el usuario únicamente del ID token y no registra tokens, uid ni cuerpos. El estado vive en memoria: **cero escrituras a Firestore por reporte** (costo en escrituras: ninguno por reporte).
+
+**Variables del backend (solo nombres; todas opcionales).** Se definen en `backend/.env` (plantilla en `backend/.env.example`); si falta una o es inválida, se usa su valor por defecto seguro, que está documentado en `backend/src/config.js`.
+- `AUTO_REQUEST_FIRST_MIN_S` y `AUTO_REQUEST_FIRST_MAX_S`: rango en segundos de la espera hasta la primera solicitud (por defecto 15 a 30; máximo 3600).
+- `AUTO_REQUEST_NEXT_MIN_S` y `AUTO_REQUEST_NEXT_MAX_S`: rango en segundos entre solicitudes siguientes (por defecto 60 a 120; máximo 3600). En cada par, el mínimo debe ser menor o igual que el máximo; si no, el par vuelve a sus valores por defecto.
+- `AUTO_REQUEST_MAX_PER_SESSION`: tope de solicitudes por sesión de disponibilidad (por defecto 10; máximo 1000).
+- `AUTO_REQUEST_HEARTBEAT_MAX_MIN`: minutos máximos sin latido antes de detener el generador (por defecto 30; máximo 1440).
+
+**Fuente única.** Si el servidor confirmó el reporte, la app deja de generar solicitudes locales y solo llegan las del servidor; si el reporte falla, la app usa el simulador local como respaldo. Límite residual: si la respuesta se pierde o el teléfono no alcanza el backend con el generador activo, pueden llegar solicitudes de ambas fuentes hasta el `available: false` o hasta el vencimiento de 30 min sin latido; el control de duplicados por `requestId` no cubre dos fuentes distintas.
+
+**Para usarlo.** Reinicia el backend para que lea las variables y el nuevo endpoint. El túnel y `EXPO_PUBLIC_BACKEND_URL` no cambian. Los temporizadores viven en la memoria del backend y se pierden al reiniciarlo: la app los recupera con el siguiente latido (hasta unos 5 min). Los tres límites (temporizadores en memoria, simulación y app cerrada solo en release) están en [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md).
+
 ### Probar los endpoints de notificaciones con curl
 Con el backend en marcha y un conductor con `accountStatus = approved`. Los valores entre `<>` son placeholders: el ID token sale de la sesión de Firebase de la app y el token FCM, del dispositivo; no los pegues en chats ni en archivos del repositorio.
 ```bash

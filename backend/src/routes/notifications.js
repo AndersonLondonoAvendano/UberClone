@@ -1,9 +1,12 @@
 // AI-assisted: see docs/AI_LOG.md #64
 // POST /notifications/register, POST /notifications/unregister and POST /notifications/test-request.
 // The uid comes only from the verified ID token; the body never supplies a uid, tokens, text or data.
+// AI-assisted: see docs/AI_LOG.md #70
+// POST /notifications/availability only takes { available: boolean }; extra fields are ignored. State is in memory only.
 // Nothing here logs tokens, bodies, emails or uids.
-import { FCM_BATCH_SIZE, TEST_REQUEST_MAX_DELAY_S, TEST_REQUEST_RATE_LIMIT } from '../config.js';
+import { FCM_BATCH_SIZE, TEST_REQUEST_MAX_DELAY_S, TEST_REQUEST_RATE_LIMIT, loadAutoRequestConfig } from '../config.js';
 import { ERRORS, createRateLimiter, send as defaultSend } from '../middleware.js';
+import { createAvailabilityGenerator } from '../notifications/generator.js';
 import { buildMessage, buildTestRequest } from '../notifications/payload.js';
 import { createTokenStore, isValidPlatform, isValidPushToken } from '../notifications/tokenStore.js';
 
@@ -19,6 +22,7 @@ export function createNotificationsHandlers({
   clearTimeout: cancel = globalThis.clearTimeout,
   idFactory,
   random,
+  autoRequest = loadAutoRequestConfig({}),
 }) {
   const tokens = db ? createTokenStore({ db, now }) : null;
   const testLimiter = createRateLimiter({ ...TEST_REQUEST_RATE_LIMIT, now });
@@ -41,6 +45,22 @@ export function createNotificationsHandlers({
     }
   }
 
+  async function isApproved(uid) {
+    const driver = await db.doc(`drivers/${uid}`).get();
+    return driver.exists && driver.data()?.accountStatus === APPROVED;
+  }
+
+  // One generator for all uids (in memory). It re-checks approval and tokens each time its timer fires.
+  const generator = createAvailabilityGenerator({
+    now,
+    random: random ?? Math.random,
+    setTimeout: schedule,
+    clearTimeout: cancel,
+    send: (uid) => sendToUid(uid),
+    isEligible: async (uid) => Boolean(tokens) && Boolean(messaging) && (await isApproved(uid)) && (await tokens.listForUid(uid)).length > 0,
+    config: autoRequest,
+  });
+
   return {
     async register({ uid, body }) {
       if (!tokens) return ERRORS.server;
@@ -54,6 +74,8 @@ export function createNotificationsHandlers({
       if (!tokens) return ERRORS.server;
       if (!isValidPushToken(body?.token)) return ERRORS.invalid;
       await tokens.unregister(uid, body.token);
+      // The generator of the uid stops only when no device is left (another device keeps it alive).
+      if (generator.has(uid) && (await tokens.listForUid(uid)).length === 0) generator.cancel(uid);
       return { status: 204, body: {} };
     },
 
@@ -87,8 +109,37 @@ export function createNotificationsHandlers({
       return { status: 202, body: { scheduled: true } };
     },
 
-    // Cancels every deferred send still waiting.
+    // Body: { available: boolean, seq?: positive safe integer }. The uid comes from the ID token. "false" is always accepted.
+    // A report whose seq is not newer than the last accepted one is ignored with 200, before any effect.
+    async availability({ uid, body }) {
+      const available = body?.available;
+      if (typeof available !== 'boolean') return ERRORS.invalid;
+      const seq = body?.seq;
+      if (seq !== undefined && !(Number.isSafeInteger(seq) && seq > 0)) return ERRORS.invalid;
+      const ignored = () => ({ status: 200, body: { active: generator.has(uid) } });
+      if (generator.isStale(uid, seq)) return ignored();
+      if (!available) {
+        generator.report(uid, false, seq);
+        return { status: 200, body: { active: false } };
+      }
+      if (!tokens || !messaging) return ERRORS.server;
+      if (!(await isApproved(uid))) {
+        // A newer report may have been accepted while awaiting: then this one must not cancel anything.
+        if (generator.isStale(uid, seq)) return ignored();
+        generator.cancel(uid);
+        return ERRORS.invalid;
+      }
+      if ((await tokens.listForUid(uid)).length === 0) {
+        if (generator.isStale(uid, seq)) return ignored();
+        generator.cancel(uid);
+        return ERRORS.notFound;
+      }
+      return { status: 200, body: { active: generator.report(uid, true, seq) } };
+    },
+
+    // Cancels every deferred send and every generator timer still waiting.
     close() {
+      generator.close();
       for (const handle of pending.values()) cancel(handle);
       pending.clear();
     },
@@ -108,4 +159,5 @@ export function registerNotificationsRoutes(app, { guard, handlers, send = defau
   app.post('/notifications/register', route('register'));
   app.post('/notifications/unregister', route('unregister'));
   app.post('/notifications/test-request', route('testRequest'));
+  app.post('/notifications/availability', route('availability'));
 }
