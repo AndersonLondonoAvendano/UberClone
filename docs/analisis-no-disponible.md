@@ -31,4 +31,4 @@ Una solicitud ya entregada a FCM puede llegar hasta 90 s después (TTL). No es u
 
 ## Estado
 
-**No verificado en dispositivo** hasta el checklist STOP-8b de Anderson.
+**Validada en dispositivo por Anderson (STOP-8b, 2026-11-16 19:40):** con «No disponible» y la app en segundo plano no llegan notificaciones nuevas; encender y apagar rápido y dejarlo apagado no genera nuevas; volver a «Disponible» reanuda en ≈ 30 s. El punto 4 de STOP-8 (19:10) fue el que falló y motivó esta corrección.

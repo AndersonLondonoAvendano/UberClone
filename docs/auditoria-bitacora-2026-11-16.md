@@ -130,27 +130,27 @@ Notas de la tabla:
 - Verificación con marcador «pendiente»: #49, #50, #51, #52, #54, #55, #56. Aprendizaje con marcador «pendiente: Anderson»: #1 y #34 a #39.
 - Aprendizaje con texto: solo #33.
 
-### Resumen de conteos (68 entradas)
+### Resumen de conteos (71 entradas; actualizado el 2026-11-16 con #69, #70 y #71)
 
 | Concepto | Cantidad |
 |---|---|
-| Entradas totales | 68 (#1 a #68) |
-| Reconstruidas (R) | 10 (#3 a #11 y #22) |
+| Entradas totales | 71 (#1 a #71) |
+| Reconstruidas (R) | 11 (#3 a #11, #22 y #69) |
 | Con alguna etiqueta de la plantilla ausente | 5 (#1, #65, #66, #67, #68) |
-| Verificación vacía | 9 (#60 a #68) |
+| Verificación vacía | 12 (#60 a #71) |
 | Verificación con marcador «pendiente» | 7 (#49, #50, #51, #52, #54, #55, #56) |
 | Verificación con texto | 52 |
-| Aprendizaje vacío | 60 |
+| Aprendizaje vacío | 63 (#58 a #71 entre ellos) |
 | Aprendizaje con marcador «pendiente: Anderson» | 7 (#1, #34 a #39) |
 | Aprendizaje con texto | 1 (#33) |
 | Con hash de commit citado en la entrada | 20 (#1, #2, #5 a #21, #23) |
-| Sin hash | 48 |
+| Sin hash | 51 |
 
 ### Lo que solo Anderson completa (resumen)
 
-- **Aprendizaje:** 67 de las 68 entradas (todas menos #33).
-- **Verificación:** #60 a #68 (vacías) y #49, #50, #51, #52, #54, #55, #56 (marcador «pendiente»); además, confirmar las Verificaciones redactadas por la IA en las demás.
-- **Hash de commit:** las 48 entradas sin hash. #66, #67 y #68 no tienen commit todavía (en curso).
+- **Aprendizaje:** 70 de las 71 entradas (todas menos #33).
+- **Verificación:** #60 a #71 (vacías; #69 es la reconstruida de la placa, sin prompt ni verificación inventados) y #49, #50, #51, #52, #54, #55, #56 (marcador «pendiente»); además, confirmar las Verificaciones redactadas por la IA en las demás.
+- **Hash de commit:** las 51 entradas sin hash. #66, #67 y #68 no tienen commit todavía (en curso).
 - **Marcas de código retiradas en D2:** la entrada reconstruida para la normalización de la placa **ya existe en borrador (#69, RECONSTRUIDA, sin prompt ni verificación; 2026-11-16)**; Anderson completa Verificación, Aprendizaje y hash, y decide si restituye la marca `AI-assisted` con ese número (ver más abajo). #69 no está contada en las cifras de esta auditoría (#1 a #68).
 
 ## Hashes de commit (`git log --format=%h~%ad~%s --date=short`, 44 commits)

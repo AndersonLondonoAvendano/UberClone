@@ -30,8 +30,8 @@ const invalid = [
   ['fullName', 'Ana 123'],
   ['fullName', ''],
   ['fullName', '   '],
-  ['phone', '300123456'],
-  ['phone', '30000000011'],
+  ['phone', '300000000'],
+  ['phone', '30000000030'],
   ['phone', '300 123 4567'],
   ['phone', ''],
   ['vehicleColor', 'transparente'],
@@ -55,8 +55,8 @@ assert.equal(validateProfileDraft({ ...baseline, vehicleColor: 'blanco' }).isVal
 // diff / canSave.
 assert.deepEqual(diffProfile(baseline, baseline), []);
 assert.equal(canSave(baseline, baseline), false);
-assert.deepEqual(diffProfile(baseline, { ...baseline, phone: '3000000002' }), ['phone']);
-assert.equal(canSave(baseline, { ...baseline, phone: '3000000002' }), true);
+assert.deepEqual(diffProfile(baseline, { ...baseline, phone: '3000000004' }), ['phone']);
+assert.equal(canSave(baseline, { ...baseline, phone: '3000000004' }), true);
 // Typing and returning to the original is not a change; spaces around name/email do not count.
 assert.deepEqual(diffProfile(baseline, { ...baseline, fullName: 'Ana Perez ' }), []);
 assert.deepEqual(diffProfile(baseline, { ...baseline, payoutEmail: ' ana@example.com' }), []);

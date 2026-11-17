@@ -4125,7 +4125,7 @@ La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; e
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A (solo textos; el largo en inglés lo cubre T-271).
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (STOP-7, 2026-11-16): «Reject» e «I’ve arrived» en inglés
 
 ### T-269 — L3b-B3/B4: zona horaria inyectable en `format.js` y `applySuggestion` sin pisar la elección del usuario
 - Spec: spec 006, adenda L3b (RI-28, RI-29; CA-006-47, 48, 49, 50)
@@ -4156,7 +4156,7 @@ La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; e
 - Diseño hecho cuando: informe de ronda de T-271 con veredicto.
 - Diseño: Aprobado (estático por código, ronda 1, `docs/diseno/auditorias/ronda-1-idioma-sin-sesion.md`; capa E pendiente: No verificado en dispositivo)
 - Nota de implementación (2026-11-16): variante `compact` de `LanguageSection` (misma lógica `setLanguage`); punto único en `AuthScreenLayout` (Login, SignUp y también ForgotPasswordScreen, que lo hereda gratis por el layout compartido, decisión: se deja incluida), `WelcomeScreen` como último bloque, y `PlaceholderScreen` con prop `showLanguageSwitch` solo en las tres pestañas (Configuración conserva su sección completa y no activa la prop). Prueba: `scripts/tests/languageNoSession.test.mjs`. Marca IA #68.
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (STOP-7, 2026-11-16): cambio de idioma en bienvenida e inicio de sesión sin perder lo escrito; el registro de conductor conserva campos y progreso; fuente al 200 % con el control visible
 
 ### T-271 — L3b-A: auditoría de diseño del control de idioma sin sesión
 - Spec: spec 006, adenda L3b (RI-25b, RI-25c; CA-006-36, CA-006-D4)
@@ -4186,7 +4186,7 @@ La adenda `specs/006-idioma/adenda-l3b.md` está en **Borrador, no aprobada**; e
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente
+- Estado: Validada en dispositivo por Anderson, solo lo confirmado (STOP-7, 2026-11-16): idioma sin sesión, registro con campos y progreso, «Reject»/«I’ve arrived», fuente al 200 % con el control visible. Sin evidencia todavía: CA-006-35d y CA-006-D4
 
 ## Lote L4 — spec 007 Solicitudes automáticas por FCM (T-273 a T-278; plan: `specs/007-solicitudes-automaticas/plan.md`; planificado 2026-11-16)
 <!-- AI-assisted: see docs/AI_LOG.md #70 -->
@@ -4205,7 +4205,7 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Riesgo: medio (temporizadores y estado en memoria).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada, pendiente de dispositivo (verificada estáticamente por un verifier distinto; «Validada» solo con la evidencia de Anderson en STOP-8)
+- Estado: Validada en dispositivo por Anderson (STOP-8, 2026-11-16 19:10, y STOP-8b, 19:40): intervalos 15–30 s y 60–120 s, sin solicitudes con un viaje en curso
 
 ### T-274 — L4-S1: endpoint `POST /notifications/availability`, variables de entorno y cierre
 - Spec: spec 007 (RA-04, 06, 07, 10, 11, 19, 01; CA-007-04, 06, 07, 08, 09, 11, 14)
@@ -4220,7 +4220,7 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Riesgo: medio (toca el handler existente y `close`).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada, pendiente de dispositivo (verificada estáticamente por un verifier distinto; «Validada» solo con la evidencia de Anderson en STOP-8)
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16): el backend registró POST /notifications/availability con 200 tras cada cambio
 
 ### T-275 — L4-S2: cliente `reportAvailability` y función pura de elección de fuente
 - Spec: spec 007 (RA-08, 09, 13, 14, 18; CA-007-13, 16 parcial)
@@ -4235,7 +4235,7 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Riesgo: bajo.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada, pendiente de dispositivo
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16)
 
 ### T-276 — L4-S2: reportador de disponibilidad, latido y cableado con `AvailabilityContext`
 - Spec: spec 007 (RA-08, 09, 13, 15, 16, 18; CA-007-04 lado app, 12, 14, 16)
@@ -4243,14 +4243,14 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Depende de: T-275
 - Archivos: `src/services/notifications/availabilityReporter.js` (nuevo), `src/hooks/useRequestSource.js` (nuevo), `src/context/AvailabilityContext.js`, `scripts/tests/availabilityReporter.test.mjs` (nuevo), `scripts/tests/availabilityPrivacy.test.mjs` (nuevo)
 - Hacer: reportador con `api`, reloj y temporizadores inyectados (plan §3, DT-4 y DT-5): disponibilidad efectiva = Disponible y sin viaje y registro de notificaciones `enabled` y `registered`; reporta al cambiar el interruptor, al iniciar y terminar un viaje, al activar y desactivar notificaciones y al volver a primer plano; latido cada 5 min en primer plano con mínimo 60 s entre reportes de latido (los cambios de estado no esperan); la confirmación se borra al instante al dejar de ser efectiva o ante un reporte fallido, y al perderla se intenta `available: false` de mejor esfuerzo. `useRequestSource` junta reportador, `getRegistrationController().subscribe` y `AppState`; `AvailabilityContext` pasa a `useTripRequests({ enabled: source === 'mock' })` (las solicitudes push se siguen adoptando sin suscripción; recepción, `reset()` y «Solicitud de prueba» intactos). Pruebas con doble de la app: cada disparador reporta; latido respeta el tope; viaje y «No disponible» reportan `false` y borran la confirmación; fallo no confirma; la confirmación se pierde antes de arrancar el mock; prueba estática: ningún `console.*` del código nuevo de T-273 a T-276 imprime token, uid ni cuerpo, sin ubicación en el cuerpo. Paso final «probar en el celular» en T-278.
-- Criterios: CA-007-12, 16; CA-007-04 (lado app: viaje y no disponible); CA-007-14 (`npm test` sin regresión). **No verificado en dispositivo**: el comportamiento real de segundo plano, `AppState` y la ausencia de doble fuente se confirman en T-278.
+- Criterios: CA-007-12, 16; CA-007-04 (lado app: viaje y no disponible); CA-007-14 (`npm test` sin regresión). **Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16)**: segundo plano, `AppState` y ausencia de doble fuente.
 - Hecho cuando: pruebas nuevas y `npm test` pasan, `check-constitution` sin errores nuevos, `git diff` sin `backend/`, `firestore.rules`, `app.json` ni `package.json`; la app arranca.
 - Qué debe ver Anderson en el celular: con «Disponible» llega una solicitud por FCM en 15–30 s y no se mezcla con las del simulador (T-278).
 - Validación: verifier distinto; `npm test`; Anderson en T-278.
 - Riesgo: alto (toca `AvailabilityContext`, módulo nativo de notificaciones y regla de fuente única).
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada, pendiente de dispositivo
+- Estado: Validada en dispositivo por Anderson (STOP-8 y STOP-8b, 2026-11-16): sin duplicados con notificaciones desactivadas; cerrar sesión y entrar con otra cuenta no hereda el generador
 
 ### T-277 — L4-S3: documentación de límites, variables y privacidad
 - Spec: spec 007 (RA-04, 17, 19; CA-007-15, 17)
@@ -4273,14 +4273,14 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Depende de: T-274, T-276, T-277
 - Archivos: ninguno
 - Hacer: con el backend arrancado por el humano y la build de desarrollo: (a) con «Disponible», en 15–30 s llega la notificación, con la app en primer plano (tarjeta) y en segundo plano (aviso); (b) tocarla abre la pantalla completa; (c) la siguiente llega a los 60–120 s; (d) «No disponible» la detiene; (e) iniciar un viaje la detiene; (f) cerrar sesión y entrar con otra cuenta no hereda el generador; (g) con notificaciones desactivadas funciona el simulador interno, sin duplicar; con notificaciones activas no se mezclan solicitudes del simulador con las del servidor; (h) «Solicitud de prueba» sigue funcionando; (i) app cerrada: solo se abre en release (límite del dev client). Reportar con «Pega aquí el resultado de la prueba en el celular».
-- Criterios: STOP-8 (a) a (i). **No verificado en dispositivo** hasta que Anderson confirme con fecha y evidencia.
+- Criterios: STOP-8 (a) a (i). **Validada en dispositivo por Anderson (STOP-8, 19:10; STOP-8b, 19:40; 2026-11-16).** Sigue pendiente de dispositivo: «Salir del viaje» a mitad, viajes antiguos y la app cerrada (solo en release).
 - Hecho cuando: Anderson confirma cada punto o reporta el fallo; si una falla, se detiene la cadena.
 - Qué debe ver Anderson en el celular: lo descrito arriba.
 - Validación: Anderson.
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Pendiente de Anderson (checklist entregado 2026-11-16; esperando resultado de STOP-8)
+- Estado: Validada en dispositivo por Anderson (STOP-8, 2026-11-16 19:10; el punto 4 falló y se corrigió en T-279 a T-281; STOP-8b, 19:40, validado)
 
 ## Corrección STOP-8 — «No disponible» debe detener YA (T-279 a T-281; D-198)
 
@@ -4290,14 +4290,14 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Depende de: T-274, T-276
 - Archivos: `backend/src/notifications/generator.js`, `backend/src/routes/notifications.js`, pruebas
 - Hacer: `seq` opcional validado (400 si inválido), último `seq` por uid en memoria con poda, reportes con `seq` menor o igual ignorados (200), y en `fire` comprobar que el último reporte aceptado es `true` antes de enviar; sin escrituras a Firestore ni cambios de 401, 429, cuenta no aprobada ni payload.
-- Criterios: CA-007-04, 05, 09, 10. **No verificado en dispositivo.**
+- Criterios: CA-007-04, 05, 09, 10. **Validada en dispositivo por Anderson (STOP-8b).**
 - Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
 - Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
 - Validación: verifier distinto; Anderson en STOP-8b.
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (STOP-8b, 2026-11-16 19:40; verifier distinto: Aprobado)
 
 ### T-280 — L4-C2: reportador de la app con `seq`, `false` inmediato y reintento acotado
 - Spec: spec 007 (corrección STOP-8, D-198)
@@ -4305,14 +4305,14 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Depende de: T-274, T-276
 - Archivos: `src/services/notifications/availabilityReporter.js`, `src/services/notifications/notificationsApi.js`, pruebas
 - Hacer: `reportAvailability(available, seq)`; `seq` creciente por reporte; `false` sin esperar el mínimo; reintento con espera exponencial (1, 2, 4 s) mientras siga «no disponible», cancelado al cambiar el estado; reintento al volver a primer plano; `true` evaluado con la disponibilidad efectiva en el momento del envío; un `true` perdido no reactiva nada.
-- Criterios: CA-007-04, 12, 16. **No verificado en dispositivo.**
+- Criterios: CA-007-04, 12, 16. **Validada en dispositivo por Anderson (STOP-8b).**
 - Hecho cuando: pruebas en verde, `npm test` sin regresión, `check-constitution` sin errores nuevos y verifier distinto sin rechazo.
 - Qué debe ver Anderson en el celular: al ponerse «No disponible» no llegan solicitudes nuevas (STOP-8b).
 - Validación: verifier distinto; Anderson en STOP-8b.
 - Riesgo: medio.
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
-- Estado: Implementada
+- Estado: Validada en dispositivo por Anderson (STOP-8b, 2026-11-16 19:40; verifier distinto: Aprobado)
 
 ### T-281 — L4-C3: análisis, límites y cierre documental de la corrección
 - Spec: spec 007 (corrección STOP-8, D-198)

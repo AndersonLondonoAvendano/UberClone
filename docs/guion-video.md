@@ -2,7 +2,7 @@
 
 <!-- AI-assisted: see docs/AI_LOG.md #68 (D5) -->
 
-Estado: borrador para Anderson, sin ensayar. Los flujos de L1 a L3 y de pagos se validaron en el celular (ver [progress.md](progress.md) y [pagos-evidencia.md](pagos-evidencia.md)); el selector de idioma sin sesión (L3b) fue probado por Anderson (STOP-7, 2026-11-16, 100 % OK salvo un ajuste visual del selector en inicio de sesión; verificación visual pendiente). El guion completo no se ha grabado: ensáyalo con cronómetro y ajusta tiempos y textos a lo que de verdad ocurra. Lo que no se vea en el ensayo se deja fuera o se dice como pendiente.
+Estado: borrador para Anderson, sin ensayar. Los flujos de L1 a L3 y de pagos se validaron en el celular (ver [progress.md](progress.md) y [pagos-evidencia.md](pagos-evidencia.md)); el selector de idioma sin sesión (STOP-7) y las solicitudes automáticas (STOP-8 y STOP-8b) están validados en dispositivo por Anderson; la app cerrada con solicitudes automáticas solo se puede ver en la build release y sigue pendiente de dispositivo. El guion completo no se ha grabado: ensáyalo con cronómetro y ajusta tiempos y textos a lo que de verdad ocurra. Lo que no se vea en el ensayo se deja fuera o se dice como pendiente.
 
 Requisito del enunciado: video de **máximo 5 minutos** con el flujo completo. **Total de este guion: 4:50**, con 10 s de margen.
 
@@ -34,10 +34,13 @@ Suma: 20 + 30 + 40 + 20 + 35 + 20 + 50 + 25 + 20 + 30 = 290 s = 4:50. Si te pasa
 - **Digo:** «Registro mis datos, los del vehículo y fotos de prueba de los documentos. Al enviar, la cuenta queda pendiente de aprobación.»
 - Montaje: registro con la cuenta B hasta el envío; corte a la cuenta A ya aprobada. Dilo en voz alta.
 
-### 3. Disponible y solicitud por notificación (0:50–1:30)
-- **Se ve:** Inicio, ponerse Disponible; Configuración → Notificaciones → «Enviar solicitud de prueba»; app cerrada; llega el aviso; al tocarlo se abre la solicitud con tarifa, distancia y el contador de 15 s.
-- **Digo:** «Me pongo disponible y pido una solicitud de prueba: el pasajero es simulado y el backend la envía por FCM. Con la app cerrada llega el aviso; al tocarlo veo tarifa, distancia y 15 segundos para decidir.»
-- Graba con la **build release**: con el dev client, tocar la notificación con la app cerrada no entrega la solicitud (ver [omisiones-y-limites.md](omisiones-y-limites.md)). Solo Android. Backend y túnel activos.
+### 3. Disponible y solicitud automática por notificación (0:50–1:30)
+- **Se ve:** Inicio, ponerse «Disponible» y mandar la app a segundo plano; en 15–30 s llega la notificación; se toca y se abre la solicitud completa con tarifa, distancia y el contador de 15 s.
+- **Digo:** «Me pongo disponible. El pasajero es simulado: el backend genera una solicitud sola y la envía por FCM. Con la app en segundo plano llega el aviso; al tocarlo veo tarifa, distancia y 15 segundos para decidir.»
+- Graba con la **build release** (con el dev client, tocar la notificación con la app cerrada no entrega la solicitud; ver [omisiones-y-limites.md](omisiones-y-limites.md)). Solo Android.
+- **Backend corriendo y túnel activo.** La URL del backend se graba al compilar el release: si cambia el túnel, hay que recompilar.
+- **Plan B si la notificación tarda:** Configuración → Notificaciones → «Solicitud de prueba» (retraso corto, predecible). Di: «Para no esperar, uso el botón de solicitud de prueba.»
+- **Acortar la espera para grabar (solo en tu `backend/.env`, no cambia los valores por defecto del repositorio):** `AUTO_REQUEST_FIRST_MIN_S=5`, `AUTO_REQUEST_FIRST_MAX_S=10`, `AUTO_REQUEST_NEXT_MIN_S=20`, `AUTO_REQUEST_NEXT_MAX_S=40`. Reinicia el backend. Por defecto: primera 15–30 s, siguientes 60–120 s, 10 por sesión.
 
 ### 4. Rechazo o vencimiento (1:30–1:50)
 - **Se ve:** otra solicitud: tocar «Rechazar» o dejar vencer; en Historial aparece «Rechazado» con «Sin cobro».

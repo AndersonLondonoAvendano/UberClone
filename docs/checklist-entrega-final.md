@@ -10,7 +10,7 @@ Referencias: [plan de cierre](plan-cierre-entrega-2026-11-16.md) · [progress](p
 - L1: OSRM real, Ganancias sin tope, `npm test`.
 - L2: estados rechazado y conductor llegando, campos aditivos, saldo. Validado en dispositivo (STOP-5).
 - L3: idioma es/en ([spec](../specs/006-idioma/spec.md)). Validado en dispositivo (STOP-6).
-- L3b: selector de idioma sin sesión ([adenda](../specs/006-idioma/adenda-l3b.md)). **STOP-7 probado por Anderson 2026-11-16, 100 % OK salvo un ajuste visual del selector en inicio de sesión (reducido después; verificación visual pendiente).**
+- L3b: selector de idioma sin sesión ([adenda](../specs/006-idioma/adenda-l3b.md)). **STOP-7: Validada en dispositivo por Anderson (2026-11-16).**
 - FCM A1 (D-149): toque de la notificación desde otra pantalla, VALIDADO por STOP-4 (app en segundo plano en Configuración, Historial y Perfil). Solo la app CERRADA sigue pendiente y solo se valida en la build release (el dev client no entrega la solicitud).
 - L4: pagos, documental ([evidencia](pagos-evidencia.md)).
 - L7 (parte de proceso): auditoría de la bitácora, README, guion y este checklist.
@@ -39,11 +39,19 @@ Referencias: [plan de cierre](plan-cierre-entrega-2026-11-16.md) · [progress](p
 - [ ] Commit y push (los hace el humano).
 - [ ] PR final a `main` con merge commit y autorrevisión.
 
+## Pendiente de dispositivo (lo que Anderson aún no probó)
+- [ ] «Salir del viaje» a mitad de un viaje.
+- [ ] Viajes antiguos en Historial y Detalle.
+- [ ] Solicitudes automáticas con la app CERRADA (solo en la build release).
+- [ ] Estado visual del Historial al 200 % (si no hay captura).
+
+STOP-8 (19:10) y STOP-8b (19:40) están Validadas en dispositivo por Anderson (ver [progress](progress.md)).
+
 ## STOP-7 (solo JavaScript, sin recompilar)
-Anderson, 2026-11-16: «el resto estuvo 100 % OK en dispositivo»; ajustó el estilo del selector en inicio de sesión (más pequeño y opaco) después de la prueba, así que esa verificación visual sigue pendiente. Casillas marcadas según lo que reportó; el detalle por casilla no se registró.
+Validada en dispositivo por Anderson (2026-11-16); la confirmación incluye el selector en inicio de sesión y la fuente al 200 %.
 - [x] Cambiar el idioma en bienvenida e inicio de sesión sin perder lo escrito (reportado OK por Anderson).
 - [x] Cambiar el idioma a mitad del registro de conductor: campos y progreso se conservan (reportado OK por Anderson).
 - [x] El inglés muestra «Reject» e «I've arrived» (reportado OK por Anderson).
 - [x] Fuente al 200 % con el control visible (reportado OK por Anderson).
-- [x] `npm test` (reportado OK por Anderson; cifra actual: 358 pruebas, 357 pasan, 0 fallan, 1 omitida).
-- [ ] Verificación visual del selector en inicio de sesión tras el ajuste de tamaño y opacidad (pendiente).
+- [x] `npm test` (reportado OK por Anderson; cifra histórica de este STOP; la actual es 410 pruebas, 409 pasan, 0 fallan, 1 omitida).
+- [x] Selector en inicio de sesión y fuente al 200 % con el control visible (confirmado por Anderson).

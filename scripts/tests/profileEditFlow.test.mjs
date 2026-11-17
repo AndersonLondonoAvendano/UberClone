@@ -12,7 +12,7 @@ const profileA = {
   documents: { mercadoPagoEmail: 'ana@example.com' },
 };
 const profileB = {
-  personalData: { fullName: 'Beto Lopez', phone: '3000000002' },
+  personalData: { fullName: 'Beto Lopez', phone: '3000000004' },
   vehicle: { color: 'negro' },
   documents: { mercadoPagoEmail: 'beto@example.com' },
 };
@@ -62,7 +62,7 @@ function makeFlow() {
   flow.change('phone', '123');
   assert.equal(flow.getState().canSave, false);
   assert.deepEqual(flow.getState().errors, { phone: true });
-  flow.change('phone', '3001112233');
+  flow.change('phone', '3000000005');
   assert.equal(flow.getState().canSave, true);
   assert.deepEqual(flow.getState().errors, {});
   flow.change('payoutEmail', 'mal');
@@ -185,7 +185,7 @@ function makeFlow() {
   const { flow } = makeFlow();
   flow.start('A', profileA);
   flow.change('fullName', 'Ana Maria');
-  flow.start('A', { ...profileA, personalData: { fullName: 'Server Name', phone: '3000000000' } });
+  flow.start('A', { ...profileA, personalData: { fullName: 'Server Name', phone: '3000000006' } });
   assert.equal(flow.getState().draft.fullName, 'Ana Maria');
   assert.equal(flow.getState().baseline.fullName, 'Ana Perez');
 }

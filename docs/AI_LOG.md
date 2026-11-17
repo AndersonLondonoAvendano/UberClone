@@ -3608,3 +3608,105 @@ cifras reales y el CHECKLIST STOP-8b, con el backend reiniciado y Metro con `npx
 Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8b". Sin recapitular pasos.
 ````
 - Respuesta de la corrección (borrador): decisión D-198 (número de secuencia por reporte y reintento acotado del `false`), tareas T-279 a T-281, análisis en `docs/analisis-no-disponible.md`. Verificación y Aprendizaje de esta corrección: los completa Anderson.
+- Pulido (cierre final, #71): STOP-8 y STOP-8b quedan Validadas en dispositivo por Anderson (2026-11-16, 19:10 y 19:40); el punto 4 de STOP-8 falló y se corrigió con T-279 a T-281. Cifra de `npm test`: 410 pruebas, 409 pasan, 0 fallan, 1 omitida.
+
+### Entrada #71 — Cierre final del taller — evidencias y conformidad
+<!-- AI-assisted: see docs/AI_LOG.md #71 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: registrar la evidencia de dispositivo de STOP-7, STOP-8 y STOP-8b, cambiar datos de ejemplo por datos ficticios, dejar coherente la documentación, actualizar el guion del video y obtener una verificación de conformidad final contra el enunciado.
+- Prompt (textual):
+````
+PROMPT — CIERRE FINAL: evidencias, datos de ejemplo, entrada reconstruida, guion y conformidad
+
+0. AI_LOG: crea UNA entrada nueva "Cierre final del taller — evidencias y conformidad" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson.
+   Las líneas de pulido se añaden a #68 (lote L3b/L4/L7) y a #70 (solicitudes automáticas) según
+   corresponda.
+
+EVIDENCIA DE DISPOSITIVO (Anderson, 2026-11-16)
+- STOP-7 (selector de idioma sin sesión): validado. Cambio de idioma en bienvenida e inicio de sesión
+  sin perder lo escrito; registro de conductor conserva campos y progreso; «Reject» e «I've arrived»;
+  fuente al 200 % con el control visible.
+- STOP-8 (solicitudes automáticas, 19:10): validado en dispositivo — notificación en 15–30 s con la
+  app en primer y segundo plano; siguiente entre 60 y 120 s; tocar desde Configuración abre la
+  pantalla completa; con un viaje en curso no llegan; cerrar sesión y entrar con otra cuenta no
+  hereda el generador; sin duplicados con notificaciones desactivadas; «Solicitud de prueba» sigue
+  funcionando. El punto 4 (apagar «Disponible») falló en esa corrida y se corrigió en T-279 a T-281.
+- STOP-8b (19:40): validado — con «No disponible» y la app en segundo plano no llega ninguna
+  notificación nueva durante la espera; encender y apagar rápido varias veces y dejarlo apagado no
+  genera nuevas; volver a «Disponible» reanuda en ≈ 30 s. El backend registró
+  POST /notifications/availability con 200 tras cada cambio (las respuestas de 1 ms son reportes con
+  secuencia vieja ignorados, como se diseñó en D-198).
+- npm test en PowerShell: 410 pruebas, 409 pasan, 0 fallan, 1 omitida.
+- Registra todo esto en progress.md, backlog y omisiones-y-limites.md como «Validada en dispositivo
+  por Anderson», SOLO lo que arriba está confirmado. Sigue pendiente de dispositivo: «Salir del viaje»
+  a mitad, viajes antiguos, la app cerrada (solo en release) y el estado visual del Historial con
+  fuente al 200 % si no hay captura.
+- Decisión de Anderson: el toque de la notificación desde otra pantalla (A1) queda VALIDADO por el
+  STOP-4. Haz que progress.md (≈ línea 360), README y omisiones-y-limites.md digan lo mismo.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, el constructor no aprueba. Ante un rechazo:
+regístralo como evento, una ronda de corrección con otro implementer, nueva verificación; segundo
+rechazo → DETENTE y repórtalo. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos en docs, README, logs ni tests. Sin commit ni push. Sin git stash,
+reset ni checkout de archivos. SHOW_DEV_TOOLS=false. Sin dependencias nuevas ni app.json ni código
+nativo. firestore.rules fuera de git; el texto de las reglas publicado no cambia. No puedes probar en
+dispositivo. No dejes procesos de fondo.
+
+TAREAS
+E1. Datos de ejemplo. src/utils/mask.js:2 trae un ejemplo con un correo de Gmail y los tests
+    scripts/tests/profileEdit*.test.mjs traen teléfonos. Cámbialos por datos claramente ficticios
+    (usuario@example.com y teléfonos inventados) sin alterar el comportamiento ni romper pruebas.
+    Con git grep revisa si queda otro correo o teléfono personal versionado; reporta solo ruta y
+    línea, NUNCA el valor.
+E2. Entrada «RECONSTRUIDA» de la normalización de placa en docs/AI_LOG.md: regístrala marcada
+    expresamente como «reconstruida a posteriori», con la fecha de registro real (hoy) y sin inventar
+    un prompt, una fecha de trabajo ni una verificación. Deja Verificación y Aprendizaje vacíos para
+    Anderson y ajusta la tabla de auditoría de la bitácora.
+E3. Coherencia documental: corrige la cifra de pruebas de omisiones-y-limites.md (≈ línea 130) diciendo
+    cuál es la cifra actual y cuál la histórica de cada STOP; deja README, progress.md, backlog,
+    omisiones, pagos-evidencia.md y checklist-entrega-final.md coherentes entre sí. Nada «Validada» sin
+    evidencia de Anderson.
+E4. Guion del video (docs/guion-video.md, máx. 5 min). Actualízalo con lo que existe hoy y con tiempos
+    por escena: onboarding con selector de idioma; ponerse «Disponible» y recibir una solicitud
+    automática por notificación (con el build de RELEASE, app en segundo plano); tocarla y abrir la
+    pantalla completa; aceptar, conductor llegando, viaje, finalizar y cobro; rechazo/vencimiento con
+    «Rechazado» en el Historial; pago en efectivo y con tarjeta de Stripe; Historial, Ganancias y
+    saldo; cambio a inglés; Mercado Pago como no verificado. Indica el plan B si la tarjeta falla
+    (efectivo) y el plan B si la notificación automática tarda (botón «Solicitud de prueba» con retraso
+    corto, que es predecible). Documenta que para la grabación se pueden acortar los intervalos del
+    generador con las variables AUTO_REQUEST_* del backend (solo nombres y valores sugeridos, sin
+    cambiar los valores por defecto del repositorio) y recuerda que el backend debe estar corriendo con
+    el túnel activo y que la URL se graba al compilar el release.
+E5. README: deja la sección del pasajero simulado (variables AUTO_REQUEST_*, endpoint de
+    disponibilidad, límites de D-197 y D-198) coherente con el código y con omisiones-y-limites.md, y
+    que `npm test` y Node ≥ 21 figuren con claridad.
+E6. Verificación de conformidad final (verifier distinto, solo lectura): compara el producto con
+    docs/enunciado-taller.pdf requisito por requisito y entrega docs/conformidad-final-2026-11-16.md con
+    una tabla: requisito, estado (Cumplido y validado en dispositivo / Cumplido, pendiente de
+    dispositivo / Parcial / Omitido con razón), evidencia (archivo:línea, captura o STOP) y decisión de
+    Anderson si la hay. No afirmes nada sin evidencia. Lista los huecos reales que queden (por ejemplo
+    Google Directions y Distance Matrix si el enunciado los pide, Mercado Pago no verificado, push con
+    app cerrada solo en release, idioma de la notificación push) y propón un texto breve, en español,
+    para explicárselos al profesor.
+E7. Cifras reales: npm test y check-constitution (base 14 errores) sin regresión; cita las cifras.
+
+ENTREGA
+Informe corto: qué se hizo, hallazgos del verifier, cifras reales y la lista corta de lo que solo
+Anderson puede completar, EN ORDEN: (1) completar Verificación y Aprendizaje de las entradas #64 a #71
+y las vacías según la tabla de auditoría; (2) levantar backend y túnel, poner la URL en .env y compilar
+el APK de release (último build); (3) ensayar y grabar el video con ese release; (4) exportar el PDF de
+la bitácora; (5) limpiar los datos de prueba con datos reales en Firestore, Auth y Cloudinary DESPUÉS
+del video; (6) cerrar el túnel y el backend; (7) PR final a main con merge commit y autorrevisión.
+Termina con "LISTO PARA CIERRE MANUAL DE ANDERSON". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote. E1: ejemplos y teléfonos ficticios; E2: la entrada reconstruida de la placa ya existía como #69 y se ajustó la tabla de auditoría; E3 a E6: ver informe final.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: lo completa Anderson tras la entrega.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):
