@@ -1,6 +1,6 @@
 # Checklist de entrega final
 
-<!-- AI-assisted: see docs/AI_LOG.md #68 (D6) -->
+<!-- AI-assisted: see AI_LOG.md #68 (D6) -->
 
 Casillas de lo que **solo Anderson** puede hacer. Ningún agente hace commit, push, builds nativos ni toca servicios con datos reales.
 
@@ -18,8 +18,8 @@ Referencias: [plan de cierre](plan-cierre-entrega-2026-11-16.md) · [progress](p
 ## Bitácora
 - [ ] Completar «Verificación» y «Aprendizaje» de las entradas vacías o «pendiente» (tabla en la auditoría).
 - [ ] Completar los hashes de commit (tabla objetiva en la auditoría).
-- [x] Entrada «RECONSTRUIDA, no registrada en el momento» para la normalización de placa (T-174, antiguo marcador #62): creada en borrador como la entrada #69 de `docs/AI_LOG.md` (2026-11-16). [ ] Anderson: completar Verificación, Aprendizaje y hash, y decidir si restituye la marca `AI-assisted` en el código.
-- [ ] Exportar el PDF de `docs/AI_LOG.md`.
+- [x] Entrada «RECONSTRUIDA, no registrada en el momento» para la normalización de placa (T-174, antiguo marcador #62): creada en borrador como la entrada #69 de `AI_LOG.md` (2026-11-16). [ ] Anderson: completar Verificación, Aprendizaje y hash, y decidir si restituye la marca `AI-assisted` en el código.
+- [ ] Exportar el PDF de `AI_LOG.md`.
 
 ## Video
 - [ ] Grabar las tomas de respaldo y ensayar con cronómetro ([guion](guion-video.md)).

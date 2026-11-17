@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #64
-// AI-assisted: see docs/AI_LOG.md #73
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #73
 // "Notificaciones" section of Settings (T-186, T-297). A switch that asks for the permission in context
 // after an inline explanation, a state chip, and an inline message with a link to the system settings
 // when the permission is denied or blocked. The "test request" control was removed (D-206); the backend
@@ -112,7 +112,7 @@ export function NotificationsSection() {
         onPress={onSwitchPress}
         style={({ pressed }) => [styles.row, pressed && styles.pressed]}
       >
-        {/* AI-assisted: see docs/AI_LOG.md #64 (O-11): the busy state is text ("Activando…") that is announced, not only a dimmed track */}
+        {/* AI-assisted: see AI_LOG.md #64 (O-11): the busy state is text ("Activando…") that is announced, not only a dimmed track */}
         <View style={styles.rowTexts} accessibilityLiveRegion="polite">
           <Text style={styles.rowLabel}>{labels.notifications.switchLabel}</Text>
           <Chip label={chipLabel} tone={enabled && !busy ? 'success' : 'neutral'} />

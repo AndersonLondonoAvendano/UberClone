@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54
 // Account actions with an on-screen confirmation (no Alert): "Cerrar sesión" and, in Settings,
 // "Cambiar de cuenta". Both run the single session reset (useSessionReset). Variants:
 //   'settings'     -> masked account email, both actions, testIDs prefixed "settings-".

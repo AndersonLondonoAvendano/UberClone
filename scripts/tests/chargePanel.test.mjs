@@ -165,7 +165,7 @@ assert.equal(chargePanel().tone, 'neutral');
   }
 }
 
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // Gateway selection (#59): buttons come ONLY from the configured gateways; no default, no saved-method fallback.
 {
   const { chargeButtons, RELOAD_PROVIDERS } = await import('../../src/services/trip/chargePanel.js');

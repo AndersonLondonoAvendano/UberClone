@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Supported app languages (RI-06). The first one is the fallback.
 
 export const SUPPORTED = ['es', 'en'];

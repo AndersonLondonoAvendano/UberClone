@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // GET /payments/providers, POST /payments/checkout and POST /payments/sync. The amount always comes
 // from the trip document; anything else in the body is ignored. The gateway is a provider from the
 // registry; without one (R8 callers) Mercado Pago is built from the injected mp client.
@@ -14,7 +14,7 @@ export function validTripId(value) {
   return typeof value === 'string' && TRIP_ID.test(value);
 }
 
-// AI-assisted: see docs/AI_LOG.md #61 (the charged amount is fare + tip, from the trip document)
+// AI-assisted: see AI_LOG.md #61 (the charged amount is fare + tip, from the trip document)
 function validAmount(trip, maxAmount) {
   const amount = chargeAmount(trip);
   return Number.isInteger(amount) && amount > 0 && amount <= maxAmount;

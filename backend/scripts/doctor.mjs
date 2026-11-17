@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #57
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #58
 // Backend diagnostic ("npm run doctor"). runDoctor takes every dependency by injection so tests
 // never touch the real environment, disk, Firebase, Mercado Pago or Stripe. It only ever reports variable
 // NAMES and statuses: no value, token, key content or error message is printed.

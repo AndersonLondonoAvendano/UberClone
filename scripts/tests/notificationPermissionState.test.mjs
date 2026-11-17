@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the notifications service with the fake adapter (T-180): permission states,
 // token refresh, registration, foreground messages and opened intents.
 //   node scripts/tests/notificationPermissionState.test.mjs

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // T-230: the «Rechazado» label in History and Detail (RE-09; CA-005-27, D1, D2).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // Last availability seq used by this device (D-199). It is a device counter, not personal data, so it is
 // NOT cleared on sign-out: keeping it growing across restarts and reinstalls is what stops the backend from
 // ignoring a fresh app whose clock is behind the last seq it accepted. Storage is injected (AsyncStorage in

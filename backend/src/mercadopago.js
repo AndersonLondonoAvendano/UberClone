@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Mercado Pago client over native fetch (no SDK). The access token is only used in the
 // Authorization header and is never logged or placed in errors.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { chargeAmount } from './chargeAmount.js';
 import { SIGNATURE_TOLERANCE_SEC } from './config.js';
-// AI-assisted: see docs/AI_LOG.md #61 (amount match uses fare + tip)
+// AI-assisted: see AI_LOG.md #61 (amount match uses fare + tip)
 
 const API_BASE = 'https://api.mercadopago.com';
 const REQUEST_TIMEOUT_MS = 10_000;

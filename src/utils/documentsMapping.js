@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure mapping between the flat documents form state and the drivers/{uid}.documents structure
 // (RF-41), plus the validity of the new documents fields. No React Native imports so it runs
 // under plain Node (scripts/tests/documentsMapping.test.mjs).

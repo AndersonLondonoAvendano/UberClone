@@ -15,7 +15,7 @@ Estado del plan: recién escrito, pendiente de revisión de Anderson. Ninguna ta
 | **Miércoles 2026-11-04** | Pruebas de extremo a extremo, reglas de seguridad de Firestore, README y bitácora | T-27, T-28 (+ README/bitácora, fuera de esta spec, ver nota) |
 | Jueves 2026-11-05 | Entrega parcial a la profesora | — |
 
-Nota sobre README y bitácora del miércoles: `ENT-02` (README) y `ENT-03` (bitácora en PDF) son requisitos de la spec **009-entrega**, no de esta spec. No les creo tarea aquí porque "ninguna tarea sin requisito" (regla del planner); lo que sí hace esta spec el miércoles es T-27 y T-28. Mantener el README al día y seguir completando `docs/AI_LOG.md` el miércoles es trabajo directo de Anderson/agente principal, no una tarea T-NN de la 001.
+Nota sobre README y bitácora del miércoles: `ENT-02` (README) y `ENT-03` (bitácora en PDF) son requisitos de la spec **009-entrega**, no de esta spec. No les creo tarea aquí porque "ninguna tarea sin requisito" (regla del planner); lo que sí hace esta spec el miércoles es T-27 y T-28. Mantener el README al día y seguir completando `AI_LOG.md` el miércoles es trabajo directo de Anderson/agente principal, no una tarea T-NN de la 001.
 
 La auditoría de diseño propia de esta spec (T-29) queda creada y Pendiente, pero con el tiempo disponible hasta el jueves probablemente no alcanza una ronda completa de `design-auditor`; lo anoto en «Riesgos» (§8) para que Anderson decida si la aplaza, igual que hizo con T-12/T-13 (D-51).
 

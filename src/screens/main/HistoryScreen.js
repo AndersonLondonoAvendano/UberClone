@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: status chip, origin/destination icons, DataRow amounts)
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #53 (presentation: status chip, origin/destination icons, DataRow amounts)
+// AI-assisted: see AI_LOG.md #56
 // History (T-106, RF-47, RF-48): its own FlatList (never inside a ScrollView) with the filters and the
 // net-earnings chart as the list header. Most recent first, 20 per load, "Cargar más" button (no
 // infinite scroll). Loading, empty and error states; an invalid Rango queries nothing and shows its
@@ -49,7 +49,7 @@ export function HistoryScreen({ navigation }) {
     [trips, period, query.start, query.end, now, language],
   );
 
-  // AI-assisted: see docs/AI_LOG.md #57 (T-110)
+  // AI-assisted: see AI_LOG.md #57 (T-110)
   const openTrip = useCallback((trip) => navigation.navigate('TripDetail', { trip }), [navigation]);
   const renderItem = useCallback(({ item }) => <TripListItem trip={item} onOpen={openTrip} />, [openTrip]);
   const openDrawer = useCallback(() => navigation.dispatch(DrawerActions.openDrawer()), [navigation]);

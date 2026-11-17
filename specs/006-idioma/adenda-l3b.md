@@ -1,4 +1,4 @@
-<!-- AI-assisted: see docs/AI_LOG.md #68 -->
+<!-- AI-assisted: see AI_LOG.md #68 -->
 # Adenda L3b a la spec 006 (idioma) · Borrador (spec-author, 2026-11-16)
 
 Estado: **Borrador. No aprobada.** Anderson aprueba. Extiende `specs/006-idioma/spec.md` (enlazada desde su sección 5); no cambia ningún RI ni CA existente salvo la nota de CA-006-07. Si esta adenda se aprueba, el plan (`plan.md`), el tema y las tareas de la spec 006 pueden quedar desactualizados y el `planner` debe regenerarlos (P5).

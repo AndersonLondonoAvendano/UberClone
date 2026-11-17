@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // Plain Node test for the payments client error classes (T-125, CA-002-101). Fakes of fetch only: no
 // network, no Firebase. Run:
 //   node scripts/tests/paymentsClient.test.mjs
@@ -101,7 +101,7 @@ for (const code of [PAYMENTS_ERROR.AUTH, PAYMENTS_ERROR.NOT_FOUND, PAYMENTS_ERRO
   }
 }
 
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // T-144 (RF-62, CA-002-123, CA-002-126): getProviders and the provider in checkout and sync.
 {
   const seen = [];

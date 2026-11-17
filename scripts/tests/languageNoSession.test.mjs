@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #68
 // Language control without a session (T-270; CA-006-35 to 42, RI-25). There is no renderer in the test setup,
 // so the screens and the component are checked by reading their source; the store runs for real.
 import test from 'node:test';

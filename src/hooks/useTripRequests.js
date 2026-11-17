@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
 // Subscription to incoming trip requests while `enabled` (T-42). Goes through the passenger API
 // port only (never an adapter). Unsubscribes on disable or unmount.
 // One request at a time (T-43): `pendingRequest` is the one offered to the driver; it disappears by
@@ -24,7 +24,7 @@ import { REQUEST_METRICS_CAP_MS } from '../config/trip';
 export function useTripRequests({ enabled, getDriverPosition }) {
   const [lastRequest, setLastRequest] = useState(null);
   const [pendingRequest, setPendingRequest] = useState(null);
-  // AI-assisted: see docs/AI_LOG.md #64 (T-182: a request that arrived by push is offered even when the
+  // AI-assisted: see AI_LOG.md #64 (T-182: a request that arrived by push is offered even when the
   // driver is not available; the flag clears when it stops being pending).
   const [pushOffered, setPushOffered] = useState(false);
   const [error, setError] = useState(null);
@@ -54,7 +54,7 @@ export function useTripRequests({ enabled, getDriverPosition }) {
       (request) => {
         if (!active || !isValidTripRequest(request)) return;
         setError(null);
-        // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address in the background, never blocks the offer)
+        // AI-assisted: see AI_LOG.md #61 (D-125: real address in the background, never blocks the offer)
         resolveRequestAddresses(request);
         setLastRequest(request);
         gateRef.current?.offer(request);
@@ -91,8 +91,8 @@ export function useTripRequests({ enabled, getDriverPosition }) {
     if (!gate || !isValidTripRequest(request)) return false;
     const startedAt = Date.now();
     const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
-    // AI-assisted: see docs/AI_LOG.md #64 (gate first, then adopt; a duplicate never touches the mock)
-    // AI-assisted: see docs/AI_LOG.md #66 (A1: shown at once with `metricsPending`; the final copy follows)
+    // AI-assisted: see AI_LOG.md #64 (gate first, then adopt; a duplicate never touches the mock)
+    // AI-assisted: see AI_LOG.md #66 (A1: shown at once with `metricsPending`; the final copy follows)
     const result = await offerPushRefined({
       gate,
       request,

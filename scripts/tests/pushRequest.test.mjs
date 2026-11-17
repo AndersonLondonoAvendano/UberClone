@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for parsePushRequest (T-178, DP-60/DP-77): foreign, malformed and expired data.
 //   node scripts/tests/pushRequest.test.mjs
 import assert from 'node:assert/strict';
@@ -88,7 +88,7 @@ assert.equal(parsePushRequest(data({ expiresAt: String(NOW - 9999) }), { now: NO
 
 assert.equal(requestFromIntent(null, NOW), null);
 
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 // D-207: strict paymentMethod. Absent = cash (old backend); 'cash' and 'card' pass; anything else is invalid.
 {
   const absent = parsePushRequest(data(), { now: NOW });

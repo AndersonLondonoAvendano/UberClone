@@ -1,6 +1,6 @@
 # Seguridad — UberClone Conductor
 
-<!-- AI-assisted: see docs/AI_LOG.md #56 (T-73, reglas consolidadas) -->
+<!-- AI-assisted: see AI_LOG.md #56 (T-73, reglas consolidadas) -->
 Estado: **un solo texto final de reglas, con la edición acotada del perfil (T-164, AI_LOG #60). La parte de `drivers/{uid}/trips` (`validTrip()` con propina, calificación y los estados nuevos) está PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real; la edición acotada del perfil (T-164) no figura en esa evidencia y sigue sin confirmar**, para `drivers` (con `documents`), `driverLocations` y `drivers/{uid}/trips` (D-80, D-81, D-86 a D-89, D-93, D-107 a D-110, T-73, T-84). **Publicada la parte de viajes (2026-11-16); sin confirmar la del perfil.** Desde que se publica, la sesión anónima queda denegada en las tres colecciones: solo vale la sesión con correo y contraseña.
 
 ## Dónde viven las reglas de Firestore
@@ -136,7 +136,7 @@ service cloud.firestore {
           && validDocuments(data.documents);
       }
 
-      // AI-assisted: see docs/AI_LOG.md #60 (T-164, RF-64, RF-65, D-122)
+      // AI-assisted: see AI_LOG.md #60 (T-164, RF-64, RF-65, D-122)
       // Narrow profile edit: only personalData.fullName, personalData.phone, vehicle.color and
       // documents.mercadoPagoEmail (plus updatedAt) may change; accountStatus never changes.
       // The app writes dotted paths, so the nested maps are compared with diff().affectedKeys(),
@@ -226,7 +226,7 @@ service cloud.firestore {
         return data.keys().hasAll(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt'])
           && data.keys().hasOnly(['driverId', 'status', 'paymentStatus', 'commissionRate', 'category', 'passengerName', 'originLabel', 'destinationLabel', 'distanceKm', 'durationMin', 'fare', 'commission', 'driverEarnings', 'tip', 'rating', 'paymentMethod', 'startedAt', 'finishedAt', 'createdAt', 'route', 'passengerId', 'completedAt', 'economy', 'origin', 'destination'])
           && data.driverId == uid
-          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-183): 'rejected' is new; 'requested' is never written.
+          // AI-assisted: see AI_LOG.md #66 (spec 005, D-183): 'rejected' is new; 'requested' is never written.
           && data.status in ['completed', 'cancelled', 'rejected']
           // Cancelled and rejected trips carry no money and no rating.
           && (data.status == 'completed' || (data.fare == 0 && data.commission == 0 && data.driverEarnings == 0 && data.tip == 0 && data.rating == null))
@@ -240,12 +240,12 @@ service cloud.firestore {
           && data.durationMin is number && data.durationMin >= 0 && data.durationMin <= 1440
           && data.fare is int && data.fare >= 0 && data.fare <= 10000000
           && data.commission is int && data.commission >= 0 && data.commission <= data.fare
-          // AI-assisted: see docs/AI_LOG.md #61 (D-124): tip in whole COP and rating 1-5 (null when cancelled or not rated).
+          // AI-assisted: see AI_LOG.md #61 (D-124): tip in whole COP and rating 1-5 (null when cancelled or not rated).
           && data.tip is int && data.tip >= 0 && data.tip <= 1000000
           && (data.rating == null || (data.rating is int && data.rating >= 1 && data.rating <= 5))
           && data.driverEarnings is int && data.driverEarnings >= 0 && data.driverEarnings <= data.fare + data.tip
           && data.commission + data.driverEarnings == data.fare + data.tip
-          // AI-assisted: see docs/AI_LOG.md #58 (T-151, CA-002-129)
+          // AI-assisted: see AI_LOG.md #58 (T-151, CA-002-129)
           // Only 'cash' or 'mercadopago' (card, gateway still to be chosen) are created by the app; 'stripe' is written
           // only by the backend (firebase-admin) at checkout (D-121).
           && data.paymentMethod in ['cash', 'mercadopago']
@@ -253,7 +253,7 @@ service cloud.firestore {
           && data.finishedAt is timestamp
           && data.createdAt == request.time
           && (!('route' in data) || validRoute(data.route))
-          // AI-assisted: see docs/AI_LOG.md #66 (spec 005, D-185): additive optional fields.
+          // AI-assisted: see AI_LOG.md #66 (spec 005, D-185): additive optional fields.
           && (!('passengerId' in data) || data.passengerId == null || (data.passengerId is string && data.passengerId.size() > 0 && data.passengerId.size() <= 128))
           && (!('completedAt' in data)
             || (data.status == 'completed' && data.completedAt == data.finishedAt)
@@ -286,7 +286,7 @@ service cloud.firestore {
 ```
 
 ## Edición acotada del perfil (T-164, RF-64, RF-65, D-122)
-<!-- AI-assisted: see docs/AI_LOG.md #60 -->
+<!-- AI-assisted: see AI_LOG.md #60 -->
 **Paso manual de Anderson (D-80): sin evidencia de que esta parte (edición del perfil) esté publicada; la publicación de 2026-11-16 que Anderson confirmó se comprobó con un guardado de viaje, no con una edición de perfil.** Ni el agente ni el repositorio publican nada. Hasta que pegues el texto completo de arriba en Firestore → Reglas y pulses **Publicar**, «Guardar» en el Perfil falla con permiso denegado en cuentas aprobadas (T-162 queda **No verificado en dispositivo**). Orden: publicar, reiniciar la app, editar un campo.
 
 **Qué se añade.** Un segundo `allow update` (las reglas de un mismo `match` se combinan con OR) con `validProfileEdit()`. El `allow update` de reenvío no cambia.
@@ -321,7 +321,7 @@ service cloud.firestore {
 **Pruebas a repetir en el celular tras publicar.** (1) Cuenta aprobada: editar nombre, celular, color y correo y guardar → el Perfil muestra los datos nuevos. (2) Cuenta aprobada: el mismo flujo con un solo campo. (3) Confirmar en la consola que `accountStatus` sigue `approved`.
 
 ## Propina y calificación del viaje (D-124, prompt #61)
-<!-- AI-assisted: see docs/AI_LOG.md #61 -->
+<!-- AI-assisted: see AI_LOG.md #61 -->
 **Resuelto (2026-11-16): regla PUBLICADA por Anderson (≈14:20 Bogotá) y comprobada con un guardado real en la consola (`tip` 0, `rating` null).** Nota histórica del bloqueo, ya superado: ni el agente ni el repositorio publican nada; hasta que se pegó el texto completo de arriba (con `validTrip()` actualizada) en Firestore → Reglas y pulses **Publicar**, guardar un viaje terminado fallaba con permiso denegado, porque la app ahora escribe siempre `tip` y `rating` y la regla anterior los rechaza por `hasOnly`. Orden: publicar, reiniciar la app, completar un viaje simulado.
 
 **Qué cambia en `validTrip()`.** (1) `tip` y `rating` entran en `hasAll` y `hasOnly` (la app siempre escribe ambos). (2) `tip` entero de 0 a 1.000.000 (holgura sobre el máximo simulado de 5.000). (3) `rating` nulo o entero de 1 a 5. (4) `commission + driverEarnings == fare + tip` y `driverEarnings <= fare + tip`: la comisión solo se calcula sobre la tarifa y la propina va completa al conductor. `commission <= fare` no cambia.
@@ -365,7 +365,7 @@ Estado: **Publicada y comprobada por Anderson (2026-11-16, ≈14:20 Bogotá; gua
 - Fallo: el viaje no se guarda y la app muestra un error de guardado; en el registro del dispositivo aparece `permission-denied`. Significa que la regla publicada es la anterior o que el paso 2 se pegó incompleto: repite los pasos 1 a 4.
 
 ## Estados del viaje y campos nuevos: `validTrip()` ampliada (spec 005, RE-13, D-183, D-185, D-186; T-218)
-<!-- AI-assisted: see docs/AI_LOG.md #66 -->
+<!-- AI-assisted: see AI_LOG.md #66 -->
 Estado: **PUBLICADA por Anderson (2026-11-16, ≈14:20 Bogotá) y comprobada con un guardado real (CA-005-26 cerrado; G-01 cerrado).** En la consola, `drivers/{uid}/trips/mock-…-1` quedó con `status` "rejected", `fare`/`commission`/`driverEarnings`/`tip` en 0, `rating` null, `economy` con las cuatro claves en 0, `origin` {address, lat, lng} y `originLabel`. La publica Anderson a mano; ni el agente ni el repositorio publican nada, y `firestore.rules` (copia local ignorada por Git) no se crea ni se edita desde aquí. Sin publicarla, la app que escribe los campos nuevos habría fallado al guardar TODOS los viajes por `hasOnly` (como en G-01); ya no ocurre. Decisiones D-181 a D-186 aprobadas salvo objeción (D-185 aceptada); la spec 005 sigue en Borrador. Lo que no se probó con la regla: «Salir del viaje» a mitad de viaje y viajes antiguos (siguen «No verificado en dispositivo»).
 
 **El texto pegable** es el bloque completo de «Texto final de las reglas» (de `rules_version` a la última llave), con `validTrip()` ya actualizada y las funciones nuevas `validEconomy()` y `validPlace()` (los números de línea citados en la sección anterior ya no coinciden; vale el texto). Pega el bloque entero, no solo la función.

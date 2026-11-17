@@ -1,6 +1,6 @@
 # Arquitectura de sesiones — UberClone Conductor
 
-<!-- AI-assisted: see docs/AI_LOG.md #56 (T-74) -->
+<!-- AI-assisted: see AI_LOG.md #56 (T-74) -->
 Estado: **borrador para revisión de Anderson (2026-11-11).** Describe cómo funciona la sesión con correo y contraseña (D-93 a D-99, D-102, D-104). Todo lo que solo se ve en el celular es **No verificado en dispositivo**. Sin valores de `.env`.
 
 ## Idea central

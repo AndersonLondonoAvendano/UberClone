@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Static guard for the headless-safe entry (D-145). Run: node --test scripts/tests/headlessEntry.test.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

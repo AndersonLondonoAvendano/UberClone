@@ -1,4 +1,4 @@
-<!-- AI-assisted: see docs/AI_LOG.md #72 (T-287, D-200) -->
+<!-- AI-assisted: see AI_LOG.md #72 (T-287, D-200) -->
 # Auditoría de diseño: «Conductor llegando» sin botones (T-287, D-200)
 
 Fecha: 2026-11-16. Ronda 1 de 3 (estática, por lectura de código).

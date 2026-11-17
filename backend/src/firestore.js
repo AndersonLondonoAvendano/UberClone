@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Trip access for the payments backend. db is firebase-admin's Firestore (or a fake exposing
 // doc(path) and runTransaction(fn); the transaction exposes get(ref) and update(ref, data)).
 // Trips live at drivers/{uid}/trips/{tripId}.

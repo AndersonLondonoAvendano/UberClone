@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Profile row with a per-field pencil button (top right). Read state: label + value and the pencil.
 // Edit state: the editor passed as children replaces the row. The pencil is disabled (not hidden) while
 // another field is being edited, so the layout does not jump. Tokens only; texts come from the caller.

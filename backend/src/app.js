@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Express app with injected dependencies, built without opening a port (testable in isolation).
 import express from 'express';
 import { BODY_LIMIT, IP_RATE_LIMIT, STRIPE_WEBHOOK_BODY_LIMIT, USER_RATE_LIMIT } from './config.js';
@@ -14,7 +14,7 @@ const SERVICE_NAME = 'uber-clone-backend';
 
 // mp (Mercado Pago client) and registry are optional: without registry one is built from mp, and
 // a gateway that is not configured has no checkout and no webhook route.
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // messaging (firebase-admin Messaging) and db (Firestore) are optional: without them the notification routes
 // answer a generic error. notifications = { now, setTimeout, clearTimeout, idFactory, random } are test seams.
 export function createApp({ auth, store, mp = null, config, registry = null, log, messaging = null, db = null, notifications = {} }) {
@@ -22,7 +22,7 @@ export function createApp({ auth, store, mp = null, config, registry = null, log
   const app = express();
   // Closed CORS: no Access-Control-* header is ever sent, so browsers from other origins are refused.
   app.disable('x-powered-by');
-  // AI-assisted: see docs/AI_LOG.md #59
+  // AI-assisted: see AI_LOG.md #59
   // One log line per request (method, path, status, provider, duration); no bodies, headers, tokens or emails.
   app.use(createRequestLogger(log));
 
@@ -45,7 +45,7 @@ export function createApp({ auth, store, mp = null, config, registry = null, log
   registerPaymentsRoutes(app, { guard, handlers, send });
   const notificationsHandlers = createNotificationsHandlers({ db, messaging, autoRequest: config?.autoRequest, ...notifications });
   registerNotificationsRoutes(app, { guard, handlers: notificationsHandlers, send });
-  // AI-assisted: see docs/AI_LOG.md #70
+  // AI-assisted: see AI_LOG.md #70
   // Cancels the deferred test notifications and the automatic-request timers still pending (called by server.js on shutdown).
   app.closeNotifications = () => notificationsHandlers.close();
   registerReturnRoute(app, { ipLimiter, send });

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #65
+// AI-assisted: see AI_LOG.md #65
 // Trips for the earnings totals (RC-04): one read of every trip from the start of the week or month up to
 // now (fetchTripsInRange, internal pagination), on focus and on retry. status: 'loading' | 'ready' |
 // 'error'. A late answer after unmount, blur or a newer read is ignored.

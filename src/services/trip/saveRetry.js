@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // Bounded retry and error classification for saving a trip (T-46). Pure: the save function and the
 // sleep are injected, so a script can test it without Firestore or real time.
 

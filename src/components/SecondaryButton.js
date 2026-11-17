@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #51 (redesign: stronger label, clearer outline)
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #51 (redesign: stronger label, clearer outline)
+// AI-assisted: see AI_LOG.md #43
 // Secondary action button (T-43, T-44): bordered surface, same height as PrimaryButton.
 // variant 'danger' only changes the text color (destructive actions such as cancelling a trip).
 

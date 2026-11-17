@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Tests for t() with injected dictionaries (T-245; CA-006-04, 05, 06). The real trip.countdown case waits for T-246.
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Pure edit-flow state machine for the profile (R13, DP-54). No React, Firebase or React Native.
 import { PROFILE_FIELDS, buildProfilePayload, canSave, profileValuesFrom, validateProfileDraft } from './profileEdit';
 

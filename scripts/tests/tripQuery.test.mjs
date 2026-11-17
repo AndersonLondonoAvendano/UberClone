@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for the paginated trip query (CA-002-78, CA-002-81) with a simulated Firestore.
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

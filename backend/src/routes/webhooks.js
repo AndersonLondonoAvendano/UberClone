@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // POST /webhooks/mercadopago. The body is never trusted: only the payment id is used, and the
 // payment is fetched from Mercado Pago with the server token and checked against the trip document.
 import { ERRORS, send as defaultSend } from '../middleware.js';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // T-285 (D-200): the arrival at the pickup is automatic only. There is no manual "arrive" action; the
 // distance threshold and the end of the route share one guard: one driver_arrived transition, one report.
 import assert from 'node:assert/strict';

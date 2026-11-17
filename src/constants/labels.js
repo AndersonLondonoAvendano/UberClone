@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // App texts. `labels` is a live view of the active language dictionary (src/i18n); every importer keeps
 // reading it as before. The Spanish source lives in src/i18n/dictionaries/es.js.
 import { es } from '../i18n/dictionaries/es';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Decides what to do with the tapped-notification intent parked in the store (STOP-2c, D-146).
 // Pure: every dependency is injected. The intent is stored as soon as it arrives, without judging it;
 // it is evaluated only once the gate is ready (a session exists and the account status is resolved).
@@ -108,7 +108,7 @@ export function createIntentFlow({
           log('intent-adopted');
           return FLOW_RESULT.ADOPTED;
         }
-        // AI-assisted: see docs/AI_LOG.md #73 (D-202: same tolerance as everywhere)
+        // AI-assisted: see AI_LOG.md #73 (D-202: same tolerance as everywhere)
         if (request && isRequestExpired(request.expiresAt, now())) {
           // Expired while the route was being refined.
           showExpired();

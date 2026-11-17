@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #55
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #58
 // Pure runner of the charge actions of "Cobro y resumen" (T-97, RF-44, CA-002-70..72). The services and
 // the URL opener are injected, so a script can test it without network, Firebase or the browser.
 //
@@ -19,7 +19,7 @@ export const ACTION_ERROR = {
   CASH_FAILED: 'cashFailed',
 };
 
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // T-126 (RF-57): the client class (one of the eight PAYMENTS_ERROR values) travels unchanged to the
 // screen, which picks one message per class. The legacy codes stay valid; anything unknown is failed.
 const KNOWN_CLIENT_ERRORS = new Set([
@@ -75,7 +75,7 @@ export function createPaymentActions({ requestCheckoutUrl, syncPayment, confirmC
   return {
     isBusy: () => inFlight,
     // action is one of PAYMENT_ACTION; RETRY opens a new checkout exactly like CHARGE.
-    // AI-assisted: see docs/AI_LOG.md #58 (T-146, DP-48)
+    // AI-assisted: see AI_LOG.md #58 (T-146, DP-48)
     // CHARGE and RETRY require `provider` (the gateway of the pressed button). VERIFY takes the gateway
     // recorded in the trip document (paymentMethod), never the last button; without it the body is legacy.
     run(action, { uid, tripId, provider }) {

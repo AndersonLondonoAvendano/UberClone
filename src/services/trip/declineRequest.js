@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Single decline point for a request the driver saw and did not accept (T-228, T-229, RE-06, D-183):
 // a manual reject, the card countdown, the full-screen countdown or leaving the screen all end here.
 // It saves ONE `rejected` record (zero amounts, null rating) through an injected save function and
@@ -49,7 +49,7 @@ export async function declineRequest({
 }) {
   const id = request?.id;
   if (!id) return DECLINE_RESULT.SKIPPED;
-  // AI-assisted: see docs/AI_LOG.md #73 (T-293): nothing is saved or released before the final data exists; the
+  // AI-assisted: see AI_LOG.md #73 (T-293): nothing is saved or released before the final data exists; the
   // id is not remembered, so the later decision on the final copy still goes through.
   if (request.metricsPending === true) return DECLINE_RESULT.SKIPPED;
   if (accepted.has(id) || declined.has(id)) return DECLINE_RESULT.SKIPPED;

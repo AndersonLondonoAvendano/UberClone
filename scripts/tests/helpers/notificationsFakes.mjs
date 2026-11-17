@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Fakes for the notification tests: Firestore (collections, where, transactions), messaging, clock and timers.
 import { createAuth } from '../../../backend/src/auth.js';
 import { createApp } from '../../../backend/src/app.js';

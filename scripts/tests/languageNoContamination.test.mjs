@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // T-255: changing the language never contaminates saved values, fares, trip state, the decision timer,
 // the sign-out cleanup or Firestore (CA-006-14, 16, 20, 31, 32). Real store/labels/fare/record/controller
 // with fakes for storage, API, clock and timers.

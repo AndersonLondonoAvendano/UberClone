@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Initial language order (RI-06, RI-08): saved preference, registration suggestion, phone, then es.
 import { DEFAULT_LANGUAGE, normalizeLanguage } from './languages';
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Headless-safe entry (D-145). When the app is closed, RN Firebase starts a JS context without an
 // activity (HeadlessJsTaskService) and evaluates this whole file. Only the background handler
 // registration may run at load time: no 'expo', no expo-* and no app graph here, because that

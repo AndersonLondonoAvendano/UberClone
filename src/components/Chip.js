@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #51
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #51
 // Status chip: soft background plus text, so meaning never depends on colour alone.
 // tone: 'neutral' | 'brand' | 'success' | 'warning' | 'danger'. Tokens only.
 
@@ -15,7 +15,7 @@ const TONES = {
   danger: { bg: color.dangerSoft, fg: color.onDangerSoft },
 };
 
-// AI-assisted: see docs/AI_LOG.md #55 (optional icon next to the text, T-96)
+// AI-assisted: see AI_LOG.md #55 (optional icon next to the text, T-96)
 export function Chip({ label, tone = 'neutral', testID, icon }) {
   const t = TONES[tone] ?? TONES.neutral;
   return (

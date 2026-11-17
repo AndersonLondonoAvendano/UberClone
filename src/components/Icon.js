@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #52 (single icon component, Ionicons set)
+// AI-assisted: see AI_LOG.md #52 (single icon component, Ionicons set)
 // The only icon component of the app. Ionicons from @expo/vector-icons; size and color come from
 // tokens. Icons are decorative: they always accompany a text or an accessibilityLabel and are hidden
 // from screen readers. Map (MapLibre) icons are not touched.

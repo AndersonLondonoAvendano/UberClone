@@ -1,6 +1,6 @@
 # Guía de pagos con Stripe en modo de prueba (para quien nunca usó Stripe)
 
-<!-- AI-assisted: see docs/AI_LOG.md (T-152) -->
+<!-- AI-assisted: see AI_LOG.md (T-152) -->
 
 Para quién: Anderson, en Windows con PowerShell. Objetivo: completar un pago de prueba con tarjeta usando **Stripe Checkout** (la página de pago la aloja Stripe y se abre en el navegador del celular). Estado: **No verificado en dispositivo** y no ejecutado de punta a punta: nada de lo que sigue se ha probado con una cuenta real de Stripe ni con el celular. Las decisiones D-116 a D-120 siguen en «Propuesta» hasta que Anderson las apruebe.
 

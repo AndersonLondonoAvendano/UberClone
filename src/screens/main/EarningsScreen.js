@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: cards, DataRow, clear selected period)
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #53 (presentation: cards, DataRow, clear selected period)
 // Earnings (T-47): net total, commission and completed trips of Today / This week / This month, read
 // live from the saved trips. The totals come from the pure computePeriodTotals (local time, week from
 // Monday). Cancelled trips are not summed. Tokens only.
@@ -27,13 +27,13 @@ const PERIODS = [PERIOD.DAY, PERIOD.WEEK, PERIOD.MONTH];
 
 export function EarningsScreen({ navigation }) {
   useLanguage(); // re-render on language change (RI-15)
-  // AI-assisted: see docs/AI_LOG.md #65 (RC-04: day/week/month come from the range read, not the 200 latest;
+  // AI-assisted: see AI_LOG.md #65 (RC-04: day/week/month come from the range read, not the 200 latest;
   // the balance keeps its own source, useTrips)
   const { status, trips: rangeTrips, truncated, retry } = useEarningsTrips();
-  // AI-assisted: see docs/AI_LOG.md #66 (B1: the balance reads every trip, not the 200 latest)
+  // AI-assisted: see AI_LOG.md #66 (B1: the balance reads every trip, not the 200 latest)
   const balanceView = useBalance();
   const [period, setPeriod] = useState(PERIOD.DAY);
-  // AI-assisted: see docs/AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
+  // AI-assisted: see AI_LOG.md #56 (T-108: metrics and balance come from useEarnings, no calculation here)
   const earnings = useEarnings(rangeTrips);
   const totals = earnings[period];
   const balance = balanceView.balance;
@@ -46,7 +46,7 @@ export function EarningsScreen({ navigation }) {
       onLeadingPress={() => navigation.dispatch(DrawerActions.openDrawer())}
     >
       <View style={styles.stack}>
-        {/* AI-assisted: see docs/AI_LOG.md #53 */}
+        {/* AI-assisted: see AI_LOG.md #53 */}
         <View style={styles.periods} accessibilityRole="radiogroup" accessibilityLabel={labels.earnings.periodsA11y}>
           {PERIODS.map((item) => {
             const selected = item === period;
@@ -67,7 +67,7 @@ export function EarningsScreen({ navigation }) {
         </View>
         {period === PERIOD.WEEK ? <Text style={styles.muted}>{labels.earnings.weekNote}</Text> : null}
 
-        {/* AI-assisted: see docs/AI_LOG.md #66 (A4a): the range read hit its 5,000-trip cap */}
+        {/* AI-assisted: see AI_LOG.md #66 (A4a): the range read hit its 5,000-trip cap */}
         {status === 'ready' && truncated ? (
           <View style={styles.hintRow} testID="earnings-truncated-note" accessibilityLiveRegion="polite">
             <Icon name="information-circle" size={iconSize.md} tint={color.textMuted} />
@@ -81,7 +81,7 @@ export function EarningsScreen({ navigation }) {
         ) : null}
         {status === 'ready' && totals.count > 0 ? (
           <>
-            {/* AI-assisted: see docs/AI_LOG.md #53 */}
+            {/* AI-assisted: see AI_LOG.md #53 */}
             <Card
               variant="status"
               tone="brand"
@@ -126,8 +126,8 @@ export function EarningsScreen({ navigation }) {
             </View>
           </>
         ) : null}
-        {/* AI-assisted: see docs/AI_LOG.md #55 (T-100) */}
-        {/* AI-assisted: see docs/AI_LOG.md #66 (B1): own read of every trip, own loading/error; never 0 on error */}
+        {/* AI-assisted: see AI_LOG.md #55 (T-100) */}
+        {/* AI-assisted: see AI_LOG.md #66 (B1): own read of every trip, own loading/error; never 0 on error */}
         {balanceView.kind === 'loading' ? <ScreenState kind="loading" /> : null}
         {balanceView.kind === 'error' ? (
           <ScreenState kind="error" message={labels.earnings.balanceErrorMessage} onRetry={balanceView.retry} />
@@ -148,7 +148,7 @@ export function EarningsScreen({ navigation }) {
             </View>
             {balanceView.partial ? (
               <View style={styles.hintRow} testID="earnings-balance-partial" accessibilityLiveRegion="polite">
-                {/* AI-assisted: see docs/AI_LOG.md #67 (A1: a partial figure is a warning, not plain information) */}
+                {/* AI-assisted: see AI_LOG.md #67 (A1: a partial figure is a warning, not plain information) */}
                 <Icon name="warning" size={iconSize.md} tint={color.warning} />
                 <Text style={styles.partialText}>{fillLabel(labels.earnings.balancePartial, { count: String(balanceView.count) })}</Text>
               </View>
@@ -170,11 +170,11 @@ function Line({ label, value, last = false }) {
 
 const styles = StyleSheet.create({
   stack: { gap: space[3] },
-  // AI-assisted: see docs/AI_LOG.md #57 (T-124): the hint wraps to several lines at 200 % font; no fixed
+  // AI-assisted: see AI_LOG.md #57 (T-124): the hint wraps to several lines at 200 % font; no fixed
   // width or height and no numberOfLines, so the card grows with the text.
   hintRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space[2], paddingTop: space[2] },
   hintText: { ...type.caption, color: color.textMuted, flex: 1, flexShrink: 1 },
-  // AI-assisted: see docs/AI_LOG.md #66 (H-2): the partial notice weighs more than the plain note (14 px, warning tone)
+  // AI-assisted: see AI_LOG.md #66 (H-2): the partial notice weighs more than the plain note (14 px, warning tone)
   partialText: { ...type.label, color: color.warning, flex: 1, flexShrink: 1 },
   periods: { flexDirection: 'row', gap: space[2] },
   period: {

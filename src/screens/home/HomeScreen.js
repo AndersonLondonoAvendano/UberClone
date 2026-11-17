@@ -1,17 +1,17 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #35
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #41
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #48 (import order)
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #57 (H-1: map centers once, "My location" button)
-// AI-assisted: see docs/AI_LOG.md #55 (F1b: full-screen map, floating card, local position without publishing)
-// AI-assisted: see docs/AI_LOG.md #60 (R13: the live profile colour reaches the map marker)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #35
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #48 (import order)
+// AI-assisted: see AI_LOG.md #53 (presentation: status card for the notice, grouped switch and hint)
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #57 (H-1: map centers once, "My location" button)
+// AI-assisted: see AI_LOG.md #55 (F1b: full-screen map, floating card, local position without publishing)
+// AI-assisted: see AI_LOG.md #60 (R13: the live profile colour reaches the map marker)
 // Home screen: the availability switch (T-42, RF-08) with a written hint of what is happening,
 // plus provisional development panels behind SHOW_DEV_TOOLS: «Simular solicitud» asks the
 // simulated passenger API for a request now (it no longer opens the trip request screen), a debug
@@ -84,7 +84,7 @@ export function HomeScreen({ navigation }) {
   const [recenterSignal, setRecenterSignal] = useState(0);
   const insets = useSafeAreaInsets();
   const announcedIdRef = useRef(null);
-  const focused = useIsFocused(); // AI-assisted: see docs/AI_LOG.md #47 (Home stays mounted under the other drawer screens)
+  const focused = useIsFocused(); // AI-assisted: see AI_LOG.md #47 (Home stays mounted under the other drawer screens)
 
   // Tells the context Home is in front: the position is tracked locally (not published) meanwhile.
   useEffect(() => {
@@ -96,7 +96,7 @@ export function HomeScreen({ navigation }) {
   useEffect(() => {
     // A request that arrived by push (D-130) is opened even when the driver is not available.
     if (!pendingRequest || !(isAvailable || pushOffered) || onTrip) return;
-    // AI-assisted: see docs/AI_LOG.md #47
+    // AI-assisted: see AI_LOG.md #47
     // Full screen only while Home is the screen in front; elsewhere the bottom card shows it, and
     // coming back to Home with the request still pending opens it here with the real time left.
     if (!focused) return;
@@ -169,7 +169,7 @@ export function HomeScreen({ navigation }) {
   );
 }
 
-// AI-assisted: see docs/AI_LOG.md #57 (design round 1: H2)
+// AI-assisted: see AI_LOG.md #57 (design round 1: H2)
 // Room the attribution leaves on the right for the "My location" button (its margin plus width plus a gap).
 const ATTRIBUTION_INSET_RIGHT = space[3] + touch.min + space[2];
 

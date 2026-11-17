@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #48
-// AI-assisted: see docs/AI_LOG.md #49
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: passenger header, route markers, data rows, status cards)
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #48
+// AI-assisted: see AI_LOG.md #49
+// AI-assisted: see AI_LOG.md #53 (presentation: passenger header, route markers, data rows, status cards)
 // The drawer keeps this screen mounted when the driver switches tab, so it acts only while focused:
 // timers, the quiet reject, leaving and the accept navigation wait for focus. A request resolved
 // elsewhere is never rejected or left again from a hidden screen; it only closes itself, quietly,
@@ -18,7 +18,7 @@
 // Accept -> acceptRequest -> the trip starts (TripContext) -> TripActive. Reject -> Home.
 // Leaving the card without deciding rejects the request. Errors are inline text, never Alert.
 //
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // The two numbers the driver decides with are the loudest things on screen: "Tu ganancia" in
 // type.display and color.primary inside the card, and the countdown fixed above the buttons (never
 // scrolled away) as primary text with a draining bar and no filled block (D-150; the last 10 s use
@@ -49,7 +49,7 @@ import { PASSENGER_API_ERROR, acceptRequest } from '../../services/passengerApi'
 import { DECLINE_REASON, declineRequest, markRequestAccepted } from '../../services/trip/declineRequestApp';
 import { CLOSED_REASON, closedReasonIcon, closedReasonText, requestClosedReason } from '../../services/trip/requestClosed';
 import { haversineDistanceM } from '../../services/routing/straightLine';
-// AI-assisted: see docs/AI_LOG.md #47
+// AI-assisted: see AI_LOG.md #47
 import { decisionDeadline, markShown } from '../../services/trip/decisionWindow';
 import { planLeave } from '../../services/trip/requestNavigation';
 import { SkeletonBlock } from '../../components/ScreenState';
@@ -90,11 +90,11 @@ export function TripRequestScreen({ navigation }) {
   const urgentIconSize = Math.round(iconSize.lg * Math.min(Math.max(fontScale, 1), maxFontScale));
   // The card keeps the request it opened with; a later one never replaces it.
   // D-137: the 15 s decision window starts here, the first time the request is shown.
-  // AI-assisted: see docs/AI_LOG.md #66 (A1: opens at once with the message data, `metricsPending`; the gate
+  // AI-assisted: see AI_LOG.md #66 (A1: opens at once with the message data, `metricsPending`; the gate
   // later replaces the same id with the final copy, which this screen follows. The 15 s window starts only
   // when the final data is shown, so while pending nothing is marked and the countdown does not tick.)
   const [opened] = useState(() => pendingRequest);
-  // AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203): the last copy WITH final data is kept as the fallback, so
+  // AI-assisted: see AI_LOG.md #73 (T-293, D-203): the last copy WITH final data is kept as the fallback, so
   // when the slot is released (taken, expired) the screen never falls back to the metricsPending skeletons.
   const lastFinalRef = useRef(null);
   const shown = resolveShownRequest({ opened, pending: pendingRequest, lastFinal: lastFinalRef.current });
@@ -109,16 +109,16 @@ export function TripRequestScreen({ navigation }) {
       markShown(request.id, startAt); // idempotent: keeps the first instant
     }
   }
-  // AI-assisted: see docs/AI_LOG.md #61 (D-125: real street, "Buscando dirección…" while it arrives)
+  // AI-assisted: see AI_LOG.md #61 (D-125: real street, "Buscando dirección…" while it arrives)
   const addresses = useRequestAddresses(request);
   const [driverPosition] = useState(() => getDriverPosition());
   const [now, setNow] = useState(() => Date.now());
   // Seconds the card opened with: the bar drains from here.
-  const [totalSeconds] = useState(() => requestTotalSeconds(pendingRequest)); // AI-assisted: see docs/AI_LOG.md #47 (same window as the bottom card)
+  const [totalSeconds] = useState(() => requestTotalSeconds(pendingRequest)); // AI-assisted: see AI_LOG.md #47 (same window as the bottom card)
   const [working, setWorking] = useState(false);
   const [error, setError] = useState(null); // { message, gone }
   const [decided, setDecided] = useState(false);
-  // AI-assisted: see docs/AI_LOG.md #73 (D-203): a notice belongs to one request; a new id starts clean.
+  // AI-assisted: see AI_LOG.md #73 (D-203): a notice belongs to one request; a new id starts clean.
   const requestIdForError = request?.id ?? null;
   useEffect(() => {
     setError(null);
@@ -129,7 +129,7 @@ export function TripRequestScreen({ navigation }) {
   const { driverId } = useAppState();
   const driverIdRef = useRef(driverId);
   driverIdRef.current = driverId;
-  // AI-assisted: see docs/AI_LOG.md #48
+  // AI-assisted: see AI_LOG.md #48
   const isFocused = useIsFocused();
   const focusedRef = useRef(isFocused);
   const [pendingExit, setPendingExit] = useState(null); // leave | trip: an exit that happened while hidden
@@ -167,7 +167,7 @@ export function TripRequestScreen({ navigation }) {
   }, [isFocused, request, metricsPending, expired, decided, error]);
 
   // Every exit goes through here: back to Home inside this stack (popTo: navigate would push a second Home).
-  // AI-assisted: see docs/AI_LOG.md #64 (D-149): when a notification tap opened this screen from another
+  // AI-assisted: see AI_LOG.md #64 (D-149): when a notification tap opened this screen from another
   // drawer screen, the driver returns to that screen (the origin is consumed once; a hidden screen never
   // moves the drawer). The drawer navigator is captured now so it can still be used while unmounting.
   const drawerRef = useRef(navigation.getParent());
@@ -189,7 +189,7 @@ export function TripRequestScreen({ navigation }) {
     else if (wasFocusedRef.current) takeRequestOrigin();
   }, [isFocused, takeRequestOrigin]);
 
-  // AI-assisted: see docs/AI_LOG.md #49
+  // AI-assisted: see AI_LOG.md #49
   // While open (focused or hidden behind another tab) the request id is published, so the bottom
   // card stays out of the way; it is withdrawn when this screen goes away.
   const openId = request?.id ?? null;
@@ -208,7 +208,7 @@ export function TripRequestScreen({ navigation }) {
     leave();
   }, [isFocused, released, decided, leave]);
 
-  // AI-assisted: see docs/AI_LOG.md #48
+  // AI-assisted: see AI_LOG.md #48
   const exitOrDefer = useCallback(
     (kind) => {
       if (!focusedRef.current) {
@@ -234,16 +234,16 @@ export function TripRequestScreen({ navigation }) {
 
   // Expired: reject quietly (the passenger side already dropped it), show the notice, then Home.
   const [expiredShown, setExpiredShown] = useState(false);
-  // AI-assisted: see docs/AI_LOG.md #66 (C2d: "No disponible" with the request open is not an expiry)
+  // AI-assisted: see AI_LOG.md #66 (C2d: "No disponible" with the request open is not an expiry)
   const [closedReason, setClosedReason] = useState(CLOSED_REASON.EXPIRED);
   useEffect(() => {
     if (!isFocused || !expired || expiredShown) return;
     setClosedReason(requestClosedReason({ available: isAvailable, remainingMs: secondsLeft * 1000 }));
     setExpiredShown(true);
     decidedRef.current = true;
-    // AI-assisted: see docs/AI_LOG.md #44 (5e: silent reject on expiry)
-    // AI-assisted: see docs/AI_LOG.md #48 (a slot already released was resolved elsewhere: no second reject)
-    // AI-assisted: see docs/AI_LOG.md #66 (T-229: one decline path; a released slot is only saved, not released again,
+    // AI-assisted: see AI_LOG.md #44 (5e: silent reject on expiry)
+    // AI-assisted: see AI_LOG.md #48 (a slot already released was resolved elsewhere: no second reject)
+    // AI-assisted: see AI_LOG.md #66 (T-229: one decline path; a released slot is only saved, not released again,
     // and only when its own deadline passed)
     if (!released) {
       declineRequest({ uid: driverIdRef.current, request, reason: DECLINE_REASON.EXPIRED });
@@ -264,7 +264,7 @@ export function TripRequestScreen({ navigation }) {
   useEffect(
     () => () => {
       const current = requestRef.current;
-      // AI-assisted: see docs/AI_LOG.md #48 (hidden: the request was resolved elsewhere)
+      // AI-assisted: see AI_LOG.md #48 (hidden: the request was resolved elsewhere)
       if (!current || decidedRef.current || !focusedRef.current) return;
       decidedRef.current = true;
       declineRequest({ uid: driverIdRef.current, request: current, reason: DECLINE_REASON.REJECTED });
@@ -300,7 +300,7 @@ export function TripRequestScreen({ navigation }) {
     setError(null);
     try {
       const trip = await acceptRequest(request.id);
-      markRequestAccepted(request.id); // AI-assisted: see docs/AI_LOG.md #66 (first decision wins)
+      markRequestAccepted(request.id); // AI-assisted: see AI_LOG.md #66 (first decision wins)
       clearPendingRequest(request.id);
       if (!mountedRef.current) return;
       startTrip(trip);
@@ -320,7 +320,7 @@ export function TripRequestScreen({ navigation }) {
     if (!request || !canDecide(request, { working }) || decidedRef.current || expired) return;
     markDecided(true);
     setWorking(true);
-    // AI-assisted: see docs/AI_LOG.md #66 (T-229: never throws, never blocks the UI)
+    // AI-assisted: see AI_LOG.md #66 (T-229: never throws, never blocks the UI)
     declineRequest({ uid: driverIdRef.current, request, reason: DECLINE_REASON.REJECTED });
     clearPendingRequest(request.id);
     if (mountedRef.current) exitOrDefer('leave');
@@ -337,7 +337,7 @@ export function TripRequestScreen({ navigation }) {
   } else if (expiredShown) {
     body = (
       <View testID="trip-request-expired" style={styles.centered} accessibilityLiveRegion="assertive">
-        {/* AI-assisted: see docs/AI_LOG.md #67 (A2: the clock only for a real expiry) */}
+        {/* AI-assisted: see AI_LOG.md #67 (A2: the clock only for a real expiry) */}
         <Icon name={closedReasonIcon(closedReason)} size={iconSize.lg} tint={color.textMuted} />
         <Text style={styles.title}>{closedReasonText(closedReason)}</Text>
         <Text style={styles.muted}>{labels.trip.backingHome}</Text>
@@ -352,7 +352,7 @@ export function TripRequestScreen({ navigation }) {
     body = (
       <>
         <ScrollView contentContainerStyle={styles.content}>
-          {/* AI-assisted: see docs/AI_LOG.md #54 (price first: earnings is the largest figure, fare and commission compact below it) */}
+          {/* AI-assisted: see AI_LOG.md #54 (price first: earnings is the largest figure, fare and commission compact below it) */}
           {fare ? (
             <View style={styles.price}>
               <Card
@@ -443,7 +443,7 @@ export function TripRequestScreen({ navigation }) {
         </ScrollView>
 
         <View style={styles.actions}>
-          {/* AI-assisted: see docs/AI_LOG.md #44 */}
+          {/* AI-assisted: see AI_LOG.md #44 */}
           {!error?.gone ? (
             <>
             <View
@@ -452,12 +452,12 @@ export function TripRequestScreen({ navigation }) {
               accessible
               accessibilityLabel={metricsPending ? labels.trip.calculatingA11y : fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
             >
-              {/* AI-assisted: see docs/AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
+              {/* AI-assisted: see AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
               <View style={styles.countdownRow}>
                 <View style={[styles.urgentSlot, { width: urgentIconSize, height: urgentIconSize }]}>
                   {urgent && !metricsPending ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
                 </View>
-                {/* AI-assisted: see docs/AI_LOG.md #66 (A1: no countdown until the final data is shown) */}
+                {/* AI-assisted: see AI_LOG.md #66 (A1: no countdown until the final data is shown) */}
                 <Text
                   maxFontSizeMultiplier={maxFontScale}
                   style={[styles.countdownText, urgent && !metricsPending && styles.countdownTextUrgent, metricsPending && styles.countdownTextPending]}
@@ -494,7 +494,7 @@ export function TripRequestScreen({ navigation }) {
                 accessibilityHint={labels.trip.acceptHint}
                 onPress={handleAccept}
                 disabled={working || metricsPending}
-                quietDisabled={metricsPending} // AI-assisted: see docs/AI_LOG.md #66 (H-3)
+                quietDisabled={metricsPending} // AI-assisted: see AI_LOG.md #66 (H-3)
               />
               <SecondaryButton
                 testID="trip-request-reject"
@@ -518,7 +518,7 @@ export function TripRequestScreen({ navigation }) {
   );
 }
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Compact secondary figure (fare, commission) shown under the earnings figure.
 function FareFigure({ label, value }) {
   return (
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  // AI-assisted: see docs/AI_LOG.md #54 (compact paddings so the price block fits above the fold at 130 % font)
+  // AI-assisted: see AI_LOG.md #54 (compact paddings so the price block fits above the fold at 130 % font)
   content: {
     gap: space[3],
     paddingHorizontal: space[4],
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0,
   },
-  // AI-assisted: see docs/AI_LOG.md #64 (D-150): the countdown is text plus a thin bar, no filled block, so it
+  // AI-assisted: see AI_LOG.md #64 (D-150): the countdown is text plus a thin bar, no filled block, so it
   // never looks like a button. The "Aceptar" button stays the only filled control. In the last 10 s the text
   // and the bar turn color.danger (AA on surface, no fill).
   countdown: {

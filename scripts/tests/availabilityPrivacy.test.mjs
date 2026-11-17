@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // Static privacy check for the code added by tasks T-273 to T-276 (CA-007-16, RA-18, DT-8): no console.*
 // call prints a token, uid or body; the availability body is only { available }; no Alert; no dependency
 // beyond the allowed ones.

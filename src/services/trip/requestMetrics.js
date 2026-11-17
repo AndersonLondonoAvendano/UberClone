@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Metrics state of an incoming request (A1, R-084). A request from a push is first shown with what the
 // message carries (passenger, category) and `metricsPending: true`: its distance, duration and fare are NOT
 // shown yet. When the real route answers (or the cap passes) the pending mark is removed and only then the
@@ -49,7 +49,7 @@ export function withCap(promise, ms, fallback, { setTimer = (fn, delay) => setTi
   });
 }
 
-// AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203)
+// AI-assisted: see AI_LOG.md #73 (T-293, D-203)
 // Which copy of a request the full screen shows. `opened` is the copy it opened with (often metricsPending),
 // `pending` the gate's current one and `lastFinal` the last copy WITH final data it has seen. When the slot is
 // released (taken, expired) the last final copy is kept, so a notice never appears over "Calculando" skeletons.

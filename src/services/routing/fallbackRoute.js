@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #41
 // Preloaded street route for the fixed test points (Plaza Botero -> Parque de los Deseos, Medellín),
 // computed once with OSRM and stored here so the demo still shows a street route without network.
 // Data © OpenStreetMap contributors, route by OSRM. Only used when the requested leg matches the

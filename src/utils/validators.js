@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #25
 import { GENDER_OPTIONS, LANGUAGE_OPTIONS, VEHICLE_CATEGORY_OPTIONS, VEHICLE_COLOR_OPTIONS } from '../constants/registrationOptions';
 
 const FULL_NAME_PATTERN = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]{1,50}$/;

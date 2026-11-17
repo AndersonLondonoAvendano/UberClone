@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Reverse geocoding (D-125): public Nominatim service (OpenStreetMap). No key, no secret. Its usage
 // policy asks for at most 1 request per second and an identifying User-Agent, so the client keeps a
 // gap above that between requests (see docs/seguridad.md, "Geocodificación (Nominatim)").

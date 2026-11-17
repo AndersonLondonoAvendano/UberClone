@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Example of the brief with the REAL calculateFare (CA-002-87): 8.5 km and 22 min.
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

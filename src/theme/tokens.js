@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #11
-// AI-assisted: see docs/AI_LOG.md #14
-// AI-assisted: see docs/AI_LOG.md #16
-// AI-assisted: see docs/AI_LOG.md #23
-// AI-assisted: see docs/AI_LOG.md #51 (redesign: semantic palette, soft variants, type/space/radius scales, elevations)
+// AI-assisted: see AI_LOG.md #11
+// AI-assisted: see AI_LOG.md #14
+// AI-assisted: see AI_LOG.md #16
+// AI-assisted: see AI_LOG.md #23
+// AI-assisted: see AI_LOG.md #51 (redesign: semantic palette, soft variants, type/space/radius scales, elevations)
 // Design tokens. Single source for colors, type, spacing, radii, elevations and touch sizes.
 
 export const color = {
@@ -60,7 +60,7 @@ export const type = {
   numeric: { fontVariant: ['tabular-nums'] },
 };
 
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Cap for the system font scale on critical blocks (amounts, countdown, action buttons): the text still
 // grows with the user's setting (never allowFontScaling={false}) but not past this multiplier.
 export const maxFontScale = 1.5;
@@ -106,16 +106,16 @@ export const elevation = {
 // Motion durations (ms) for the subtle Animated transitions.
 export const motion = { fast: 150, base: 220, slow: 400 };
 
-// AI-assisted: see docs/AI_LOG.md #53
+// AI-assisted: see AI_LOG.md #53
 // Map marker geometry (px): the driver is a filled dot, the target is a larger ring, so they differ by
 // shape and not only by colour.
 export const mapMarker = { driverRadius: 8, driverStroke: 3, targetRadius: 11, targetStroke: 4 };
 
-// AI-assisted: see docs/AI_LOG.md #53
+// AI-assisted: see AI_LOG.md #53
 // Height (px) of the photo preview frame of the registration photo fields.
 export const photoPreviewHeight = 160;
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Car glyph colour per registered vehicle colour (registrationOptions.js). Each is >= 3:1 against the
 // badge it is drawn on: light tones (white, silver, yellow) go on the dark badge, the rest on the white
 // one (see carMarker). 'otro' uses color.primary.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Constants for the push notification service. The channel id must match
 // `messaging_android_notification_channel_id` in the root firebase.json.
 

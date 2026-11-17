@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #68 (compact language control in the footer, no session needed)
-// AI-assisted: see docs/AI_LOG.md #60 (no header: brand band, overlapping form card, centred content)
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #68 (compact language control in the footer, no session needed)
+// AI-assisted: see AI_LOG.md #60 (no header: brand band, overlapping form card, centred content)
 // Frame shared by the three authentication screens: the brand band (AuthBackdrop) under the status bar
 // and a keyboard-aware scroll area so the focused field, its error and the main button stay above the
 // keyboard. The children (card and links) are centred and overlap the lower edge of the band. The

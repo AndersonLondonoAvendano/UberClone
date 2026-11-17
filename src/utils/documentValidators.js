@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure validators for the driver documents tab (RF-41): expiry dates, the technical review rule
 // and the license number. No React Native imports so they run under plain Node.
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Text field of the authentication forms: label above, a leading icon and, optionally, a trailing
 // action (the show/hide button of the password) INSIDE the same bordered box. Same states as TextField
 // (rest, focus, error, disabled), error as icon + text in a polite live region with the accessible

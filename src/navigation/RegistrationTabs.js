@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
-// AI-assisted: see docs/AI_LOG.md #15
-// AI-assisted: see docs/AI_LOG.md #16
-// AI-assisted: see docs/AI_LOG.md #26
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #67 (language read at render, T-260)
+// AI-assisted: see AI_LOG.md #15
+// AI-assisted: see AI_LOG.md #16
+// AI-assisted: see AI_LOG.md #26
+// AI-assisted: see AI_LOG.md #60
 // Registration bottom tabs: personal data, vehicle and documents.
 // The screen header is drawn by each screen, so the navigator header is hidden. The bar is a custom
 // component (AppTabBar) that reads the tab text from the title option (short names).

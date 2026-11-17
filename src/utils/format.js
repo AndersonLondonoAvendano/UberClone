@@ -1,6 +1,6 @@
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
 import { getLanguage } from '../i18n/languageStore';
 import { normalizeLanguage, DEFAULT_LANGUAGE } from '../i18n/languages';
 
@@ -34,7 +34,7 @@ export function formatMinutesFromSeconds(seconds) {
   return String(value === 0 ? 0 : Math.max(1, Math.ceil(value / 60)));
 }
 
-// AI-assisted: see docs/AI_LOG.md #55 (F1a: «NaN:NaN» in Earnings)
+// AI-assisted: see AI_LOG.md #55 (F1a: «NaN:NaN» in Earnings)
 // Root cause: saved trips carry Firestore Timestamps ({ toMillis }); new Date(timestamp) of one is an
 // invalid date, whose getHours() is NaN. toValidDate accepts number, Date, numeric string and
 // Timestamp, and returns null for anything else (null, undefined, '', invalid text or dates).
@@ -49,7 +49,7 @@ export function toValidDate(value) {
   return Number.isFinite(ms) ? new Date(ms) : null;
 }
 
-// AI-assisted: see docs/AI_LOG.md #68 (CA-006-47, CA-006-48)
+// AI-assisted: see AI_LOG.md #68 (CA-006-47, CA-006-48)
 // Times are shown in the PHONE's local time, not Colombia's (a driver abroad sees the phone's hour).
 // By default the real local getters are used. For tests, options.utcOffsetMinutes (for example -300 for
 // UTC-5) shifts the instant and reads it with the UTC getters, so no Intl and no dependency is needed.
@@ -92,19 +92,19 @@ export function fillLabel(template, values) {
   return Object.keys(values).reduce((text, key) => text.split(`{${key}}`).join(String(values[key])), template);
 }
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Screen-reader text for the request countdown: only at the thresholds (10, 5 and 0 s), empty otherwise.
 // template is labels.trip.countdownA11y ("... {s} ...").
 export const COUNTDOWN_ANNOUNCE_AT = [10, 5, 0];
 export function countdownAnnouncement(secondsLeft, template) {
-  // AI-assisted: see docs/AI_LOG.md #54 (null, undefined and '' must not become 0)
+  // AI-assisted: see AI_LOG.md #54 (null, undefined and '' must not become 0)
   if (secondsLeft == null || secondsLeft === '') return '';
   const seconds = Number(secondsLeft);
   if (!Number.isFinite(seconds) || !COUNTDOWN_ANNOUNCE_AT.includes(seconds)) return '';
   return fillLabel(template, { s: seconds });
 }
 
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // Local date and time: es "11/11/2026 14:05" (day first, as in Colombia), en "11/12/2026 2:05 PM" (month first).
 // Empty text for an unknown date.
 export function formatDateTime(timestamp, language, options) {

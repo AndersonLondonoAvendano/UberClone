@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #8
-// AI-assisted: see docs/AI_LOG.md #13
-// AI-assisted: see docs/AI_LOG.md #15
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #20
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #8
+// AI-assisted: see AI_LOG.md #13
+// AI-assisted: see AI_LOG.md #15
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #20
+// AI-assisted: see AI_LOG.md #67
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
@@ -24,7 +24,7 @@ import {
 import { color } from './src/theme/tokens';
 import { initLanguage } from './src/i18n/initLanguage';
 
-// AI-assisted: see docs/AI_LOG.md #52 (Inter font, safe loading)
+// AI-assisted: see AI_LOG.md #52 (Inter font, safe loading)
 // Waits for Inter at most FONT_WAIT_MS. If the font fails or is slow the app continues with the
 // system font; no style depends on the font being present.
 const FONT_WAIT_MS = 3000;
@@ -39,7 +39,7 @@ function useInterReady() {
   return loaded || error != null || timedOut;
 }
 
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Resolves the language in the same boot gate as the fonts (capped at 1.5 s inside initLanguage,
 // which never throws); the app starts in Spanish if anything goes wrong.
 function useLanguageReady() {

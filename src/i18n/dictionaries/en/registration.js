@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // English dictionary, `registration` section (T-249). `registrationFlow` lives in en/app.js (T-248).
 // Stored values (document type, city, categories) are unchanged: only what is shown is translated.
 // profile.errors in English (T-247, en/account.js) must repeat the same texts as the four `error` strings

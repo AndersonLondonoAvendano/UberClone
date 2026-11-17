@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #66
 // Trip state machine (T-44, T-221). Pure. The states live in src/constants/tripStatus.js. The valid
 // transitions are an explicit table (origin -> set of destinations); anything not listed is invalid:
 //   requested -> accepted | rejected

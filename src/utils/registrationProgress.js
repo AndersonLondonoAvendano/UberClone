@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Pure helpers for the registration welcome screen (no React Native imports, testable with plain
 // node). The completeness of each step is NOT recomputed here: it comes from the validity flags the
 // RegistrationFormContext already derives (isPersonalDataValid, isVehicleValid, isDocumentsValid).

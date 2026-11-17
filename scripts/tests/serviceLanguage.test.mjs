@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // T-261 (CA-006-24, 25, 26): services, utils and constants read the active language when called,
 // never when the module loads; stored values do not change with the language.
 import test from 'node:test';

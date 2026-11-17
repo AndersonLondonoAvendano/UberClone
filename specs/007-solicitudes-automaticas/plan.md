@@ -1,7 +1,7 @@
 # Plan — Spec 007 Solicitudes automáticas por FCM mientras el conductor está «Disponible»
-<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+<!-- AI-assisted: see AI_LOG.md #70 -->
 
-Estado: **Borrador** (planner; la spec 007 sigue en Borrador, Anderson ordenó continuar sin esperar aprobación, `docs/AI_LOG.md` #70, y eso no es aprobación formal). Tareas T-273 a T-278, lote L4, en `docs/backlog.md`. D-197 ya existe en `docs/decisiones.md`; este plan no la duplica. Las decisiones DT-n de abajo son locales del plan, no decisiones del proyecto.
+Estado: **Borrador** (planner; la spec 007 sigue en Borrador, Anderson ordenó continuar sin esperar aprobación, `AI_LOG.md` #70, y eso no es aprobación formal). Tareas T-273 a T-278, lote L4, en `docs/backlog.md`. D-197 ya existe en `docs/decisiones.md`; este plan no la duplica. Las decisiones DT-n de abajo son locales del plan, no decisiones del proyecto.
 
 ## 0. Hallazgos del código real
 - Backend: `backend/src/routes/notifications.js` (`createNotificationsHandlers`: `register`, `unregister`, `testRequest`, `close`; mapa `pending` uid→temporizador; `sendToUid` lee tokens, arma `buildTestRequest`, envía por lotes y retira tokens caducados; `testRequest` exige `drivers/{uid}.accountStatus === 'approved'`, si no `ERRORS.invalid`, sin tokens `ERRORS.notFound`); guard en `createGuard` (límite por IP y por usuario); `app.js` recibe el seam `notifications` y expone `closeNotifications()`; `server.js` lo llama al apagar; `config.js` guarda constantes y `loadConfig(env)`.

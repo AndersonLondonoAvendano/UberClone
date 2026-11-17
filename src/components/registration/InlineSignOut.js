@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #60
 // "Cerrar sesión" for the registration flow, outside the forms. Same single session reset as
 // AccountActions (useSessionReset) and the same texts (labels.auth.signOut); only the trigger differs:
 //   trigger 'link'   -> discreet text link (welcome screen).

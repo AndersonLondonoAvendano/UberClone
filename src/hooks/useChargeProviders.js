@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // Load of the configured payment gateways (T-146, RF-62, DP-48). Calls the backend on mount and keeps only
 // booleans: { mercadopago, stripe }. It reports { providers, failed, reload }: providers is undefined while
 // loading or after a failure, and failed is true after a failure so the screen can offer "Reintentar"

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for paymentView (CA-002-69, pure part). Run:
 //   node scripts/tests/paymentView.test.mjs
 import assert from 'node:assert/strict';

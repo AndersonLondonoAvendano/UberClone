@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Pure builder of the real dependencies of resetSession (no React, no Firebase imports). The hook
 // useSessionReset passes getters that always return the LATEST context values (or null when a
 // provider is not mounted in the current branch) and the real effects.

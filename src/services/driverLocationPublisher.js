@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #44
 // Optional Firestore document driverLocations/{uid} with the driver position and the trip status,
 // written with set + merge. It never blocks the trip and never rejects (it resolves true or false).
 // The ordering, the bounded retries, the per-write timeout and the "latest position only" rule live

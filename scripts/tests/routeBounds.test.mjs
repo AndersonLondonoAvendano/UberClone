@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57 (T-110)
+// AI-assisted: see AI_LOG.md #57 (T-110)
 // Plain Node tests for routeBounds (T-110, CA-002-106 pure part). Run: node scripts/tests/routeBounds.test.mjs
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

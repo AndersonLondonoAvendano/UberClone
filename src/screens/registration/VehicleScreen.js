@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
-// AI-assisted: see docs/AI_LOG.md #27
-// AI-assisted: see docs/AI_LOG.md #34
-// AI-assisted: see docs/AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68 (showLanguageSwitch)
+// AI-assisted: see AI_LOG.md #27
+// AI-assisted: see AI_LOG.md #34
+// AI-assisted: see AI_LOG.md #36
 // Vehicle tab: the 7 real fields of RF-06 (marca/modelo count as one for validity, F1 §2), backed by
 // RegistrationFormContext. Same error-display rule as Datos personales (DP-08).
 
@@ -32,7 +32,7 @@ import {
 
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.vehicle.fields;
-// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+// AI-assisted: see AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
 
 export function VehicleScreen() {
   useLanguage();
@@ -49,7 +49,7 @@ export function VehicleScreen() {
     <PlaceholderScreen name="vehicle" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
-          // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
+          // AI-assisted: see AI_LOG.md #53 (pending notice as a status card with icon and text)
           <Card variant="status" tone="warning" style={styles.notice}>
             <Icon name="time" size={iconSize.lg} tint={color.onWarningSoft} />
             <Text testID="vehicle-pending-notice" style={styles.pendingNotice}>
@@ -171,7 +171,7 @@ export function VehicleScreen() {
 }
 
 const styles = StyleSheet.create({
-  // AI-assisted: see docs/AI_LOG.md #52 (soft warning banner, same style as the chips)
+  // AI-assisted: see AI_LOG.md #52 (soft warning banner, same style as the chips)
   notice: {
     flexDirection: 'row',
     alignItems: 'flex-start',

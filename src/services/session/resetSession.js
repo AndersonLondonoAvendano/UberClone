@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Single session reset procedure (sign out, switch account, external session end). Pure: every
 // effect arrives through `deps`, so it has no React Native or Firebase imports.
 // Order: 1 block if a trip is in progress, 2 discard the pending request, 3 set unavailable and

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Paginated history of saved trips (T-102): 20 per page, range on createdAt, payment method filtered
 // on the client. status: 'idle' | 'loading' | 'ready' | 'error'. Changing start/end restarts from the
 // first page; a late response of a previous filter is dropped. With start/end null (invalid Rango)

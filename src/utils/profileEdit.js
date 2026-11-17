@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Pure helpers for the editable profile (R13, DP-53): validation, diff and write payload.
 import { isValidEmail, isValidFullName, isValidPhone, isValidVehicleColor } from './validators';
 

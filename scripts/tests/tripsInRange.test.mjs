@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #65
+// AI-assisted: see AI_LOG.md #65
 // Plain Node tests for fetchTripsInRangeWith (RC-04, CA-004-09, CA-004-11): earnings read all the trips of a
 // range with internal pagination, a hard cap and reads bounded by the range, on a simulated Firestore.
 import assert from 'node:assert/strict';
@@ -92,7 +92,7 @@ test('hard cap: maxDocs stops the reading and marks truncated', async () => {
   assert.equal(state.queries[3].constraints.find((c) => c.kind === 'limit').n, 1);
 });
 
-// AI-assisted: see docs/AI_LOG.md #67 (A4: an arbitrary range reads with the same paginated read, cap 5,000)
+// AI-assisted: see AI_LOG.md #67 (A4: an arbitrary range reads with the same paginated read, cap 5,000)
 test('A4: a custom range with 1,200 trips (far above 200) is read whole with the default page size and cap', async () => {
   const rows = Array.from({ length: 1200 }, (_, i) => trip(i, NOW - 1000 - i * 1000));
   const { fns, state } = makeFirestore(rows);

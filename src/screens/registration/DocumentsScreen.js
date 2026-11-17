@@ -1,11 +1,11 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68 (showLanguageSwitch)
-// AI-assisted: see docs/AI_LOG.md #27
-// AI-assisted: see docs/AI_LOG.md #34
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #55 (license, SOAT and technical review sections, RF-41)
-// AI-assisted: see docs/AI_LOG.md #60 (payments email label and helper text)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68 (showLanguageSwitch)
+// AI-assisted: see AI_LOG.md #27
+// AI-assisted: see AI_LOG.md #34
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #55 (license, SOAT and technical review sections, RF-41)
+// AI-assisted: see AI_LOG.md #60 (payments email label and helper text)
 // Documents tab: license (number, photo, expiry), SOAT (photo, expiry), technical review (photo,
 // expiry, or the reason it is not required), the Mercado Pago email, the terms checkbox with the
 // commission percentage, and the "Enviar registro" button that submits the whole form.
@@ -32,7 +32,7 @@ import { isValidEmail, isTermsAccepted } from '../../utils/validators';
 const SAFE_EDGES = ['top'];
 const FIELDS = labels.registration.documents.fields;
 const SECTIONS = labels.registration.documents.sections;
-// AI-assisted: see docs/AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
+// AI-assisted: see AI_LOG.md #60 (header shows the step, not the tab name that the bar already shows)
 
 export function DocumentsScreen() {
   useLanguage();
@@ -67,7 +67,7 @@ export function DocumentsScreen() {
     '{percent}',
     String(commissionPercent(commissionRate)),
   );
-  // AI-assisted: see docs/AI_LOG.md #55
+  // AI-assisted: see AI_LOG.md #55
   // Same rule as the other tabs: an error shows once the field was touched or the tab was visited.
   const documentErrorFor = (key) => (documents.touched[key] || showErrors ? documentFields.errors[key] : null);
   const technicalReview = documentFields.technicalReview;
@@ -80,7 +80,7 @@ export function DocumentsScreen() {
     <PlaceholderScreen name="documents" title={STEP_TITLE} leading={null} safeEdges={SAFE_EDGES} showLanguageSwitch>
       <View style={{ gap: space[5] }}>
         {isAccountPending ? (
-          // AI-assisted: see docs/AI_LOG.md #53 (pending notice as a status card with icon and text)
+          // AI-assisted: see AI_LOG.md #53 (pending notice as a status card with icon and text)
           <Card variant="status" tone="warning" style={styles.notice}>
             <Icon name="time" size={iconSize.lg} tint={color.onWarningSoft} />
             <Text testID="documents-pending-notice" style={styles.pendingNotice}>
@@ -89,7 +89,7 @@ export function DocumentsScreen() {
           </Card>
         ) : null}
 
-        {/* AI-assisted: see docs/AI_LOG.md #55 */}
+        {/* AI-assisted: see AI_LOG.md #55 */}
         <Card style={styles.section}>
           <Text accessibilityRole="header" style={styles.sectionTitle}>
             {SECTIONS.license}
@@ -276,7 +276,7 @@ export function DocumentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  // AI-assisted: see docs/AI_LOG.md #53 (same look as PrimaryButton: bodyStrong label, card elevation)
+  // AI-assisted: see AI_LOG.md #53 (same look as PrimaryButton: bodyStrong label, card elevation)
   submitButton: {
     alignSelf: 'stretch',
     flexDirection: 'row',
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
   },
-  // AI-assisted: see docs/AI_LOG.md #55
+  // AI-assisted: see AI_LOG.md #55
   section: {
     gap: space[4],
   },

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Static coverage test for the language feature (T-256; D-192; CA-006-22 to 26).
 // Regex heuristic: it does not understand all JSX and can miss text built dynamically; the English
 // visual review (T-263, T-264) is still needed. Directories listed in fixtures/i18nPending.json are not

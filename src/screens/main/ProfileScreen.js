@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: bordered avatar, category chip, DataRow groups)
-// AI-assisted: see docs/AI_LOG.md #60 (R13: per-field edit for name, phone, vehicle color and payout email)
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #53 (presentation: bordered avatar, category chip, DataRow groups)
+// AI-assisted: see AI_LOG.md #60 (R13: per-field edit for name, phone, vehicle color and payout email)
 // Profile: photo, name, phone, vehicle, masked payout email and account status. The data comes from
 // the drivers/{uid} document through the existing account subscription
 // (AppStateContext.driverProfile): no second listener. Each of the four editable fields has its own
@@ -123,7 +123,7 @@ export function ProfileScreen({ navigation }) {
     body = (
       <>
         <StatusRegion phase={edit.state?.phase} />
-        {/* AI-assisted: see docs/AI_LOG.md #53 */}
+        {/* AI-assisted: see AI_LOG.md #53 */}
         <Card style={styles.hero}>
           {personal?.profilePhotoUrl ? (
             <Image

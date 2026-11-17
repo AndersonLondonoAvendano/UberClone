@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #57 (T-109)
-// AI-assisted: see docs/AI_LOG.md #58 (T-149, T-150: Stripe, CA-002-125)
+// AI-assisted: see AI_LOG.md #57 (T-109)
+// AI-assisted: see AI_LOG.md #58 (T-149, T-150: Stripe, CA-002-125)
 // Plain Node tests for tripDetailView (T-109, CA-002-86, CA-002-94, CA-002-106). Run: node scripts/tests/tripDetailView.test.mjs
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

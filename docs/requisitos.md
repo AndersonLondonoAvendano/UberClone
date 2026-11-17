@@ -134,8 +134,8 @@ Estado: Borrador, pendiente de aprobación de Anderson (F0-3). Lista contrastada
 |---|---|---|
 | ENT-01 | Repositorio con ramas por integrante, Pull Requests revisados y merge a `main` | F1 §9 |
 | ENT-02 | `README.md` con instalación, `.env.example` y sección "Uso de IA" enlazada a la bitácora | F1 §8, §9 |
-| ENT-03 | `docs/AI_LOG.md` en `main` y su versión en PDF; se entrega aunque no se haya usado IA | F1 §8, §9 |
-| ENT-04 | Entradas de bitácora con la plantilla de F1 §8; bloques asistidos marcados `// AI-assisted: see docs/AI_LOG.md #N` | F1 §8 |
+| ENT-03 | `AI_LOG.md` en `main` y su versión en PDF; se entrega aunque no se haya usado IA | F1 §8, §9 |
+| ENT-04 | Entradas de bitácora con la plantilla de F1 §8; bloques asistidos marcados `// AI-assisted: see AI_LOG.md #N` | F1 §8 |
 | ENT-05 | Nunca pegar llaves de API, `access_token` ni datos personales reales en un prompt | F1 §8 |
 | ENT-06 | Video de máximo 5 min: registro, solicitud, viaje, pago de prueba e historial | F1 §9 |
 | ENT-07 | En la sustentación se debe poder explicar cualquier bloque asistido por IA | F1 §8 |

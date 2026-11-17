@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Wires the notifications client to the real fetch, the backend URL and the Firebase Auth ID token of
 // the signed-in driver (T-181). The push token and the ID token never leave through logs.
 
@@ -14,6 +14,6 @@ export const notificationsApi = createNotificationsApi({
   timeoutMs: BACKEND_TIMEOUT_MS,
 });
 
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // Result trace of the availability reports (D-199): a fixed code only, and nothing at all outside __DEV__.
 export const traceAvailability = (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) });

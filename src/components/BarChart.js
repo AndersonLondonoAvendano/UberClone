@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #56
 // Simple bar chart drawn with View (T-104, RF-48): bar height is the 0..1 ratio of barScale, each bar
 // has its text label under it and an accessibilityLabel with label and amount. The whole chart has one
 // readable summary (total and highest bar) as text, so nothing depends on colour. With many bars only

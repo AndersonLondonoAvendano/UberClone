@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the 15 s decision window (T-194, D-137).
 //   node scripts/tests/decisionWindow.test.mjs
 import assert from 'node:assert/strict';

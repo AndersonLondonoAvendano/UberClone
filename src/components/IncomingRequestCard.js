@@ -1,8 +1,8 @@
-// AI-assisted: see docs/AI_LOG.md #47
-// AI-assisted: see docs/AI_LOG.md #48
-// AI-assisted: see docs/AI_LOG.md #49
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: raised sheet, icon close, highlighted earnings)
-// AI-assisted: see docs/AI_LOG.md #64 (S5 design fixes: long names, font scale cap, 48 dp close, urgent countdown)
+// AI-assisted: see AI_LOG.md #47
+// AI-assisted: see AI_LOG.md #48
+// AI-assisted: see AI_LOG.md #49
+// AI-assisted: see AI_LOG.md #53 (presentation: raised sheet, icon close, highlighted earnings)
+// AI-assisted: see AI_LOG.md #64 (S5 design fixes: long names, font scale cap, 48 dp close, urgent countdown)
 // Incoming request as a bottom card (T-54), shown while the driver is on a drawer screen other than
 // MainHome. It is mounted once in MainDrawer, above the drawer, and reads the same pending request as
 // the full screen (AvailabilityContext), so both show the same countdown (from expiresAt).
@@ -72,7 +72,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const { language } = useLanguage();
   const { accountStatus, driverId } = useAppState();
   const { pendingRequest, clearPendingRequest, getDriverPosition, onTrip, requestScreenId, isAvailable } = useAvailability();
-  // AI-assisted: see docs/AI_LOG.md #66 (C2d): read inside the effect below without re-running it
+  // AI-assisted: see AI_LOG.md #66 (C2d): read inside the effect below without re-running it
   const isAvailableRef = useRef(isAvailable);
   isAvailableRef.current = isAvailable;
   const { startTrip } = useTrip();
@@ -89,7 +89,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   const shownRef = useRef(null); // { id, expiresAt, handled } of the request the card is showing
   const mountedRef = useRef(true);
 
-  // AI-assisted: see docs/AI_LOG.md #49
+  // AI-assisted: see AI_LOG.md #49
   const presentation = decideRequestPresentation(
     currentRoute,
     onTrip,
@@ -129,14 +129,14 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
         toleranceMs: REQUEST_CLOCK_TOLERANCE_MS,
       });
       if (reason === CLOSED_REASON.UNAVAILABLE) {
-        // AI-assisted: see docs/AI_LOG.md #66 (C2d: released because the driver went "No disponible")
+        // AI-assisted: see AI_LOG.md #66 (C2d: released because the driver went "No disponible")
         setNotice(closedReasonText(reason));
       } else if (Date.now() >= shown.expiresAt - REQUEST_CLOCK_TOLERANCE_MS) {
-        // AI-assisted: see docs/AI_LOG.md #73 (D-202: a request that vanishes within the clock tolerance of its
+        // AI-assisted: see AI_LOG.md #73 (D-202: a request that vanishes within the clock tolerance of its
         // deadline was an expiry; the single constant replaces the old local 1500 ms)
         logPushEventDev('expired-clock');
         setNotice(labels.trip.expired);
-        // AI-assisted: see docs/AI_LOG.md #66 (T-229: expired by its own deadline, same decline path; already released)
+        // AI-assisted: see AI_LOG.md #66 (T-229: expired by its own deadline, same decline path; already released)
         declineRequest({ uid: driverId, request: shown.request, reason: DECLINE_REASON.EXPIRED, release: false });
       }
     }
@@ -150,7 +150,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   // The notice lasts a moment and never outlives the context it was shown in.
   useEffect(() => {
     if (!notice) return undefined;
-    // AI-assisted: see docs/AI_LOG.md #67 (A3: the time grows with the font scale)
+    // AI-assisted: see AI_LOG.md #67 (A3: the time grows with the font scale)
     const id = setTimeout(() => setNotice(null), noticeDurationMs(EXPIRED_NOTICE_MS, fontScale));
     return () => clearTimeout(id);
   }, [notice, fontScale]);
@@ -197,7 +197,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
   }, [requestId, entrance]);
 
   // D-137: the 15 s window starts the first time the request is shown.
-  // AI-assisted: see docs/AI_LOG.md #66 (A1: while the metrics are pending nothing is marked; the window
+  // AI-assisted: see AI_LOG.md #66 (A1: while the metrics are pending nothing is marked; the window
   // starts with the final data, and the clock is refreshed at that moment)
   const metricsPending = isMetricsPending(request);
   useEffect(() => {
@@ -217,7 +217,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     if (secondsUntil(decisionDeadline(request, clock), clock) > 0) return; // stale tick, not really over
     markHandled();
     setNotice(labels.trip.expired);
-    // AI-assisted: see docs/AI_LOG.md #66 (T-229: one decline path; saves `rejected`, releases the request)
+    // AI-assisted: see AI_LOG.md #66 (T-229: one decline path; saves `rejected`, releases the request)
     declineRequest({ uid: driverId, request, reason: DECLINE_REASON.EXPIRED });
     clearPendingRequest(request.id);
   }, [request, metricsPending, secondsLeft, working, markHandled, clearPendingRequest, driverId]);
@@ -240,10 +240,10 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     setError(null);
     try {
       const trip = await acceptRequest(request.id);
-      markRequestAccepted(request.id); // AI-assisted: see docs/AI_LOG.md #66 (first decision wins)
+      markRequestAccepted(request.id); // AI-assisted: see AI_LOG.md #66 (first decision wins)
       clearPendingRequest(request.id);
       startTrip(trip);
-      // AI-assisted: see docs/AI_LOG.md #49 (the card never shows while TripRequest is open, so there is none to replace)
+      // AI-assisted: see AI_LOG.md #49 (the card never shows while TripRequest is open, so there is none to replace)
       getNavigation()?.navigate(HOME_ROUTE, { screen: 'TripActive' });
     } catch (cause) {
       if (!mountedRef.current) return;
@@ -264,7 +264,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
     if (!request || !canDecide(request, { working })) return;
     markHandled();
     setWorking(true);
-    // AI-assisted: see docs/AI_LOG.md #66 (T-229: never throws, never blocks the UI)
+    // AI-assisted: see AI_LOG.md #66 (T-229: never throws, never blocks the UI)
     declineRequest({ uid: driverId, request, reason: DECLINE_REASON.REJECTED });
     clearPendingRequest(request.id);
     if (mountedRef.current) setWorking(false);
@@ -304,7 +304,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
       style={[styles.anchor, { bottom, opacity: entrance, transform: [{ translateY }] }]}
     >
       <View style={[styles.card, { maxHeight: windowHeight * MAX_HEIGHT_RATIO }]}>
-        {/* AI-assisted: see docs/AI_LOG.md #48 (header and buttons stay outside the scroll) */}
+        {/* AI-assisted: see AI_LOG.md #48 (header and buttons stay outside the scroll) */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.flex} accessibilityLiveRegion="polite">
@@ -332,7 +332,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
           </View>
         </View>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-          {/* AI-assisted: see docs/AI_LOG.md #54 (price first: earnings largest, fare compact beside it) */}
+          {/* AI-assisted: see AI_LOG.md #54 (price first: earnings largest, fare compact beside it) */}
           {fare ? (
             <Card
               variant="status"
@@ -374,7 +374,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
               <Text style={[styles.muted, styles.flex, type.numeric]}>{toPickup}</Text>
             </View>
           ) : null}
-          {/* AI-assisted: see docs/AI_LOG.md #55 (T-98: payment method visible before accepting) */}
+          {/* AI-assisted: see AI_LOG.md #55 (T-98: payment method visible before accepting) */}
           {paymentLabel ? (
             <View style={styles.pickupRow}>
               <Text style={styles.muted}>{labels.trip.payment}:</Text>
@@ -389,7 +389,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
             accessible
             accessibilityLabel={metricsPending ? labels.trip.calculatingA11y : fillLabel(labels.trip.countdownA11y, { s: secondsLeft })}
           >
-            {/* AI-assisted: see docs/AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
+            {/* AI-assisted: see AI_LOG.md #65 (H-1: non-color urgent cue; the slot is always reserved, so nothing jumps) */}
             <View style={styles.countdownRow}>
               <View style={[styles.urgentSlot, { width: urgentIconSize, height: urgentIconSize }]}>
                 {urgent && !metricsPending ? <Icon name="alarm-outline" size={urgentIconSize} tint={color.danger} /> : null}
@@ -425,7 +425,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
                 accessibilityHint={labels.trip.acceptHint}
                 onPress={handleAccept}
                 disabled={working || metricsPending}
-                quietDisabled={metricsPending} // AI-assisted: see docs/AI_LOG.md #66 (H-3)
+                quietDisabled={metricsPending} // AI-assisted: see AI_LOG.md #66 (H-3)
               />
             </View>
             <View style={styles.flex}>
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     opacity: 0,
   },
-  // AI-assisted: see docs/AI_LOG.md #64 (D-150): the same pattern as TripRequestScreen: primary text plus a
+  // AI-assisted: see AI_LOG.md #64 (D-150): the same pattern as TripRequestScreen: primary text plus a
   // thin bar over a light track, no filled block (it looked like the "Aceptar" button). In the last 10 s the
   // text and the bar turn color.danger (no fill). The sizes are constant so the card does not jump.
   countdown: {

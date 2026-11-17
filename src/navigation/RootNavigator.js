@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #20
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #20
+// AI-assisted: see AI_LOG.md #54
 // Root navigator: a native stack that declares ONE screen, chosen by the session gate
 // (sessionGate.js). loading -> startup (loading), error -> startup (error), auth -> authentication
 // stack, registration/pending -> registration tabs, main -> main drawer.

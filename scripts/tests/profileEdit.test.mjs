@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Plain Node tests for src/utils/profileEdit.js (CA-002-132, CA-002-133, CA-002-135, CA-002-140). Run:
 //   node scripts/tests/profileEdit.test.mjs
 import './helpers/registerSrcLoader.mjs';

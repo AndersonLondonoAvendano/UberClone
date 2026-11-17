@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Plain Node tests for the pure Stripe logic (T-136): amount, form encoding, session mapping and
 // webhook signature. No network, no Firebase. Run:
 //   node scripts/tests/stripeCore.test.mjs

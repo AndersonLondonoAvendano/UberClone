@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
 // Registration language suggestion (RI-08, CA-006-09). The language stored with the registration is
 // applied once, and only when the device has no saved preference. It is never saved (it is not a user
 // choice) and never overrides a saved preference. A change made while the preference was being read

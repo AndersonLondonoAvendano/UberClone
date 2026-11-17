@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #51
+// AI-assisted: see AI_LOG.md #51
 // Label/value row: secondary label on the left, medium-weight value on the right, subtle separator.
 // Both texts can wrap, so it survives large system font sizes. Tokens only.
 

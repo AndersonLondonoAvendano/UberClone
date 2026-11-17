@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // RE-08 / D-184: the cancel button is offered exactly in accepted, driver_arriving, driver_arrived.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Writes the four editable profile fields to drivers/{uid} using dotted paths only, so
 // the rest of the document (accountStatus, category, plate, other documents) is never touched.
 // Firestore functions are injected so the logic can be tested against a fake.

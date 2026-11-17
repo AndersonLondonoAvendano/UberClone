@@ -1,4 +1,4 @@
-<!-- AI-assisted: see docs/AI_LOG.md #58 -->
+<!-- AI-assisted: see AI_LOG.md #58 -->
 # Inventario de `testID`, accesibilidad y `labels.js` (R12, Stripe)
 
 Tarea: T-134. Requisitos: RNF-19, RF-62. Criterio base: CA-002-127.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Tests for the live labels Proxy and the moved Spanish dictionary (T-244; CA-006-01 es part, CA-006-07).
 import test from 'node:test';
 import assert from 'node:assert/strict';

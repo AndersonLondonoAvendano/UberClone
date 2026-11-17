@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Pure duration of the brief notice of the request card (A3): the base time times the system font scale,
 // so the text is readable in full at 200 %, with a ceiling (NOTICE_MAX_MS) so it never lingers.
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Order of a push offer (S3 fix, D-135): the gate decides first (dedupe), and only an OFFERED request is
 // adopted in the passenger adapter. If the adapter then refuses it, the gate slot is released, so a
 // duplicate never touches the mock and a refused request never stays pending. Pure: dependencies injected.
@@ -62,7 +62,7 @@ export function offerPushRefined({
   isCurrent = () => true,
   onOffered = () => {},
   onFinal = () => {},
-  log = logPushEventDev, // AI-assisted: see docs/AI_LOG.md #73 (dev-only fixed codes)
+  log = logPushEventDev, // AI-assisted: see AI_LOG.md #73 (dev-only fixed codes)
   capMs = 3000,
   setTimer,
   clearTimer,
@@ -113,7 +113,7 @@ export function offerPushRefined({
       log('expired-clock');
       return PUSH_OFFER_RESULT.EXPIRED;
     }
-    // AI-assisted: see docs/AI_LOG.md #73 (D-202): the window starts with the final data, so a request that is
+    // AI-assisted: see AI_LOG.md #73 (D-202): the window starts with the final data, so a request that is
     // still valid always has its full 15 s from here.
     final = { ...final, expiresAt: effectiveExpiry(final.expiresAt, now()) };
     let adopted = false;

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Framework-independent defenses: fixed-window rate limiter and an auth + limit guard.
 // Nothing here logs tokens, headers or bodies.
 
@@ -56,7 +56,7 @@ export function send(res, result) {
   return res.status(result.status).json(result.body);
 }
 
-// AI-assisted: see docs/AI_LOG.md #59
+// AI-assisted: see AI_LOG.md #59
 // One line per request: method, path, status, provider and duration. Never bodies, headers, tokens or emails.
 // The path is req.path (no query string). The provider is only ever a known gateway id, else "-".
 const LOGGED_PROVIDERS = ['mercadopago', 'stripe'];

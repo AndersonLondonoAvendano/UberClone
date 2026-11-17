@@ -89,18 +89,18 @@ Alcance: contraste de `docs/UberClone — Versión Conductor.pdf` con el reposit
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | FCM, Firestore tiempo real, geolocalización obligatorios | Parcial | Ver sección 2: FCM omitido (documentado) |
-| Bitácora de IA | Parcial | `docs/AI_LOG.md`: 60 entradas, casi todas con campos pendientes (ver sección 8) |
+| Bitácora de IA | Parcial | `AI_LOG.md`: 60 entradas, casi todas con campos pendientes (ver sección 8) |
 | README con sección «Uso de IA» y `.env.example` | Cumplido | `README.md:81` («Uso de IA»), `README.md:32` (Variables de entorno) |
 | PDF de la bitácora y video | Omitido (documentado) | Pasos manuales del humano (cobertura §8, §9) |
 | Idioma ES/EN | Omitido (documentado) | Omisiones fila 3: se guarda `language`, la interfaz solo está en español |
 
-## 8. Marcadores `// AI-assisted: see docs/AI_LOG.md #N`
+## 8. Marcadores `// AI-assisted: see AI_LOG.md #N`
 
 - Archivos de `src/` y `backend/src` (versionados + los dos nuevos sin versionar): **162 de 162 tienen al menos un marcador**. Lista de archivos sin marcador: **ninguna**. Los dos archivos sin versionar (`backend/src/chargeAmount.js`, `src/services/passengerApi/simulatedFeedback.js`) también lo traen (1 cada uno).
-- Ejemplos de archivos con más marcadores: `src/constants/labels.js` (36), `src/screens/trip/TripRequestScreen.js` (20), `TripSummaryScreen.js` (19), `tripController.js` (18), `HomeScreen.js` (16), `RegistrationFormContext.js` (15), `TripActiveScreen.js` (14). Los 162 con su cuenta salen de `grep -c "AI-assisted: see docs/AI_LOG.md"` por archivo.
+- Ejemplos de archivos con más marcadores: `src/constants/labels.js` (36), `src/screens/trip/TripRequestScreen.js` (20), `TripSummaryScreen.js` (19), `tripController.js` (18), `HomeScreen.js` (16), `RegistrationFormContext.js` (15), `TripActiveScreen.js` (14). Los 162 con su cuenta salen de `grep -c "AI-assisted: see AI_LOG.md"` por archivo.
 - Limitación: el contador no valida que el número `#N` exista ni que corresponda al cambio. Los `.gitkeep` no cuentan.
 
-## 9. Campos vacíos en `docs/AI_LOG.md`
+## 9. Campos vacíos en `AI_LOG.md`
 
 Se recorrieron las 60 entradas (la «#N» de la plantilla se excluye). Conteos por coincidencia literal con vacío o «(pendiente…)»:
 
@@ -131,7 +131,7 @@ Se recorrieron las 60 entradas (la «#N» de la plantilla se excluye). Conteos p
 | A (calificación y propina simuladas; campos `tip` y `rating` en `trips`) | Hueco 3 en lo funcional del simulado; el archivo `src/services/passengerApi/simulatedFeedback.js` ya existe sin versionar y `contract.js`/`mappers.js` están modificados | No convierte el feedback en datos reales (sigue siendo simulado, hay que decirlo); no añade `passengerId`, lat/lng, `completedAt` ni `economy` (hueco 4); no valida en celular; hay que actualizar las omisiones filas 4 y 5 |
 | B (direcciones con Nominatim) | Hueco 7 | No cambia el modelo (sigue en etiquetas planas sin lat/lng de origen y destino salvo que se guarden); depende de la red y de los términos de uso públicos de Nominatim; hay que documentarlo como sustitución |
 | C (README) | Parte del hueco 9 si se añade `EXPO_PUBLIC_BACKEND_URL`; resumen honesto de límites | No resuelve la bitácora, la prueba en celular, ni los huecos 1, 3, 4, 6 |
-| D (marcadores AI) | Ya se cumple en lo contable: 162/162 archivos con marcador | No completa los campos de `docs/AI_LOG.md` (hueco 2); los marcadores no prueban por sí solos que el `#N` sea correcto |
+| D (marcadores AI) | Ya se cumple en lo contable: 162/162 archivos con marcador | No completa los campos de `AI_LOG.md` (hueco 2); los marcadores no prueban por sí solos que el `#N` sea correcto |
 
 **No cubiertos por A–D (se listan, no se implementan):** disponibilidad en AsyncStorage (1), bitácora y PDF (2), diferencias del modelo `trips` (4), prueba en dispositivo y pasarelas (5), FCM (6), idioma (8), y las sustituciones y umbrales sin documentar (10).
 

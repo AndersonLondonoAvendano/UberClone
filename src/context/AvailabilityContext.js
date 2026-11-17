@@ -1,9 +1,9 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
-// AI-assisted: see docs/AI_LOG.md #55 (F1b: local tracking while Home is focused; publishing only while available)
-// AI-assisted: see docs/AI_LOG.md #54 (reset: session reset puts everything back to the initial state)
-// AI-assisted: see docs/AI_LOG.md #72 (D-201: the choice is saved per uid on the phone and restored on open)
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #49 (requestScreenId: id of the request the TripRequest screen holds open)
+// AI-assisted: see AI_LOG.md #55 (F1b: local tracking while Home is focused; publishing only while available)
+// AI-assisted: see AI_LOG.md #54 (reset: session reset puts everything back to the initial state)
+// AI-assisted: see AI_LOG.md #72 (D-201: the choice is saved per uid on the phone and restored on open)
 // Driver availability (T-42, RF-08). Kept in memory and, per uid, in local storage (availabilityPreference):
 // no Firestore writes for availability. Three states (availabilityState): 'restoring' while the saved choice
 // is read at open, 'available', 'unavailable'; isAvailable stays a boolean (true only for 'available').
@@ -60,7 +60,7 @@ export function AvailabilityProvider({ children }) {
   const isAvailableRef = useRef(false);
   // Bumped by reset(): an enable() that started before a reset must not turn availability back on.
   const resetGenerationRef = useRef(0);
-  // AI-assisted: see docs/AI_LOG.md #64 (D-149): drawer screen the driver was on when a notification tap
+  // AI-assisted: see AI_LOG.md #64 (D-149): drawer screen the driver was on when a notification tap
   // opened the request; the request screen returns there when it closes. A ref: it never renders.
   const requestOriginRef = useRef(null);
   const setRequestOrigin = useCallback((route) => {
@@ -189,7 +189,7 @@ export function AvailabilityProvider({ children }) {
   }, [location.position]);
   const getDriverPosition = useCallback(() => positionRef.current, []);
 
-  // AI-assisted: see docs/AI_LOG.md #70 (D-197): the in-app simulator runs only when it is the single source;
+  // AI-assisted: see AI_LOG.md #70 (D-197): the in-app simulator runs only when it is the single source;
   // otherwise the backend generator sends the requests as pushes (adopted without a subscription).
   const requestSource = useRequestSource({ available: isAvailable, onTrip });
 
@@ -203,7 +203,7 @@ export function AvailabilityProvider({ children }) {
   } = useTripRequests({ enabled: requestSource === REQUEST_SOURCE.MOCK, getDriverPosition });
 
   // A2 (D-181), defense in depth: a push request is never offered while the driver is not Disponible.
-  // AI-assisted: see docs/AI_LOG.md #66
+  // AI-assisted: see AI_LOG.md #66
   const offerPushRequest = useCallback(
     (request, options) => (isAvailableRef.current ? offerPushRequestUnchecked(request, options) : Promise.resolve(false)),
     [offerPushRequestUnchecked],
@@ -228,7 +228,7 @@ export function AvailabilityProvider({ children }) {
         changingRef.current = false;
         if (mountedRef.current) setIsChanging(false);
       };
-      // AI-assisted: see docs/AI_LOG.md #44
+      // AI-assisted: see AI_LOG.md #44
       // Only a switch touch may prompt; the foreground check only reads the permission (no dialog).
       const permission = allowDialog ? await source.requestPermission() : await source.getPermission();
       if (isStale()) return undefined;
@@ -298,7 +298,7 @@ export function AvailabilityProvider({ children }) {
 
   const requestSimulatedTrip = useCallback(() => requestSimulatedTripNow(), []);
 
-  // AI-assisted: see docs/AI_LOG.md #54
+  // AI-assisted: see AI_LOG.md #54
   // Session reset: availability off (the effects above then stop the location source and the request
   // subscription), pending request freed, trip flag and notices cleared. Idempotent.
   const reset = useCallback(() => {
@@ -392,7 +392,7 @@ export function useAvailability() {
   return context;
 }
 
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Tolerant read for code that may run outside the provider (useSessionReset): null when absent.
 export function useOptionalAvailability() {
   return useContext(AvailabilityContext);

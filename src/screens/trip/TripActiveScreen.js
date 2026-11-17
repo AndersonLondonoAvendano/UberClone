@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #72 (T-285, D-200: arrival is automatic; no "Llegué" button, no main button while approaching)
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #54 (car marker colour; main action fixed below the scrollable panel)
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
-// AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #72 (T-285, D-200: arrival is automatic; no "Llegué" button, no main button while approaching)
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #54 (car marker colour; main action fixed below the scrollable panel)
+// AI-assisted: see AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
+// AI-assisted: see AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #43
 // Trip in progress (T-44). Reads the trip from TripContext (the controller does the work): map with
 // the leg route, the target and the driver; the phase, the remaining distance and time; "Pasajero a
 // bordo" only once the driver reached the pickup (the arrival is automatic, D-200) and "Finalizar viaje" at the destination. Route, report,
@@ -12,7 +12,7 @@
 // Cancel asks for a simple inline confirmation. Leaving the screen (back gesture or button) during
 // the trip opens that confirmation instead of dropping the trip.
 //
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // The screen always has a way out: finishing shows its progress and, if the passenger API does not
 // confirm (no network, timeout, rejected), "Reintentar" and "Salir del viaje"; a failed cancel also
 // offers "Salir del viaje". Leaving with that exit asks for confirmation, ends the trip locally
@@ -47,7 +47,7 @@ const PANEL_MAX_SHARE = 0.65;
 const PANEL_CONFIRM_MAX_SHARE = 0.9;
 const MOVING_PHASES = [TRIP_PHASE.TO_PICKUP, TRIP_PHASE.TO_DESTINATION];
 
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // Read at render time so the text follows the active language.
 const finishErrorTexts = () => ({
   [FINISH_ERROR.NETWORK]: labels.trip.finishErrorNetwork,
@@ -59,7 +59,7 @@ export function TripActiveScreen({ navigation }) {
   useLanguage(); // re-render on language change (RI-15)
   const { trip, startRide, finish, cancel, abandon, endTrip, retryRoute, retryReport, retryLocation } = useTrip();
   const { driverProfile } = useAppState();
-  // AI-assisted: see docs/AI_LOG.md #61 (D-125: resolved street of the current target)
+  // AI-assisted: see AI_LOG.md #61 (D-125: resolved street of the current target)
   const addresses = useRequestAddresses(trip?.request);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
@@ -68,7 +68,7 @@ export function TripActiveScreen({ navigation }) {
   const scrollRef = useRef(null);
   const leavingRef = useRef(false);
   const mountedRef = useRef(true);
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // The trip is released when this screen unmounts after a cancel or the safe exit, so Home never
   // flashes "no trip" here during the transition.
   const endOnLeaveRef = useRef(false);
@@ -90,7 +90,7 @@ export function TripActiveScreen({ navigation }) {
     navigation.setOptions({ gestureEnabled: !active });
   }, [navigation, active]);
 
-  // AI-assisted: see docs/AI_LOG.md #66 (in_progress cannot be cancelled: leaving opens the safe exit)
+  // AI-assisted: see AI_LOG.md #66 (in_progress cannot be cancelled: leaving opens the safe exit)
   const cancelOffered = Boolean(trip) && canOfferCancel(trip.status);
   usePreventRemove(active, ({ data }) => {
     if (leavingRef.current) navigation.dispatch(data.action);
@@ -100,7 +100,7 @@ export function TripActiveScreen({ navigation }) {
 
   const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // completed confirmed (also when it arrives late, after a timeout): open the summary once.
   const completed = trip?.finished === TRIP_STATUS.COMPLETED && !trip.abandoned;
   useEffect(() => {
@@ -143,7 +143,7 @@ export function TripActiveScreen({ navigation }) {
     navigation.popTo('Home');
   }, [cancel, navigation]);
 
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   const askExit = useCallback(() => {
     setConfirmCancel(false);
     setConfirmExit(true);
@@ -184,7 +184,7 @@ export function TripActiveScreen({ navigation }) {
   // waits for the arrival and its reason is visible text, not only an accessibility hint.
   const mainHint = toDestinationSide && !atDestination ? labels.trip.finishRideHint : null;
 
-  // AI-assisted: see docs/AI_LOG.md #66 (C2c: the exit text says what really happens in this state)
+  // AI-assisted: see AI_LOG.md #66 (C2c: the exit text says what really happens in this state)
   const exitText = exitCopy({ status: trip.status, atDestination, serverError: Boolean(trip.finishError || trip.cancelError) });
 
   let actions;
@@ -326,8 +326,8 @@ export function TripActiveScreen({ navigation }) {
         />
       </View>
 
-      {/* AI-assisted: see docs/AI_LOG.md #53, #54 (the whole panel is capped, the scroll yields space) */}
-      {/* AI-assisted: see docs/AI_LOG.md #72 (T-287 H-1: an open confirmation lives inside the scroll, so it is
+      {/* AI-assisted: see AI_LOG.md #53, #54 (the whole panel is capped, the scroll yields space) */}
+      {/* AI-assisted: see AI_LOG.md #72 (T-287 H-1: an open confirmation lives inside the scroll, so it is
           always reachable at 200 % font; the panel may grow taller while it is open) */}
       <View style={[styles.panel, { maxHeight: windowHeight * (confirming ? PANEL_CONFIRM_MAX_SHARE : PANEL_MAX_SHARE) }]}>
         <ScrollView
@@ -383,7 +383,7 @@ export function TripActiveScreen({ navigation }) {
   );
 }
 
-// AI-assisted: see docs/AI_LOG.md #44 (the warning tone is applied now)
+// AI-assisted: see AI_LOG.md #44 (the warning tone is applied now)
 function Notice({ testID, text, onRetry, tone = 'danger' }) {
   return (
     <Card variant="status" tone={tone} testID={testID} style={styles.noticeCard} accessibilityLiveRegion="polite">
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   // A sheet over the map (DESIGN.md "Elevación"): radius.lg on top and the native shadow, no line.
   panel: {
     gap: space[3],
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     ...type.body,
     color: color.textMuted,
   },
-  // AI-assisted: see docs/AI_LOG.md #44
+  // AI-assisted: see AI_LOG.md #44
   phaseCaption: {
     ...type.label,
     color: color.textMuted,

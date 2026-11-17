@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Clean Expo template MainApplication.kt (no channel block) used by withRequestsChannel.test.mjs.
 package com.andersonlondono.uberclone
 

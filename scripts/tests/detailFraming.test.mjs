@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // A5: camera padding of the trip detail map. The bottom margin clears the attribution (which grows with the
 // font scale) and the target marker; routes of any length and a trip without a saved route keep working.
 import assert from 'node:assert/strict';

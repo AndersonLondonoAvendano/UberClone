@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // T-274: POST /notifications/availability against the real express app with fake db, messaging, clock and timers.
 // No real waiting: timers are fired by hand and the clock is a plain object.
 import assert from 'node:assert/strict';
@@ -366,7 +366,7 @@ test('config: defaults, valid overrides and fallback to defaults on invalid or u
   assert.deepEqual(bad, defaults);
 });
 
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 test('D-207: automatic requests alternate cash, card, cash, card; a new session starts with cash again', () =>
   withApp({ 'drivers/u1': APPROVED }, async (ctx) => {
     await ctx.register(tokenOf(1));

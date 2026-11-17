@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57
+// AI-assisted: see AI_LOG.md #57
 // Pure camera decisions for the Home map (H-1). No React, no network, no native calls.
 // Positions arrive as { lat, lng }; the camera center is [lng, lat].
 

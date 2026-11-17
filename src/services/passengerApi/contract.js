@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #61
 // Internal contract of the passenger API (port and adapters). Models,
 // operations and errors the app depends on; adapters (mock, http) implement it. Nothing here calls
 // anything: it only documents shapes and exports constants and light validators.
@@ -54,19 +54,19 @@ export { TRIP_STATUS };
 // Allowed reportTripStatus transitions (cancelTrip handles the cancelled state).
 export const NEXT_TRIP_STATUS = {
   [TRIP_STATUS.ACCEPTED]: TRIP_STATUS.DRIVER_ARRIVING,
-  // AI-assisted: see docs/AI_LOG.md #43 (driver_arrived between arriving and in progress)
+  // AI-assisted: see AI_LOG.md #43 (driver_arrived between arriving and in progress)
   [TRIP_STATUS.DRIVER_ARRIVING]: TRIP_STATUS.DRIVER_ARRIVED,
   [TRIP_STATUS.DRIVER_ARRIVED]: TRIP_STATUS.IN_PROGRESS,
   [TRIP_STATUS.IN_PROGRESS]: TRIP_STATUS.COMPLETED,
 };
 
-// AI-assisted: see docs/AI_LOG.md #66 (rejected is terminal too)
+// AI-assisted: see AI_LOG.md #66 (rejected is terminal too)
 export const isTripFinished = (status) =>
   status === TRIP_STATUS.COMPLETED || status === TRIP_STATUS.CANCELLED || status === TRIP_STATUS.REJECTED;
 
 // Same values as the registration's vehicle category (RF-06) and pricing.js.
 export const TRIP_CATEGORIES = ['economico', 'xl', 'premium'];
-// AI-assisted: see docs/AI_LOG.md #55 (card payments go through Mercado Pago)
+// AI-assisted: see AI_LOG.md #55 (card payments go through Mercado Pago)
 export const PAYMENT_METHODS = ['card', 'cash'];
 export const LEGACY_PAYMENT_METHODS = ['mercadopago'];
 

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Turns the History filters into the query of useTripHistory (T-105, T-106): Hoy/Semana/Mes use the
 // period limits of Colombian time; Rango uses the two picked dates after validateRange. An invalid
 // Rango gives bounds null (nothing is queried) and the error text to show on screen.

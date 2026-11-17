@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for the pure history helpers (CA-002-81).
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';
@@ -16,7 +16,7 @@ assert.deepEqual(mergeTrips(undefined, null), []);
 assert.equal(mergeTrips([], [null, 5, t('z')]).length, 1, 'invalid items skipped');
 assert.equal(page1.length, 3, 'inputs not mutated');
 
-// AI-assisted: see docs/AI_LOG.md #58 (T-149, CA-002-125)
+// AI-assisted: see AI_LOG.md #58 (T-149, CA-002-125)
 {
   const mixed = [t('a', 'cash'), t('b', 'mercadopago'), t('c', 'stripe'), t('d', 'transfer'), t('e')];
   assert.deepEqual(filterByMethod(mixed, 'mercadopago').map((x) => x.id), ['b', 'c'], 'Card includes Stripe');
@@ -42,7 +42,7 @@ assert.equal(canLoadMore({ hasMore: true, status: 'ready', loadingMore: true }),
 // Late response: only the current request id counts.
 assert.equal(isCurrentRequest(3, 3), true);
 assert.equal(isCurrentRequest(2, 3), false);
-// AI-assisted: see docs/AI_LOG.md #57 (T-122, CA-002-94, RF-54)
+// AI-assisted: see AI_LOG.md #57 (T-122, CA-002-94, RF-54)
 // Legacy trips (no paymentMethod and no paymentStatus) show only under "Todos", never under Tarjeta or Efectivo.
 {
   const legacy = { id: 'old' };

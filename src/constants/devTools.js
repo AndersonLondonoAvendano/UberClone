@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #35
+// AI-assisted: see AI_LOG.md #35
 // Single on/off switch for every provisional test panel (force-state selector, account simulator,
 // "simular solicitud"). A constant on purpose, not an env var: no new dependency, no .env entry,
 // nothing to configure per machine. The value committed to the repository must stay FALSE — this is

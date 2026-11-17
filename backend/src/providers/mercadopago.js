@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Mercado Pago adapter for the provider interface. Wraps createMercadoPagoClient without changing
 // its behavior: same reference (the trip id), same notification URL and same status mapping.
-// AI-assisted: see docs/AI_LOG.md #61 (amount = fare + tip via chargeAmount)
+// AI-assisted: see AI_LOG.md #61 (amount = fare + tip via chargeAmount)
 import { chargeAmount } from '../chargeAmount.js';
 import { mapPaymentStatus, paymentMatchesTrip } from '../mercadopago.js';
 

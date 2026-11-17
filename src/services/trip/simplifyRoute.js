@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Pure simplification of the planned route saved with the trip (T-92, RF-52). It keeps the
 // planned route only: no real driver position is ever stored. Input points are [lat, lng] pairs or
 // { lat, lng } objects; the output is at most maxPoints [lat, lng] pairs with 4 decimals, first and

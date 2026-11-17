@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
 // GPS location source (T-41): expo-location in the foreground only (no background location).
 // Common interface of every source:
 //   requestPermission() => Promise<'granted' | 'denied' | 'unavailable'>
@@ -37,7 +37,7 @@ export function createGpsLocationSource() {
       }
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     // Reads the current permission without any dialog (used by the silent foreground check).
     async getPermission() {
       try {

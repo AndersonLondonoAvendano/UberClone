@@ -144,7 +144,7 @@ Estados: Cumplido / Parcial / Omitido documentado / No cumplido / Desviación do
 | R-122 | No cumplido | N | — | No aplica mientras no se use Google; se vuelve exigible si se adopta (G-03) |
 | R-123 | Cumplido | T | tripRecord.js:72-75; TripDetailScreen.js:3-5 | Se dibuja la ruta planificada guardada |
 | R-124 | Cumplido | D | cloudinary.js:20-35 | Sin Firebase Storage |
-| R-125 | Cumplido | T | docs/AI_LOG.md | 61 entradas |
+| R-125 | Cumplido | T | AI_LOG.md | 61 entradas |
 | R-126 | Parcial | T | git log | 9 ramas anderson/*, 8 PR fusionados, un solo autor |
 | R-127 | Cumplido | T | README.md:141-142 | Sección y enlace |
 | R-128 | No cumplido | N | — | No existe el PDF de la bitácora |
@@ -163,7 +163,7 @@ Estados: Cumplido / Parcial / Omitido documentado / No cumplido / Desviación do
 | R-141 | Cumplido | T | git log | Merge #8 en main |
 | R-142 | Cumplido | T | README.md:29-44 | Instalación |
 | R-143 | Cumplido | T | README.md:45-53 | Variables de entorno |
-| R-144 | Parcial | T | docs/AI_LOG.md | Bitácora sí; PDF no |
+| R-144 | Parcial | T | AI_LOG.md | Bitácora sí; PDF no |
 | R-145 | No cumplido | N | docs/guion-video.md | Guion de 4:45; video no existe |
 
 ## 3. Brechas priorizadas
@@ -211,7 +211,7 @@ Criterios de aceptación y pruebas (resumen por brecha):
 - G-09: pago con usuario de prueba MP aprobado y `status: paid` visible en la app; token con prefijo `TEST-` exigido.
 - G-10: pago Stripe 4242 → webhook → `paid` → resumen en el celular sin recargar.
 - G-11: documento nuevo con `passengerId`, `completedAt`, `category` aceptando `economy` y ubicaciones `{lat,lng,address}` o decisión documentada.
-- G-12: PDF exportado de `docs/AI_LOG.md` incluido en el repo; `check-constitution` sin C21 de ese ítem.
+- G-12: PDF exportado de `AI_LOG.md` incluido en el repo; `check-constitution` sin C21 de ese ítem.
 - G-13: cada entrada con los 9 campos y hash; `#62` resuelto; 0 errores C18.
 - G-14: video ≤5 min con registro, solicitud, viaje, pago de prueba e historial.
 - G-15..G-23: revisión de código/test y `check-constitution` sin los avisos citados.

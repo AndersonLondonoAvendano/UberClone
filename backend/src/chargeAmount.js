@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #61
 // Amount charged to the passenger by card: fare + tip, in whole COP. It is ALWAYS computed from the
 // trip document read from Firestore (never from a request body). The commission is taken only on the
 // fare, so the gateway amount is the fare plus the tip. A missing, non-integer or negative tip counts

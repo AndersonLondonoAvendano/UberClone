@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node test of the useTripPayment core with a simulated subscription (T-96). Run:
 //   node --import ./scripts/tests/helpers/registerSrcLoader.mjs --test scripts/tests/useTripPayment.test.mjs
 import assert from 'node:assert/strict';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for dateRanges (CA-002-79, CA-002-80). Run under several TZ values:
 //   TZ=UTC node ...; TZ=America/Bogota node ...; TZ=Asia/Tokyo node ...
 import assert from 'node:assert/strict';

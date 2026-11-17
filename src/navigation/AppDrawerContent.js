@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #67 (language read at render, T-260)
-// AI-assisted: see docs/AI_LOG.md #54 (the active entry keeps its fill while pressed)
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #52 (new drawer: brand header with profile, icon items, footer)
+// AI-assisted: see AI_LOG.md #67 (language read at render, T-260)
+// AI-assisted: see AI_LOG.md #54 (the active entry keeps its fill while pressed)
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #52 (new drawer: brand header with profile, icon items, footer)
 // Custom drawer panel. A solid brand header (photo, name, vehicle, availability) built only from data
 // already in the contexts, four icon + text entries (outline when inactive, filled when active, soft
 // pill plus a left accent bar for the focused one) and a discreet footer. Routes, labels, testIDs and

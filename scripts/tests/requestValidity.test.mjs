@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #73
+// AI-assisted: see AI_LOG.md #73
 // T-294 (D-202, D-203): request validity with an injected clock, full decision window on adoption, no
 // release before the final data, dedupe, one notice, "Disponible" restore without a second adoption, and
 // "taken by another driver" never on a push request nor before MOCK_TAKEN_MIN_DECISION_MS.

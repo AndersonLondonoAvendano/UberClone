@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Drawer home renamed to MainHome (S5, N-01). Pure presentation decision plus a static check that the
 // drawer and the trip stack never register the same screen name.
 //   node scripts/tests/drawerRouteNames.test.mjs

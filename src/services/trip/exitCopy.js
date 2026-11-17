@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Pure choice of the text of the "Salir del viaje" confirmation (C2c). The safe exit (abandon) saves a
 // cancelled trip with zero amounts, unless the driver is at the destination, where nothing is saved or charged
 // either. So the text must say what really happens and only mention the missing server confirmation when

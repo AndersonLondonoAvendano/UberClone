@@ -1,11 +1,11 @@
-// AI-assisted: see docs/AI_LOG.md #19
-// AI-assisted: see docs/AI_LOG.md #41
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
-// AI-assisted: see docs/AI_LOG.md #47
-// AI-assisted: see docs/AI_LOG.md #48 (indentation)
-// AI-assisted: see docs/AI_LOG.md #49 (swipe blocked while the full-screen request is open)
-// AI-assisted: see docs/AI_LOG.md #64 (drawer home renamed to HOME_ROUTE = 'MainHome')
+// AI-assisted: see AI_LOG.md #19
+// AI-assisted: see AI_LOG.md #41
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #47
+// AI-assisted: see AI_LOG.md #48 (indentation)
+// AI-assisted: see AI_LOG.md #49 (swipe blocked while the full-screen request is open)
+// AI-assisted: see AI_LOG.md #64 (drawer home renamed to HOME_ROUTE = 'MainHome')
 // The incoming-request bottom card (T-54) is mounted once here, above the drawer and inside the
 // providers; it follows the focused drawer screen through screenListeners.
 // Main drawer: MainHome (the trip stack, not listed in the panel) plus Profile, History, Earnings and
@@ -54,7 +54,7 @@ function DrawerBody() {
     () => ({ ...SCREEN_OPTIONS, swipeEnabled: requestScreenId == null }),
     [requestScreenId],
   );
-  // AI-assisted: see docs/AI_LOG.md #47
+  // AI-assisted: see AI_LOG.md #47
   const [currentRoute, setCurrentRoute] = useState(HOME_ROUTE);
   const navigationRef = useRef(null);
   const getNavigation = useCallback(() => navigationRef.current, []);
@@ -80,7 +80,7 @@ function DrawerBody() {
         <Drawer.Screen name={HOME_ROUTE} component={TripStack} />
         <Drawer.Screen name="Profile" component={ProfileScreen} />
         <Drawer.Screen name="History" component={HistoryScreen} />
-        {/* AI-assisted: see docs/AI_LOG.md #57 (T-110): opened from History, not listed in the panel */}
+        {/* AI-assisted: see AI_LOG.md #57 (T-110): opened from History, not listed in the panel */}
         <Drawer.Screen name="TripDetail" component={TripDetailScreen} />
         <Drawer.Screen name="Earnings" component={EarningsScreen} />
         <Drawer.Screen name="Settings" component={SettingsScreen} />

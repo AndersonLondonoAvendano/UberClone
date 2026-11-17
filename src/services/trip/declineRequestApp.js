@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // App wiring of the single decline point (T-229): binds the real repository, the passenger API port
 // and the address resolver to declineRequest. Components import ONLY from here, so manual rejection
 // and expiry take the same path. Fire and forget: the returned promise never rejects.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // C2d (D-181): going "No disponible" with a request open says "Cancelada: ya no estás disponible",
 // not "La solicitud expiró"; a real expiry keeps its text.
 import assert from 'node:assert/strict';

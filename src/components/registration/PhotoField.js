@@ -1,10 +1,10 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #54 (one accessible description of the upload indicator)
-// AI-assisted: see docs/AI_LOG.md #26
-// AI-assisted: see docs/AI_LOG.md #55 (optional announceError: error in a polite live region)
-// AI-assisted: see docs/AI_LOG.md #29
-// AI-assisted: see docs/AI_LOG.md #36
-// AI-assisted: see docs/AI_LOG.md #38
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #54 (one accessible description of the upload indicator)
+// AI-assisted: see AI_LOG.md #26
+// AI-assisted: see AI_LOG.md #55 (optional announceError: error in a polite live region)
+// AI-assisted: see AI_LOG.md #29
+// AI-assisted: see AI_LOG.md #36
+// AI-assisted: see AI_LOG.md #38
 // Verified against node_modules/expo-image-picker/build/{ImagePicker,ImagePicker.types}.d.ts (v57.0.20):
 // launchCameraAsync/launchImageLibraryAsync resolve { canceled, assets } (assets[0].uri/base64/mimeType
 // on success, base64 only when the base64 option is true); requestCameraPermissionsAsync/
@@ -61,13 +61,13 @@ export function PhotoField({ testID, label, value, onChange, errorTestID, errorM
   const handleCamera = () => pickAndUpload(requestCameraPermissionsAsync, launchCameraAsync);
   const handleGallery = () => pickAndUpload(requestMediaLibraryPermissionsAsync, launchImageLibraryAsync);
   const combinedError = errorMessage || permissionError || uploadErrorMessage;
-  // AI-assisted: see docs/AI_LOG.md #38
+  // AI-assisted: see AI_LOG.md #38
   const canRemove = Boolean(value) && uploadState !== 'uploading' && !disabled;
 
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      {/* AI-assisted: see docs/AI_LOG.md #53 (framed preview, icon states, visible remove button) */}
+      {/* AI-assisted: see AI_LOG.md #53 (framed preview, icon states, visible remove button) */}
       <View style={[styles.preview, !value && styles.previewEmpty, combinedError && styles.previewError]}>
         {value ? (
           <Image source={{ uri: value }} style={styles.previewImage} />

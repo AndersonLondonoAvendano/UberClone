@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see AI_LOG.md #70
 // Generator of automatic requests: injected clock, random and timers; no real waiting.
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -384,7 +384,7 @@ test('D-199: lastSeq returns the last accepted seq as a safe integer, or null', 
   assert.equal(ctx.generator.lastSeq('u1'), null);
 });
 
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 function setupIndexed(config = {}, failing = false) {
   const timers = createFakeTimers();
   const indexes = [];

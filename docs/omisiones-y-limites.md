@@ -1,6 +1,6 @@
 # Omisiones y límites — UberClone Conductor
 
-<!-- AI-assisted: see docs/AI_LOG.md #57 (T-133) -->
+<!-- AI-assisted: see AI_LOG.md #57 (T-133) -->
 Estado: **vigente; actualizado 2026-11-16 (borrador original 2026-11-12), pendiente de la lectura final de Anderson.** Lista lo que la entrega no hace, o hace de otra forma, con lo que se pide, lo que se hizo, la razón técnica y el impacto. Nada de lo que aparece aquí se declara como hecho en el README.
 
 **Fuente de «lo que se pide».** El enunciado real es `docs/enunciado-taller.pdf` (taller «Uber - clone»). La tabla de cobertura de abajo se contrasta con sus nueve secciones; la columna «Se pide» de las tablas siguientes cita lo que el enunciado exige y lo que los requisitos (`docs/requisitos.md`) y las decisiones (`docs/decisiones.md`) derivan de él.
@@ -18,7 +18,7 @@ Estados: **hecho** (implementado y aprobado en lo estático), **parcial**, **omi
 | 5 | Fórmula de tarifa y `calculateFare`, comisión del 20 % con `commissionRate` guardado, métricas de Ganancias y saldo | Hecho en lo estático (`src/utils/fare.js`, `src/utils/earnings.js`); **No verificado en dispositivo.** Los viajes antiguos sin método de pago se tratan como «Cobro simulado» (D-111, propuesta). |
 | 6 | Historial con `FlatList`, filtros Hoy/Semana/Mes/Rango y método de pago, detalle con ruta, propina y calificación, estado vacío y paginación | Parcial. Lista, filtros, estado vacío y paginación (de 20 en 20) hechos. Detalle con ruta implementado (T-109, T-110) y aprobado en lo estático; **No verificado en dispositivo.** La ruta es la simplificada guardada (D-110), no el recorrido real; propina y calificación simuladas (filas 4 y 5 de Omisiones). «Rango» solo en Android. |
 | 7 | FCM, Firestore en tiempo real y geolocalización obligatorios; lo demás opcional; Directions y Distance Matrix solo al crear y aceptar | Parcial. Firestore en tiempo real y geolocalización hechos y validados en dispositivo (rebanadas 0/A/B, primer plano). FCM implementado; Android validado por Anderson (STOP-2c en release: arranque en frío y heads-up; STOP-4 y STOP-8: toque desde otra pantalla y solicitudes automáticas en la build de desarrollo; las solicitudes automáticas con la app cerrada siguen pendientes y solo se validan en release), iOS fuera, sin ubicación en segundo plano (fila 1). Directions sustituido por OSRM (ver Sustituciones). |
-| 8 | Bitácora de IA, sección «Uso de IA» del README y exportación a PDF | Parcial. `docs/AI_LOG.md` y la sección del README existen; **el PDF lo exporta el humano** (paso manual de la entrega). |
+| 8 | Bitácora de IA, sección «Uso de IA» del README y exportación a PDF | Parcial. `AI_LOG.md` y la sección del README existen; **el PDF lo exporta el humano** (paso manual de la entrega). |
 | 9 | Entregables: repositorio y PRs, README con `.env.example`, bitácora con PDF, video de máximo 5 minutos | Parcial. README y `.env.example` del backend listos; guion en `docs/guion-video.md` (4:50). Commit, push, PDF y video son pasos manuales del humano. |
 
 ## Omisiones
@@ -92,7 +92,7 @@ Estados: **hecho** (implementado y aprobado en lo estático), **parcial**, **omi
 - **O-03 abierta (decide Anderson):** unificar «La solicitud expiró» (`labels.trip.pushExpired`) y «La solicitud venció» (`labels.trip.expired`). Sin cambio hasta que decida. El diseño de S5 sigue «Pendiente» (auditor, ronda 2; faltan la decisión de O-03 y las capturas).
 
 ## Límites del lote L2: estados, modelo y saldo (spec 005; D-181 a D-186 aprobadas salvo objeción, 2026-11-16)
-<!-- AI-assisted: see docs/AI_LOG.md #66 -->
+<!-- AI-assisted: see AI_LOG.md #66 -->
 Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson). **L2 completo (estados rechazado y conductor llegando, campos aditivos, saldo completo, aviso de «No disponible», rapidez al tocar la notificación): Validada en dispositivo por Anderson (2026-11-16 14:54, build de desarrollo, STOP-5).** Reglas de Firestore con los estados nuevos publicadas por Anderson (≈14:20 Bogotá) y comprobadas con un guardado real (CA-005-26 y G-01 cerrados). **Siguen «No verificado en dispositivo» SOLO:** «Salir del viaje» a mitad de viaje y los viajes antiguos. **Hallazgo visual abierto, en corrección (lote L3, A5):** en el Detalle del viaje la ruta se corta por abajo, la atribución tapa el tramo final y el marcador de destino no se ve completo. La spec 005 sigue en Borrador; este texto se ajusta si Anderson cambia las decisiones.
 
 **Desviaciones del esquema del enunciado (RE-13, D-186).** No se corrigen; se explican:
@@ -125,10 +125,10 @@ Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson). *
 - **Chip «Rechazados» (T-231) OMITIDO:** decisión de Anderson (2026-11-16); los `rejected` salen en la lista con su etiqueta, sin filtro por estado.
 
 ## Límites del lote L3: idioma español/inglés (spec 006; RI-24, D-188 a D-192)
-<!-- AI-assisted: see docs/AI_LOG.md #67 -->
+<!-- AI-assisted: see AI_LOG.md #67 -->
 Se declaran como límites, no como defectos. Estado en dispositivo: **No verificado en dispositivo** salvo lo indicado.
 
-**Parte A y el idioma: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6).** Cambio instantáneo a inglés, persistencia al reabrir, solicitud abierta sin reinicio de contador ni cambio de tarifa, todo en inglés, idioma conservado tras cerrar sesión y entrar de nuevo, fuente al 200 % sin cortes y Detalle con la ruta completa. `npm test`, cifras históricas de cada punto de control (PowerShell): STOP-4, 159/159; STOP-6, 337 pruebas, 336 pasan, 0 fallan, 1 omitida; STOP-8b (2026-11-16), 410 pruebas, 409 pasan, 0 fallan, 1 omitida. **Cifra ACTUAL: 410 pruebas, 409 pasan, 0 fallan, 1 omitida** (la de STOP-8b, sin cambios posteriores); `check-constitution`: 14 errores (línea base). Siguen sin verificar en dispositivo: TalkBack/VoiceOver (CA-006-13) y el aviso con almacenamiento que falla (CA-006-17). **La Parte B (límites a, b y c) queda documentada tal cual, sin validar.** <!-- AI-assisted: see docs/AI_LOG.md #68 -->
+**Parte A y el idioma: Validada en dispositivo por Anderson (2026-11-16 15:59, STOP-6).** Cambio instantáneo a inglés, persistencia al reabrir, solicitud abierta sin reinicio de contador ni cambio de tarifa, todo en inglés, idioma conservado tras cerrar sesión y entrar de nuevo, fuente al 200 % sin cortes y Detalle con la ruta completa. `npm test`, cifras históricas de cada punto de control (PowerShell): STOP-4, 159/159; STOP-6, 337 pruebas, 336 pasan, 0 fallan, 1 omitida; STOP-8b (2026-11-16), 410 pruebas, 409 pasan, 0 fallan, 1 omitida. **Cifra ACTUAL: 410 pruebas, 409 pasan, 0 fallan, 1 omitida** (la de STOP-8b, sin cambios posteriores); `check-constitution`: 14 errores (línea base). Siguen sin verificar en dispositivo: TalkBack/VoiceOver (CA-006-13) y el aviso con almacenamiento que falla (CA-006-17). **La Parte B (límites a, b y c) queda documentada tal cual, sin validar.** <!-- AI-assisted: see AI_LOG.md #68 -->
 
 **Los cinco límites de RI-24 (CA-006-33).**
 - **(a) Texto de la notificación push en español.** El título («Nueva solicitud de viaje») y el cuerpo (`Económico · {km} km · {min} min`, con el kilometraje con coma decimal) los arma el backend (`backend/src/notifications/payload.js`: `NOTIFICATION_TITLE` y `buildMessage`) y no recibe el idioma del usuario. Con la app cerrada o en segundo plano se ve en español aunque la app esté en inglés. Una vez abierta la solicitud, su pantalla sí usa el idioma activo. Cambiarlo exigiría enviar el idioma al backend al registrar el token (D-189); se descarta en este lote por RI-12 (`backend/` no cambia, CA-006-34) y queda como mejora.
@@ -158,7 +158,7 @@ Se declaran como límites, no como defectos. Estado en dispositivo: **No verific
 - **`useMemo` sin `language`:** el de `toPickup` en `TripRequestScreen` y el de `documentFields` en `RegistrationFormContext` no dependen de `language`. Hoy es inalcanzable porque el idioma solo cambia en Configuración; si algún día cambia desde otra pantalla, deben recibirlo como dependencia.
 
 ## Límites del lote L4 (spec 007)
-<!-- AI-assisted: see docs/AI_LOG.md #70 -->
+<!-- AI-assisted: see AI_LOG.md #70 -->
 Solicitudes automáticas simuladas (RA-04, RA-17, RA-18, RA-19; D-197). Estado en dispositivo: **Validada en dispositivo por Anderson (STOP-8, 2026-11-16 19:10, y STOP-8b, 19:40; la corrección de «No disponible», D-198, T-279 a T-281, validada en STOP-8b).** Sigue pendiente de dispositivo: «Salir del viaje» a mitad, viajes antiguos, la app cerrada con solicitudes automáticas (solo en release) y el estado visual del Historial al 200 % si no hay captura.
 
 **Los tres límites de RA-17.**
@@ -195,7 +195,7 @@ Solicitudes automáticas simuladas (RA-04, RA-17, RA-18, RA-19; D-197). Estado e
 - Todo lo anterior: No verificado en dispositivo (STOP-9).
 
 ## Ajustes de demo de las solicitudes automáticas (#73, D-202, D-204, D-205, D-206)
-<!-- AI-assisted: see docs/AI_LOG.md #73 -->
+<!-- AI-assisted: see AI_LOG.md #73 -->
 - **Tiempos por defecto (D-204):** primera solicitud 8–15 s, siguientes 35–60 s, tope de 8 por sesión (antes 15–30 s, 60–120 s y 10). Configurables con `AUTO_REQUEST_*`; cambiarlos exige reiniciar el backend (seguro por D-199).
 - **Bandeja sin apilar (D-205):** etiqueta Android y clave de colapso `trip_request`; una solicitud nueva reemplaza a la anterior. Límite: la notificación de una solicitud ya aceptada o vencida solo desaparece cuando llega la siguiente o la descarta el usuario.
 - **Caducidad (D-202):** validez del aviso 90 s (`FCM_TTL_MS`) y tolerancia de reloj de 10 s en la app (`REQUEST_CLOCK_TOLERANCE_MS`); «La solicitud expiró» solo sale pasada la validez más la tolerancia.

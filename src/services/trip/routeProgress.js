@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #43
 // Pure helpers for the trip in progress (T-44): progress along a route polyline ([lng, lat][]),
 // remaining distance and time, arrival by distance threshold and the report throttle.
 // Positions are { lat, lng, timestamp }.

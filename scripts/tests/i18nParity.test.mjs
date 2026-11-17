@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // es/en dictionary parity (T-250; CA-006-01, 02, 03, 07).
 import test from 'node:test';
 import assert from 'node:assert/strict';

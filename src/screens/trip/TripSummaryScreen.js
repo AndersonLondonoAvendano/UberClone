@@ -1,20 +1,20 @@
-// AI-assisted: see docs/AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
-// AI-assisted: see docs/AI_LOG.md #61 (D-124: the summary shows the tip and the total charged = fare + tip)
-// AI-assisted: see docs/AI_LOG.md #58 (T-147, T-148: one "Cobrar con ..." button per configured gateway; verify uses the trip's gateway)
-// AI-assisted: see docs/AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
-// AI-assisted: see docs/AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #67 (T-258/T-259: the screen follows the active language)
+// AI-assisted: see AI_LOG.md #61 (D-124: the summary shows the tip and the total charged = fare + tip)
+// AI-assisted: see AI_LOG.md #58 (T-147, T-148: one "Cobrar con ..." button per configured gateway; verify uses the trip's gateway)
+// AI-assisted: see AI_LOG.md #53 (presentation: phase chip, status cards, data rows)
+// AI-assisted: see AI_LOG.md #45 (popTo('Home'): navigate pushes a second Home in React Navigation 7, leaving this screen mounted)
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #43
 // Trip summary (T-45). Shown after the final status reached the passenger API. The distance, duration and
 // fare split come from the accepted request through calculateFare, so the amounts match the request
 // card the driver accepted.
 //
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // "Confirmar cobro" saves the trip in drivers/{uid}/trips/{tripId} (the payment is SIMULATED, no gateway).
 // A failed save shows the error with "Reintentar" and a safe exit ("Volver a Inicio sin guardar", with an
 // inline confirmation, no Alert): the driver is never trapped. The same save is idempotent by trip id.
 //
-// AI-assisted: see docs/AI_LOG.md #44
+// AI-assisted: see AI_LOG.md #44
 // The trip is released (endTrip) only when this screen unmounts, never before navigating: the summary
 // keeps the last trip it saw, so "no hay un viaje" never flashes on the way out. "Tu ganancia" is
 // the one number the driver came for: type.display in color.primary. No borders or dividers: the
@@ -64,7 +64,7 @@ const ERROR_COPY = {
   [SAVE_ERROR.UNKNOWN]: 'saveErrorGeneric',
 };
 
-// AI-assisted: see docs/AI_LOG.md #55 (charge chip: text plus icon, never colour alone)
+// AI-assisted: see AI_LOG.md #55 (charge chip: text plus icon, never colour alone)
 const CHIP_LOOK = {
   [PAYMENT_CHIP.APPROVED]: { tone: 'success', icon: 'checkmark-circle' },
   [PAYMENT_CHIP.PENDING]: { tone: 'warning', icon: 'time' },
@@ -98,14 +98,14 @@ export function TripSummaryScreen({ navigation }) {
   useLanguage(); // re-render on language change (RI-15)
   const { trip, endTrip } = useTrip();
   const { driverId } = useAppState();
-  // AI-assisted: see docs/AI_LOG.md #44 (keeps the last trip while leaving)
+  // AI-assisted: see AI_LOG.md #44 (keeps the last trip while leaving)
   const shownRef = useRef(null);
   if (trip?.request) shownRef.current = {
       tripId: trip.tripId,
       request: trip.request,
       finishedAt: trip.finishedAt ?? null,
       startedAt: trip.startedAt ?? null,
-      // AI-assisted: see docs/AI_LOG.md #55
+      // AI-assisted: see AI_LOG.md #55
       plannedRoute: trip.plannedRoute ?? null,
     };
   const shown = shownRef.current;
@@ -116,7 +116,7 @@ export function TripSummaryScreen({ navigation }) {
   // Leaving the summary in any way (button or back) releases the trip and resumes availability.
   useEffect(() => endTrip, [endTrip]);
 
-  // AI-assisted: see docs/AI_LOG.md #61
+  // AI-assisted: see AI_LOG.md #61
   // D-125: one more try for an address that failed while the trip ran; quiet and never blocking.
   const requestForRetry = request;
   useEffect(() => {
@@ -125,7 +125,7 @@ export function TripSummaryScreen({ navigation }) {
 
   const goHome = useCallback(() => navigation.popTo('Home'), [navigation]);
 
-  // AI-assisted: see docs/AI_LOG.md #50
+  // AI-assisted: see AI_LOG.md #50
   const [save, setSave] = useState({ state: SAVE.IDLE, kind: null });
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const scrollRef = useRef(null);
@@ -144,13 +144,13 @@ export function TripSummaryScreen({ navigation }) {
       const record = buildTripRecord({
         driverId,
         tripId: shown.tripId,
-        request: withResolvedAddresses(shown.request), // AI-assisted: see docs/AI_LOG.md #61 (D-125: saved text is the resolved street)
+        request: withResolvedAddresses(shown.request), // AI-assisted: see AI_LOG.md #61 (D-125: saved text is the resolved street)
         status: SAVED_STATUS.COMPLETED,
         startedAt: shown.startedAt,
         finishedAt: shown.finishedAt ?? Date.now(),
-        route: shown.plannedRoute, // AI-assisted: see docs/AI_LOG.md #55
+        route: shown.plannedRoute, // AI-assisted: see AI_LOG.md #55
       });
-      // AI-assisted: see docs/AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
+      // AI-assisted: see AI_LOG.md #54 (counted by the save queue so a session reset waits for it)
       await trackTripSave(() => saveTrip(driverId, shown.tripId, record));
       if (mounted.current) setSave({ state: SAVE.SAVED, kind: null });
     } catch (error) {
@@ -162,10 +162,10 @@ export function TripSummaryScreen({ navigation }) {
   const saved = save.state === SAVE.SAVED;
   const saving = save.state === SAVE.SAVING;
 
-  // AI-assisted: see docs/AI_LOG.md #55
+  // AI-assisted: see AI_LOG.md #55
   // The charge state exists only once the trip is saved; before that there is nothing to listen to.
   const { trip: savedTrip, loading: paymentLoading, error: paymentError } = useTripPayment(saved ? shown?.tripId : null);
-  // AI-assisted: see docs/AI_LOG.md #57 (T-119: the screen paints only what chargePanel decides)
+  // AI-assisted: see AI_LOG.md #57 (T-119: the screen paints only what chargePanel decides)
   // A save failure or a stored-state read failure (listener error) blocks the panel: error tone, no chip, no
   // buttons. A service error only counts after a real user action (Cobrar, Verificar, Reintentar), never on mount.
   const [userActed, setUserActed] = useState(false);
@@ -178,11 +178,11 @@ export function TripSummaryScreen({ navigation }) {
     : null;
   const saveFailure = save.state === SAVE.ERROR ? labels.trip[ERROR_COPY[save.kind] ?? 'saveErrorGeneric'] : null;
   const blockingIssue = saveFailure ?? (listenerIssue ? `${listenerIssue.title}. ${listenerIssue.message}` : null);
-  // AI-assisted: see docs/AI_LOG.md #66 (T-232: a rejected record is not charged either)
+  // AI-assisted: see AI_LOG.md #66 (T-232: a rejected record is not charged either)
   const cancelled = savedTrip?.status === TRIP_STATUS.CANCELLED || savedTrip?.status === TRIP_STATUS.REJECTED;
   const method = cancelled ? null : savedTrip?.paymentMethod ?? payment;
   const isCard = isCardMethod(method);
-  // AI-assisted: see docs/AI_LOG.md #58 (undefined until the backend answers or if it fails: the panel acts as before Stripe)
+  // AI-assisted: see AI_LOG.md #58 (undefined until the backend answers or if it fails: the panel acts as before Stripe)
   const { providers, failed: providersFailed, reload: reloadProviders } = useChargeProviders();
   const panel = chargePanel({
     method,
@@ -220,7 +220,7 @@ export function TripSummaryScreen({ navigation }) {
           ? 'trip-summary-cash-collected'
           : 'trip-summary-saved';
 
-  // AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97)
+  // AI-assisted: see AI_LOG.md #55 (charge actions, T-97)
   // One runner per screen: it keeps a single request in flight. The card state is never set here: it only
   // changes when the backend writes the trip document and onSnapshot delivers it.
   const runner = useMemo(
@@ -282,7 +282,7 @@ export function TripSummaryScreen({ navigation }) {
             if (confirmingLeave) scrollRef.current?.scrollToEnd({ animated: true });
           }}
         >
-          {/* AI-assisted: see docs/AI_LOG.md #53 */}
+          {/* AI-assisted: see AI_LOG.md #53 */}
           {fare ? (
             <Card
               variant="status"
@@ -352,7 +352,7 @@ export function TripSummaryScreen({ navigation }) {
                     icon={chipLook.icon}
                   />
                 )}
-                {/* AI-assisted: see docs/AI_LOG.md #55 (charge actions, T-97) */}
+                {/* AI-assisted: see AI_LOG.md #55 (charge actions, T-97) */}
                 {!paymentLoading && !paymentError && panel.actions.length > 0 ? (
                   <View testID="trip-summary-payment-actions" style={styles.paymentState}>
                     {isCard && !panel.noGateway ? (

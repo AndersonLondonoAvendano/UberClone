@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #61
 // Pure period totals for the earnings screen (T-47). Day, week and month limits use Colombian
 // time (UTC-5), never the device time zone. The week starts on MONDAY (Colombian calendar) and ends the next Monday at 00:00
 // (exclusive). Completed and paid trips add up (cash confirmation turns a trip into paid); cancelled ones are ignored. The net earning is the saved
@@ -25,7 +25,7 @@ export function periodRange(period, now = Date.now()) {
   return periodBounds(period, now);
 }
 
-// AI-assisted: see docs/AI_LOG.md #65
+// AI-assisted: see AI_LOG.md #65
 // [start, end) to read from the repository so today, week and month are all complete: from the earlier of the
 // week start and the month start up to now (end is now + 1 ms because the range is exclusive).
 export function earningsReadRange(now = Date.now()) {
@@ -58,8 +58,8 @@ export function computePeriodTotals(trips, period, now = Date.now()) {
   };
 }
 
-// AI-assisted: see docs/AI_LOG.md #55 (T-99, CA-002-75)
-// AI-assisted: see docs/AI_LOG.md #58 (T-149: Stripe counts as a card payment)
+// AI-assisted: see AI_LOG.md #55 (T-99, CA-002-75)
+// AI-assisted: see AI_LOG.md #58 (T-149: Stripe counts as a card payment)
 // Balance with the platform: card payments (Mercado Pago or Stripe, approved) leave the platform owing the driver
 // their earnings; cash trips leave the driver owing the platform its commission. Positive = the platform
 // owes the driver; negative = the driver owes the platform. Trips without a valid method are ignored.
@@ -68,7 +68,7 @@ export function computeBalance(trips) {
   if (!Array.isArray(trips)) return 0;
   for (const trip of trips) {
     if (!trip || typeof trip !== 'object') continue;
-    // AI-assisted: see docs/AI_LOG.md #66 (T-232: a declined or expired request is never owed or earned)
+    // AI-assisted: see AI_LOG.md #66 (T-232: a declined or expired request is never owed or earned)
     if (trip.status === TRIP_STATUS.CANCELLED || trip.status === TRIP_STATUS.REJECTED) continue;
     if (isCardMethod(trip.paymentMethod)) {
       if (trip.paymentStatus !== 'approved') continue;
@@ -81,7 +81,7 @@ export function computeBalance(trips) {
   return Number.isFinite(balance) ? balance : 0;
 }
 
-// AI-assisted: see docs/AI_LOG.md #56 (T-107)
+// AI-assisted: see AI_LOG.md #56 (T-107)
 // Six metrics of a period from the saved amounts of each trip: count, gross (billed total),
 // commission, tips (the trip's numeric tip, else 0), net earnings and the average net per trip
 // (rounded, 0 without trips).

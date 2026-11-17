@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #54
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #72
 // Wires the real dependencies of the session reset (DP-12). Returns a stable async resetSession()
 // that resolves { ok, reason, steps } (never logged here). Absent providers are tolerated with the
 // optional readers (Availability and Trip live only in the main branch, the registration form only
@@ -46,9 +46,9 @@ export function useSessionReset() {
           getRegistration: () => latestRef.current.registration,
           publishIdleStatus: (position) => publishDriverTripStatus(DRIVER_LOCATION_IDLE_STATUS, position),
           waitForTripSaveQueue,
-          // AI-assisted: see docs/AI_LOG.md #64 (T-185: push token off right before signOut, D-134)
+          // AI-assisted: see AI_LOG.md #64 (T-185: push token off right before signOut, D-134)
           unregisterNotifications: () => getRegistrationController().signOutCleanup(),
-          // AI-assisted: see docs/AI_LOG.md #72 (D-201: the saved "Disponible" goes with the session)
+          // AI-assisted: see AI_LOG.md #72 (D-201: the saved "Disponible" goes with the session)
           clearAvailabilityPreference: () => availabilityPreference.clear(latestRef.current.appState?.driverId),
           restoreNotifications: () => getRegistrationController().restoreAfterFailedSignOut(),
           signOut: signOutUser,

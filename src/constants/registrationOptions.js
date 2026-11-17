@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 import { labels } from './labels';
 
 // Each option keeps its stored `value`; `label` is a getter, so the text is read from the active language

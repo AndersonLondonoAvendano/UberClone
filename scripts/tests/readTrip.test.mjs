@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Tests for readTrip (T-225, CA-005-20, CA-005-21).
 import assert from 'node:assert/strict';
 import test from 'node:test';

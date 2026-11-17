@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for chartLayout and historyFilters (T-104, T-105).
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';

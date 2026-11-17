@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #57 (T-110)
+// AI-assisted: see AI_LOG.md #57 (T-110)
 // Pure framing of a saved route for the read-only detail map. No React, no network. The route is the
 // [{ lat, lng }] list validated by tripDetailView; MapLibre wants [lng, lat] pairs and bounds as
 // [west, south, east, north].

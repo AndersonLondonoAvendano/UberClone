@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Plain Node tests for src/utils/profileEditFlow.js (CA-002-130, 133 to 136, 141). Run:
 //   node scripts/tests/profileEditFlow.test.mjs
 import './helpers/registerSrcLoader.mjs';

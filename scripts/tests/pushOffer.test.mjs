@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #64
-// AI-assisted: see docs/AI_LOG.md #66 (A1: the offer is shown at once and refined in the background)
+// AI-assisted: see AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #66 (A1: the offer is shown at once and refined in the background)
 // Plain Node test for offerPushThroughGate (S3 fix, D-135): gate first, adopt second, release on refusal,
 // and for offerPushRefined (A1): preliminary offer -> final copy, cap, fallback, dedupe, expiry.
 //   node scripts/tests/pushOffer.test.mjs

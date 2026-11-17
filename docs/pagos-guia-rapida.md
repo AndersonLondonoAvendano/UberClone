@@ -1,6 +1,6 @@
 # Guía rápida de pagos con Mercado Pago o Stripe (prueba en el celular)
 
-<!-- AI-assisted: see docs/AI_LOG.md #57 (T-129) y T-153 (elección de pasarela) -->
+<!-- AI-assisted: see AI_LOG.md #57 (T-129) y T-153 (elección de pasarela) -->
 
 Para quién: Anderson, en Windows con PowerShell. Objetivo: que el celular alcance el backend y completar un pago de prueba con tarjeta. Las secciones 1, 2 y 6 describen Mercado Pago; para Stripe usa [pagos-stripe-guia.md](pagos-stripe-guia.md). Los datos del repositorio (puerto, rutas, variables, textos de la app) se leyeron del código; los datos de Mercado Pago vienen de las fuentes de la sección final y algunos son resúmenes (ver «No confirmado»).
 

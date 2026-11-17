@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // C2c: the "Salir del viaje" text matches what happens in each state.
 import assert from 'node:assert/strict';
 import test from 'node:test';

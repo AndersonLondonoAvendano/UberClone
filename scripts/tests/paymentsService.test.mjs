@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for the payments client and the cash confirmation (T-95). No network, no Firebase,
 // no Mercado Pago. Run:
 //   node scripts/tests/paymentsService.test.mjs

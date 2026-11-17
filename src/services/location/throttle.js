@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Pure throttle rule for driver positions: publish the next one when there is no previous one, or
 // when enough time OR enough distance has passed. Positions are { lat, lng, timestamp }.
 

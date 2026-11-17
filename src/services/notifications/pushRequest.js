@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Turns the text `data` of a "trip_request" push into the app's trip request (T-178, DP-60/DP-77).
 // Pure: no React, no Firebase, no clock of its own. Everything in `data` is untrusted text, so each
 // field is parsed strictly and anything foreign, malformed or out of range is rejected, never fixed.
@@ -51,7 +51,7 @@ export function parsePushData(data) {
   const durationMin = num(data.durationMin);
   const origin = point(data.originLat, data.originLng);
   const destination = point(data.destLat, data.destLng);
-  // AI-assisted: see docs/AI_LOG.md #74 (D-207: absent = cash from an old backend; only 'cash'|'card' are valid)
+  // AI-assisted: see AI_LOG.md #74 (D-207: absent = cash from an old backend; only 'cash'|'card' are valid)
   const rawPayment = data.paymentMethod;
   const paymentMethod = rawPayment === undefined ? 'cash' : rawPayment;
   const valid =
@@ -96,7 +96,7 @@ export function requestFromIntent(intent, now) {
     category: intent.category,
     paymentMethod: intent.paymentMethod === 'card' ? 'card' : 'cash',
     createdAt: now,
-    // AI-assisted: see docs/AI_LOG.md #73 (D-202: a valid request adopted now keeps its full decision window)
+    // AI-assisted: see AI_LOG.md #73 (D-202: a valid request adopted now keeps its full decision window)
     expiresAt: effectiveExpiry(intent.expiresAt, now),
   });
   return isValidTripRequest(request) ? request : null;

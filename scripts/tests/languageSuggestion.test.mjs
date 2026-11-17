@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
 // Tests for applySuggestion (T-253; CA-006-09).
 import test from 'node:test';
 import assert from 'node:assert/strict';

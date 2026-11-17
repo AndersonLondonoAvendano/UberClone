@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Tests for declineRequest (T-228, T-229; CA-005-10, 11, 12, 14 and the "first decision wins" edge case).
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';

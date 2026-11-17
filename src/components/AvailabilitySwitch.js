@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #53
-// AI-assisted: see docs/AI_LOG.md #64 (track and thumb extracted to SwitchTrack, same look and behavior)
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #53
+// AI-assisted: see AI_LOG.md #64 (track and thumb extracted to SwitchTrack, same look and behavior)
 // Availability switch (T-42, RF-08): the whole card is the touch target (>= touch.min) and the state
 // is always written in a chip («Disponible» / «No disponible») next to an icon, never shown by color
 // alone. accessibilityRole "switch" with the checked state for screen readers. The thumb slides with

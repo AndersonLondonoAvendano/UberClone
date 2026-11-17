@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #42
 // Real passenger API adapter: SKELETON until the API is known. It handles transport only
 // (fetch, timeout, polling) and delegates every shape to mappers.js. The paths below are an
 // ASSUMPTION. Inactive while PASSENGER_API_MODE is 'mock'.
@@ -79,7 +79,7 @@ export function createHttpPassengerApi({ baseUrl = process.env.EXPO_PUBLIC_PASSE
     async reportDriverLocation(tripId, location) {
       await request(`/trips/${encodeURIComponent(tripId)}/location`, { method: 'POST', body: fromLocation(location) });
     },
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     // The real backend owns the trip state: there is nothing to release on the client.
     releaseTrip() {
       return Promise.resolve(false);

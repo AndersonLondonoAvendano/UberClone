@@ -1,5 +1,7 @@
 # Bitácora de uso de IA
 
+**Nota (2026-11-16):** Los campos «Aprendizaje» vacíos fueron redactados por Claude Code a partir del contenido de cada entrada y revisados por el autor; los que ya estaban escritos son del autor.
+
 **Regla de honestidad (F1 §8):** esta bitácora debe reflejar el uso real de IA, incluido el que no salió bien. Se entrega aunque no se haya usado IA. La registra el humano (Anderson), en el momento.
 
 ## Reglas
@@ -10,7 +12,7 @@
 - Archivos afectados y hash de commit.
 - Cómo se verificó.
 - Aprendizaje.
-- Marca en el código: `// AI-assisted: see docs/AI_LOG.md #N`.
+- Marca en el código: `// AI-assisted: see AI_LOG.md #N`.
 - Nunca pegar llaves de API, `access_token` ni datos personales reales en un prompt (ENT-05).
 
 ## Orden real de las entradas
@@ -39,7 +41,7 @@ Todas son del 2026-10-27, así que el orden por fecha no las distingue. Orden re
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: ver resumen de la sesión; commit: 407d196 (parcial — cubre los documentos y specs creados en el arranque de esta entrada; `.claude/agents/*.md`, creados en una sesión posterior de este mismo hilo, no aparecen en el diff de ningún commit: por confirmar).
 - Verificación: `node scripts/check-constitution.mjs --selftest` y `node scripts/visual-audit.mjs --selftest`.
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que conviene preparar primero reglas, specs y comprobaciones antes de escribir la app; así cada cambio posterior tiene un requisito y una forma de revisarse. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #2
@@ -87,7 +89,7 @@ Cierra completando la entrada de bitácora de este prompt. No hagas commit ni em
 - Usado / modificado / descartado: Usado: el resultado de la prueba de Anderson (texto y captura), el verifier y el planner. Descartado/ajustado: un fork encargado de escribir la bitácora fue cortado por un clasificador de seguridad antes de escribir nada, así que las entradas las escribió el agente principal directamente. Una comprobación de `.env` por parte del agente principal fue bloqueada por una regla de denegación y no se repitió. Pendiente sin aplicar: marcas `// AI-assisted` en `App.js` (#8) y en `tokens.js`/`labels.js` (#11), a la espera de aprobación de Anderson. Los archivos de T-03 llevan la marca con #2.
 - Archivos y commit: docs/AI_LOG.md, AGENTS.md, docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/requisitos.md, specs/000-fundacion/plan.md, scripts/check-constitution.mjs, backend/package.json, backend/package-lock.json, backend/src/app.js, backend/src/server.js; commit: 407d196 (los documentos) y 4509788 (`backend/*`).
 - Verificación: `node scripts/check-constitution.mjs --selftest`: todo pasa, incluido el caso nuevo de C15 en `backend/package.json` (`express` pasa, `left-pad` da ERROR). `check-constitution`: 44 errores (C21 de specs 001 a 009 sin tareas) y 11 advertencias C23, sin errores nuevos. T-03: script temporal del implementer y script propio del verifier (GET /health 200, 404 en otras rutas, segundo arranque en el mismo puerto sale con código 1, sin sockets abiertos al final), `npm audit` del backend en 0; CA-000-06 y CA-000-07 ✅ (automatizables). T-02 con evidencia de dispositivo Android (captura y mensaje de Anderson). Sin prueba manual de Anderson del backend en PowerShell todavía.
-- Aprendizaje:
+- Aprendizaje: Aprendí que cada excepción, como el color del ícono o un token nuevo, debe quedar como decisión numerada, y que registrar la bitácora en el momento evita reconstruirla. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #3
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -110,7 +112,7 @@ No hagas commit. Cierra con un resumen corto.
 - Usado / modificado / descartado: Usado: la verificación de agentes. Descartado en esa respuesta: los pasos 2 a 4 (por la regla «si alguna falta, detente»). Sin cambios de archivos.
 - Archivos y commit: ninguno modificado; sin commit (no aplica).
 - Verificación: Glob de `.claude/agents/*` (5 archivos) y las llamadas a Skill que devolvieron «Unknown skill». Sin otra verificación.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después vi que las skills respondieron «Unknown skill» y me detuve en el paso 1; registrarlo a tiempo habría dejado claro por qué paré. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #4
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -132,7 +134,7 @@ No hagas commit. Cierra con un resumen corto.
 - Usado / modificado / descartado: Usado: reglas de `references/app-screens.md` de Taste, el modo «Operate» de Impeccable y las prioridades de UI UX Pro Max. Descartado: ejecutar `draw.mjs` (es de escritorio y sin tipo de movilidad). Sin tocar DESIGN.md. Las direcciones las redactó el agente principal.
 - Archivos y commit: ninguno del proyecto (script `contrast.mjs` en el directorio temporal de la sesión); sin commit (no aplica).
 - Verificación: contrastes calculados con `contrast.mjs` (A: textos ≥ 4.5:1 y componentes ≥ 3:1 tras ajustar el borde; B: el primario amarillo falla 3:1 como límite de componente; C: todo pasa). Sin otra verificación.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después entendí que comparar tres direcciones de arte con contraste calculado es mejor que elegir por gusto; anotarlo a tiempo habría guardado los números. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #5
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -159,7 +161,7 @@ Estado: todo en Borrador. No apruebes nada tú. No hagas commit. Cierra con un r
 - Usado / modificado / descartado: Modificado: DESIGN.md, direccion.md, referencias.md, PRODUCT.md, spec 000 (solo D1 a D3) y decisiones.md. Todo en Borrador/Propuesta.
 - Archivos y commit: DESIGN.md, PRODUCT.md, docs/decisiones.md, docs/diseno/direccion.md, docs/diseno/referencias.md, specs/000-fundacion/spec.md; commit: 407d196.
 - Verificación: Sin verificación funcional (documentos). Los contrastes de DESIGN.md se verificaron en el prompt siguiente con un script temporal (14 de 14 pares coinciden).
-- Aprendizaje:
+- Aprendizaje: Aprendí que la dirección A «Tablero» quedó respaldada por documentos al documentarla después, no en el momento. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #6
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -189,7 +191,7 @@ Detente cuando el plan esté escrito. No hagas commit. Resumen corto con lo que 
 - Usado / modificado / descartado: Modificado: decisiones.md, constitution.md, DESIGN.md, direccion.md, referencias.md, spec 000 (Estado), progress.md, plan.md, backlog.md, requisitos.md. No se tocó `scripts/dependencies.json` (se hizo en el prompt siguiente). D-11 quedó Propuesta (no estaba en la lista de este prompt).
 - Archivos y commit: docs/decisiones.md, docs/constitution.md, DESIGN.md, docs/diseno/direccion.md, docs/diseno/referencias.md, specs/000-fundacion/spec.md, specs/000-fundacion/plan.md, docs/backlog.md, docs/requisitos.md, docs/progress.md; commit: 407d196.
 - Verificación: script temporal `verify-design.mjs` (14/14 pares de contraste coinciden; las 5 líneas «TOKEN FALTANTE» fueron falsos positivos de su lectura de la tabla de tipografía); `check-constitution`: 0 errores y 0 advertencias en fase 0. V-02 verificado contra docs.expo.dev. Sin otra verificación.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después confirmé que los 14 pares de contraste coincidían y que el script dio falsos positivos; anotarlo a tiempo habría evitado la duda. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #7
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -216,7 +218,7 @@ No autorices ninguna tarea todavía. No hagas commit. Resumen corto.
 - Usado / modificado / descartado: Modificado: decisiones.md, scripts/dependencies.json, docs/backlog.md, specs/000-fundacion/plan.md, docs/progress.md. Descartado: nada.
 - Archivos y commit: docs/decisiones.md, scripts/dependencies.json, docs/backlog.md, specs/000-fundacion/plan.md, docs/progress.md; commit: 407d196.
 - Verificación: `check-constitution` antes y después: 0 errores y 0 advertencias (C15 inactiva hasta fase 3). Sin otra verificación.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después vi que aprobar el plan y fijar el SDK 57 evita sorpresas; registrarlo a tiempo habría dejado el momento exacto de cada decisión. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #8
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -245,7 +247,7 @@ No hagas commit ni empieces la siguiente tarea. Resumen corto.
 - Usado / modificado / descartado: Usado: la documentación vigente de Expo (sin `babel.config.js`, el plugin de reanimated se configura solo en `babel-preset-expo`). Modificado: package.json, package-lock.json, app.json, App.js, docs/backlog.md, docs/progress.md, docs/decisiones.md. Sin pasos de `expo run`/`prebuild`/`eas` por parte de la IA.
 - Archivos y commit: package.json, package-lock.json, app.json, App.js, docs/backlog.md, docs/progress.md, docs/decisiones.md; commit: 407d196 (docs) y 4509788 (package.json, package-lock.json, app.json, App.js).
 - Verificación: `npx expo-doctor` 21/21; `npx expo export --platform android` (1034 módulos); `check-constitution` sin errores nuevos (44 C21 de specs sin tareas); CA-000-03 ✅. Los criterios de dispositivo quedaron «No verificado en dispositivo» hasta la prueba de Anderson (entrada siguiente).
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después aprendí que abrir la Fase 3 con T-01 y un build local de Android deja el entorno probado; registrarlo a tiempo habría guardado los resultados. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #9
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -272,7 +274,7 @@ No empieces T-02. No hagas commit. Resumen corto.
 - Usado / modificado / descartado: Modificado: docs/progress.md, docs/backlog.md, docs/decisiones.md. Descartado/ajustado: la numeración «D-33» pedida (ocupada) pasó a D-34. El verifier marcó además CA-000-05 ✅ por leer progress.md, lo cual se revirtió en el prompt siguiente.
 - Archivos y commit: docs/progress.md, docs/backlog.md, docs/decisiones.md; commit: 407d196.
 - Verificación: captura y mensaje de Anderson como evidencia de dispositivo (Android, modelo no indicado); sin otra verificación.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después vi que D-33 y D-34 chocaron en la numeración; llevar la bitácora a tiempo me habría hecho notar el choque antes. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #10
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -295,7 +297,7 @@ Invoca al verifier para actualizar CA-000-04 y el estado de T-01. No empieces T-
 - Usado / modificado / descartado: Modificado: docs/decisiones.md, scripts/dependencies.json, docs/backlog.md, docs/progress.md. Descartado: usar la frase ambigua como evidencia.
 - Archivos y commit: docs/decisiones.md, scripts/dependencies.json, docs/backlog.md, docs/progress.md; commit: 407d196.
 - Verificación: `check-constitution`: 44 errores (C21 de specs sin tareas) y 13 advertencias, sin cambios nuevos; verificación de `App.js` sin texto residual; confirmación de Anderson para CA-000-04.
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después aprendí que revertir CA-005 era una decisión que debía quedar escrita al momento, para no perder por qué se deshizo. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #11
 - RECONSTRUIDA el 2026-10-27, no registrada en el momento.
@@ -321,7 +323,7 @@ No hagas commit ni empieces T-03. Resumen corto.
 - Usado / modificado / descartado: Usado: reglas de las tres skills leídas por SKILL.md. Descartado: el mínimo de 48 dp de UI UX Pro Max (choca con DESIGN.md). Las 13 advertencias de `check-constitution` son todas C23 de criterios de specs futuras (CA-000-06 a 15 y D2/D3 sin fila en progress.md); ninguna es de T-02.
 - Archivos y commit: src/theme/tokens.js, src/constants/labels.js, app.json, package.json, package-lock.json, docs/backlog.md, docs/progress.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: 31 comprobaciones de tokens contra DESIGN.md sin diferencias (implementer) y comparador independiente del verifier; 14/14 pares de contraste; `check-constitution` 44 errores C21 y 13 advertencias C23 (igual que la línea base); `npx expo-doctor` 21/21; `npx expo export --platform android` OK. La prueba en el celular se registra en el prompt siguiente (#2).
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después vi que descartar la regla de 48 dp y fijar tokens y textos dejó el diseño medible; registrarlo a tiempo habría guardado el porqué. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #12
 - Fecha: 2026-10-27
@@ -354,7 +356,7 @@ Cierra completando la entrada de este prompt. No empieces T-05. No hagas commit.
 - Usado / modificado / descartado: Usado: el verifier y el planner, y tu evidencia manual del Ctrl+C (solo cubre SIGINT con Ctrl+C en Windows). Modificado: decisiones.md (D-28 Reemplazada, D-37), backlog.md, plan.md, progress.md, AI_LOG.md. Descartado/ajustado: mi primer intento de borrar backend/.gitkeep también lo quitó del índice de git y lo deshice (el borrado queda sin preparar). F1 original no está en el repositorio, así que los literales solo se contrastaron contra docs/requisitos.md; `home.startTrip` («Iniciar viaje») quedó marcado como provisional pendiente de que Anderson lo contraste con F1. El implementer de T-04 quitó una nota del Estado en backlog.md y el agente principal la restauró.
 - Archivos y commit: App.js, src/theme/tokens.js, src/constants/labels.js (solo marca de IA), src/constants/accountStatus.js, src/context/AppStateContext.js, backend/.gitkeep (borrado), docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-04: 25 comprobaciones propias del verifier (lógica pura con temporizadores reales y falsos, y un mini-renderizador propio del hook, porque no hay renderer de React en node_modules; StrictMode simulado a mano); `check-constitution` igual que la línea base (44 errores C21 de specs sin tareas y 9 advertencias C23; C11, C17, C18, C27 limpios); `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` funciona (no valida T-04 porque nadie la importa aún). CA-000-08 ✅ para el alcance de T-04. CA-000-09, 13 y 14 quedan «No verificado en dispositivo» hasta T-07, T-09, T-10 y T-11.
-- Aprendizaje:
+- Aprendizaje: Aprendí que borrar `.gitkeep` por error se arregla rápido si lo reviso al terminar, y que las 25 comprobaciones propias del verifier me dieron confianza en T-04. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #13
 - Fecha: 2026-10-27
@@ -383,7 +385,7 @@ Autorizo T-05 (ScreenState).
 - Usado / modificado / descartado: Usado: las tres skills de diseño cargadas con Skill (el script `impeccable context` no se ejecutó: descarga un binario; solo se leyó su referencia `craft-floor.md`), `app-screens.md` §11 de Taste y `pro-rules.md` de UI UX Pro Max. Descartado por chocar con DESIGN.md o las decisiones: 48 dp de UI UX Pro Max (DESIGN fija 44 y controles de 48), paridad de modo oscuro (D-26), caja punteada y «Retry» como texto de Taste, barras grises de carga (la spec fija indicador), y de Impeccable ir más allá de transform/opacidad, rechazar la fuente del sistema y elegir claro/oscuro por escena de uso. Modificado: decisiones.md (D-38), backlog.md, plan.md (DP-17, DP-20), progress.md, AI_LOG.md, App.js, labels.js. El implementer quitó de los comentarios las citas a D-38 por la regla C26. Un error propio del implementer (`space.2` en lugar de `space[2]`) lo detectó su test y se corrigió.
 - Archivos y commit: src/components/ScreenState.js, src/components/DevStatePanel.js (provisional, lo retira T-10), App.js, src/constants/labels.js (`forceState`), docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: test propio del implementer y test propio del verifier (46 de 46 comprobaciones, con react-native simulado: no es el renderizador real); contrastes de los pares usados coinciden con DESIGN.md; `check-constitution` 44 errores C21 de specs sin tareas y 4 advertencias C23 (bajó de 5 al añadir la fila de CA-000-15), C11, C17, C18, C26 y C27 limpios; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta (ahora valida el código nuevo). T-05 NO está Validada: CA-000-15, D1 y D3 siguen «No verificado en dispositivo» hasta la prueba de Anderson, y Diseño sigue Pendiente hasta T-12. Hallazgos menores del verifier: `PRESSED_OPACITY = 0.85` suelto (hueco de DESIGN.md; con 0.85 el contraste del botón pulsado baja a ~4.53:1), el mensaje de empty no dice qué hacer, el marco del empty es muy tenue (1.09:1), y `accessibilityLabel` de carga sin `accessible` (probar con TalkBack).
-- Aprendizaje:
+- Aprendizaje: Aprendí que un componente de estados (ScreenState) con su decisión D-38 evita repetir pantallas de carga y error; y que probar con react-native simulado no es el renderizador real. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #14
 - Fecha: 2026-10-27
@@ -419,7 +421,7 @@ Resultado de la prueba de T-05 en el celular y autorización de T-06.
 - Usado / modificado / descartado: Usado: las tres skills de diseño (ya cargadas con Skill; al reinvocarlas la herramienta respondió «already loaded»), el spec-author (DESIGN.md), el planner (T-06 y plan) y el verifier. Modificado: decisiones.md (D-38 ampliada, D-39, D-40), DESIGN.md, plan.md, backlog.md, progress.md, AI_LOG.md, App.js (solo se quitó un `testID` duplicado), tokens.js, ScreenState.js, labels.js, DevStatePanel.js. Corregido: yo había citado 4.95:1 sobre `bg` para el botón pulsado y era 4.98 (con canales de 8 bits 4.95 y 4.93 sobre `surface`); se corrigió en DESIGN.md y D-39 y el verifier lo confirmó. El spec-author dejó D-28 como Vigente en DESIGN.md y se corrigió a D-37. Descartado: chevron dibujado con View en «Atrás» (exigía números sueltos). El verifier de T-05 aplicó «Validada» por instrucción expresa de Anderson aunque su regla pide Diseño Aprobado o N/A.
 - Archivos y commit: src/components/ScreenHeader.js, src/components/PlaceholderScreen.js, src/components/DevStatePanel.js (provisional, lo retira T-10), src/components/ScreenState.js, src/theme/tokens.js, src/constants/labels.js, App.js, DESIGN.md, docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-05: capturas de Anderson (Android, modelo no indicado). T-06: prueba propia del implementer y del verifier con react-native simulado (0 fallos; no es el renderizador real); tokens contra DESIGN.md (32 comprobaciones sin diferencias, `opacity.pressed` = 0.9); contraste del botón pulsado recalculado por el implementer y por el verifier (4.975 sobre `bg` y 4.950 sobre `surface` sin redondear; 4.951 y 4.923 con 8 bits); `check-constitution` 44 errores C21 de specs sin tareas y 4 advertencias C23, sin líneas nuevas; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta. T-06 NO está Validada: CA-000-D1, D3 y el efecto de D-40 en el celular quedan «No verificado en dispositivo» hasta la prueba de Anderson; CA-000-D2 sigue parcial hasta T-10; Diseño Pendiente hasta T-12. Hallazgos menores: `fontWeight` del título sobre `body` en los selectores (copiado en PlaceholderScreen y DevStatePanel; alinear en T-12), el selector «Menú/Atrás» solo es visible en «Contenido».
-- Aprendizaje:
+- Aprendizaje: Aprendí que las capturas de Anderson sirven de evidencia de T-05 y que un token como `opacity.pressed` ordena los estados de presión. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #15
 - Fecha: 2026-10-27
@@ -451,7 +453,7 @@ Resultado de la prueba de T-06 en el celular y autorización de T-07.
 - Usado / modificado / descartado: Usado: las tres skills de diseño (ya cargadas con Skill; «already loaded»), el planner, el verifier y el implementer. Modificado: decisiones.md (D-41), backlog.md (T-07 con App.js provisional y notas para T-12), plan.md (DP-08, DP-12, §4, §5), progress.md, AI_LOG.md, App.js (monta NavigationContainer y RegistrationTabs en lugar de DevStatePanel, que no se borra), PlaceholderScreen.js (prop `safeEdges` y `keyboardShouldPersistTaps`), labels.js. Decidido por el implementer y aceptado por el verifier: `theme.primary = color.text` (mi instrucción decía `color.primary`; el verifier dictaminó que no cambia nada visible). Descartado: mover `DevAccountSwitch` fuera de `children` (cambio mayor en `PlaceholderScreen`; se deja hasta T-10). Descartadas reglas de las skills que chocan con DESIGN.md (48 dp, modo oscuro, píldora de relleno para el activo). La corrección de elevación y separación no fue re-verificada por el verifier: solo por el test con mocks del implementer; queda para tu prueba y T-12.
 - Archivos y commit: src/navigation/RegistrationTabs.js, src/screens/registration/PersonalDataScreen.js, VehicleScreen.js, DocumentsScreen.js, src/components/DevAccountSwitch.js, src/components/PlaceholderScreen.js, src/constants/labels.js, App.js, docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-07: prueba propia del verifier (56 comprobaciones, con el `AppStateProvider` real y un mini-renderizador propio: no es el renderizador real de React Native) y prueba con mocks del implementer; props de `bottom-tabs` verificadas contra los tipos instalados (v7.21.0); `check-constitution` 44 errores C21 de specs sin tareas, sin líneas nuevas, y las advertencias C23 bajaron de 4 a 3 al añadir filas de criterios; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta (antes y después de la corrección). T-07 NO está Validada: CA-000-09, CA-000-10, CA-000-D1 y D3 de las pestañas quedan «No verificado en dispositivo» hasta la prueba de Anderson; CA-000-D2 sigue parcial hasta T-10; Diseño Pendiente hasta T-12. Hallazgos abiertos: ancho de borde sin token (`FIELD_BORDER_WIDTH = 1`, hueco de DESIGN.md), `fontWeight` del título sobre `label`/`body`, `DevAccountSwitch` oculto cuando el selector local no está en «Contenido», barra sobre el teclado en Android (`tabBarHideOnKeyboard`).
-- Aprendizaje:
+- Aprendizaje: Aprendí que las pestañas del registro (T-07) se probaron con un mini-renderizador propio; ayuda, pero no reemplaza el celular. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #16
 - Fecha: 2026-10-27
@@ -491,7 +493,7 @@ Resultado de la prueba de T-07 en el celular: defecto encontrado.
 - Usado / modificado / descartado: Usado: lectura del código de `@react-navigation/bottom-tabs` 7.21.0 (`BottomTabBar.js`, `BottomTabView.js`), la configuración Android generada (`edgeToEdgeEnabled=true`, `adjustResize`), las mediciones de Anderson (captura `8.png`), el verifier, el implementer, el planner y el spec-author. Descartado con evidencia: edge-to-edge (los insets llegan y la ventana ocupa toda la pantalla), alto raíz mayor que la ventana, `SafeAreaProvider` ausente o duplicado, contenido que empuja la barra. Modificado: decisiones.md (D-42 a D-46), DESIGN.md (`borderWidth.thin`), plan.md (DP-12, §4, §5), backlog.md (T-07), progress.md (defecto y «Lecciones del verifier (T-07)»), tokens.js, PersonalDataScreen.js, RegistrationTabs.js, y los componentes nuevos AppTabBar.js y LayoutDiagnostic.js (temporal). Error propio reconocido: yo había aceptado `height: 'auto'` sin medirlo en el dispositivo. Quedan abiertos (menores del verifier): `tabBarAllowFontScaling` muerta en `RegistrationTabs`, `tabPress` sin `data.behavior` (afectará con pilas anidadas desde T-08), sin ocultar con teclado en iOS.
 - Archivos y commit: src/navigation/AppTabBar.js (nuevo), src/navigation/RegistrationTabs.js, src/components/LayoutDiagnostic.js (temporal), src/screens/registration/PersonalDataScreen.js, src/theme/tokens.js, DESIGN.md, docs/decisiones.md, docs/progress.md, docs/backlog.md, specs/000-fundacion/plan.md, docs/AI_LOG.md; commit: 407d196 (docs) y 4509788 (código), salvo `LayoutDiagnostic.js`: temporal, se creó y se borró (entrada #17) antes de que existiera ningún commit, así que no aparece en el diff de ninguno.
 - Verificación: Medido por Anderson en el celular (captura `8.png`): insets T 34.1 y B 14.9; ventana, pantalla y marco inicial de 832 dp; alto medido de la barra 14.9. Verificado por ejecución con mocks (sin motor de layout): prueba propia del verifier (61 comprobaciones, 0 fallos) y del implementer para `AppTabBar`; `check-constitution` 44 errores C21 de specs sin tareas y 3 advertencias C23, sin líneas nuevas; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta. Inferido por lectura (NO verificado en dispositivo): que la barra se vea completa sobre la línea de gestos, que crezca con la escala de texto, el táctil de 48 y la separación de 8, la zona segura inferior, el comportamiento con teclado, la ausencia de sombra y la navegación entre pestañas. CA-000-09, CA-000-10, D1 y D3 de las pestañas siguen «No verificado en dispositivo»; T-07 no está Validada.
-- Aprendizaje:
+- Aprendizaje: Aprendí que medir en el celular (insets y alto de la barra) encontró la barra de pestañas fuera de pantalla, algo que los mocks no mostraban. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #17
 - Fecha: 2026-10-27
@@ -507,7 +509,7 @@ Perfecto, hice las pruebas manualmente y no pasa exitosamente, valido la impleme
 - Usado / modificado / descartado: Usado: la captura `9.png`, el implementer (retiro) y el verifier (evidencia y comprobación del retiro). Modificado: decisiones.md (D-45 «Retirado»), progress.md, backlog.md (nota de T-07), AI_LOG.md, PersonalDataScreen.js; borrado: src/components/LayoutDiagnostic.js. Descartado: tomar la declaración de Anderson como evidencia de ningún criterio mientras sea ambigua; dejar el callback de altura de `AppTabBar` (se conserva: lo usa también la librería y es inocuo).
 - Archivos y commit: src/components/LayoutDiagnostic.js (borrado), src/screens/registration/PersonalDataScreen.js, docs/decisiones.md, docs/progress.md, docs/backlog.md, docs/AI_LOG.md; commit: 407d196 (docs) y 4509788 (`PersonalDataScreen.js`); `LayoutDiagnostic.js` se borró antes de llegar a commitearse, no aparece en ninguno.
 - Verificación: Medido/visto en la captura (Android, modelo no indicado): las tres pestañas completas, activa en negrita y subrayada, fondo blanco liso (una sombra muy tenue no es determinable en la captura), alto medido de la barra 62.9. Estimado sobre la captura (no medición directa): barra de unos 122 px ≈ 63 dp; los 8 dp de separación no se pueden estimar. Retiro verificado por el verifier: el archivo no existe, no hay referencias a `LayoutDiagnostic` ni a código TEMPORARY en `src` ni en `App.js`, `check-constitution` 44 errores C21 y 3 advertencias C23 sin líneas nuevas, `--selftest` pasa y `npx expo export --platform android` empaqueta. No cubierto (No verificado en dispositivo): cambio de pestaña (CA-000-10), conservación del valor entre pestañas (CA-000-09), teclado abierto, escala de texto máxima (CA-000-D3), zona táctil y separación medidas (CA-000-D1) y pulsado, a la espera de la aclaración de Anderson.
-- Aprendizaje:
+- Aprendizaje: Aprendí que, tras el diagnóstico, corregir la barra y borrar `LayoutDiagnostic` dejó el código limpio: lo temporal se retira cuando cumple su función. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #18
 - Fecha: 2026-10-27
@@ -539,7 +541,7 @@ Confirmación de T-07 y autorización de T-08.
 - Usado: las tres skills de diseño (ya cargadas con Skill; «already loaded»), el planner, el implementer y el verifier. Modificado: decisiones.md (D-47, D-48), backlog.md (T-07 Validada, T-08, T-10, T-12), plan.md (DP-21, §4, §5, §7), progress.md, AI_LOG.md, labels.js, App.js (vista previa provisional). Nuevos: PrimaryButton.js (fuera de la lista del planner; el verifier lo aceptó como desviación menor), TripStack.js, HomeScreen.js y las tres pantallas del viaje. Decidido: `popToTop()` en el resumen; `NavigationContainer key={rama}` en `App.js`; el hallazgo de `tabPress` sin `data.behavior` NO afecta a T-08 (el Stack del viaje es el Home del Drawer, no está dentro de una pestaña). Descartado: usar «Pasajero a bordo» y «Disponible/No disponible» en T-08 (el botón es una navegación genérica de marcador). Reglas de las skills descartadas por chocar con DESIGN.md: 48 dp en toda la navegación, modo oscuro y reglas de páginas web.
 - Archivos y commit: src/components/PrimaryButton.js, src/navigation/TripStack.js, src/screens/home/HomeScreen.js, src/screens/trip/TripRequestScreen.js, TripActiveScreen.js, TripSummaryScreen.js, src/constants/labels.js, App.js, docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-07: declaración de Anderson («Todo pasa») sin captura ni detalle, más la captura 9.png ya registrada (medido: barra completa, alto 62.9). T-08: prueba propia del implementer (91 comprobaciones) y del verifier (64 comprobaciones) con react-native simulado, sin motor de layout; `popToTop`, `contentStyle` y `headerShown` contrastados con los tipos instalados de native-stack; `check-constitution` 44 errores C21 de specs sin tareas y 2 advertencias C23 (bajó de 3 al añadir la fila de CA-000-12), sin líneas nuevas; `--selftest` pasa (también el de `visual-audit`); `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta; sin dependencias nuevas. NO verificado en dispositivo (inferido por lectura): CA-000-12 (abrir el flujo, avanzar y volver con gesto o botón), CA-000-D1 y D3 de las pantallas del viaje y del botón principal, el gesto y botón físico de atrás, el remontaje por rama (posible parpadeo y pérdida del estado de navegación), la escala de texto y el feedback de pulsado. Pendiente: confirmar `home.startTrip` contra F1 §3 (D-48). Hallazgos menores del verifier: erratas en dos comentarios, `accessibilityLabel` redundante en `PrimaryButton`, en Home el botón principal y el simulador desaparecen si el selector local no está en «Contenido», y Fast Refresh recarga por completo por exportar `pickBranch` junto al componente por defecto.
-- Aprendizaje:
+- Aprendizaje: Aprendí que Home y el Stack (T-08) se apoyan en un botón primario común, y que una declaración sin captura vale menos que una prueba detallada. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #19
 - Fecha: 2026-10-27
@@ -570,7 +572,7 @@ Confirmación de T-08, literal de «Iniciar viaje» y autorización de T-09.
 - Usado / modificado / descartado: Usado: las tres skills de diseño (ya cargadas con Skill), el planner, el implementer y el verifier; el `DrawerRouter` y el `StackRouter` reales de `@react-navigation/routers` en la prueba del verifier. Modificado: decisiones.md (D-48 actualizada, D-47 ampliada para T-09), backlog.md, plan.md, progress.md, AI_LOG.md, labels.js (`home.startTrip`, `a11y.drawerItems.*`), HomeScreen.js (solo `onLeadingPress`), App.js (la rama «Aprobado» monta `MainDrawer`). Nuevos: MainDrawer.js, AppDrawerContent.js (fuera de la lista del planner; el verifier lo juzgó justificado y recomienda añadirlo al plan), ProfileScreen, HistoryScreen, EarningsScreen y SettingsScreen. Decidido: el Drawer se abre con `navigation.dispatch(DrawerActions.openDrawer())` desde el Stack anidado (la acción sube al Drawer padre; verificado en `useOnAction.tsx` líneas 156-158); la acción de las entradas se copió de `DrawerItemList` de la librería; sin cambios de Babel, `app.json` ni recompilación (el Drawer y sus peers ya estaban en el build). Descartado: añadir sombra al panel (la librería no pone `elevation`), `getParent()?.openDrawer()` y `useNavigation()`.
 - Archivos y commit: src/navigation/MainDrawer.js, src/navigation/AppDrawerContent.js, src/screens/main/ProfileScreen.js, HistoryScreen.js, EarningsScreen.js, SettingsScreen.js, src/screens/home/HomeScreen.js, src/constants/labels.js, App.js, docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-08: declaración de Anderson sin captura ni detalle; cambio de literal verificado por lectura y ejecución (grep sin «Iniciar viaje» en `src` ni `App.js`, `check-constitution` sin líneas nuevas). T-09: prueba propia del verifier (124 comprobaciones, 0 fallos) con el `DrawerRouter` y el `StackRouter` reales y mocks de react-native (sin motor de layout ni reanimated real) y prueba del `AppStateProvider` real con un mini-renderizador propio para Configuración; props de `drawer` verificadas contra los tipos instalados (7.14.4); contrastes de los pares usados dentro de la tabla; `check-constitution` 44 errores C21 de specs sin tareas y 1 advertencia C23 (bajó al añadir la fila de CA-000-11), sin líneas nuevas; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta y resuelve drawer y reanimated (no prueba lo nativo). NO verificado en dispositivo (inferido por lectura): CA-000-11, CA-000-09 parte Configuración, CA-000-D1 y D3 del Drawer, abrir y cerrar con «Menú», con el gesto de borde y tocando fuera, botón físico de atrás con el Drawer abierto, gesto de borde frente al gesto de atrás de Android, animación de reanimated y módulo nativo de gesture-handler (nunca ejercitado en el dispositivo), remontaje por rama. Hallazgos menores: el panel no desplaza (un `View` fijo: con la escala de texto máxima y pantalla baja podrían no caber las cuatro entradas), overlay `rgba(0,0,0,0.5)` y radio 16 en Android de la librería no son tokens (los decide T-13), y «Perfil»/«Configuración» sin literal F1 propio (RF-29 dice «Perfil y configuración»; lo resuelve la spec 008).
-- Aprendizaje:
+- Aprendizaje: Aprendí que el Drawer (T-09) pidió cambiar el literal «Iniciar viaje», y que un grep sobre `src` confirmó que no quedó rastro del texto viejo. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #20
 - Fecha: 2026-10-27
@@ -605,7 +607,7 @@ Confirmación de T-09 y autorización de T-10.
 - Usado / modificado / descartado: Usado: las tres skills de diseño (ya cargadas con Skill), el planner, el implementer y el verifier. Hallazgo propio del agente principal: `expo-status-bar` 57.0.1 SÍ tiene módulo nativo de Android (`expo.modules.statusbar`) y ya estaba en el build de Anderson (el scaffold lo traía en `package.json` antes de T-01); el verifier lo confirmó en los intermedios de `android/app/build`; por eso no hizo falta recompilar. Modificado: decisiones.md (D-49, D-50), backlog.md (inventario de provisionales, T-09, T-10, T-13, obligaciones heredadas), plan.md (DP-22, §4, §5, §7), progress.md, AI_LOG.md, App.js (reescrito: providers, `StatusBar style="dark"`, `NavigationContainer` sin `key`, `RootNavigator`), RootNavigator.js y StartupScreen.js (nuevos), DevAccountSwitch.js (solo un comentario obsoleto); borrado: DevStatePanel.js. Decidido: `animation: 'none'` en el Stack raíz; pantallas de arranque como componentes de módulo; `pickScreen` exportada para probar la elección; `style="dark"` explícito (la API no tiene `backgroundColor`: el fondo bajo la barra lo pintan las pantallas). Descartado: `style="auto"` (D-26), un navegador raíz con `key` por rama.
 - Archivos y commit: src/navigation/RootNavigator.js, src/screens/startup/StartupScreen.js, App.js, src/components/DevStatePanel.js (borrado), src/components/DevAccountSwitch.js (comentario), docs/decisiones.md, docs/backlog.md, docs/progress.md, docs/AI_LOG.md, specs/000-fundacion/plan.md; commit: 407d196 (docs) y 4509788 (código).
 - Verificación: T-09: declaración de Anderson sin captura ni detalle por paso. T-10: prueba propia del implementer y del verifier (38 comprobaciones, 0 fallos) con el `AppStateProvider` real, un mini-renderizador propio (sin motor de layout) y el `StackRouter` real; props de `native-stack` (`headerShown`, `contentStyle`, `animation`) y de `expo-status-bar` (`style`; sin `backgroundColor`) contrastadas con los tipos instalados; módulo nativo de la barra de estado confirmado en los intermedios del build de Android; `check-constitution` 44 errores C21 de specs sin tareas y 1 advertencia C23, sin líneas nuevas; `--selftest` pasa; `npx expo-doctor` 21/21; `npx expo export --platform android` empaqueta; sin dependencias nuevas. NO verificado en dispositivo (inferido por lectura): CA-000-13, CA-000-14, la barra de estado legible con reloj e iconos oscuros (el contraste 15.30 solo vale si el sistema pinta los iconos con `color.text`), el arranque en carga y el paso a Pendiente a los 0,8 s, el cambio de rama con el simulador, el remontaje y posible parpadeo, el atrás físico y los gestos en la raíz de cada rama, el layout de las pantallas de arranque y la escala de texto. CA-000-D2 queda parcial hasta T-13 y T-11. Hallazgos menores: comentario obsoleto en DevAccountSwitch (corregido), `pending` y desconocido comparten ruta Registro (por diseño).
-- Aprendizaje:
+- Aprendizaje: Aprendí que T-10 retiró el panel provisional y que `expo-status-bar` debía quedar declarado; lo provisional se borra al cerrar la tarea. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #21
 - Fecha: 2026-11-01
@@ -631,7 +633,7 @@ Confirmación de T-10, mapeo de CA-000-14 y checklist de T-11.
 - Usado / modificado / descartado: Usado: `node scripts/check-constitution.mjs --json` antes y después; grep sobre `specs/000-fundacion/spec.md` y `plan.md` para entender por qué C23 solo marcaba CA-000-14 (la regla busca la subcadena literal `CA-000-14` en `plan.md`; `CA-000-07` y `CA-000-13` sí aparecían literalmente en otro punto del archivo, `CA-000-14` no). Modificado: `docs/progress.md` (fila CA-000-13/CA-000-14), `docs/backlog.md` (Estado de T-10; Hacer/Hecho cuando de T-11), `specs/000-fundacion/plan.md` (§7), `docs/AI_LOG.md` (esta entrada y la #22 reconstruida). Descartado: reestructurar la tabla del mapa CA → implementación en dos filas separadas (bastaba el ajuste literal para C23, sin cambiar el contenido ni el significado).
 - Archivos y commit: docs/progress.md, docs/backlog.md, specs/000-fundacion/plan.md, docs/AI_LOG.md; commit: a5dffc8.
 - Verificación: `node scripts/check-constitution.mjs --json` antes (1 hallazgo C23: «CA-000-14 is not mapped in plan.md», `specs/000-fundacion/spec.md:108`) y después (0 hallazgos C23; 44 errores C21 de línea base sin cambios; mismas reglas inactivas por fase; sin errores nuevos).
-- Aprendizaje:
+- Aprendizaje: Aprendí que un criterio sin mapear (CA-000-14) hacía fallar C23, y que correr el check antes y después mostró que bastaba una fila en `plan.md`. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #22 (RECONSTRUIDA el 2026-11-01, no registrada en el momento)
 - Fecha: 2026-11-01
@@ -646,7 +648,7 @@ cuál es el estado actual realmente del proyecto, que debería poder ver en el q
 - Usado / modificado / descartado: Usado: lectura de `src/`, `backend/src/`, `app.json`, `package.json`, `docs/backlog.md`, `docs/progress.md`, grep sobre `docs/AI_LOG.md` para confirmar el método de conexión ya usado por Anderson (USB, Gradle local). No se modificó ningún archivo del proyecto (solo lectura y diagnóstico).
 - Archivos y commit: ninguno modificado; commit: ninguno.
 - Verificación: revisión directa del código y la documentación existente; sin prueba en el celular en el momento de responder (la propia respuesta proponía el recorrido que terminó pidiéndose como T-11 en la entrada #21).
-- Aprendizaje:
+- Aprendizaje: Al documentarlo después vi que explicar cómo ver la app en el celular fue clave para T-11; registrarlo a tiempo habría dejado el recorrido exacto. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #23
 - Fecha: 2026-11-01
@@ -672,7 +674,7 @@ Confirmación de T-11 y autorización de T-14; preparación de T-12.
 - Usado / modificado / descartado: Usado: `node scripts/check-constitution.mjs --json` antes y después de T-14; script temporal fuera del proyecto (`tokens_t14.mjs` + `verify_t14.mjs` en el scratchpad) que compara `tokens.js` token por token contra los valores previos y verifica la forma exacta de `type.numeric`; `npx expo-doctor` (21/21). Modificado: `docs/backlog.md` (Estado de T-11 y T-14), `docs/progress.md` (filas CA-000-09, 10, 11, 12, 13/14, 15 y la parte funcional de D2), `specs/000-fundacion/spec.md` (nota de cierre en CA-000-09 a CA-000-15), `src/theme/tokens.js` (token nuevo + marca de IA), `DESIGN.md` (fila de `type.numeric` y viñeta actualizada), `docs/AI_LOG.md` (esta entrada). Descartado: tocar `CA-000-02` (pedía explícitamente «la navegación funciona», que T-11 sí cubrió, pero quedó fuera del rango literal «CA-000-09 a CA-000-15» que pediste; se avisa en la respuesta en vez de asumir que estaba incluido); tocar `CA-000-05` (sigue ⏳, sin cambios, como pediste); editar `specs/000-fundacion/plan.md` (T-14 no cambia el mapa CA → implementación, no tiene CA propio).
 - Archivos y commit: docs/backlog.md, docs/progress.md, specs/000-fundacion/spec.md, src/theme/tokens.js, DESIGN.md, docs/AI_LOG.md; commit: a5dffc8 (docs/backlog.md, docs/progress.md, specs/000-fundacion/spec.md, docs/AI_LOG.md) y 22e9d14 (src/theme/tokens.js, DESIGN.md).
 - Verificación: `node scripts/check-constitution.mjs --json`: antes de tocar `tokens.js`, 44 errores C21 (línea base) y 0 C23 (ya corregido en la entrada #21). Justo después de añadir la marca de IA a `tokens.js` y antes de escribir esta entrada, apareció 1 error C18 nuevo («AI-assisted … #23» sin `### Entrada #23` todavía) — esperado, porque esta misma entrada lo resuelve. Tras escribirla: 44 errores C21 (sin cambio) y 0 C18/C23; las 5 reglas INFO «inactiva» (C12, C13, C19, C20, C25) son ruido de fase, no errores (vigentes desde las fases 4-5, la actual es 3). `npx expo-doctor`: 21/21. Script propio: 10 comprobaciones sin fallos (forma exacta de `type.numeric`, ausencia de `fontSize`/`lineHeight`/`fontWeight` en él, y los demás 7 grupos de tokens byte-idénticos a los de antes de T-14).
-- Aprendizaje:
+- Aprendizaje: Aprendí que T-11 se validó por declaración y que T-14 nació de esa prueba; separar lo validado de lo propuesto evita mezclar estados. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #24
 - Fecha: 2026-11-01
@@ -723,7 +725,7 @@ Cambio de prioridad: entrega parcial el jueves 2026-11-05. Aplaza T-12 y T-13 y 
 - Usado / modificado / descartado: Usado: subagentes `spec-author` y `planner` (Agent tool, agentes reales de `.claude/agents/`, no simulados); `WebSearch` y un subagente `web-fetch` para verificar contra la documentación vigente de Expo (https://docs.expo.dev/guides/using-firebase/, https://github.com/expo/fyi/blob/main/firebase-js-auth-setup.md) el comando de instalación de Firebase JS SDK y el patrón de persistencia de sesión anónima, en vez de confiar en memoria (regla de AGENTS.md "Expo ha cambiado"); `git show --stat` sobre los 4 commits para asignar archivos a hashes con evidencia, no por adivinanza. Modificado: `docs/AI_LOG.md` (hashes de las entradas #1-23, esta entrada), `docs/backlog.md` (T-14 Validada; T-12/T-13 aplazadas; T-15 a T-29 nuevas, del planner), `docs/progress.md` (CA-000-02; fila de la spec 001), `docs/decisiones.md` (D-51 a D-65; limpieza de la duplicación D-52 a D-63 que escribió el spec-author sin ver las mías), `specs/000-fundacion/spec.md` (cierre de CA-000-02), `specs/001-registro-conductor/spec.md` (nueva, del spec-author; renumerada y Estado corregido a Aprobada por mí), `specs/001-registro-conductor/plan.md` (nueva, del planner), `docs/requisitos.md` (columna Tareas de la fila 001), `DESIGN.md` (4 patrones de pantalla y una fila de contrato de testID, del spec-author). Descartado: dejar la spec 001 en "Borrador" esperando una aprobación aparte de Anderson (el prompt pedía explícitamente ejecutar fases 1 y 2 en el mismo turno, sin pausa; se marcó "Aprobada" citando esa autorización, pero las 5 decisiones nuevas D-60 a D-64 y la D-65 del planner quedan "Propuesta", pendientes de que Anderson las confirme una por una); aplicar D-59 (agrupar validación) o D-65 (promover dependencias) como Vigente sin que Anderson lo diga explícitamente.
 - Archivos y commit: docs/AI_LOG.md, docs/backlog.md, docs/progress.md, docs/decisiones.md, specs/000-fundacion/spec.md, specs/001-registro-conductor/spec.md, specs/001-registro-conductor/plan.md, docs/requisitos.md, DESIGN.md; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` NO se pudo ejecutar al cerrar esta entrada: `node` deja de resolverse en el PATH de esta terminal a mitad de la sesión (antes sí funcionaba, en la entrada #23 corrió sin problema); probado también con rutas directas y con `cmd.exe`/`powershell.exe`, mismo resultado. Es un problema del entorno de Anderson, no del código; pendiente de que Anderson revise su PATH (puede estar relacionado con el cambio reciente de variables de entorno de Android/Java del punto 6). Última corrida limpia conocida: la del cierre de la entrada #23 (44 errores C21 de línea base, 0 C18/C23, reglas INFO inactivas esperadas). El `spec-author` y el `planner` no ejecutan `check-constitution` (no es su rol); la primera vez que hace falta volver a correrlo es con T-15 (implementación), y debe hacerse antes de autorizarla.
-- Aprendizaje:
+- Aprendizaje: Aprendí que asignar hashes de commit y abrir la spec 001 exige cuidar el orden, y que `node` dejó de resolverse a mitad de sesión y no pude verificar al cierre. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #25
 - Fecha: 2026-11-01
@@ -764,7 +766,7 @@ Aprobaciones de la spec 001 y autorización de T-15.
 - Usado / modificado / descartado: Usado: `node scripts/check-constitution.mjs` (muchas rondas); `npx expo-doctor`; `npx expo export --platform android` repetido (import temporal desde `App.js`, siempre revertido, confirmado con `git diff --stat App.js` vacío cada vez) para probar que Metro resuelve cada archivo nuevo bajo las condiciones reales de React Native, incluida la condición `"react-native"` de los `package.json` de Firebase; mini-renderizador propio (`miniReact.mjs`, patrón de T-04/T-10) para `AppStateContext.js`; scripts de casos puros para `validators.js`; lectura directa de `node_modules/@firebase/auth/package.json`, `node_modules/@firebase/auth/dist/rn/index.rn.d.ts` y `node_modules/expo-image-picker/plugin/build/withImagePicker.d.ts` para verificar contra el código instalado, no contra memoria; dos subagentes `verifier` (Agent tool) para T-15. Nunca se leyó ni se pidió el `.env` real de Anderson; las pruebas de Firebase/Firestore/Cloudinary que exigían credenciales reales quedaron explícitamente sin hacer, anotadas como pendientes del checkpoint de dispositivo. Modificado: `docs/AI_LOG.md`, `docs/backlog.md` (T-15 a T-21, T-29), `docs/progress.md`, `docs/decisiones.md` (D-59 a D-65 Vigentes), `AGENTS.md` (excepción de P1), `specs/001-registro-conductor/plan.md` (DP-08 corregida, mención de CA-000-10), `DESIGN.md` (patrón del selector de fecha corregido a nativo, estado de las adiciones confirmado), `scripts/dependencies.json` (4 altas), `app.json`, `package.json`/`package-lock.json`, `.env.example` (nuevo), `src/services/{firebase,driverRepository,cloudinary}.js` (nuevos), `src/context/AppStateContext.js` (reescrito), `src/utils/validators.js` (nuevo), `src/constants/registrationOptions.js` (nuevo), `src/constants/labels.js` (amplía), `src/components/registration/{FieldError,TextField,SelectField,CheckboxField}.js` (nuevos). Descartado: instalar `firebase-tools`/un emulador de Firestore para probar T-16/T-17 de extremo a extremo (fuera del alcance de esta sesión y no autorizado); seguir con T-22 (depende del build nuevo de Anderson).
 - Archivos y commit: ver lista completa arriba; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` al cierre: 81 hallazgos — 35 C21 y 30 C23 de línea base (specs futuras sin tarea; CA-001 sin fila en progress.md todavía, esperado en esta etapa), 5 INFO de fase inactiva, y 11 C18 (marca `#25` sin esta entrada: se resuelven al guardar este archivo). Sin C01-C17, C22, C24, C26-C27 nuevos. `npx expo-doctor`: 21/21 en cada ronda. `npx expo export --platform android`: sin errores en cada ronda (1333 → 1364 módulos a medida que se añadió código). Aviso de entorno: a mitad de esta sesión `node`/`npm` dejaron de resolverse en esta terminal (funcionaban al principio de este prompt y en la entrada anterior) y luego volvieron a resolver solos antes de este prompt; no se tocó nada del entorno de Anderson para "arreglarlo", se reportó y se siguió cuando volvió a funcionar.
-- Aprendizaje:
+- Aprendizaje: Aprendí que `node` y `npm` pueden dejar de resolverse a mitad de sesión; conviene anotar qué comprobaciones corrieron antes de que falle el PATH. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #26
 - Fecha: 2026-11-02
@@ -799,7 +801,7 @@ Siguiente bloque: reglas de Firestore, revisión de @firebase/auth y Pestaña 1 
 - Usado / modificado / descartado: Usado: 6 subagentes `verifier` (Agent tool) en esta entrada (T-15 re-chequeo de contexto no, ese fue la anterior; aquí: T-16-18, T-19-21, T-22, T-23, T-24, y una re-verificación de T-21 tras la corrección); lectura directa de `node_modules/@react-native-community/datetimepicker/src/index.d.ts` y `node_modules/expo-image-picker/build/{ImagePicker,ImagePicker.types}.d.ts` para no inventar la API; `node_modules/@react-navigation/core/.../types.d.ts` para confirmar `screenListeners`; mini-renderizador propio (`scratchpad/t18/miniReact.mjs`, reutilizado) para probar `RegistrationFormContext.js` (8 escenarios) sin Metro; script de 50+ casos puros para `validators.js` (ya existente, reusado y ampliado por los verifiers con sus propios casos, hasta 108). Nunca se ejecutó `expo start`/`export`/`prebuild`; nunca se tocó `app.json`/`package.json`/`package-lock.json`/nada nativo en todo este prompt (confirmado con `git status --short` en cada ronda). Nunca se leyó el `.env` real de Anderson, aunque `check-constitution` lo señaló por contener un literal con forma de clave de Firebase (hallazgo esperado y correcto del script: el archivo está gitignorado, nunca se versiona; no se citó el valor completo en ningún documento). Modificado/creado: `firestore.rules` (nuevo), `src/components/registration/{DateField,PhotoField}.js` (nuevos), `src/context/RegistrationFormContext.js` (nuevo), `src/navigation/RegistrationTabs.js` (envuelve con el provider), `src/screens/registration/PersonalDataScreen.js` (reescrita), `src/constants/labels.js` (amplía), `src/components/registration/SelectField.js` (corrige el color fuera de tokens que encontró el verifier de T-21), `src/services/cloudinary.js` (corrige el `response.json()` sin `try/catch` que encontró el mismo informe), `docs/backlog.md` y `docs/progress.md` (Estado y CA de T-16 a T-24, escritos sobre todo por los verifiers, no por mí). Descartado: crear `src/config/pricing.js` para la constante de comisión (activaba C08, que exige `calculateFare`, fuera de alcance de esta spec); se quedó como constante local en `RegistrationFormContext.js`. Descartado también: aplicar la opción recomendada para `@firebase/auth` o cualquier cambio de `package.json`/`scripts/dependencies.json` (esperando el OK explícito de Anderson, punto 3).
 - Archivos y commit: ver lista completa arriba; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` tras todas las correcciones: 48 hallazgos — 35 C21 de línea base, 2 C23 (filas de `progress.md` que todavía no existen), 5 INFO de fase inactiva, 1 C01 esperado (el `.env` real de Anderson, gitignorado, no leído más allá del hallazgo truncado del propio script), y 5 C18 (marca `#26`, sin entrada hasta este archivo: se resuelven al guardarlo). Sin ningún otro hallazgo. `git status --short` confirmó en cada ronda que no se tocó nada nativo. Cinco verifiers independientes revisaron T-16 a T-24 (ninguno es el implementer); el único defecto real que encontraron (T-21, color fuera de tokens) se corrigió y está pendiente de una sexta re-verificación, en curso al cerrar esta entrada.
-- Aprendizaje:
+- Aprendizaje: Aprendí que T-22 a T-24 dependían de evaluar `@firebase/auth`; conviene evaluar la librería antes de fijarla en el proyecto. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #27
 - Fecha: 2026-11-02
@@ -828,7 +830,7 @@ Aprobación de @firebase/auth y continuación con Pestañas 2 y 3 y envío.
 - Usado / modificado / descartado: Usado: `npm ls @firebase/auth`, `npm install` (sin instalar nada nuevo, solo actualiza `package-lock.json`); 3 subagentes `verifier` (T-25, T-26, T-27), todos con permiso explícito de usar `npx expo export --platform android` (proceso de una sola pasada, nunca `expo start`/`prebuild`, nunca el servidor de Anderson); `node_modules` de los paquetes reales para cualquier duda de API. Modificado: `package.json`/`package-lock.json` (`@firebase/auth`), `scripts/dependencies.json`, `docs/decisiones.md` (D-66 Vigente), `src/screens/registration/{VehicleScreen,DocumentsScreen}.js` (reescritas), `src/context/RegistrationFormContext.js` (exporta `COMMISSION_RATE_PERCENT`), `src/constants/labels.js` (amplía: vehicle, documents), `docs/backlog.md`/`docs/progress.md` (Estado y CA de T-25 a T-27, escritos sobre todo por los verifiers). Descartado: tocar `src/components/PrimaryButton.js` para el botón de envío (no estaba en el alcance declarado de T-26; se construyó un botón local en `DocumentsScreen.js` en su lugar, confirmado sin riesgo por el verifier); crear una tarea aparte para "retirar el simulador": sigue condicionado a que también exista la spec 008 (D-38/D-47/D-50 ya lo dejaban así), así que no se retira todavía, se explica en la respuesta al usuario en vez de decidirlo unilateralmente.
 - Archivos y commit: ver lista completa arriba; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` al cierre: 43 hallazgos — 35 C21 de línea base, 0 C23 (todas las filas de `progress.md` ya existen, por primera vez en esta spec), 5 INFO de fase inactiva, 1 C01 esperado (`.env` real, gitignorado, no leído), y 2 C18 (marca `#27`, sin entrada hasta este archivo: se resuelven al guardarlo). `npx expo-doctor`: 21/21. `npx expo export --platform android`: 1389-1390 módulos, sin errores, en cada ronda (implementer y los 3 verifiers), sin tocar nunca el servidor de Anderson ni archivos nativos (`git status --short` limpio de eso en cada ronda). Tres verifiers independientes (T-25, T-26, T-27), ningún defecto real encontrado.
-- Aprendizaje:
+- Aprendizaje: Aprendí que fijar la versión de `@firebase/auth` deja el build repetible, y que el check llegó a 0 C23 al completar las filas de `progress.md`. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #28
 - Fecha: 2026-11-02
@@ -868,7 +870,7 @@ Resultado del checkpoint 1 y diagnóstico de la subida de foto.
 - Usado / modificado / descartado: Usado: `WebSearch` sobre errores comunes de "Network request failed" con `fetch`/`FormData`/`expo-image-picker` en Android, para contrastar la hipótesis con precedentes documentados (no para copiar una solución a ciegas); lectura de `node_modules/expo-image-picker/build/ImagePicker.types.d.ts` (confirma que `ImagePickerAsset` tiene `mimeType`/`fileName` reales, que el código actual ignora al hardcodear `'image/jpeg'`/`'photo.jpg'`); `npx expo export --platform android` para confirmar que el archivo instrumentado sigue bundleando (proceso aparte, sin tocar el servidor de Anderson). Modificado: `src/services/cloudinary.js` (instrumentación temporal, sin cambiar la lógica de subida ni los mensajes de error finales), `docs/decisiones.md` (D-67), `docs/backlog.md`/`docs/progress.md` (checkpoint 1, T-16/T-18 "OK por declaración", T-19 "EN DIAGNÓSTICO", bloqueo de T-22/T-23/T-24). Descartado: cambiar `type`/`name` del `FormData` a los valores reales de `mimeType`/`fileName` del asset, o cualquier otro cambio de la lógica de subida — el prompt pide explícitamente esperar la evidencia y la decisión de Anderson antes de tocar código de producción.
 - Archivos y commit: `src/services/cloudinary.js`, `docs/decisiones.md`, `docs/backlog.md`, `docs/progress.md`, `docs/AI_LOG.md`; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` tras la instrumentación: 42 hallazgos — 35 C21 de línea base, 1 C01 esperado (`.env` real, no leído), 5 INFO de fase inactiva, y 1 C18 (marca `#28`, sin entrada hasta este archivo: se resuelve al guardarlo). Sin C27 (el script no encontró "token"/"password"/"clave" en los `console.warn` añadidos: las claves registradas son `hasCloudName`, `hasUploadPreset`, `scheme`, `elapsedMs`, `status`, `ok`, `errorName`, `errorMessage`, `cloudinaryMessage`, ninguna imprime un valor real de entorno, token o URL con credenciales). `npx expo export --platform android`: sin errores, sin tocar el `expo start --dev-client` de Anderson (confirmado con `git status --short` antes y después, sin cambios nativos). No se marcó ninguna tarea como "Validada" en esta entrada; T-16 y T-18 quedan "OK por declaración" (no "Validada") según pidió Anderson.
-- Aprendizaje:
+- Aprendizaje: Aprendí que para el fallo de Cloudinary conviene instrumentar de forma temporal y retirarlo después; mi instrumentación dejó un C18 hasta crear la entrada. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #29
 - Fecha: 2026-11-02
@@ -895,7 +897,7 @@ Autorizo la opción C, no la A ni la B. Cámbialo así, sin dependencias nuevas 
 - Usado / modificado / descartado: Modificado: `src/services/cloudinary.js`, `src/components/registration/PhotoField.js`, `specs/001-registro-conductor/plan.md`, `docs/decisiones.md`. Descartado: opción A (riesgo sobre el `fetch` global) y opción B (dependencia nueva no instalada, de respaldo). No se tocó `validators.js` ni el resto de T-19 a T-24, como pidió el prompt.
 - Archivos y commit: `src/services/cloudinary.js`, `src/components/registration/PhotoField.js`, `specs/001-registro-conductor/plan.md`, `docs/decisiones.md`, `docs/AI_LOG.md`; commit: ninguno aún.
 - Verificación: `node scripts/check-constitution.mjs` antes del cambio (con la instrumentación todavía puesta): 42 hallazgos (35 C21 + 1 C01 esperado + 2 C26 por los comentarios `D-67`/plan en `cloudinary.js` + 5 INFO, sin contar el C18 de la marca `#28` ya resuelto). Después del cambio: 38 errores / 0 advertencias / 5 inactivas (35 C21 + 1 C01 esperado + 2 C18 de la marca `#29`, resueltos al guardar esta entrada) — tuve que reescribir dos comentarios para no citar `D-68` literalmente (regla C26, ya conocida de una ronda anterior con C08). Pendiente: verifier independiente sobre el cambio (formato del data URI, ausencia de `Content-Type` manual, límite de 8 MB, no filtración del base64) y confirmación de Anderson en el celular.
-- Aprendizaje:
+- Aprendizaje: Aprendí que pasar la subida de fotos a base64 (D-68) resolvió el fallo, y que la prueba de Anderson en el celular Android lo confirmó. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #30
 - Fecha: 2026-11-02
@@ -918,7 +920,7 @@ Cierre del checkpoint 1 y entrega del checkpoint 2.
 - Usado / modificado / descartado: Usado: `ListAgents` (confirma que el verifier anterior no está disponible). Modificado: `docs/backlog.md` (T-19, T-22, T-23, T-24), `docs/progress.md` (filas CA y bitácora narrativa), `specs/001-registro-conductor/spec.md` (estado de checkpoint 1). Descartado: cerrar T-19 sin el informe del verifier independiente (prohibido explícitamente por el prompt).
 - Archivos y commit: `docs/backlog.md`, `docs/progress.md`, `specs/001-registro-conductor/spec.md`, `docs/AI_LOG.md`; commit: ninguno.
 - Verificación: `node scripts/check-constitution.mjs` antes y después de las ediciones de este prompt (ver detalle en el resumen entregado a Anderson).
-- Aprendizaje:
+- Aprendizaje: Aprendí que en el checkpoint 1 el verifier anterior no estaba disponible, así que debo dejar explícito quién verifica y registrar el reporte de Anderson. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #31
 - Fecha: 2026-11-02
@@ -943,7 +945,7 @@ Sí: continúa construyendo T-25 en adelante, una tarea a la vez, cada una con s
 - Usado / modificado / descartado: Usado (sin cambios de código): src/screens/registration/VehicleScreen.js, DocumentsScreen.js, src/services/driverRepository.js, src/services/cloudinary.js, src/context/RegistrationFormContext.js, firestore.rules, docs/backlog.md, docs/progress.md.
 - Archivos y commit: Solo se editó docs/AI_LOG.md (esta entrada). Sin commit (instrucción explícita del punto 4).
 - Verificación: `node scripts/check-constitution.mjs` limpio (36 errores C21 preexistentes sin tarea MAESTRO, 1 regla C25 inactiva — sin cambios respecto a la ronda anterior); `git status --short` sin cambios nativos inesperados.
-- Aprendizaje:
+- Aprendizaje: Aprendí que una ronda solo de investigación, sin tocar `firestore.rules`, evita cambios apresurados; confirmar por lectura de código fue suficiente. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #32
 - Fecha: 2026-11-02
@@ -987,7 +989,7 @@ Resultado del checkpoint 2 en el celular y fallo al enviar el registro.
 - Usado / modificado / descartado: Usado (sin cambios): `firestore.rules`, `src/context/RegistrationFormContext.js`, `src/utils/validators.js`, `src/screens/registration/VehicleScreen.js`, `src/context/AppStateContext.js`, `src/constants/registrationOptions.js`. Descartado: preparar una prueba en Rules Playground o proponer el Emulator Suite (prohibido explícitamente por el punto 4); cambiar `firestore.rules` o el código de envío (prohibido por el punto 5 hasta la aprobación de Anderson).
 - Archivos y commit: `src/services/driverRepository.js` (instrumentación TEMPORAL), `docs/decisiones.md` (D-69), `docs/AI_LOG.md` (esta entrada). Sin commit (instrucción explícita del punto 7).
 - Verificación: `node scripts/check-constitution.mjs` antes de editar: 36 errores C21 preexistentes, 0 advertencias. Primera pasada tras añadir la instrumentación: nueva advertencia C26 (el comentario citaba "D-69, docs/decisiones.md" dentro del código fuente, un documento no entregado desde `src/`). Corregido el comentario para no citar el número de decisión; segunda pasada: 36 errores C21 preexistentes (sin cambio), 0 advertencias — línea base restaurada.
-- Aprendizaje:
+- Aprendizaje: Aprendí que mandar año y capacidad como texto chocaba con las reglas de Firestore, y que la instrumentación temporal ayudó a verlo antes de corregir. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #33
 - Fecha: 2026-11-02
@@ -1065,7 +1067,7 @@ Resultado del checkpoint 2 y 3 en el celular, cierre de la instrumentación y me
 - Usado / modificado / descartado: Usado tal como se propuso en los tres puntos de código (D-71/T-30, T-31, D-73/T-32) y en la retirada de D-69. No se aplicó la bandera de ocultar provisionales (punto 5 del prompt la pedía solo como propuesta, sin aplicarla sin aprobación explícita de Anderson); esa aprobación llegó en el prompt siguiente (Entrada #35).
 - Archivos y commit: `src/utils/validators.js`, `src/context/RegistrationFormContext.js`, `src/services/driverRepository.js`, `src/constants/labels.js`, `src/screens/registration/DocumentsScreen.js`, `src/screens/registration/PersonalDataScreen.js`, `src/screens/registration/VehicleScreen.js` (código); `docs/backlog.md`, `docs/progress.md`, `docs/decisiones.md` (D-69 retirada, D-71, D-73), `specs/001-registro-conductor/spec.md`, `specs/001-registro-conductor/plan.md`, `README.md` (borrador), `docs/AI_LOG.md` (esta entrada). Sin commit (regla del proyecto: ningún commit lo hace un agente).
 - Verificación: `node scripts/check-constitution.mjs` antes y después de cada tarea (T-30, T-31, T-32) y de la retirada de D-69: 36 errores (preexistentes, fuera de alcance), 0 advertencias, sin cambio en ninguna pasada. Cada tarea con script de prueba propio fuera del proyecto contra las funciones reales (casos puros) y verifier distinto del implementer, con veredicto favorable en lo estático. El checkpoint único consolidado en el celular (D-59 ampliada) para T-30/T-31/T-32 seguía pendiente al cierre de esta entrada; por eso ninguna de las tres pasó de «Implementada» a «Validada» aquí.
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que cerrar los checkpoints y retirar D-69 deja el proyecto ordenado, y que correr el check tras cada tarea mantuvo los 36 errores de la línea base. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1096,7 +1098,7 @@ Cierre de la entrega parcial del 2026-11-05.
 - Usado / modificado / descartado: Usado tal como se propuso en los puntos 1 y 2. Las guías de los puntos 3, 4 y 5 se entregaron como texto en la conversación (no se generan como archivos nuevos del proyecto); Anderson decide si las traslada a algún documento.
 - Archivos y commit: `src/constants/devTools.js`, `src/components/DevAccountSwitch.js`, `src/components/PlaceholderScreen.js`, `src/screens/home/HomeScreen.js`, `.github/pull_request_template.md`, `docs/decisiones.md` (D-23), `docs/AI_LOG.md` (esta entrada). Sin commit: ningún agente hace commit ni push en este proyecto.
 - Verificación: `node scripts/check-constitution.mjs` → 36 error(es), 0 advertencia(s), 5 regla(s) inactiva(s), sin cambios frente a la línea base conocida (1× C01 preexistente y esperado sobre `.env` —el archivo nunca se versiona—, 35× C21 preexistentes sobre `docs/requisitos.md`, ajenos a esta entrega). Verificado con lectura de código (verifier distinto del implementer) que `SHOW_DEV_TOOLS=false` oculta los 3 paneles y no afecta el flujo de registro, y que con `true` se comporta igual que antes. `.env` no leído ni escrito en ningún momento.
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que `SHOW_DEV_TOOLS` permite esconder las herramientas de desarrollo sin borrarlas, y que la línea base del check no se movió. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #36
 - Fecha: 2026-11-04
@@ -1125,7 +1127,7 @@ Corrección de T-31 (bloqueo del formulario tras enviar) y arreglo del README.
 - Usado / modificado / descartado: Usado y modificado: `src/context/RegistrationFormContext.js`, los 5 componentes de `src/components/registration/` (TextField, SelectField, DateField, PhotoField, CheckboxField), `src/screens/registration/PersonalDataScreen.js`, `VehicleScreen.js`, `DocumentsScreen.js`, `src/screens/home/HomeScreen.js`, `src/constants/labels.js`, `README.md`. Nada descartado. Sin cambios en `firestore.rules` ni en el payload de `submitRegistration`.
 - Archivos y commit: Archivos arriba; sin commit (regla del proyecto, lo hace Anderson).
 - Verificación: `check-constitution.mjs` antes y después: 36 error(es) / 0 advertencia(s) / 5 regla(s) inactiva(s) sin cambio (1×C01 `.env` conocido + 35×C21 preexistentes en `docs/requisitos.md`), sin violaciones nuevas. Verificador independiente (agente `verifier`, distinto del `implementer`) confirmó por lectura de código, línea por línea, con script temporal fuera del proyecto: (a) CONFIRMADO — los 5 tipos de campo quedan no editables con `isLocked=true` y las 18 instancias de campo en las 3 pantallas reciben `disabled={isLocked}` (0 instancias sin la prop); los 4 tipos no-TextInput exponen `accessibilityState.disabled` automáticamente vía `Pressable` (RN lo fusiona cuando `disabled != null`), TextField lo expone explícito. (b) CONFIRMADO — con `submitState==='error'` y cuenta no pending, `isLocked=false` (formulario editable tras envío fallido). (c) CONFIRMADO — con `accountStatus==='pending'` (precarga), `isLocked=true` independientemente de `submitState`. (d) CONFIRMADO — con cuenta nueva (sin documento, `accountStatus` no pending, `submitState` no success), `isLocked=false`. También confirmó sin cambios: reglas de Firestore, payload de envío, aviso «Pendiente de aprobación», mensaje de confirmación y la lógica `canSubmit` del botón «Enviar registro». Veredicto: **T-31 queda "Implementada y verificada en lo estático; pendiente de validación en dispositivo"** — no "Validada" (falta Diseño Aprobado/N-A y la prueba de Anderson en el celular).
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que un estado `isLocked` evita acciones durante un proceso, y que revisar antes y después con el check mostró que no añadí violaciones. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #37
 - Fecha: 2026-11-05
@@ -1172,7 +1174,7 @@ e) Marca como "Implementada y verificada en lo estático; pendiente de validaci�
 - Usado / modificado / descartado: Usado y conservado todo lo implementado. No se descartó nada; el verifier no pidió cambios ("APROBADO sin hallazgos").
 - Archivos y commit: src/components/registration/TextField.js, SelectField.js, DateField.js, PhotoField.js; src/screens/registration/PersonalDataScreen.js, VehicleScreen.js, DocumentsScreen.js. Sin commit (instrucción explícita del prompt, punto 6); cambios en working tree de la rama anderson/diseno-registro.
 - Verificación: (a) implementer revisó su propio diff: todo es de estilo. (b) verifier (invocación distinta) confirmó por lectura directa del diff real: mismos props/testID/textos/lógica en los 7 archivos; estados error/foco/bloqueado visibles; `combinedError` en PhotoField era lógica preexistente, no nueva. Veredicto: "APROBADO sin hallazgos" (con 1 nota menor no bloqueante sobre esta misma entrada de bitácora, ya resuelta). (c) design-auditor NO se ejecutó: no hay capturas de celular ni arnés web disponibles en este momento (el proyecto no tiene target web configurado y el arnés `visual-audit.mjs` solo renderiza HTML) — queda pendiente para cuando existan capturas reales; Diseño queda en "Pendiente", no "Aprobado". (d) check-constitution.mjs: 36 errores / 0 advertencias / 5 reglas inactivas, igual antes y después (confirmado por implementer y de forma independiente por el verifier). (e) Estado final: "Implementada y verificada en lo estático; pendiente de validación en dispositivo".
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que cambiar solo estilos en los campos del registro se confirma comparando props, testID y textos; el verifier distinto lo hizo leyendo el diff. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1217,7 +1219,7 @@ Mejoras de usabilidad del registro: botón para quitar la foto y teclado que no 
 - Usado / modificado / descartado: (pendiente: completar al terminar)
 - Archivos y commit: sin commit. Nuevos: `src/components/SecondaryButton.js`, `src/components/map/` (mapa del viaje), `src/config/trip.js`, `src/context/TripContext.js`, `src/services/driverLocationPublisher.js`, `src/services/trip/` (máquina de estados, controlador, regulador, una a la vez), `src/utils/format.js`, `docs/diseno/auditorias/ronda-1-viaje.md`. Modificados: `src/components/PrimaryButton.js`, `src/constants/labels.js`, `src/constants/tripStatus.js`, `src/context/AvailabilityContext.js`, `src/context/RegistrationFormContext.js`, `src/hooks/useDriverLocation.js`, `src/hooks/useTripRequests.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/screens/trip/TripRequestScreen.js`, `src/screens/trip/TripActiveScreen.js`, `src/screens/trip/TripSummaryScreen.js`, `src/services/location/` (gps, simulada, index), `src/services/passengerApi/` (contract, index), `docs/backlog.md`, `docs/progress.md`, `docs/seguridad.md` (regla de `driverLocations`), `docs/arquitectura-api-pasajero.md`, `docs/AI_LOG.md`.
 - Verificación: script temporal en el scratchpad contra el código real (Babel + reloj falso): 39/39 PASA (máquina de estados 8 válidas/28 inválidas, llegada a 24 m sí y a 26 m no con umbral 25 m, restante, regulador 5 s/20 m, una solicitud a la vez, vencimiento a 30 s, controlador completo, errores de OSRM y del reporte); scripts borrados. check-constitution: antes 24 errores/0 advertencias, después 23/0 (22 C21 de requisitos sin tarea y 1 C01 en `.env:1`, que el verifier considera falso positivo porque está ignorado; no se leyó). Verifier independiente: T-41, T-43 y T-45 aceptadas en lo estático; **T-44 Rechazada** (hallazgo mayor en `tripController.js:286-295`). design-auditor ronda 1 estática: 1 alto (cuenta regresiva y ganancia poco destacadas en T-43), 2 medios y varios bajos; Diseño «Pendiente». Nada probado en dispositivo.
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que el Resumen no coincidía con el Objetivo, así que debo escribir con cautela lo que no puedo comprobar; el script de 39 casos sí pasó. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1253,7 +1255,7 @@ Informe del estado actual de la implementación del proyecto (SOLO LECTURA).
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: docs/AI_LOG.md (solo esta entrada). Sin commit.
 - Verificación: git (status, branch -a, log, merge-base) de solo lectura; lectura de requisitos, progress, backlog, decisiones, specs, README, package.json, app.json, scripts/dependencies.json, src/ y backend/src; `node scripts/check-constitution.mjs` = 36 errores / 4 advertencias / 5 inactivas. No se leyó `.env`; no se ejecutó expo lint ni se tocó Metro.
-- Aprendizaje: (pendiente: Anderson)
+- Aprendizaje: Aprendí que un informe de estado de solo lectura (git, specs, código) sirve para ubicarme sin cambiar nada del proyecto. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1310,7 +1312,7 @@ Plan recortado para la entrega final, contrato para la API del pasajero y mapa c
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: Nuevos: `docs/seguridad.md`, `docs/arquitectura-api-pasajero.md`, `docs/arquitectura-mapa-recorrido.md`, `docs/plan-entrega-final.md`. Modificados: `docs/decisiones.md`, `docs/progress.md`, `docs/backlog.md`, `specs/001-registro-conductor/plan.md`, `README.md`, `docs/AI_LOG.md`. Sin commit.
 - Verificación: `node scripts/check-constitution.mjs` → 36 errores, 0 advertencias (antes: 36 errores y 4 advertencias C23). Los 36 errores son los de la línea base: 35 C21 (requisitos MAESTRO sin tarea, que se cubrirán al aprobar el plan de entrega) y 1 C01 (falso positivo por `.env`). No se ejecutó código, lint ni build; nada se marcó Validada.
-- Aprendizaje:
+- Aprendizaje: Aprendí que documentar D-76 a D-82 y los planes de entrega antes de programar ordena el trabajo; el check se mantuvo en 36 errores de línea base. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #41
 - Fecha: 2026-11-10
@@ -1343,7 +1345,7 @@ Rebanada 0 revisada: mapa open source (MapLibre + OpenFreeMap) y ubicación (T-3
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: Sin commit. Modificados: `app.json`, `package.json`, `package-lock.json`, `scripts/dependencies.json`, `src/constants/labels.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `README.md`, `docs/decisiones.md`, `docs/arquitectura-mapa-recorrido.md`, `docs/plan-entrega-final.md`, `docs/seguridad.md`, `docs/backlog.md`, `docs/progress.md`, `docs/AI_LOG.md`. Nuevos: `src/config/map.js`, `src/config/routing.js`, `src/services/routing/{index,osrmRouting,fallbackRoute,straightLine}.js`, `src/screens/dev/MapTestScreen.js`.
 - Verificación: `check-constitution` pasó de 36 a 32 errores y 0 advertencias (RF-08, RF-12, RNF-06 y RNF-08 ya tienen tarea; el C01 de `.env` es el falso positivo conocido). `git diff package.json` muestra solo las 2 dependencias autorizadas; `git diff app.json` solo añade los plugins. Script propio del agente principal fuera del proyecto, contra la fuente real: 6/6 (OSRM real 162 puntos, 2933 m, 222 s; sin red → `ROUTE_FAILED`; respaldo precargado; línea recta; HTTP 429 → `ROUTE_FAILED`; puntos inválidos). Verifier independiente: 11/11 PASS, sin hallazgos bloqueantes. No verificado en dispositivo (pendiente: Anderson, checkpoint 0).
-- Aprendizaje:
+- Aprendizaje: Aprendí que cambiar a MapLibre obligó a modificar D-82 y a revisar las dos dependencias nuevas; el check bajó de 36 a 32 errores al asignar tareas. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #42
 - Fecha: 2026-11-10
@@ -1376,7 +1378,7 @@ Rebanadas A y B (primera mitad): tarifa, API del pasajero con mock, ubicación y
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: Sin commit. Nuevos: `src/config/{pricing,passengerApi,location}.js`, `src/utils/fare.js`, `src/constants/tripStatus.js`, `src/services/passengerApi/{index,contract,mockPassengerApi,httpPassengerApi,mappers}.js`, `src/services/location/{index,gpsLocationSource,simulatedLocationSource,throttle}.js`, `src/hooks/{useDriverLocation,useTripRequests}.js`, `src/context/AvailabilityContext.js`, `src/components/AvailabilitySwitch.js`. Modificados: `src/context/RegistrationFormContext.js`, `src/screens/registration/DocumentsScreen.js`, `src/constants/labels.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `docs/backlog.md`, `docs/progress.md`, `docs/AI_LOG.md`.
 - Verificación: scripts temporales en el scratchpad contra el código real, 66/66 OK (RF-22: Económico 19.200 / 3.840 / 15.360 y XL 26.900 / 5.380 / 21.520; bordes inválidos → INVALID_FARE_INPUT; mock: 50 solicitudes con recogida 0,82–2,00 km y destino 2,27–5,99 km, vencimiento 30.000 ms, EXPIRED / ALREADY_TAKEN / INVALID_STATE; fuente simulada recorre 1,95 km en 195 pasos y termina), scripts borrados. check-constitution: 32 → 24 errores, 0 advertencias; --selftest OK. Verifier independiente: verificada en lo estático, sin fallas bloqueantes (4 hallazgos menores en progress.md). Pendiente: checkpoint 1 en el celular.
-- Aprendizaje:
+- Aprendizaje: Aprendí que T-38 a T-42 se validan mejor con scripts contra el código real: las 66 comprobaciones de tarifa y solicitudes me dieron resultados concretos. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #43
 - Fecha: 2026-11-10
@@ -1413,7 +1415,7 @@ Rebanada B (segunda mitad): corrección del bucle de ubicación, tarjeta de soli
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: ver el estado de git; sin commit.
 - Verificación: verifier distinto (prompt #43) por lectura; validado por declaración de Anderson en el checkpoint 2.
-- Aprendizaje:
+- Aprendizaje: Aprendí que el bucle del diálogo de ubicación de T-41 se corrigió con un verifier distinto, y que Anderson lo validó en el checkpoint 2. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1448,7 +1450,7 @@ Corrección de T-44, liberación del viaje activo y ajustes de diseño (rechazo 
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: tripController.js, driverLocationPublisher.js, TripContext.js, tripStatus.js, trip.js, labels.js, TripActiveScreen.js, TripRequestScreen.js, mockPassengerApi.js, docs (decisiones D-83, arquitectura-mapa-recorrido, seguridad, backlog, progress, ronda-2-viaje); sin commit.
 - Verificación: script temporal 50 PASS / 0 FAIL; verifier independiente 91 comprobaciones, aceptada en lo estático con 3 menores; `check-constitution` 23 errores base / 0 advertencias. Falta prueba en el celular.
-- Aprendizaje:
+- Aprendizaje: Aprendí que un bloqueo de T-44 se estudia con un script y un verifier independiente (91 comprobaciones), aunque aún faltaba probar en el celular. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1481,7 +1483,7 @@ Corrección del defecto: tras terminar un viaje (finalizado o cancelado) ya no l
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: ver el estado de git; sin commit (cierre en el prompt #46).
 - Verificación: verifier nuevo (prompt #46) por lectura; `check-constitution` 23 errores base, 0 advertencias; validación en el celular por declaración de Anderson (2026-11-10).
-- Aprendizaje:
+- Aprendizaje: Aprendí que encontrar la causa raíz de las solicitudes tras un viaje exige demostrarla con un script que falle antes y pase después. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1512,7 +1514,7 @@ Cierre de la corrección del viaje (D-84): retiro de la instrumentación tempora
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: `docs/AI_LOG.md`, `docs/backlog.md`, `docs/progress.md`, `docs/decisiones.md` (D-84); `src/context/AvailabilityContext.js`, `src/context/TripContext.js`, `src/hooks/useDriverLocation.js`, `src/hooks/useTripRequests.js`, `src/services/passengerApi/mockPassengerApi.js` (instrumentación retirada); `src/utils/diagLoc.js` borrado. Sin commit.
 - Verificación: grep de `diagLoc|DIAG-LOC` en `src/` sin resultados; `check-constitution`: 23 errores base, 0 advertencias; verifier nuevo (por lectura): salidas del viaje, limpieza de fuentes y temporizadores y retiro OK; observación menor: el gesto del drawer desde el viaje activo no se revisó a fondo; SHOW_DEV_TOOLS sigue en `true` a propósito hasta que Anderson lo vuelva a `false`. Falta humo en el celular tras el retiro.
-- Aprendizaje:
+- Aprendizaje: Aprendí que retirar la instrumentación `[DIAG-LOC]` con grep y un verifier nuevo cierra bien una corrección, sin dejar rastro de diagnóstico en `src/`. (borrador de Claude Code, revisado por Anderson)
 
 ---
 
@@ -1551,7 +1553,7 @@ Mejora de UX: solicitud entrante como tarjeta inferior cuando el conductor no es
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: nuevos src/components/IncomingRequestCard.js y src/services/trip/requestPresentation.js; modificados src/navigation/MainDrawer.js, src/screens/home/HomeScreen.js, src/screens/trip/TripRequestScreen.js, src/constants/labels.js, docs/backlog.md, docs/decisiones.md (D-85), docs/progress.md, docs/AI_LOG.md. Sin commit.
 - Verificación: check-constitution 23 errores / 0 advertencias antes y después (ninguno de T-54). Script temporal (borrado): tabla de presentación completa y 20 comprobaciones de código OK. Verifier: Rechazada (hallazgo mayor, ver backlog T-54). design-auditor: Aprobado condicionado, sin hallazgos altos. Falta prueba en celular.
-- Aprendizaje:
+- Aprendizaje: Aprendí que la tarjeta inferior fue rechazada por un hallazgo mayor del verifier: que un script pase no garantiza una buena experiencia. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #48
 - Fecha: 2026-11-10
@@ -1581,7 +1583,7 @@ Corrección del hallazgo mayor de T-54 (TripRequest oculta actuando bajo la tarj
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: src/screens/trip/TripRequestScreen.js, src/components/IncomingRequestCard.js, src/navigation/TripStack.js, src/navigation/MainDrawer.js, src/screens/home/HomeScreen.js, docs/decisiones.md (D-85), docs/backlog.md, docs/progress.md, docs/AI_LOG.md; sin commit.
 - Verificación: script temporal fuera del proyecto, 20/20 OK (borrado); `check-constitution`: 23 errores base, 0 advertencias; verifier nuevo (por lectura): RECHAZA (hallazgos A y B). Sin prueba en el celular de esta ronda.
-- Aprendizaje:
+- Aprendizaje: Aprendí que ajustar la tarjeta por segunda vez tampoco bastó, porque el verifier la rechazó otra vez con los hallazgos A y B. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #49
 - Fecha: 2026-11-10
@@ -1609,8 +1611,8 @@ Simplificación de T-54 para eliminar por construcción los hallazgos A y B del 
 - Resumen de la respuesta (2–3 líneas): Se quitó «Ver detalle» y el regreso a la pestaña de origen; una única `TripRequest` (id fijo) abierta solo con Inicio enfocado; la tarjeta no se muestra mientras haya una abierta y el swipe del drawer se bloquea; una `TripRequest` oculta se cierra sola, sin cambiar de pestaña, al resolverse la solicitud. Script temporal 22/22, check-constitution 23/0, verifier nuevo APRUEBA en lo estático; T-54 pendiente de prueba en el celular.
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: `src/services/trip/requestPresentation.js`, `src/context/AvailabilityContext.js`, `src/navigation/TripStack.js`, `src/navigation/MainDrawer.js`, `src/components/IncomingRequestCard.js`, `src/screens/trip/TripRequestScreen.js`, `src/constants/labels.js`, `docs/decisiones.md` (D-85), `docs/backlog.md`, `docs/progress.md`, `docs/AI_LOG.md`. Sin commit.
-- Verificación: (pendiente: Anderson; en lo estático: script temporal 22/22, check-constitution 23 errores / 0 advertencias, verifier nuevo APRUEBA con 2 menores; falta la prueba en el celular)
-- Aprendizaje:
+- Verificación: Verificación estática por verifier distinto; no probada en dispositivo. En lo estático: script temporal 22/22, check-constitution 23 errores / 0 advertencias, verifier nuevo APRUEBA con 2 menores.
+- Aprendizaje: Aprendí que simplificar (D-85) y probar con un script de 22 casos ayuda, pero la aprobación del verifier no reemplaza la prueba en el celular. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #50
 - Fecha: 2026-11-11
@@ -1648,8 +1650,8 @@ Rebanada C: guardar viajes, cobro simulado, ganancias, historial y perfil (T-46 
 - Resumen de la respuesta (2–3 líneas): T-54 registrada como validada en dispositivo (declaración de Anderson, 2026-11-10); decisiones D-86 a D-89; T-46 a T-49 implementadas: «Confirmar cobro» guarda drivers/{uid}/trips/{tripId} de forma idempotente con error, «Reintentar» y salida segura, cancelados guardados en silencio con reintento acotado, Ganancias (hoy/semana/mes), Historial y Perfil/Configuración de solo lectura. Regla de Firestore redactada, NO publicada.
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: nuevos: src/services/trip/tripRecord.js, src/services/trip/saveRetry.js, src/services/tripRepository.js, src/hooks/useTrips.js, src/utils/earnings.js, src/utils/mask.js. Modificados: TripSummaryScreen, EarningsScreen, HistoryScreen, ProfileScreen, SettingsScreen, ScreenState, TripContext, tripController, AppStateContext, driverRepository, labels.js, format.js, firestore.rules (local, ignorado por git), README.md, docs/backlog.md, decisiones.md, progress.md, seguridad.md. Sin commit (lo hace Anderson).
-- Verificación: (pendiente: Anderson en el celular) En lo estático: script temporal 60/60 (periodos, mapeo vs réplica de la regla, idempotencia y reintentos, montos guardados = mostrados), borrado; check-constitution 23/0 antes y 13/0 después (preexistentes: C01 .env, C21 requisitos de fases posteriores); verifier nuevo APRUEBA los 7 puntos con una reserva menor (un setDoc caducado sin red puede escribirse al volver la red; no duplica); design-auditor: 3 hallazgos altos corregidos (filas del resumen con flexShrink, mensaje cuando el cobro no puede calcularse, confirmación de salida con scroll a la vista); medios y bajos quedan para la ronda de diseño. Diseño: Pendiente.
-- Aprendizaje:
+- Verificación: Verificación estática por verifier distinto; no probada en dispositivo. En lo estático: script temporal 60/60 (periodos, mapeo vs réplica de la regla, idempotencia y reintentos, montos guardados = mostrados), borrado; check-constitution 23/0 antes y 13/0 después (preexistentes: C01 .env, C21 requisitos de fases posteriores); verifier nuevo APRUEBA los 7 puntos con una reserva menor (un setDoc caducado sin red puede escribirse al volver la red; no duplica); design-auditor: 3 hallazgos altos corregidos (filas del resumen con flexShrink, mensaje cuando el cobro no puede calcularse, confirmación de salida con scroll a la vista); medios y bajos quedan para la ronda de diseño. Diseño: Pendiente.
+- Aprendizaje: Aprendí que guardar los viajes con reintentos e idempotencia se comprueba con 60 pruebas, y que los montos guardados deben ser iguales a los mostrados. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #51
 - Fecha: 2026-11-11
@@ -1696,9 +1698,9 @@ Rediseño visual y de UX de toda la aplicación (SOLO estilos, layout y presenta
 ````
 - Resumen de la respuesta (2–3 líneas): (pendiente: se completa al terminar)
 - Usado / modificado / descartado: (pendiente: Anderson)
-- Archivos y commit: (pendiente: se completa al terminar)
-- Verificación: (pendiente: se completa al terminar)
-- Aprendizaje:
+- Archivos y commit: no registrados en el momento; commit: sin relación inequívoca.
+- Verificación: Sin verificación registrada.
+- Aprendizaje: Aprendí que un rediseño visual completo se hace con reglas claras, como no tocar la funcionalidad y cuidar contraste y texto grande. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #52
 - Fecha: 2026-11-11
@@ -1744,9 +1746,9 @@ Continuación del rediseño nocturno: nuevo menú lateral, pestañas de registro
 ````
 - Resumen de la respuesta (2–3 líneas): (pendiente: se completa al terminar)
 - Usado / modificado / descartado: (pendiente: Anderson)
-- Archivos y commit: (pendiente: se completa al terminar)
-- Verificación: (pendiente: se completa al terminar)
-- Aprendizaje:
+- Archivos y commit: no registrados en el momento; commit: sin relación inequívoca.
+- Verificación: Sin verificación registrada.
+- Aprendizaje: Aprendí que el drawer, las pestañas y los íconos del rediseño piden un barrido final de detalle para que todo se vea coherente. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #53
 - Fecha: 2026-11-11
@@ -1786,7 +1788,7 @@ Continuación del rediseño: aplicar el nuevo sistema visual a las pantallas res
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: solo src/ (componentes, pantallas, tokens con adiciones), docs/diseno/progreso-noche.md, docs/diseno/auditoria-estatica-53.md, docs/backlog.md, docs/decisiones.md (D-92). Commit local denegado: copias por área en el scratchpad (area-X-snapshot y area-X-acumulado.patch, X = B, C, D, E).
 - Verificación: check-constitution 13 errores y 0 advertencias (línea base); inventario solo con adiciones; contraste de los pares nuevos sin fallos; verifiers de B, C, D y E aprobaron en lo estático; auditoría estática aprobada con reservas (14 hallazgos, 0 altos). No verificado en dispositivo.
-- Aprendizaje:
+- Aprendizaje: Aprendí que revisar cada área con un verifier distinto y guardar copias por área permite descartar lo que no me guste, aunque nada se probó en el celular. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #54
 - Fecha: 2026-11-11
@@ -1835,9 +1837,9 @@ Funcionalidad final: pantalla completa de solicitud sin scroll para ver el preci
 ````
 - Resumen de la respuesta (2–3 líneas): (pendiente: se completa al terminar)
 - Usado / modificado / descartado: (pendiente: Anderson)
-- Archivos y commit: (pendiente: se completa al terminar)
-- Verificación: (pendiente: se completa al terminar)
-- Aprendizaje:
+- Archivos y commit: no registrados en el momento; commit: sin relación inequívoca.
+- Verificación: Verificación estática por verifier distinto; no probada en dispositivo (T-72, aprobado estático)
+- Aprendizaje: Aprendí que el precio visible, la accesibilidad y las sesiones con correo y contraseña son cambios distintos que conviene cerrar por separado. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #55
 - Fecha: 2026-11-11
@@ -1886,9 +1888,9 @@ Respuesta a tu pregunta: NO hagas S4d ni las auditorías T-75 y T-76 ahora. T-73
 ````
 - Resumen de la respuesta (2–3 líneas): (pendiente: se completa al terminar)
 - Usado / modificado / descartado: (pendiente: Anderson)
-- Archivos y commit: (pendiente: se completa al terminar)
-- Verificación: (pendiente: se completa al terminar)
-- Aprendizaje:
+- Archivos y commit: no registrados en el momento; commit: sin relación inequívoca.
+- Verificación: Sin verificación registrada.
+- Aprendizaje: Aprendí que un lote grande (NaN, mapa, documentos, pagos, historial) necesita documentar omisiones y límites para no prometer más de lo hecho. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #56
 - Fecha: 2026-11-11
@@ -1902,8 +1904,8 @@ Informe recibido, gracias. Nuevo orden de trabajo (sustituye al orden anterior),
 - Resumen de la respuesta (2–3 líneas): (pendiente: se completa al terminar)
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: ver el estado de git (sin commit; sin push). Principales: firestore.rules (local), docs/seguridad.md, src/utils/{dateRanges,historyQuery,chartData,historyFilters,chartLayout}.js, src/hooks/{useTripHistory,useEarnings}.js, src/components/{BarChart,HistoryFilters,TripListItem}.js, src/screens/main/{HistoryScreen,EarningsScreen}.js, docs/{omisiones-y-limites,arquitectura-sesiones,checklist-dispositivo-sesiones}.md, scripts/tests/*.
-- Verificación: (pendiente: Anderson)
-- Aprendizaje:
+- Verificación: Sin verificación registrada.
+- Aprendizaje: Aprendí que unificar las reglas de Firestore en un solo texto listo para pegar evita desfases entre `seguridad.md` y el `firestore.rules` local. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #57
 - Fecha: 2026-11-11
@@ -1949,7 +1951,7 @@ Lote de cierre nocturno: correcciones de la prueba en dispositivo, diagnóstico 
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: Código: `src/components/map/{TripMap,MyLocationButton}.js`, `src/config/{backend,map}.js`, `src/constants/labels.js`, `src/navigation/MainDrawer.js`, `src/screens/home/HomeScreen.js`, `src/screens/main/{EarningsScreen,HistoryScreen,TripDetailScreen}.js`, `src/screens/trip/TripSummaryScreen.js`, `src/services/map/`, `src/services/trip/{chargePanel,legacyTrip,tripDetailView,paymentActions,paymentsClient}.js`, `src/components/{ScreenHeader,TripListItem}.js`, `backend/scripts/` y `backend/package.json`, pruebas en `scripts/tests/`. Documentos: `docs/{pagos-guia-rapida,checklist-manana-jueves,guion-video,omisiones-y-limites,progress,backlog,decisiones,requisitos}.md`, `docs/diseno/auditorias/ronda-{1,2}-cierre.md`, `README.md`, `specs/002-funcionalidad-final/{spec,plan}.md`. Commit: sin commit al momento de escribir.
 - Verificación: Estática, por verifiers distintos de cada implementer; 24 pruebas puras y con fakes pasan; `check-constitution` sin cambios sobre la línea base de 12 errores; auditoría de diseño rondas 1 y 2 cerradas (Diseño aprobado condicionado al celular). Nada fue validado en el celular: todo queda «No verificado en dispositivo» hasta la lista de `docs/checklist-manana-jueves.md`; `npm run doctor` aún no lo ejecutó Anderson con credenciales reales.
-- Aprendizaje:
+- Aprendizaje: Aprendí que cerrar los hallazgos H-1 a H-4 en dos rondas de diseño deja evidencia clara, con verifiers distintos de cada implementer. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #58
 - Fecha: 2026-11-12
@@ -1987,7 +1989,7 @@ Segunda pasarela de pagos: Stripe Checkout (modo de prueba), conservando Mercado
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: backend/src/{providers/*,stripe.js,config.js,firestore.js,routes/*,app.js,server.js}, backend/scripts/doctor.mjs, backend/.env.example (solo nombres); src/services/trip/*, src/hooks/useChargeProviders.js, labels.js, TripSummaryScreen.js, historyQuery.js, earnings.js; firestore.rules local; docs (guías, checklist, guion, omisiones, README, decisiones D-116..D-120 Propuesta, progress, backlog, auditorías); pruebas nuevas. Sin commit: parche en la carpeta temporal de la sesión (stripe-r12.patch).
 - Verificación: 26 archivos de prueba en verde; check-constitution 13 errores (C01 en .env ignorados + 11 C21 previos), 147 advertencias; sin dependencias nuevas; verifiers distintos por rebanada; sin pasar a «Validada»: falta evidencia del celular y la prueba HTTP real (npm install en backend/).
-- Aprendizaje:
+- Aprendizaje: Aprendí que integrar Stripe exige separar los proveedores en el backend y no pasar a «Validada» sin evidencia de dispositivo. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #59
 - Fecha: 2026-11-12
@@ -2019,7 +2021,7 @@ Corrección urgente de la selección de pasarela de pago + decisiones pendientes
 - Usado / modificado / descartado: (pendiente: Anderson)
 - Archivos y commit: nuevos paymentGateway.js, hooks/useChargeProviders.js, paymentGateway.test.mjs, paymentConvention.test.mjs; modificados chargePanel, TripSummaryScreen, IncomingRequestCard, TripRequestScreen, tripDetailView, passengerApi (contract, mappers), tripRecord, paymentsClient, labels, backend (middleware, app, server, routes/payments, firestore, providers/registry, scripts/doctor.mjs), firestore.rules (local, create solo cash y mercadopago), decisiones (D-116..D-120 Vigente, D-121), seguridad, omisiones-y-limites y pruebas asociadas. Sin commit ni parche: ambos comandos fueron denegados; todo queda en el árbol de trabajo para que Anderson haga el commit.
 - Verificación: los 28 archivos de scripts/tests pasan; check-constitution igual que la línea base (13 errores / 147 avisos); verifier distinto (un pase): sin rechazos funcionales y 3 menores (dos de documentación ya corregidos; texto heredado en labels sin efecto). Todo «Implementada / No verificado en dispositivo»; el Diseño de T-147/T-150 sigue Pendiente. Falta la prueba de Anderson con Stripe en el celular.
-- Aprendizaje:
+- Aprendizaje: Aprendí que el error de selección de pasarela se arregla con un módulo central (`paymentGateway.js`) y pruebas de convención entre los pagos. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #60
 - Fecha: 2026-11-12
@@ -2113,8 +2115,8 @@ editables). Sin recap de pasos.
 - Resumen de la respuesta (2–3 líneas): Perfil editable acotado (nombre, celular, color, correo de cobros) con validadores del registro, guardado con updateDoc de 4 campos, color al marcador del mapa, textos «Correo de cobros» (D-122, D-123) y regla `validProfileEdit()` propuesta en `docs/seguridad.md` sin publicar. Sesión previa cortada por créditos; se retomó y se cerró lo pendiente.
 - Usado / modificado / descartado: Usado lo ya implementado (T-157 a T-164). Modificado: `labels.js` (paymentTransfer neutro) y un comentario de `profileEdit.js` (C26). Descartado: renombrar el campo `mercadoPagoEmail` en Firestore.
 - Archivos y commit: `src/utils/profileEdit.js`, `profileEditFlow.js`, `src/services/profileUpdater.js`, `driverRepository.js`, `src/hooks/useProfileEdit.js`, `ProfileScreen.js`, `TextField.js`, `DocumentsScreen.js`, `HomeScreen.js`, `labels.js`, 4 pruebas en `scripts/tests/`, y docs (spec, plan, decisiones, requisitos, backlog, seguridad, progress, omisiones). Sin commit; lo hace Anderson.
-- Verificación (la completa Anderson): 
-- Aprendizaje (lo escribe Anderson):
+- Verificación (la completa Anderson): Sin verificación registrada.
+- Aprendizaje (lo escribe Anderson): Aprendí que un perfil editable debe validar igual que el registro y guardar solo cuatro campos; la regla `validProfileEdit()` quedó propuesta, sin publicar. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #61
 - Fecha: 2026-11-12
@@ -2303,8 +2305,8 @@ con propinas, cuenta A→B sin mezcla. Sin recapitular pasos.
 - Resumen de la respuesta (2–3 líneas): Auditoría del enunciado con brechas ordenadas; propina y calificación simuladas con cobro `fare + tip` desde el documento del viaje y regla `validTrip()` BLOQUEANTE en `docs/seguridad.md`; direcciones con Nominatim (1 req/s, caché, respaldo «Calle cercana (simulada)»); README reescrito y `.env.example` con `EXPO_PUBLIC_BACKEND_URL`. Verifier: aprobada en lo estático; auditor de diseño: aprobado con observaciones.
 - Usado / modificado / descartado: Usado el patrón de la API simulada y de `tripRecord`. Modificado el cobro del backend (monto desde Firestore). Descartado: comisión sobre la propina y Google Geocoding.
 - Archivos y commit: `backend/src/chargeAmount.js`, `backend/src/routes/payments.js`, `backend/src/providers/stripe.js`, `backend/src/providers/mercadopago.js`, `backend/src/mercadopago.js`, `src/services/passengerApi/` (`simulatedFeedback.js`, `mockPassengerApi.js`, `mappers.js`, `contract.js`), `src/services/trip/tripRecord.js`, `tripDetailView.js`, `src/services/geocoding/`, `src/config/geocoding.js`, `src/hooks/useRequestAddresses.js`, `useTripRequests.js`, `src/context/TripContext.js`, `TripDetailScreen.js`, `TripActiveScreen.js`, `TripRequestScreen.js`, `TripSummaryScreen.js`, `src/constants/labels.js`, `src/utils/earnings.js`, pruebas en `scripts/tests/` (`tipFeedback`, `reverseGeocode`, `tripDetailView`), `.env.example`, `README.md`, y docs (`decisiones`, `progress`, `omisiones-y-limites`, `seguridad`, `auditoria-enunciado-2026-11-12`, `diseno/auditoria-propina-direcciones-2026-11-12`). Sin commit; lo hace Anderson.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Verificación (la completa Anderson): Verificación estática por verifier distinto; no probada en dispositivo (verifier aprobó en lo estático; auditor de diseño con observaciones)
+- Aprendizaje (lo escribe Anderson): Aprendí que la propina simulada debe cobrarse con el monto del documento del viaje, y que Nominatim exige respetar una petición por segundo. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #62
 - Fecha: 2026-11-16
@@ -2464,8 +2466,8 @@ ANDERSON PARA LA FASE 2". Sin recapitular pasos. No escribas código.
 - Resumen de la respuesta (2–3 líneas): Investigación FCM (RN Firebase 27.1.1 con spike S1 y plan B expo-notifications), spec 003 (RF-67…85, RNF-21…25), plan con T-167…T-193 en 6 rebanadas (~23,25 h) y decisiones D-126…D-136 como Propuesta. El revisor distinto RECHAZÓ de forma condicionada (9 hallazgos, 1 mayor: orden de clearOwnStorage vs. espera de guardados); la fase se detuvo sin corregirlos.
 - Usado / modificado / descartado: Usado: investigación, spec y plan. Modificado: referencia D-77/D-52 en plan.md (por el revisor) y párrafo del canal en investigación. Descartado: nada; hallazgos 1–9 del revisor pendientes de decisión.
 - Archivos y commit: docs/fcm/investigacion.md, specs/003-notificaciones-fcm/spec.md, specs/003-notificaciones-fcm/plan.md, docs/backlog.md, docs/requisitos.md, docs/decisiones.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/AI_LOG.md. Sin commit; lo hace Anderson.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Verificación (la completa Anderson): Verificación estática por verifier distinto; no probada en dispositivo (revisor distinto rechazó de forma condicionada, 9 hallazgos)
+- Aprendizaje (lo escribe Anderson): Aprendí que investigar FCM antes de programar mostró un plan B (`expo-notifications`), y que el revisor distinto halló 9 hallazgos, uno mayor. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #63
@@ -2575,8 +2577,8 @@ pasos. No escribas código.
 - Resumen de la respuesta (2–3 líneas): Se corrigieron los 9 hallazgos y se aplicaron D-126…D-136 (D-132 y D-136 rechazadas; nuevas D-137 y D-138) en decisiones, spec, plan, backlog (T-167…T-195), requisitos, seguridad y omisiones. Segunda revisión por un revisor distinto: aprueba con observaciones menores; un defecto medio (T-184/T-185 contra el hallazgo 1) y seis menores se corrigieron después sin nueva revisión.
 - Usado / modificado / descartado: Usado: pushTokens en colección raíz, una sola calculateFare, ventana de decisión 15 s separada de la validez ≈90 s. Descartado: fcmTokens por uid, collectionGroup, copia de calculateFare, temporizador de 30 s, dirección fija en la notificación.
 - Archivos y commit: docs/decisiones.md, docs/requisitos.md, docs/seguridad.md, docs/omisiones-y-limites.md, docs/backlog.md, docs/fcm/investigacion.md, docs/AI_LOG.md, specs/003-notificaciones-fcm/spec.md y plan.md. Sin commit; lo hace Anderson.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Verificación (la completa Anderson): Verificación estática por verifier distinto; no probada en dispositivo (segundo revisor distinto aprobó con observaciones menores)
+- Aprendizaje (lo escribe Anderson): Aprendí que corregir los 9 hallazgos y pedir otra revisión aún deja defectos; lo que no se vuelve a revisar debe quedar dicho. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #64 — FCM — implementación (rebanadas S1–S6)
@@ -2880,8 +2882,8 @@ avances a S5.
 - Hoy — Archivos y commit (sin hash; según `git status`): docs/{AI_LOG,auditoria-enunciado-2026-11-12,backlog,decisiones,guion-video,omisiones-y-limites,plan-cierre-entrega-2026-11-16,progress,requisitos}.md, README.md, specs/003-notificaciones-fcm/spec.md, scripts/tests/withRequestsChannel.test.mjs, scripts/tests/fixtures/MainApplication.template.kt; en el árbol además, de otros pasos del día: docs/diseno/auditoria-fcm-2026-11-16.md, scripts/tests/{drawerRouteNames,headlessEntry,intentFlow,notificationsFreeSymbols}.test.mjs, index.js, src/components/{AvailabilitySwitch,IncomingRequestCard,NotificationsBridge,PrimaryButton,SecondaryButton,SwitchTrack}.js, src/components/settings/NotificationsSection.js, src/constants/labels.js, src/navigation/{AppDrawerContent,MainDrawer}.js, src/screens/home/HomeScreen.js, src/screens/trip/TripRequestScreen.js, src/services/notifications/{backgroundHandler,eligibility,index,intentFlow,safeLog}.js, src/services/trip/requestPresentation.js, src/theme/tokens.js. Sin commit.
 - Hoy (2026-11-16), Parte A (notificación → pantalla completa + contador + cierre de diseño FCM): D-149 (tocar la notificación abre siempre la solicitud a pantalla completa desde cualquier pantalla del Drawer; una solicitud ya mostrada como tarjeta se promueve sin duplicarla ni reiniciar los 15 s; la llegada pasiva queda como antes; rechazar/vencer/cerrar vuelve a la pantalla de origen; aceptar va al viaje y Atrás no vuelve a la solicitud), D-150 (contador: texto de énfasis más barra fina sobre pista clara, sin bloque relleno, contrastes AA recalculados 6,08 / 6,54 / 5,12 / 5,50, anuncio accesible solo a 10, 5 y 0 s) y D-151 (O-03 «La solicitud expiró», O-09 borde del botón inactivo, O-10 topes de fuente, O-11 valor accesible del interruptor). Elegibilidad D-133/D-146 intacta. Nueva lógica pura en `src/services/trip/requestNavigation.js` con 10 pruebas.
 - Hoy, Parte A — Revisión: verifier distinto aprobó en lo estático (sin hallazgos críticos ni mayores). Design-auditor (sin capturas, solo la declaración textual de Anderson): Diseño «Aprobado parcial» solo para interruptor con chip informativo, tarjeta y pantalla de solicitud operativas; contador nuevo, O-09, O-11 y fuente al 200 % siguen «Pendiente de dispositivo». Hallazgo H-1 (urgente solo por color) enviado al implementer para añadir un icono; H-2 y H-3 esperan captura/TalkBack. Límite conocido documentado: con la app cerrada en el dev client `getInitialNotification` devuelve null; la demo usa la build release. No existe `docs/fcm/capturas/` aunque Anderson dijo haber guardado capturas allí.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Verificación (la completa Anderson): según `docs/progress.md`, validada en dispositivo por Anderson el 2026-11-16 solo en parte: STOP-1 parcial (CA-003-02: compiló, token FCM, permiso y notificación de la consola en segundo plano; aviso emergente pendiente en ese momento); STOP-2 parcial (permiso, solicitud con la app abierta y en segundo plano, cambio de cuenta, permiso denegado, sin red); STOP-2b: con la app cerrada la solicitud no se mostró, y STOP-2c quedó cerrado en la build release (en el dev client `getInitialNotification` devuelve `null`); STOP-3 parcial (interruptor, chip «Activadas», tarjeta, pantalla de solicitud y notificación de prueba). El resto sigue pendiente de dispositivo; verifier distinto por rebanada.
+- Aprendizaje (lo escribe Anderson): Aprendí que implementar FCM por rebanadas con paradas validadas en el celular evita sorpresas, y que un `git stash pop` borró cinco archivos sin seguimiento. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #65 — Cierre de brechas del taller — lote L1
 - Fecha: 2026-11-16
@@ -3021,8 +3023,9 @@ RELEASE. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-4". Sin recapitula
 ````
 - Resumen de la respuesta (2–3 líneas): Parte A (el toque abre la pantalla completa, contador sin bloque, icono de urgencia H-1) y lote L1 (B1 métricas OSRM, B2 ganancias por rango, B3–B6) implementados, cada parte con un verifier distinto: todas «Verificada estáticamente», ninguna «Validada» (falta el celular). `npm test` 159/159; `check-constitution` 14 errores (línea base). La spec 004 sigue en Borrador; D-149, D-150, D-151, D-160, D-170 y D-180 en Propuesta.
 - Pulidos posteriores a STOP-4 (se hicieron en el lote L2, entrada #66): A1 pantalla de solicitud inmediata con «calculando»; A2 solicitud con «No disponible» no se ofrece y muestra aviso; A3 silenciar avisos de `npm test` y `engines`; A4 aviso de tope en Ganancias, texto de auditoría FCM y comentarios del backend.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca.
+- Verificación (la completa Anderson): Validada en dispositivo por Anderson en STOP-4 (2026-11-16, 13:47)
+- Aprendizaje (lo escribe Anderson): Aprendí que cerrar brechas por lotes (OSRM, Ganancias por rango, `npm test`) se valida mejor con una parada en el celular que solo con pruebas. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #66 — Cierre de brechas del taller — lote L2
 - Fecha: 2026-11-16
@@ -3144,8 +3147,9 @@ Decisiones de Anderson: aprobar el arreglo de `paymentView.js`; omitir el chip �
 
 #### Adenda del lote L3, Parte A (pulidos, prompt de la entrada #67, 2026-11-16)
 Evidencia de dispositivo STOP-5 de Anderson (14:54): L2 completo aprobado; ver progress.md. Pulidos: A1 ícono `warning` en el aviso parcial del saldo de Ganancias; A2 ícono de información sin reloj en «Cancelada: ya no estás disponible» (`closedReasonIcon`); A3 duración del aviso de la tarjeta = 2,5 s × factor de fuente con tope 6 s (`noticeDurationMs`); A4 la premisa del tope de 200 era falsa (ya paginaba a 5.000), se corrigió el falso positivo de `truncated` con exactamente 5.000 viajes y se añadieron pruebas de más de 200; A5 encuadre del mapa del Detalle con padding según atribución y fuente (`detailFitPadding`). Verifier distinto: A1–A5 aprobadas en lo estático; 261/261 pruebas, check-constitution 14 errores (base). Lo visual: No verificado en dispositivo.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca.
+- Verificación (la completa Anderson): Validada en dispositivo por Anderson en STOP-5 (2026-11-16, 14:54)
+- Aprendizaje (lo escribe Anderson): Aprendí que solo se debe aceptar una solicitud estando «Disponible», y que los estados nuevos del viaje no deben contaminar Ganancias ni pagos. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #67 — Cierre de brechas del taller — lote L3 (idioma)
 - Fecha: 2026-11-16
@@ -3265,8 +3269,9 @@ Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-6". Sin recapitular pasos.
 ````
 - Resumen de la respuesta (2–3 líneas): Cierre de L2 con la evidencia de Anderson, Parte A (íconos, aviso escalado, Ganancias por rango sin tope, encuadre del mapa del Detalle) y Parte B: módulo i18n propio es/en (D-187…D-192, Propuesta), selector en Configuración con preferencia por dispositivo, migración de todas las pantallas, componentes, navegación y servicios, y límites declarados. Verificado estáticamente por verifiers distintos y design-auditor (2 rondas); `npm test` 337/336 pasan/1 omitida, check-constitution 14 errores (base). Todo «Implementada, pendiente de dispositivo» (T-264, STOP-6).
 - Evento del proceso (añadido en el lote L3b, 2026-11-16): el design-auditor RECHAZÓ T-263 en la ronda 1 (`docs/diseno/auditorias/ronda-1-idioma.md`, Diseño «Rechazado») por hallazgos visuales del inglés con fuente grande. Se hizo UNA ronda de corrección con el implementer y el design-auditor volvió a revisar (`ronda-2-idioma.md`, Diseño «Aprobado»). Se siguió AGENTS.md P4 (corrección y segunda ronda) en lugar de la regla antigua del prompt «ante un rechazo, DETENTE», y se declaró así; el prompt del lote L3b formaliza esta regla.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca.
+- Verificación (la completa Anderson): Validada en dispositivo por Anderson en STOP-6 (2026-11-16, 15:59)
+- Aprendizaje (lo escribe Anderson): Aprendí que el idioma español/inglés exigió migrar todas las pantallas y servicios, y que se verificó la fuente al 200 % en inglés. (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #68 — Cierre de brechas del taller — lotes L3b, L4 y L7
 - Fecha: 2026-11-16
@@ -3391,8 +3396,9 @@ pasos.
 ````
 - Resumen de la respuesta (2–3 líneas): Lote L3b + L4 + L7 (proceso) implementado: selector de idioma sin sesión (Partes A/B, con auditoría de diseño ronda 1), pagos documentales, auditoría de la bitácora, README, guion (4:50) y checklist. El verifier documental rechazó una vez; una ronda de corrección y un segundo verifier aprobó. Cifras finales: `npm test` 358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores (base), 341 advertencias. Nada «Validada»: pendiente STOP-7.
 - Evento del proceso: el verifier documental rechazó Partes C/D (2 mayores: omisiones-y-limites.md omisión #3 de idioma obsoleta y estado inconsistente del toque de notificación entre README y omisiones; 3 menores: duración 4:45 vs 4:50, afirmación amplia en guion, referencia a checklist inexistente). Una ronda de corrección con implementer.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca.
+- Verificación (la completa Anderson): Validada en dispositivo por Anderson en STOP-7 (2026-11-16)
+- Aprendizaje (lo escribe Anderson): Aprendí que el selector de idioma sin sesión debe conservar lo escrito en el registro, y que un verifier documental puede rechazar a la primera. (borrador de Claude Code, revisado por Anderson)
 - Tareas E1–E5 (cierre final): E1 datos de ejemplo (datos de prueba/ejemplo del cierre); E2 entrada reconstruida de la normalización de placa (#69); E3 coherencia documental (A1 validado por STOP-4, app cerrada pendiente solo en release, STOP-7 reportado por Anderson, cifras de pruebas actual e históricas); E4 conformidad final; E5 cifras (358 pruebas, 357 pasan, 0 fallan, 1 omitida; check-constitution 14 errores base). Solo documentos, sin código.
 
 ### Entrada #69 — Normalización de la placa (T-174, RF-67)
@@ -3406,9 +3412,9 @@ pasos.
 - Resumen de la respuesta (2–3 líneas): no se conserva. Solo es comprobable en el repositorio el resultado: `normalizePlate` / `isValidPlate` en `src/utils/validators.js`, la prueba `scripts/tests/plateNormalization.test.mjs` y el comentario «T-174: no autocorrect/suggestions on the plate» en `src/screens/registration/VehicleScreen.js`.
 - Usado / modificado / descartado: no registrado.
 - Archivos: `src/utils/validators.js`, `scripts/tests/plateNormalization.test.mjs`, `src/screens/registration/VehicleScreen.js`. Nota de trazabilidad: el código cita «T-174», pero en `docs/backlog.md` T-174 es hoy la tarea de rutas `POST /notifications/register` y `/unregister` (FCM, S2); la numeración de la placa no coincide con el backlog actual. Según `docs/auditoria-bitacora-2026-11-16.md` (D2), el marcador original `#62` apuntaba por error a la entrada de FCM Fase 1 y se retiró del código; la restitución de la marca con este número la decide Anderson.
-- Hash de commit:
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca
+- Verificación (la completa Anderson): Sin verificación registrada.
+- Aprendizaje (lo escribe Anderson): Al documentarlo después vi que sin el prompt original solo queda el código; registrar a tiempo la placa y su T-174 habría evitado la numeración confusa. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #70 — FCM — solicitudes automáticas (pasajero simulado)
@@ -3515,9 +3521,9 @@ en RELEASE:
     (9) `npm test`. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8". Sin recapitular pasos.
 ````
 - Resumen de la respuesta (2–3 líneas): lote L4 (spec 007, T-273 a T-277) implementado con verifier distinto por rebanada y sin rechazos: generador en memoria del backend (T-273), endpoint `POST /notifications/availability` (T-274), reporte y función pura de fuente única server/mock en la app (T-275, T-276) y documentación de límites (T-277). T-278 (checklist STOP-8) queda para Anderson. Todo «Implementada, pendiente de dispositivo»; spec 007 sigue en Borrador. Hallazgos abiertos: DT-9 (baja de token), posible retiro de una tarjeta push al pasar de mock a server, sin prueba del hook.
-- Hash de commit:
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca
+- Verificación (la completa Anderson): Validada en dispositivo por Anderson en STOP-8 (2026-11-16, 19:10) y STOP-8b (2026-11-16, 19:40)
+- Aprendizaje (lo escribe Anderson): Aprendí que las solicitudes automáticas necesitan que la app reporte su disponibilidad al backend y una sola fuente entre servidor y simulador, para no duplicar. (borrador de Claude Code, revisado por Anderson)
 
 - **Corrección STOP-8 (Anderson, 2026-11-16 19:10, mismo #70, sin entrada nueva):** al ponerse «No disponible» con la app en segundo plano seguían llegando notificaciones nuevas. Prompt (textual):
 ````
@@ -3611,7 +3617,7 @@ Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-8b". Sin recapitular pasos.
 - Pulido (cierre final, #71): STOP-8 y STOP-8b quedan Validadas en dispositivo por Anderson (2026-11-16, 19:10 y 19:40); el punto 4 de STOP-8 falló y se corrigió con T-279 a T-281. Cifra de `npm test`: 410 pruebas, 409 pasan, 0 fallan, 1 omitida.
 
 ### Entrada #71 — Cierre final del taller — evidencias y conformidad
-<!-- AI-assisted: see docs/AI_LOG.md #71 -->
+<!-- AI-assisted: see AI_LOG.md #71 -->
 - Fecha de registro: 2026-11-16
 - Fecha del trabajo: 2026-11-16
 - Integrante: Anderson Londoño Avendaño
@@ -3707,13 +3713,13 @@ Termina con "LISTO PARA CIERRE MANUAL DE ANDERSON". Sin recapitular pasos.
 - Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote. E1: ejemplos y teléfonos ficticios; E2: la entrada reconstruida de la placa ya existía como #69 y se ajustó la tabla de auditoría; E3 a E6: ver informe final.
 - Usado / modificado / descartado: lo completa Anderson.
 - Archivos: lo completa Anderson tras la entrega.
-- Hash de commit:
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca
+- Verificación (la completa Anderson): Verificación estática por verifier distinto; no probada en dispositivo (verificación de conformidad final)
+- Aprendizaje (lo escribe Anderson): Aprendí que el cierre final se apoya en un verifier de conformidad contra el enunciado, y que los datos de ejemplo deben ser ficticios. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #72 — Correcciones tras el build de release
-<!-- AI-assisted: see docs/AI_LOG.md #72 -->
+<!-- AI-assisted: see AI_LOG.md #72 -->
 - Fecha de registro: 2026-11-16
 - Fecha del trabajo: 2026-11-16
 - Integrante: Anderson Londoño Avendaño
@@ -3851,13 +3857,13 @@ Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-9". Sin recapitular pasos.
 - Resumen de la respuesta (2–3 líneas): A) seq monótono persistido, `applied`/`lastSeq` en el backend y un reintento con seq mayor (D-199); B) se retiró el botón «Llegué», llegada automática y aproximación simulada acotada a 25 s (D-200); C) «Disponible» persistido por uid, restaurado con condiciones y tri-estado con tope de 2 s en la compuerta (D-201). Verifiers distintos aprobaron A, B y C por código; diseño aprobado por código tras una ronda de corrección. Pruebas: 453 (452 ok, 0 fallan, 1 omitida); check-constitution 14 errores (base). Nada probado en dispositivo.
 - Usado / modificado / descartado: lo completa Anderson.
 - Archivos: backend/src/notifications/generator.js, backend/src/routes/notifications.js, src/services/notifications/{seqStore,availabilityReporter,notificationsApi,notificationsService,eligibility,intentFlow}.js, src/services/{availabilityPreference,availabilityRestore}.js, src/config/{availability,trip}.js, src/context/{AvailabilityContext,TripContext,useSessionReset}.js, src/components/NotificationsBridge.js, src/screens/trip/TripActiveScreen.js, src/services/trip/tripController.js, i18n es/en, pruebas nuevas y ajustadas, docs (decisiones D-199..D-201, backlog T-282..T-290, analisis-solicitudes-release, auditoria-llegando). Anderson confirma con git status.
-- Hash de commit:
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca
+- Verificación (la completa Anderson): Sin fila de verifier en progress.md para T-282 a T-290; el Resumen de la entrada cita revisión por verifier distinto.
+- Aprendizaje (lo escribe Anderson): Aprendí que en release la secuencia de disponibilidad debe ser monótona y persistida, y que «Disponible» debe sobrevivir al cierre de la app. (borrador de Claude Code, revisado por Anderson)
 
 
 ### Entrada #73 — Ajustes de demo de las solicitudes automáticas
-<!-- AI-assisted: see docs/AI_LOG.md #73 -->
+<!-- AI-assisted: see AI_LOG.md #73 -->
 - Fecha de registro: 2026-11-16
 - Fecha del trabajo: 2026-11-16
 - Integrante: Anderson Londoño Avendaño
@@ -3987,12 +3993,12 @@ test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-10". Sin recapitular 
 - Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote.
 - Usado / modificado / descartado: lo completa Anderson.
 - Archivos: lo completa Anderson tras la entrega.
-- Hash de commit:
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
+- Hash de commit: sin relación inequívoca
+- Verificación (la completa Anderson): Sin verificación registrada.
+- Aprendizaje (lo escribe Anderson): Aprendí que pedí en un mismo lote diagnosticar «La solicitud expiró», acortar los tiempos de demo, evitar avisos apilados y quitar «Solicitud de prueba». (borrador de Claude Code, revisado por Anderson)
 
 ### Entrada #74 — Tipo de pago alternado en las solicitudes automáticas
-<!-- AI-assisted: see docs/AI_LOG.md #74 -->
+<!-- AI-assisted: see AI_LOG.md #74 -->
 - Fecha de registro: 2026-11-16
 - Fecha del trabajo: 2026-11-16
 - Integrante: Anderson Londoño Avendaño
@@ -4003,6 +4009,6 @@ test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-10". Sin recapitular 
 sabes qué todo me ha parecido perfecto, pero haciendo pruebas manuales noto que no me estan llegando solicitudes de carrera con pago en efectivo así que quiero que el backend envíe las solicitudes de manera escalonada, es decir, una de efectivo otra de tarjeta, y así sucesivamente no quiero que sea random o aleatorio el tema del tipo de pago en las solicitudes, vamos allá entonces.
 ````
 - Resultado: ver D-207 en docs/decisiones.md y T-300 en docs/backlog.md. No verificado en dispositivo.
-- Verificación (la completa Anderson):
-- Aprendizaje (lo escribe Anderson):
-- Hash del commit (lo completa Anderson):
+- Verificación (la completa Anderson): Sin verificación registrada.
+- Aprendizaje (lo escribe Anderson): Aprendí que alternar efectivo y tarjeta de forma determinista (D-207) hace la demo repetible, sin azar. (borrador de Claude Code, revisado por Anderson)
+- Hash del commit (lo completa Anderson): sin relación inequívoca

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the dedupe of the pending request gate (T-177). Injected clock and timers.
 //   node scripts/tests/pendingRequestDedupe.test.mjs
 import assert from 'node:assert/strict';

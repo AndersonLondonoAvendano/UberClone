@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the notifications step of resetSession (T-185, D-134): order, no change when the
 // reset stops early, a 3 s bound that never blocks signOut, restore when signOut fails.
 //   node scripts/tests/resetSessionUnregister.test.mjs

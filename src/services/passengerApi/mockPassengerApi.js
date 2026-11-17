@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #61
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #61
 // Simulated passenger API (default adapter). It speaks only the internal contract shape
 // (contract.js) and never knows HTTP or the real API's shape. Everything lives in memory.
 // - While subscribed it emits one request at a time, every MOCK_EMIT_MIN_MS–MOCK_EMIT_MAX_MS, near
@@ -128,7 +128,7 @@ export function createMockPassengerApi({
         durationMin: Math.max(1, Math.round((distanceKm / MOCK_AVERAGE_SPEED_KMH) * 60)),
       },
       category: pick(TRIP_CATEGORIES),
-      // AI-assisted: see docs/AI_LOG.md #74 (D-207: deterministic alternation, cash first, never drawn)
+      // AI-assisted: see AI_LOG.md #74 (D-207: deterministic alternation, cash first, never drawn)
       paymentMethod: nextPaymentMethod(),
       tip,
       rating,
@@ -212,7 +212,7 @@ export function createMockPassengerApi({
     const { request } = pending;
     const adopted = pending.adopted === true;
     clearPending();
-    // AI-assisted: see docs/AI_LOG.md #73 (D-202: same clock tolerance as the app)
+    // AI-assisted: see AI_LOG.md #73 (D-202: same clock tolerance as the app)
     if (isRequestExpired(request.expiresAt, now())) {
       logPushEventDev('expired-clock');
       scheduleNext();
@@ -249,7 +249,7 @@ export function createMockPassengerApi({
       };
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     // Releases a trip the driver left without its final status reaching the API ("Salir del viaje",
     // or ending the trip after a failure), so new requests flow again. No-op for another trip.
     async releaseTrip(tripId) {
@@ -261,7 +261,7 @@ export function createMockPassengerApi({
 
     async acceptRequest(requestId) {
       const { request, adopted } = takePending(requestId);
-      // AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203): "taken by another driver" is only simulated for a
+      // AI-assisted: see AI_LOG.md #73 (T-293, D-203): "taken by another driver" is only simulated for a
       // simulator request (never a push one) and only after a real decision time (MOCK_TAKEN_MIN_DECISION_MS).
       const mayBeTaken = !adopted && now() - request.createdAt >= MOCK_TAKEN_MIN_DECISION_MS;
       if (mayBeTaken && random() < alreadyTakenProbability) {

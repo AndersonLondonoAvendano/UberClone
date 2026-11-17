@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #73 (T-291, D-202)
+// AI-assisted: see AI_LOG.md #73 (T-291, D-202)
 // Validity of a request against the phone clock (pure; the clock is always passed in). `expiresAt` comes from
 // the server, so the phone clock may be a few seconds off in either direction: tolerance is the only rule.
 import { REQUEST_DECISION_WINDOW_MS } from '../../config/passengerApi';

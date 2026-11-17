@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Tests for the active-language store (T-243; CA-006-15, 17, 19 store part).
 import test from 'node:test';
 import assert from 'node:assert/strict';

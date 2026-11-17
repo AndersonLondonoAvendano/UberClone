@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Plain Node tests for the payments backend with fake Firestore, auth and Mercado Pago (no network,
 // no express, no firebase-admin). Covers CA-002-61 to CA-002-67. Run:
 //   node scripts/tests/backendPayments.test.mjs

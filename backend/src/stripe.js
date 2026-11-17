@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #58
+// AI-assisted: see AI_LOG.md #58
 // Stripe Checkout over native fetch and node:crypto (no SDK). Pure functions first (amount conversion,
 // form encoding, session-to-state mapping, webhook signature), then the HTTP client at the end.
 import { createHmac, timingSafeEqual } from 'node:crypto';

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Thin React layer over the pure profile edit flow (R13, DP-56). The flow is created once per
 // mount and read with useSyncExternalStore. It is reset when the account (uid) changes, which
 // also covers resetSession: the session reset ends with driverId === null.

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #54
 // Counter of trip saves still in flight (including their retry waits). The session reset waits for
 // it to reach zero before signing out, so a slow network never loses the last trip. Pure and
 // timer-free: no network, no React. trackTripSave wraps the whole save (retries included).

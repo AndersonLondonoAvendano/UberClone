@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // push tokens at pushTokens/{sha256(token)}: { uid, token, platform, createdAt, updatedAt }. Only the Admin SDK
 // touches this collection (no Firestore rules, no index). db is firebase-admin's Firestore or a fake exposing
 // collection(name).doc(id), collection(name).where(field, op, value).get() and runTransaction(fn).

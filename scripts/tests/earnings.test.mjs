@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Plain Node tests for the earnings metrics (CA-002-87, CA-002-88) and the pure core of useEarnings.
 import assert from 'node:assert/strict';
 import './helpers/registerSrcLoader.mjs';
@@ -51,7 +51,7 @@ assert.equal(built.month.count, 2);
 assert.equal(built.balance, 15360 - 3840);
 assert.equal(buildEarnings([], now).balance, 0);
 assert.equal(buildEarnings(undefined, now).month.average, 0);
-// AI-assisted: see docs/AI_LOG.md #57 (T-122, CA-002-94, RF-54)
+// AI-assisted: see AI_LOG.md #57 (T-122, CA-002-94, RF-54)
 // Legacy trips (no paymentMethod and no paymentStatus) ARE included in the totals and metrics.
 {
   const legacy = trip(co(2026, 11, 11, 8));
@@ -66,7 +66,7 @@ assert.equal(buildEarnings(undefined, now).month.average, 0);
   assert.equal(buildEarnings(list, now).month.count, 3);
 }
 
-// AI-assisted: see docs/AI_LOG.md #58 (T-149, CA-002-125)
+// AI-assisted: see AI_LOG.md #58 (T-149, CA-002-125)
 // A Stripe trip counts in the totals and in the balance like a Mercado Pago one.
 {
   const stripeTrip = trip(co(2026, 11, 11, 9), { paymentMethod: 'stripe', paymentStatus: 'approved' });

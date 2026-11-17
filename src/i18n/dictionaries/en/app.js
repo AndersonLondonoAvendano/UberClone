@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // English dictionary, app-level sections: appName, registrationFlow, tabs, drawer, nav, home, auth (T-248).
 // Same paths and {param} placeholders as es.js; keys still missing fall back to Spanish.
 export const enApp = {

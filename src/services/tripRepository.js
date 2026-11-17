@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #50
 // Saved trips: drivers/{uid}/trips/{tripId} (T-46 to T-48). The trip id is the document id, so saving
 // the same trip twice never creates a second document. The rules do not allow general updates (only the
 // cash confirmation below), so the save reads first: an existing document means "already saved" and nothing is written again.
@@ -22,7 +22,7 @@ export async function saveTrip(uid, tripId, record, { timeoutMs = SAVE_TIMEOUT_M
   return { alreadySaved: false };
 }
 
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Cash only (T-95): the rules allow the driver exactly one update on a saved trip, changing
 // paymentStatus and status to paid and nothing else. Card payments are written by the backend.
 export async function confirmCashPayment(uid, tripId, { timeoutMs = SAVE_TIMEOUT_MS } = {}) {
@@ -30,7 +30,7 @@ export async function confirmCashPayment(uid, tripId, { timeoutMs = SAVE_TIMEOUT
   await withTimeout(updateDoc(ref, { paymentStatus: PAYMENT_STATUS.PAID, status: TRIP_STATUS.PAID }), timeoutMs);
 }
 
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Listens to one saved trip document (T-96). onNext receives { id, ...fields } or null when the document
 // does not exist yet; onError receives the Firestore error. Returns the unsubscribe.
 export function subscribeTrip(uid, tripId, onNext, onError) {
@@ -52,7 +52,7 @@ export function listenToTrips(uid, { onData, onError, max = TRIPS_LIMIT }) {
   );
 }
 
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // One page of the history (T-102): createdAt descending, range only on createdAt (a single field, so no
 // composite index), pageSize documents, continuing after the cursor (the last document of the previous
 // page). The query is built with injected Firestore functions so a test can inspect the arguments.
@@ -85,7 +85,7 @@ export function fetchTripsPage(uid, { start, end, pageSize = TRIPS_PAGE_SIZE, cu
   return fetchTripsPageWith(FIRESTORE_FNS, collection(db, 'drivers', uid, 'trips'), { start, end, pageSize, cursor });
 }
 
-// AI-assisted: see docs/AI_LOG.md #65
+// AI-assisted: see AI_LOG.md #65
 // Every trip finished inside [start, end) for the earnings totals (RC-04). One field only (finishedAt:
 // orderBy plus range), so the automatic single-field index serves it and no composite index is needed.
 // Reads pages of pageSize with startAfter until a short page or maxDocs (hard cap; truncated = true).
@@ -114,7 +114,7 @@ export async function fetchTripsInRangeWith(
     if (docs.length < size) return { trips, truncated: false };
     cursor = docs[docs.length - 1];
   }
-  // AI-assisted: see docs/AI_LOG.md #67 (A4: exactly maxDocs trips is not truncated; one extra read of 1
+  // AI-assisted: see AI_LOG.md #67 (A4: exactly maxDocs trips is not truncated; one extra read of 1
   // document tells whether anything follows the cap)
   const probe = [
     fns.orderBy('finishedAt', 'desc'),
@@ -127,7 +127,7 @@ export async function fetchTripsInRangeWith(
   return { trips, truncated: more.length > 0 };
 }
 
-// AI-assisted: see docs/AI_LOG.md #66
+// AI-assisted: see AI_LOG.md #66
 // Every saved trip of the driver for the balance (B1, D-182): createdAt descending, pages of pageSize with
 // startAfter, hard cap maxDocs (truncated = true when the cap was reached and there may be more). One
 // field only, so no composite index. Cost: one read per trip returned (at most maxDocs per call).
@@ -144,7 +144,7 @@ export async function fetchAllTripsWith(fns, tripsCollection, { pageSize = TRIPS
     if (docs.length < size) return { trips, truncated: false };
     cursor = docs[docs.length - 1];
   }
-  // AI-assisted: see docs/AI_LOG.md #66 (C2b: exactly maxDocs trips is not truncated; one extra read tells
+  // AI-assisted: see AI_LOG.md #66 (C2b: exactly maxDocs trips is not truncated; one extra read tells
   // whether there is anything after the cap)
   const probeConstraints = [fns.orderBy('createdAt', 'desc'), fns.limit(1)];
   if (cursor) probeConstraints.push(fns.startAfter(cursor));

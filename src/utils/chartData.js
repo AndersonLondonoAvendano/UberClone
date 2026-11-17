@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Pure grouping of net earnings for the bar chart (T-103), in Colombian time (UTC-5). Today: six
 // 4-hour bands; Week and Month: one bar per day; Rango: per day up to 31 days, otherwise per week
 // (7-day blocks counted from the first day). Empty groups are 0; trips with an invalid date or a

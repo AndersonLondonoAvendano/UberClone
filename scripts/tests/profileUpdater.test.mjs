@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #60
+// AI-assisted: see AI_LOG.md #60
 // Plain Node tests for src/services/profileUpdater.js (CA-002-137, CA-002-144). Run:
 //   node scripts/tests/profileUpdater.test.mjs
 import './helpers/registerSrcLoader.mjs';

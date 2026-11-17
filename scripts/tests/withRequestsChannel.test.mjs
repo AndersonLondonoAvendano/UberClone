@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the pure part of the requests-channel config plugin (D-139).
 //   node scripts/tests/withRequestsChannel.test.mjs
 import assert from 'node:assert/strict';
@@ -29,7 +29,7 @@ assert.equal(count(addChannelToMainApplication(out), 'begin withRequestsChannel'
 
 // Import already present: not duplicated.
 {
-  const pre = fixture.replace('import android.app.Application', 'import android.app.Application\nimport android.os.Build');
+  const pre = fixture.replace('import android.app.Application', 'import android.app.Application' + (fixture.includes('\r\n') ? '\r\n' : '\n') + 'import android.os.Build');
   const res = addChannelToMainApplication(pre);
   assert.equal(count(res, 'import android.os.Build'), 1);
   assert.equal(count(res, 'import android.app.NotificationChannel'), 1);

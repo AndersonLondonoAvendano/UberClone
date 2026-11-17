@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // T-172: pure test request and FCM message.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -67,7 +67,7 @@ test('a single token string is wrapped and every data value is a string', () => 
   assert.doesNotMatch(JSON.stringify(message), /fare|price|address|tarifa|email|phone/i);
 });
 
-// AI-assisted: see docs/AI_LOG.md #73
+// AI-assisted: see AI_LOG.md #73
 test('D-205: the message carries the fixed tag and collapse key next to the channel, with no fare or address', () => {
   const message = buildMessage('only', request);
   assert.equal(message.android.collapseKey, 'trip_request');
@@ -76,7 +76,7 @@ test('D-205: the message carries the fixed tag and collapse key next to the chan
   assert.doesNotMatch(JSON.stringify(message.android), /fare|price|address|tarifa/i);
 });
 
-// AI-assisted: see docs/AI_LOG.md #74
+// AI-assisted: see AI_LOG.md #74
 test('D-207: paymentMethod defaults to cash, accepts card and rejects anything else', () => {
   assert.equal(request.paymentMethod, 'cash');
   assert.equal(buildTestRequest({ now: NOW, targetUid: 'u', paymentMethod: 'card' }).paymentMethod, 'card');

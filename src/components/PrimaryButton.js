@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #51 (redesign: stronger label, clearer outline)
-// AI-assisted: see docs/AI_LOG.md #18
-// AI-assisted: see docs/AI_LOG.md #43 (optional disabled state and accessibility hint)
-// AI-assisted: see docs/AI_LOG.md #64 (quietDisabled: legible inactive look; busy state; font scale cap)
+// AI-assisted: see AI_LOG.md #51 (redesign: stronger label, clearer outline)
+// AI-assisted: see AI_LOG.md #18
+// AI-assisted: see AI_LOG.md #43 (optional disabled state and accessibility hint)
+// AI-assisted: see AI_LOG.md #64 (quietDisabled: legible inactive look; busy state; font scale cap)
 // Primary action button: the single accent-filled control of a screen.
 // Tokens only. Press feedback changes opacity only, so the layout never moves.
 
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   quiet: {
     backgroundColor: color.surfaceMuted,
     borderWidth: borderWidth.thin,
-    borderColor: color.border, // AI-assisted: see docs/AI_LOG.md #64 (O-09: visible outline, the shape reads as a disabled button)
+    borderColor: color.border, // AI-assisted: see AI_LOG.md #64 (O-09: visible outline, the shape reads as a disabled button)
     ...elevation.none,
     shadowOpacity: 0,
     elevation: 0,

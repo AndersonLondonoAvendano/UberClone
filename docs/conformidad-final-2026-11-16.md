@@ -45,7 +45,7 @@ Regla de estado: «Cumplido y validado en dispositivo» solo si `docs/progress.m
 | §7 Geolocalización (obligatorio) | Cumplido y validado en dispositivo (primer plano) | `src/hooks/useDriverLocation.js`; `expo-location` (D-82); sin segundo plano (D-130) | Rebanada B |
 | §7 Opcionales: react-native-maps, Cloudinary, Nominatim, OSRM | Cumplido, con sustitución | MapLibre + OpenFreeMap en vez de react-native-maps; Nominatim `src/config/geocoding.js`; Cloudinary; OSRM | D-82, D-125 |
 | §7 Distance Matrix solo al crear y aceptar | No aplica por la sustitución | Distancia y duración por OSRM al abrir la solicitud (STOP-4) | D-82 |
-| §8 Bitácora `docs/AI_LOG.md`, sección «Uso de IA», PDF | Parcial | `docs/AI_LOG.md` existe; marcas AI-assisted en el código (`tripStatus.js:1-2`); `docs/auditoria-bitacora-2026-11-16.md`. PDF y entradas Verificación/Aprendizaje de Anderson: manual | AGENTS.md |
+| §8 Bitácora `AI_LOG.md`, sección «Uso de IA», PDF | Parcial | `AI_LOG.md` existe; marcas AI-assisted en el código (`tripStatus.js:1-2`); `docs/auditoria-bitacora-2026-11-16.md`. PDF y entradas Verificación/Aprendizaje de Anderson: manual | AGENTS.md |
 | §9 README con instalación, `.env.example`, Uso de IA | Cumplido, pendiente de dispositivo | `README.md`; clon limpio no ejecutado | P6 |
 | §9 Video de máximo 5 min; ramas y PR con merge en main | Parcial | `docs/guion-video.md` listo; video, PR y merge manuales (rama actual `anderson/fcm-notificaciones`) | Manual |
 | Extra: solicitudes automáticas (spec 007) | Cumplido y validado en dispositivo | STOP-8 (`progress.md:382`) y STOP-8b (`:383`, D-198) | D-198 |

@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Tests for the safe token log (maskToken, logTokenInDev). Run: node --test scripts/tests/notificationSafeLog.test.mjs
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

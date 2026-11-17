@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #56
+// AI-assisted: see AI_LOG.md #56
 // Pure layout helper of the bar chart (T-104): with many bars only every Nth label is drawn so the
 // labels never overlap. The accessibilityLabel of every bar always carries its own label and amount.
 

@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #42
-// AI-assisted: see docs/AI_LOG.md #43
+// AI-assisted: see AI_LOG.md #42
+// AI-assisted: see AI_LOG.md #43
 // Simulated location source (T-41): walks a polyline ([lng, lat][]) at a constant speed, emitting
 // one interpolated point every tickMs, then the last point, then onEnd. Without coordinates it uses
 // the routing module (T-36, unchanged) between the fixed test points. Same interface as the GPS
@@ -33,7 +33,7 @@ export function pointAlong(coordinates, cumulative, distanceM) {
   return [lng0 + (lng1 - lng0) * t, lat0 + (lat1 - lat0) * t];
 }
 
-// AI-assisted: see docs/AI_LOG.md #72
+// AI-assisted: see AI_LOG.md #72
 // Speed to use so that walking `coordinates` takes at most `maxDurationS`: the base speed when the walk is
 // already that short, a higher one otherwise. Pure.
 export function speedForMaxDuration(coordinates, baseKmh, maxDurationS) {
@@ -58,7 +58,7 @@ export function createSimulatedLocationSource({
       return 'granted';
     },
 
-    // AI-assisted: see docs/AI_LOG.md #44
+    // AI-assisted: see AI_LOG.md #44
     async getPermission() {
       return 'granted';
     },

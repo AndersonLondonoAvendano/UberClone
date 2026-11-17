@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Programmable in-memory adapter for scripts. Same contract as rnFirebaseAdapter; never touches the SDK.
 // The emit* helpers simulate incoming events.
 import { PERMISSION_STATE } from '../constants';

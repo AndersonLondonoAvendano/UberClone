@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for adoptRequest of the mock (T-179, D-130): a push request becomes the pending one.
 //   node scripts/tests/mockAdoptRequest.test.mjs
 import assert from 'node:assert/strict';

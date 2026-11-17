@@ -1,7 +1,7 @@
-// AI-assisted: see docs/AI_LOG.md #12
-// AI-assisted: see docs/AI_LOG.md #25
-// AI-assisted: see docs/AI_LOG.md #50
-// AI-assisted: see docs/AI_LOG.md #54
+// AI-assisted: see AI_LOG.md #12
+// AI-assisted: see AI_LOG.md #25
+// AI-assisted: see AI_LOG.md #50
+// AI-assisted: see AI_LOG.md #54
 // Shared app state (useContext): auth session (email/password), real account status (Firestore)
 // and the demo value. The drivers/{uid} subscription opens only with a session and
 // is released when the user changes or is lost.

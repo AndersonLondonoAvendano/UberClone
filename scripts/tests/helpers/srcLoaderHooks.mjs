@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #55
+// AI-assisted: see AI_LOG.md #55
 // Node module hooks for the pure tests: the app source uses extensionless imports (Metro) and
 // imports Firebase, so this resolves "./x" to "./x.js" and replaces the Firebase modules with
 // stubs that record calls in globalThis.__fsCalls. Test-only; nothing here ships in the app.

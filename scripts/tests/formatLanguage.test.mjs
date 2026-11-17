@@ -1,5 +1,5 @@
-// AI-assisted: see docs/AI_LOG.md #67
-// AI-assisted: see docs/AI_LOG.md #68
+// AI-assisted: see AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #68
 // T-251: per-language formats (CA-006-28, 29, 30). Instants are built from local parts, so any time zone works.
 import test from 'node:test';
 import assert from 'node:assert/strict';

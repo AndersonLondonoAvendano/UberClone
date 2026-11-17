@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see AI_LOG.md #67
 // Active-language store (RI-14, RI-15). The language changes at once and subscribers are told; saving
 // to the device is best effort and happens after. Saves run in call order, so with two quick changes
 // the last one wins and is the one left stored. Nothing here throws.

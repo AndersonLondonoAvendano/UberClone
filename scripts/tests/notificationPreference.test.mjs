@@ -1,4 +1,4 @@
-// AI-assisted: see docs/AI_LOG.md #64
+// AI-assisted: see AI_LOG.md #64
 // Plain Node test for the notificationsEnabled preference (T-184, D-134). Injected storage.
 //   node scripts/tests/notificationPreference.test.mjs
 import assert from 'node:assert/strict';

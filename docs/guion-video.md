@@ -1,6 +1,6 @@
 # Guion del video — UberClone Conductor (máximo 5 minutos)
 
-<!-- AI-assisted: see docs/AI_LOG.md #68 (D5) -->
+<!-- AI-assisted: see AI_LOG.md #68 (D5) -->
 
 Estado: borrador para Anderson, sin ensayar. Los flujos de L1 a L3 y de pagos se validaron en el celular (ver [progress.md](progress.md) y [pagos-evidencia.md](pagos-evidencia.md)); el selector de idioma sin sesión (STOP-7) y las solicitudes automáticas (STOP-8 y STOP-8b) están validados en dispositivo por Anderson; la app cerrada con solicitudes automáticas solo se puede ver en la build release y sigue pendiente de dispositivo. El guion completo no se ha grabado: ensáyalo con cronómetro y ajusta tiempos y textos a lo que de verdad ocurra. Lo que no se vea en el ensayo se deja fuera o se dice como pendiente.
 
