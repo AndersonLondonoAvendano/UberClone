@@ -3,7 +3,9 @@
 // adopted in the passenger adapter. If the adapter then refuses it, the gate slot is released, so a
 // duplicate never touches the mock and a refused request never stays pending. Pure: dependencies injected.
 
+import { logPushEventDev } from '../notifications/safeLog';
 import { OFFER_RESULT } from './pendingRequest';
+import { effectiveExpiry, isRequestExpired } from './requestValidity';
 import { withCap, withMetricsPending, withoutMetricsPending } from './requestMetrics';
 
 // adopt(request) returns true when the adapter accepted it. Returns true only when it became pending.
@@ -17,6 +19,7 @@ export function offerPushThroughGate({ gate, adopt, request }) {
   }
   if (!adopted) {
     gate.release(request.id);
+    logPushEventDev('released');
     return false;
   }
   return true;
@@ -34,7 +37,7 @@ export const PUSH_OFFER_RESULT = {
 // Without a tap (or for another id) it is the plain offer.
 export function offerPushWithArrival({ gate, adopt, request, tap = false, now = Date.now }) {
   const pending = gate.get();
-  if (tap && pending && pending.id === request.id && pending.expiresAt > now()) return PUSH_OFFER_RESULT.PROMOTED;
+  if (tap && pending && pending.id === request.id && !isRequestExpired(pending.expiresAt, now())) return PUSH_OFFER_RESULT.PROMOTED;
   return offerPushThroughGate({ gate, adopt, request }) ? PUSH_OFFER_RESULT.OFFERED : PUSH_OFFER_RESULT.REJECTED;
 }
 
@@ -59,6 +62,7 @@ export function offerPushRefined({
   isCurrent = () => true,
   onOffered = () => {},
   onFinal = () => {},
+  log = logPushEventDev, // AI-assisted: see docs/AI_LOG.md #73 (dev-only fixed codes)
   capMs = 3000,
   setTimer,
   clearTimer,
@@ -67,11 +71,14 @@ export function offerPushRefined({
   if (shared) return shared;
 
   const pending = gate.get();
-  if (tap && pending && pending.id === request.id && pending.expiresAt > now()) {
+  if (tap && pending && pending.id === request.id && !isRequestExpired(pending.expiresAt, now())) {
     return Promise.resolve(PUSH_OFFER_RESULT.PROMOTED);
   }
-  if (request.expiresAt <= now()) return Promise.resolve(PUSH_OFFER_RESULT.EXPIRED);
-  if (pending && pending.expiresAt > now()) return Promise.resolve(PUSH_OFFER_RESULT.REJECTED); // busy
+  if (isRequestExpired(request.expiresAt, now())) {
+    log('expired-clock');
+    return Promise.resolve(PUSH_OFFER_RESULT.EXPIRED);
+  }
+  if (pending && !isRequestExpired(pending.expiresAt, now())) return Promise.resolve(PUSH_OFFER_RESULT.REJECTED); // busy
 
   const run = (async () => {
     // Shown at once: the gate only dedupes and the adapter is NOT touched yet (it adopts the final copy).
@@ -90,20 +97,25 @@ export function offerPushRefined({
     } catch {
       refined = fallback;
     }
-    const final = withoutMetricsPending(refined);
+    let final = withoutMetricsPending(refined);
     if (!isCurrent()) {
       gate.release(request.id);
+      log('released');
       return PUSH_OFFER_RESULT.REJECTED;
     }
     const stillPending = gate.get();
     if (!stillPending || stillPending.id !== request.id) {
       // Decided, released or expired while the route was being looked up.
-      return final.expiresAt <= now() ? PUSH_OFFER_RESULT.EXPIRED : PUSH_OFFER_RESULT.REJECTED;
+      return isRequestExpired(final.expiresAt, now()) ? PUSH_OFFER_RESULT.EXPIRED : PUSH_OFFER_RESULT.REJECTED;
     }
-    if (final.expiresAt <= now()) {
+    if (isRequestExpired(final.expiresAt, now())) {
       gate.release(request.id);
+      log('expired-clock');
       return PUSH_OFFER_RESULT.EXPIRED;
     }
+    // AI-assisted: see docs/AI_LOG.md #73 (D-202): the window starts with the final data, so a request that is
+    // still valid always has its full 15 s from here.
+    final = { ...final, expiresAt: effectiveExpiry(final.expiresAt, now()) };
     let adopted = false;
     try {
       adopted = adopt(final) === true;
@@ -112,9 +124,11 @@ export function offerPushRefined({
     }
     if (!adopted) {
       gate.release(request.id);
+      log('released');
       return PUSH_OFFER_RESULT.REJECTED;
     }
     gate.update(final);
+    log('adopted');
     onFinal(final, { capped });
     return PUSH_OFFER_RESULT.OFFERED;
   })().finally(() => {

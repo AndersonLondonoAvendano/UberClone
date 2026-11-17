@@ -11,8 +11,11 @@ const intent = (extra = {}) => ({ targetUid: 'A', requestId: 'r', expiresAt: NOW
 const ctx = (extra = {}) => ({ session: { uid: 'A' }, accountApproved: true, onTrip: false, now: NOW, ...extra });
 
 assert.equal(resolveIntent(intent(), ctx()), INTENT_DECISION.OPEN);
-assert.equal(resolveIntent(intent({ expiresAt: NOW }), ctx()), INTENT_DECISION.EXPIRED);
-assert.equal(resolveIntent(intent({ expiresAt: NOW - 1 }), ctx()), INTENT_DECISION.EXPIRED);
+// D-202: expired only when now >= expiresAt + 10 s of clock tolerance (phone clock ahead or behind).
+assert.equal(resolveIntent(intent({ expiresAt: NOW }), ctx()), INTENT_DECISION.OPEN);
+assert.equal(resolveIntent(intent({ expiresAt: NOW - 9999 }), ctx()), INTENT_DECISION.OPEN);
+assert.equal(resolveIntent(intent({ expiresAt: NOW - 10000 }), ctx()), INTENT_DECISION.EXPIRED);
+assert.equal(resolveIntent(intent({ expiresAt: NOW - 20000 }), ctx()), INTENT_DECISION.EXPIRED);
 assert.equal(resolveIntent(intent({ targetUid: 'B' }), ctx()), INTENT_DECISION.IGNORE);
 assert.equal(resolveIntent(intent(), ctx({ session: null })), INTENT_DECISION.IGNORE);
 assert.equal(resolveIntent(intent(), ctx({ session: {} })), INTENT_DECISION.IGNORE);

@@ -32,3 +32,13 @@ export function logPushTiming(code, ms, { isDev = false, log } = {}) {
   if (isDev !== true || typeof log !== 'function' || !Number.isFinite(ms)) return;
   log(`[push] ${code} ms=${Math.round(ms)}`);
 }
+
+// AI-assisted: see docs/AI_LOG.md #73 (T-292, D-202)
+// Dev-only trace for callers that have no injected logger: same fixed code, console only when __DEV__.
+// Codes are fixed words (adopted, expired-clock, released, taken-by-other); never a token, name or uid.
+export function logPushEventDev(code) {
+  logPushEvent(code, {
+    isDev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
+    log: (message) => console.log(message),
+  });
+}

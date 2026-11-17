@@ -1,5 +1,7 @@
 // AI-assisted: see docs/AI_LOG.md #64
-// Pure client of the backend notification endpoints (T-181, DP-70, RF-72, RF-81). fetch, the ID-token
+// AI-assisted: see docs/AI_LOG.md #73
+// Pure client of the backend notification endpoints (T-181, DP-70, RF-72, RF-81). The client of
+// POST /notifications/test-request was removed with its Settings UI (T-297, D-206); the endpoint stays. fetch, the ID-token
 // getter, the base URL and the timeout are injected (same pattern as paymentsClient), so a script can
 // test it without network or Firebase. It never throws: every result is { ok: true, ... } or
 // { ok: false, error }. It never sends the uid (the backend takes it from the ID token) and never
@@ -75,10 +77,6 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     unregisterToken(token) {
       if (typeof token !== 'string' || token.length === 0) return Promise.resolve(fail(NOTIFICATIONS_ERROR.SERVER));
       return post('/notifications/unregister', { token });
-    },
-    // Asks the backend to send the simulated request to this driver's devices (optionally delayed).
-    requestTestNotification({ delaySeconds } = {}) {
-      return post('/notifications/test-request', delaySeconds === undefined ? {} : { delaySeconds });
     },
     // Tells the backend whether the driver is available. The body is only { available } or { available, seq }
     // (seq only when it is a safe integer > 0): no location, no uid, no personal data. Resolves

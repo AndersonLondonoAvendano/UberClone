@@ -34,5 +34,11 @@ export const MOCK_AVERAGE_SPEED_KMH = 25;
 // Mock: low probability that another driver "takes" the request when it is accepted.
 export const MOCK_ALREADY_TAKEN_PROBABILITY = 0.1;
 
+// AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203)
+// Purpose: the simulated "another driver took it" only makes sense after a real decision. It is never
+// simulated for a request adopted from a push, and for a simulator request only when the driver accepts at
+// least this long after it was emitted (never on a first load or a quick tap).
+export const MOCK_TAKEN_MIN_DECISION_MS = 5000;
+
 // Mock: generic address (reverse geocoding is out of scope).
 export const MOCK_ADDRESS = 'Calle cercana (simulada)';

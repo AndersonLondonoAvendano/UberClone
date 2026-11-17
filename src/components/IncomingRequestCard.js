@@ -15,10 +15,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SIMULATED_SPEED_KMH } from '../config/location';
-import { EXPIRED_NOTICE_MS } from '../config/trip';
+import { EXPIRED_NOTICE_MS, REQUEST_CLOCK_TOLERANCE_MS } from '../config/trip';
 import { labels } from '../constants/labels';
 import { useLanguage } from '../i18n/useLanguage';
 import { decisionDeadline, markShown } from '../services/trip/decisionWindow';
+import { logPushEventDev } from '../services/notifications/safeLog';
 import { noticeDurationMs } from '../services/trip/noticeDuration';
 import { paymentLabelKey } from '../services/trip/paymentGateway';
 import { useAppState } from '../context/AppStateContext';
@@ -48,7 +49,6 @@ const TICK_MS = 1000;
 const ENTRANCE_MS = 200;
 const ENTRANCE_OFFSET = 24;
 const MAX_HEIGHT_RATIO = 0.7;
-const EXPIRY_TOLERANCE_MS = 1500;
 const URGENT_SECONDS = 10; // same threshold as TripRequestScreen
 const toLngLat = (point) => [point.lng, point.lat];
 const formatRating = (rating) => String(Math.round(rating * 10) / 10).replace('.', ',');
@@ -126,12 +126,15 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
       const reason = requestClosedReason({
         available: isAvailableRef.current,
         remainingMs: shown.expiresAt - Date.now(),
-        toleranceMs: EXPIRY_TOLERANCE_MS,
+        toleranceMs: REQUEST_CLOCK_TOLERANCE_MS,
       });
       if (reason === CLOSED_REASON.UNAVAILABLE) {
         // AI-assisted: see docs/AI_LOG.md #66 (C2d: released because the driver went "No disponible")
         setNotice(closedReasonText(reason));
-      } else if (Date.now() >= shown.expiresAt - EXPIRY_TOLERANCE_MS) {
+      } else if (Date.now() >= shown.expiresAt - REQUEST_CLOCK_TOLERANCE_MS) {
+        // AI-assisted: see docs/AI_LOG.md #73 (D-202: a request that vanishes within the clock tolerance of its
+        // deadline was an expiry; the single constant replaces the old local 1500 ms)
+        logPushEventDev('expired-clock');
         setNotice(labels.trip.expired);
         // AI-assisted: see docs/AI_LOG.md #66 (T-229: expired by its own deadline, same decline path; already released)
         declineRequest({ uid: driverId, request: shown.request, reason: DECLINE_REASON.EXPIRED, release: false });
@@ -247,6 +250,7 @@ export function IncomingRequestCard({ currentRoute, getNavigation }) {
       const gone = cause?.code === PASSENGER_API_ERROR.ALREADY_TAKEN || cause?.code === PASSENGER_API_ERROR.EXPIRED;
       if (gone) {
         clearPendingRequest(request.id);
+        logPushEventDev(cause?.code === PASSENGER_API_ERROR.ALREADY_TAKEN ? 'taken-by-other' : 'released');
         setNotice(errorMessage(cause));
       } else {
         if (shownRef.current) shownRef.current.handled = false; // the driver may try again

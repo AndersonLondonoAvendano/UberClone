@@ -49,6 +49,9 @@ export async function declineRequest({
 }) {
   const id = request?.id;
   if (!id) return DECLINE_RESULT.SKIPPED;
+  // AI-assisted: see docs/AI_LOG.md #73 (T-293): nothing is saved or released before the final data exists; the
+  // id is not remembered, so the later decision on the final copy still goes through.
+  if (request.metricsPending === true) return DECLINE_RESULT.SKIPPED;
   if (accepted.has(id) || declined.has(id)) return DECLINE_RESULT.SKIPPED;
   remember(declined, id);
 

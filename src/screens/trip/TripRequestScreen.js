@@ -53,7 +53,7 @@ import { haversineDistanceM } from '../../services/routing/straightLine';
 import { decisionDeadline, markShown } from '../../services/trip/decisionWindow';
 import { planLeave } from '../../services/trip/requestNavigation';
 import { SkeletonBlock } from '../../components/ScreenState';
-import { canDecide, decisionWindowStart, displayFare, isMetricsPending } from '../../services/trip/requestMetrics';
+import { canDecide, decisionWindowStart, displayFare, isMetricsPending, resolveShownRequest } from '../../services/trip/requestMetrics';
 import { requestTotalSeconds, secondsUntil } from '../../services/trip/requestPresentation';
 import { badgeSize, borderWidth, color, iconSize, maxFontScale, radius, space, touch, type } from '../../theme/tokens';
 import { commissionPercent } from '../../utils/fare';
@@ -94,7 +94,12 @@ export function TripRequestScreen({ navigation }) {
   // later replaces the same id with the final copy, which this screen follows. The 15 s window starts only
   // when the final data is shown, so while pending nothing is marked and the countdown does not tick.)
   const [opened] = useState(() => pendingRequest);
-  const request = pendingRequest && opened && pendingRequest.id === opened.id ? pendingRequest : opened;
+  // AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203): the last copy WITH final data is kept as the fallback, so
+  // when the slot is released (taken, expired) the screen never falls back to the metricsPending skeletons.
+  const lastFinalRef = useRef(null);
+  const shown = resolveShownRequest({ opened, pending: pendingRequest, lastFinal: lastFinalRef.current });
+  lastFinalRef.current = shown.lastFinal;
+  const request = shown.request;
   const metricsPending = isMetricsPending(request);
   const windowMarkedRef = useRef(false);
   if (request && !windowMarkedRef.current) {
@@ -113,6 +118,11 @@ export function TripRequestScreen({ navigation }) {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState(null); // { message, gone }
   const [decided, setDecided] = useState(false);
+  // AI-assisted: see docs/AI_LOG.md #73 (D-203): a notice belongs to one request; a new id starts clean.
+  const requestIdForError = request?.id ?? null;
+  useEffect(() => {
+    setError(null);
+  }, [requestIdForError]);
   const decidedRef = useRef(false);
   const mountedRef = useRef(true);
   // The uid is read through a ref so the unmount cleanup and the expiry effect use the latest value.

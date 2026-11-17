@@ -16,6 +16,9 @@ export const TEST_REQUEST_RATE_LIMIT = { max: 5, windowMs: 60_000 };
 export const FCM_TTL_MS = 90_000;
 export const FCM_TTL = '90s';
 export const FCM_CHANNEL_ID = 'solicitudes';
+// AI-assisted: see docs/AI_LOG.md #73
+// Fixed Android notification tag and FCM collapse key: a new request replaces the previous one in the tray (D-205).
+export const FCM_REQUEST_TAG = 'trip_request';
 export const TEST_REQUEST_MAX_DELAY_S = 60;
 export const PUSH_TOKEN_MIN_LENGTH = 20;
 export const PUSH_TOKEN_MAX_LENGTH = 512;
@@ -24,13 +27,14 @@ export const FCM_BATCH_SIZE = 500;
 export const STRIPE_WEBHOOK_BODY_LIMIT = '64kb';
 
 // AI-assisted: see docs/AI_LOG.md #70
+// Defaults retuned for the demo in #73 (D-204).
 // Automatic simulated requests (spec 007). Seconds/minutes come from the environment; the generator receives ms.
 export const AUTO_REQUEST_DEFAULTS = {
-  firstMinS: 15,
-  firstMaxS: 30,
-  nextMinS: 60,
-  nextMaxS: 120,
-  maxPerSession: 10,
+  firstMinS: 8,
+  firstMaxS: 15,
+  nextMinS: 35,
+  nextMaxS: 60,
+  maxPerSession: 8,
   heartbeatMaxMin: 30,
 };
 const AUTO_REQUEST_LIMITS = { maxSeconds: 3600, maxPerSession: 1000, maxHeartbeatMin: 1440 };

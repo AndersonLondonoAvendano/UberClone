@@ -96,3 +96,7 @@ P70-R1 → RA-01..05, 12; R2 → RA-06..09; R3 → RA-10..12; R4 → RA-13, 14; 
 
 - **D-197** (ordenada por Anderson, #70): el backend genera solicitudes automáticas; reemplaza a D-130 en lo que choca; incluye la regla de fuente única (RA-13).
 - Propuesta menor para el plan (no numerada): tope de frecuencia del latido y su intervalo, y el nombre del endpoint, los fija el planner.
+
+## Adenda #73 (D-204)
+
+Los valores por defecto del generador pasan a: primera solicitud 8–15 s, siguientes 35–60 s y tope de 8 por sesión (antes 15–30 s, 60–120 s y 10). Siguen configurables y validadas con las variables `AUTO_REQUEST_*`. Los rangos citados en RA-01 y CA-007-01 se leen con estos valores; el resto de la spec no cambia. AI-assisted: see docs/AI_LOG.md #73

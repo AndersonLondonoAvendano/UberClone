@@ -2,7 +2,7 @@
 // Pure builders for the simulated trip request sent by the test endpoint and its FCM message.
 // No fare, no street addresses and no personal data of a real person travel in the message.
 import { randomUUID } from 'node:crypto';
-import { FCM_CHANNEL_ID, FCM_TTL_MS } from '../config.js';
+import { FCM_CHANNEL_ID, FCM_REQUEST_TAG, FCM_TTL_MS } from '../config.js';
 
 export const NOTIFICATION_TITLE = 'Nueva solicitud de viaje';
 const CATEGORY = 'economico';
@@ -63,7 +63,9 @@ export function buildMessage(tokens, request) {
       priority: 'high',
       // The installed Admin SDK types ttl as a number of milliseconds (it sends it as "90s").
       ttl: FCM_TTL_MS,
-      notification: { channelId: FCM_CHANNEL_ID },
+      // AI-assisted: see docs/AI_LOG.md #73
+      collapseKey: FCM_REQUEST_TAG,
+      notification: { channelId: FCM_CHANNEL_ID, tag: FCM_REQUEST_TAG },
     },
   };
 }

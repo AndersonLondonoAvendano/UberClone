@@ -6,11 +6,11 @@ import { createAvailabilityGenerator } from '../../backend/src/notifications/gen
 import { createFakeTimers } from './helpers/notificationsFakes.mjs';
 
 const CONFIG = {
-  firstMinMs: 15_000,
-  firstMaxMs: 30_000,
-  nextMinMs: 60_000,
-  nextMaxMs: 120_000,
-  maxPerSession: 10,
+  firstMinMs: 8000,
+  firstMaxMs: 15_000,
+  nextMinMs: 35_000,
+  nextMaxMs: 60_000,
+  maxPerSession: 8,
   heartbeatMaxMs: 30 * 60_000,
 };
 
@@ -45,17 +45,17 @@ function setup({ random = () => 0.5, config = {}, eligible = () => true, sendImp
   return { generator, timers, clock, sent, live, fireNext };
 }
 
-test('CA-007-01: first delay is inside [15, 30] s, extremes included', () => {
+test('CA-007-01: first delay is inside [8, 15] s, extremes included', () => {
   const low = setup({ random: () => 0 });
   low.generator.report('u1', true);
-  assert.equal(low.timers.timers[0].ms, 15_000);
+  assert.equal(low.timers.timers[0].ms, 8000);
   const high = setup({ random: () => 0.999999 });
   high.generator.report('u1', true);
-  assert.equal(high.timers.timers[0].ms, 30_000);
+  assert.equal(high.timers.timers[0].ms, 15_000);
 });
 
-test('CA-007-01: next delays are inside [60, 120] s, extremes included', async () => {
-  for (const [value, expected] of [[0, 60_000], [0.999999, 120_000]]) {
+test('CA-007-01: next delays are inside [35, 60] s, extremes included', async () => {
+  for (const [value, expected] of [[0, 35_000], [0.999999, 60_000]]) {
     const ctx = setup({ random: () => value });
     ctx.generator.report('u1', true);
     await ctx.fireNext();
@@ -70,19 +70,19 @@ test('CA-007-01: the timer is unref-ed so it never keeps the process alive', () 
   assert.equal(ctx.timers.timers[0].unrefCalled, true);
 });
 
-test('CA-007-02: with cap 10 exactly 10 are sent, then more only after false then true', async () => {
+test('CA-007-02: with cap 8 exactly 8 are sent, then more only after false then true', async () => {
   const ctx = setup();
   ctx.generator.report('u1', true);
-  for (let i = 0; i < 10; i += 1) await ctx.fireNext();
-  assert.equal(ctx.sent.length, 10);
+  for (let i = 0; i < 8; i += 1) await ctx.fireNext();
+  assert.equal(ctx.sent.length, 8);
   assert.equal(ctx.live().length, 0);
   ctx.generator.report('u1', true); // still capped: only refreshes the heartbeat
   assert.equal(ctx.live().length, 0);
-  assert.equal(ctx.sent.length, 10);
+  assert.equal(ctx.sent.length, 8);
   ctx.generator.report('u1', false);
   ctx.generator.report('u1', true);
-  for (let i = 0; i < 10; i += 1) await ctx.fireNext();
-  assert.equal(ctx.sent.length, 20);
+  for (let i = 0; i < 8; i += 1) await ctx.fireNext();
+  assert.equal(ctx.sent.length, 16);
   assert.equal(ctx.live().length, 0);
 });
 

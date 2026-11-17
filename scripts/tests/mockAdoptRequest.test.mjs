@@ -57,7 +57,7 @@ const pushRequest = (id, ttl = 90000) => requestFromIntent({
 {
   const api = make();
   const old = pushRequest('r6');
-  advance(91000);
+  advance(101000); // D-202: expired only after validity (90 s) + clock tolerance (10 s)
   assert.equal(api.adoptRequest(old), ADOPT_RESULT.EXPIRED);
   assert.equal(api.adoptRequest(null), ADOPT_RESULT.INVALID);
   assert.equal(api.adoptRequest({ id: 'x' }), ADOPT_RESULT.INVALID);
@@ -67,7 +67,7 @@ const pushRequest = (id, ttl = 90000) => requestFromIntent({
 {
   const api = make();
   api.adoptRequest(pushRequest('r7', 5000));
-  advance(6000);
+  advance(26000); // D-202: a 5 s validity is raised to the full 15 s window, plus 10 s of clock tolerance
   await assert.rejects(api.acceptRequest('r7'), (e) => e.code === PASSENGER_API_ERROR.EXPIRED);
 }
 

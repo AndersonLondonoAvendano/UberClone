@@ -83,7 +83,7 @@ assert.equal(ps.isSupported(PERMISSION_STATE.UNSUPPORTED), false);
   adapter.emitForeground(push());
   adapter.emitForeground({ type: 'other' });
   adapter.emitForeground(null);
-  adapter.emitForeground(push({ requestId: 'r2', expiresAt: String(NOW - 1) }));
+  adapter.emitForeground(push({ requestId: 'r2', expiresAt: String(NOW - 20000) }));
   assert.equal(got.length, 1);
   assert.equal(got[0][0].id, 'r1');
   assert.equal(got[0][1], 'A');

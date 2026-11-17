@@ -99,8 +99,8 @@ test('CA-007-08 and CA-007-06: extra fields never change the target uid or the c
     assert.equal(res.status, 200);
     assert.deepEqual(res.json, { active: true, applied: true });
     assert.equal(live(ctx.timers).length, 1);
-    // First request in [15, 30] s with random = 0.5.
-    assert.equal(ctx.timers.timers[0].ms, 22_500);
+    // First request in [8, 15] s with random = 0.5.
+    assert.equal(ctx.timers.timers[0].ms, 11_500);
     fire(ctx.timers, 0);
     await flush();
     assert.equal(ctx.messaging.calls.length, 1);
@@ -108,9 +108,9 @@ test('CA-007-08 and CA-007-06: extra fields never change the target uid or the c
     assert.deepEqual(message.tokens, [tokenOf(1)]);
     assert.equal(message.data.targetUid, 'u1');
     assert.doesNotMatch(JSON.stringify(message), /hack|fare|price|address|tarifa|email|phone/i);
-    // The next one is scheduled in [60, 120] s.
+    // The next one is scheduled in [35, 60] s.
     assert.equal(live(ctx.timers).length, 1);
-    assert.equal(ctx.timers.timers[1].ms, 90_000);
+    assert.equal(ctx.timers.timers[1].ms, 47_500);
   }));
 
 test('CA-007-11: the generated payload has no fare and no addresses', () =>
@@ -352,7 +352,7 @@ test('a failing send does not break the generator: the next one is scheduled', a
 test('config: defaults, valid overrides and fallback to defaults on invalid or unordered values', () => {
   const defaults = loadAutoRequestConfig({});
   assert.deepEqual(defaults, {
-    firstMinMs: 15_000, firstMaxMs: 30_000, nextMinMs: 60_000, nextMaxMs: 120_000, maxPerSession: 10, heartbeatMaxMs: 1_800_000,
+    firstMinMs: 8000, firstMaxMs: 15_000, nextMinMs: 35_000, nextMaxMs: 60_000, maxPerSession: 8, heartbeatMaxMs: 1_800_000,
   });
   const custom = loadAutoRequestConfig({
     AUTO_REQUEST_FIRST_MIN_S: '5', AUTO_REQUEST_FIRST_MAX_S: '6', AUTO_REQUEST_NEXT_MIN_S: '7', AUTO_REQUEST_NEXT_MAX_S: '8',

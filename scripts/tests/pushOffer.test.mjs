@@ -288,7 +288,7 @@ const tick = () => new Promise((resolve) => setImmediate(resolve));
     refine: (r) => refineRequestMetrics(r, resolver), adopt: () => (adoptCalls += 1, true),
   });
   await tick();
-  clock = NOW + 2500;
+  clock = NOW + 12500; // D-202: past expiresAt + 10 s of clock tolerance
   release();
   assert.equal(await p, PUSH_OFFER_RESULT.EXPIRED);
   assert.equal(adoptCalls, 0);
@@ -350,7 +350,7 @@ const tick = () => new Promise((resolve) => setImmediate(resolve));
   let refines = 0;
   const refine = async (r) => (refines += 1, r);
   assert.equal(
-    await offerPushRefined({ gate, request: full('r5', { expiresAt: NOW - 1 }), inFlight: new Map(), now: () => NOW, refine, adopt: () => true }),
+    await offerPushRefined({ gate, request: full('r5', { expiresAt: NOW - 10_000 }), inFlight: new Map(), now: () => NOW, refine, adopt: () => true }),
     PUSH_OFFER_RESULT.EXPIRED,
   );
   gate.offer(req('x'));

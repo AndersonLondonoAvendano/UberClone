@@ -145,7 +145,7 @@ test('promoting a pending request keeps the gate slot and the original 15 s wind
   markShown('p1', NOW); // TripRequestScreen mounts and marks it again: the first instant wins
   assert.equal(decisionDeadline(request, NOW), decisionDeadline(request, NOW - 6_000));
   // Tap on an expired same id is not promoted.
-  NOW = request.expiresAt + 1;
+  NOW = request.expiresAt + 10_001; // D-202: past the clock tolerance
   assert.notEqual(offerPushWithArrival({ gate, adopt, request, tap: true, now: () => NOW }), PUSH_OFFER_RESULT.PROMOTED);
   // Tap on another id while busy is rejected, not promoted.
   const gate2 = createPendingRequestGate({ now: () => 1000, setTimer: () => 1, clearTimer: () => {} });

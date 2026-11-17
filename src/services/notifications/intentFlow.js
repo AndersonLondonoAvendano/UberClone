@@ -8,6 +8,7 @@
 // once). The wait re-evaluates by itself at the cap through the injected timer (cancelWait() on unmount).
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { INTENT_DECISION, ignoreReason, isDriverAvailable, resolveIntent } from './eligibility';
+import { isRequestExpired } from '../trip/requestValidity';
 import { requestFromIntent } from './pushRequest';
 
 export const FLOW_RESULT = {
@@ -89,6 +90,7 @@ export function createIntentFlow({
       if (decision === INTENT_DECISION.EXPIRED) {
         showExpired();
         log('intent-expired');
+        log('expired-clock');
         return FLOW_RESULT.EXPIRED;
       }
       if (decision === INTENT_DECISION.OPEN) {
@@ -106,7 +108,8 @@ export function createIntentFlow({
           log('intent-adopted');
           return FLOW_RESULT.ADOPTED;
         }
-        if (request && now() >= request.expiresAt) {
+        // AI-assisted: see docs/AI_LOG.md #73 (D-202: same tolerance as everywhere)
+        if (request && isRequestExpired(request.expiresAt, now())) {
           // Expired while the route was being refined.
           showExpired();
           log('intent-expired');

@@ -43,6 +43,7 @@ Referencias: [plan de cierre](plan-cierre-entrega-2026-11-16.md) · [progress](p
 - [ ] «Salir del viaje» a mitad de un viaje.
 - [ ] Viajes antiguos en Historial y Detalle.
 - [ ] Solicitudes automáticas con la app CERRADA (solo en la build release).
+- [ ] Ajustes del #73, todo No verificado en dispositivo: tiempos nuevos (primera 8–15 s, siguientes 35–60 s, tope 8; D-204); bandeja sin apilar `trip_request` y su límite (la notificación de una solicitud aceptada o vencida solo desaparece al llegar la siguiente o al descartarla; D-205); caducidad con validez de 90 s y tolerancia de reloj de 10 s (D-202); Configuración sin «Solicitud de prueba», con «Notificaciones» intacta (T-297, D-206). El endpoint de prueba se conserva sin interfaz.
 - [ ] Estado visual del Historial al 200 % (si no hay captura).
 
 STOP-8 (19:10) y STOP-8b (19:40) están Validadas en dispositivo por Anderson (ver [progress](progress.md)).

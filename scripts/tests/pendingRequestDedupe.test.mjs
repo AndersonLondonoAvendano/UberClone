@@ -35,7 +35,7 @@ const req = (id, expiresAt) => ({ id, expiresAt });
 {
   const { gate, advance } = makeGate();
   gate.offer(req('a', 2000));
-  advance(1500);
+  advance(12000); // D-202: the slot lives until expiresAt + 10 s of clock tolerance
   assert.equal(gate.get(), null);
   assert.equal(gate.offer(req('a', 9000)), OFFER_RESULT.DUPLICATE);
 }
@@ -53,7 +53,7 @@ const req = (id, expiresAt) => ({ id, expiresAt });
 // Expired offers are not remembered.
 {
   const { gate } = makeGate();
-  assert.equal(gate.offer(req('x', 500)), OFFER_RESULT.EXPIRED);
+  assert.equal(gate.offer(req('x', -20000)), OFFER_RESULT.EXPIRED); // D-202: beyond the clock tolerance
   assert.equal(gate.offer(req('x', 5000)), OFFER_RESULT.OFFERED);
 }
 

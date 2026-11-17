@@ -3854,3 +3854,139 @@ Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-9". Sin recapitular pasos.
 - Hash de commit:
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #73 — Ajustes de demo de las solicitudes automáticas
+<!-- AI-assisted: see docs/AI_LOG.md #73 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: diagnosticar y corregir «La solicitud expiró» / «Otro conductor tomó esta solicitud» al abrir desde la notificación, acortar los tiempos del generador para la demo, evitar que las notificaciones se apilen en la bandeja y quitar «Solicitud de prueba» de Configuración.
+- Prompt (textual):
+````
+PROMPT — Solicitudes: caducidad al abrir desde la notificación, tiempos de demo, bandeja sin apilar y quitar «Solicitud de prueba»
+
+0. AI_LOG: crea UNA entrada nueva "Ajustes de demo de las solicitudes automáticas" con ESTE PROMPT
+   COMPLETO, textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson. Declara
+   las decisiones nuevas (D-1xx, siguiente número libre) y enlaza a D-137, D-197, D-199, D-201.
+
+EVIDENCIA (Anderson, 2026-11-16 20:49, APK de release, backend sin reiniciar)
+A) Con «Disponible» activo en la pantalla de inicio las solicitudes tardan demasiado en llegar. Hoy:
+   primera a los 15–30 s, siguientes cada 60–120 s.
+B) Al abrir una solicitud desde la notificación aparece «La solicitud expiró» o «Otro conductor tomó
+   esta solicitud». Anderson nota que le pasa sobre todo cuando deja «Disponible» activo, cierra la
+   app del todo y la abre tocando la notificación. Captura 1 (8:45): pantalla «Solicitud entrante» con
+   la tarifa y la dirección de destino todavía en «Calculando…» (esqueletos) y, a la vez, el aviso
+   «Otro conductor tomó esta solicitud» con «Volver a Inicio». Captura 2 (8:47): «La solicitud
+   expiró — Volviendo a Inicio…». En capturas anteriores la bandeja mostraba «Nueva solicitud de
+   viaje» con un contador de 2 (notificaciones apiladas).
+C) Anderson pide: acortar los tiempos para pruebas y para la demo a la profesora, pero que no se llene
+   la bandeja de notificaciones.
+D) Anderson pide quitar de Configuración la sección «Solicitud de prueba» (retraso y botón «Enviar
+   solicitud de prueba»): ya no hace falta y no se ve bien en la demo.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, design-auditor para lo visual, el constructor no
+aprueba. Ante un rechazo: regístralo como evento, una ronda de corrección con otro implementer, nueva
+verificación; segundo rechazo → DETENTE. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS
+=false. Sin dependencias nuevas, sin tocar app.json ni código nativo. Sin cambios de reglas de
+Firestore. Textos con paridad es/en. No puedes probar en dispositivo ni compilar. No dejes procesos de
+fondo. Sin spec larga: tareas T-nnn que continúan la numeración.
+
+PARTE A — Diagnóstico y corrección de «expiró» / «Otro conductor tomó» al abrir desde la notificación
+A1. Diagnostica por lectura de código y pruebas, sin suponer, y entrega el análisis en docs/ (sin
+    secretos) con archivo:línea. Hipótesis a descartar o confirmar:
+    1) Notificaciones apiladas: tocar una antigua (>90 s) expira legítimamente.
+    2) Entrega tardía con la app cerrada: el mensaje llega con poca validez restante.
+    3) Reloj del teléfono contra el del servidor: la caducidad se compara con Date.now() del teléfono
+       frente a expiresAt del servidor; un desfase de unos segundos hace parecer vencida una solicitud
+       vigente. Evalúa usar la hora de envío del mensaje y una tolerancia configurable, o medir
+       la validez de forma relativa al recibirla, sin romper D-137 (validez de la notificación ≈ 90 s
+       y ventana de decisión de 15 s que empieza al mostrar los datos finales).
+    4) Origen del aviso «Otro conductor tomó esta solicitud»: encuentra en qué rama se produce (¿el
+       pasajero simulado la usa para simular competencia, o es un error de aceptación/liberación de una
+       solicitud que no conoce?). Explica por qué aparece sobre una solicitud que aún está
+       «Calculando…» y sin que Anderson haya pulsado nada: revisa que la ventana de 15 s, la
+       liberación (declineRequest/release) y la adopción de la intención no se disparen antes de
+       tener datos finales o por duplicado (restauración de «Disponible», puerta de D-146, intención
+       de arranque en frío, dedupe por requestId).
+    5) Cualquier otra causa que encuentres.
+A2. Corrige lo que confirmes. Reglas que deben cumplirse al terminar: una solicitud vigente (dentro
+    de su validez, con tolerancia de reloj documentada) abierta desde la notificación, también con la
+    app cerrada, SIEMPRE muestra la pantalla con sus datos y la ventana de 15 s; «La solicitud expiró»
+    solo sale si de verdad pasó su validez; «Otro conductor tomó…» nunca sale sobre una solicitud que
+    aún está calculando ni sin acción del conductor; si es una simulación intencional del pasajero
+    simulado, déjala solo cuando haya pasado un tiempo razonable de decisión, documenta su propósito y
+    comprueba que no aparezca en la primera carga. Dev-only: trazas con códigos fijos y sin datos
+    personales de cada decisión (adoptada, expirada por reloj, liberada, tomada por otro).
+A3. Si el análisis muestra que la validez de 90 s es insuficiente en el arranque en frío, súbela
+    (por ejemplo a 120 s) en UN solo sitio configurable y declara la decisión; si no, déjala en 90 s.
+A4. Pruebas con reloj inyectado: tolerancia de desfase en ambos sentidos; arranque en frío con
+    solicitud vigente; solicitud realmente vencida; sin liberación antes de los datos; dedupe; nunca
+    dos avisos distintos para la misma solicitud; el camino de la restauración de «Disponible» no
+    duplica la adopción.
+
+PARTE B — Tiempos de demo y bandeja sin apilar
+B1. Nuevos valores por defecto del generador (siguen siendo configurables con las variables
+    AUTO_REQUEST_* del backend y validadas como hoy): primera solicitud a los 8–15 s de quedar
+    disponible; siguientes cada 35–60 s; tope por sesión de 8. Declara la decisión y actualiza las
+    pruebas CA-007-01 y las de intervalos con los rangos nuevos, la spec 007 (adenda breve, sin
+    reescribirla), README y omisiones-y-limites.md.
+B2. Bandeja sin apilar: cada solicitud nueva debe reemplazar a la notificación de solicitud anterior
+    en la bandeja del sistema. Usa los mecanismos de FCM para Android, sin dependencias nuevas: una
+    etiqueta de notificación fija para las solicitudes (por ejemplo `trip_request`) y la clave de
+    colapso de FCM. Comprueba que el constructor de payload de backend lo incluye, que no rompe el
+    canal «solicitudes», que el payload sigue sin tarifa ni direcciones y que el formato del mensaje
+    sigue siendo el esperado por las pruebas (actualízalas). Declara la decisión y el límite: la
+    notificación anterior de una solicitud ya aceptada o vencida solo desaparece cuando llega la
+    siguiente o la descarta el usuario.
+
+PARTE C — Quitar «Solicitud de prueba» de Configuración
+C1. Elimina de la pantalla de Configuración la sección «Solicitud de prueba» completa (descripción,
+    selector de retraso y botón «Enviar solicitud de prueba»). Se conserva la sección «Notificaciones»
+    con el interruptor «Avisos de solicitudes», el chip de estado, los mensajes de permiso denegado y
+    el botón a los ajustes del sistema.
+C2. Elimina las claves es/en huérfanas manteniendo la paridad, el código y los componentes que solo
+    usaba esa sección (si algo es compartido, déjalo), y actualiza o elimina las pruebas que solo
+    cubrían esa interfaz, sin dejar ninguna prueba sin sentido ni falsa.
+C3. Backend: se CONSERVA el endpoint POST /notifications/test-request tal cual (autenticado, limitado,
+    solo al propio uid, cuenta aprobada, sin cambios de contrato): queda como herramienta de pruebas
+    sin interfaz. Declara la decisión y refléjala en README y omisiones-y-limites.md.
+C4. Documentos: README, docs/guion-video.md (el plan B de la notificación lenta pasa a ser acortar los
+    intervalos con AUTO_REQUEST_* y reiniciar el backend, que ya es seguro gracias a D-199; quita
+    toda mención del botón), checklist-entrega-final.md, progress.md, backlog y omisiones-y-limites.md
+    coherentes entre sí. Nada «Validada» sin evidencia de Anderson.
+C5. El design-auditor revisa Configuración sin esa sección (jerarquía, espacios, fuente al 200 %).
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: causa documentada con evidencia, ninguna liberación antes de los datos, caducidad con
+tolerancia, aviso «tomó» solo donde corresponde. Parte B: intervalos nuevos validados y configurables,
+etiqueta y clave de colapso presentes, payload sin tarifa ni direcciones. Parte C: sin restos de la
+sección, paridad es/en, endpoint intacto, documentos coherentes. Pruebas completas (npm test) y
+check-constitution (base 14 errores) sin regresión; cita cifras reales. «Validada» solo con evidencia
+de Anderson.
+
+ENTREGA
+Informe corto: causas reales encontradas, qué se corrigió, decisiones nuevas, hallazgos de los
+verifiers, cifras reales y el CHECKLIST STOP-10. Aclara que hay que REINICIAR EL BACKEND (cambian los
+intervalos y el formato del mensaje) y RECOMPILAR el release (`npx expo run:android --variant
+release`, con el túnel en la misma URL del .env). Checklist en el release:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible» en la pantalla de inicio: la primera
+solicitud llega en ≈ 8–15 s y las siguientes cada ≈ 35–60 s; (2) la bandeja del sistema muestra UNA
+sola notificación de solicitud, que se reemplaza por la siguiente (nunca 2, 3, 4); (3) con «Disponible»
+activo, cerrar la app del todo, esperar una notificación y tocarla dentro de sus primeros 90 s: abre la
+solicitud con sus datos y la cuenta de 15 s, SIN «La solicitud expiró» ni «Otro conductor tomó…»;
+(4) tocar una notificación que ya pasó de 90 s sí dice «La solicitud expiró»; (5) con la app abierta en
+la pantalla de inicio la solicitud llega como tarjeta y Aceptar, Rechazar y vencer funcionan; (6)
+Configuración ya no tiene «Solicitud de prueba» y conserva el interruptor de notificaciones; (7)
+aceptar una solicitud, aproximación sola, «Pasajero a bordo», completar y cobrar en efectivo; (8) npm
+test. Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-10". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): borrador; se completa al cerrar el lote.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: lo completa Anderson tras la entrega.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):

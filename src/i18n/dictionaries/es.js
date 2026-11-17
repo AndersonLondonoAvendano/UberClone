@@ -481,22 +481,9 @@ export const es = {
     unsupported: 'Este dispositivo no admite notificaciones.',
     storage: 'No pudimos guardar tu preferencia. Inténtalo de nuevo.',
     openSettings: 'Abrir ajustes del sistema',
-    testTitle: 'Solicitud de prueba',
-    testBody: 'Envía una solicitud simulada a este dispositivo para comprobar las notificaciones.',
-    testNeedsOn: 'Activa las notificaciones para enviar una solicitud de prueba.',
-    delayLabel: 'Retraso',
     // Identical to the English output on purpose: "s" is the SI symbol for second in both languages (CA-006-46).
+    // Kept after T-297 (D-206) because spec 006 (RI-05, CA-006-07, CA-006-46) uses it as the function-label case.
     delayValue: (seconds) => `${seconds} s`,
-    delayLess: 'Reducir el retraso',
-    delayMore: 'Aumentar el retraso',
-    testSend: 'Enviar solicitud de prueba',
-    testSending: 'Enviando…',
-    testSuccess: 'Listo. La solicitud llegará en unos segundos.',
-    testOffline: 'No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.',
-    testRateLimited: 'Demasiados intentos. Espera un momento antes de volver a enviar.',
-    testNoDevices: 'Este dispositivo aún no está registrado. Reactiva las notificaciones.',
-    testSession: 'Tu sesión no es válida. Cierra sesión y vuelve a entrar.',
-    testServer: 'El servidor no pudo enviar la solicitud. Inténtalo de nuevo.',
   },
   states: {
     loading: {

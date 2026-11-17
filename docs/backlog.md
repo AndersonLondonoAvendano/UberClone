@@ -4340,3 +4340,16 @@ Requisitos: RE-AUTO (solicitudes automáticas, D-197/D-198), RE-07 (llegada), RF
 - T-288 — Parte C: módulo de disponibilidad local por uid y limpieza al cerrar sesión (D-201). Estado: Implementada
 - T-289 — Parte C: restauración, estado de tres valores, compuerta de la notificación con tope de espera (D-201). Estado: Implementada
 - T-290 — Parte C: informe `true` único al restaurar y pruebas completas (D-201). Estado: Implementada
+
+
+## Ajustes de demo de las solicitudes automáticas (T-291 a T-299; D-202 a D-206)
+Requisitos: RE-AUTO (D-197), RF-11 (ventana de decisión, D-137), RF-71/RF-74 (notificaciones). Prompt en AI_LOG #73. Análisis en `docs/analisis-solicitud-expirada.md`.
+- T-291 — Parte A: validez y tolerancia de reloj en UN sitio (`src/config/trip.js`), módulo puro de validez y ventana completa al adoptar (D-202). Estado: Implementada
+- T-292 — Parte A: aplicar la tolerancia en la intención, la compuerta, el adaptador y el puente; rastros solo `__DEV__` con códigos fijos (D-202). Estado: Implementada
+- T-293 — Parte A: «tomó» solo tras decisión real; la pantalla conserva la copia final y reinicia el error por solicitud (D-203). Estado: Implementada
+- T-294 — Parte A: pruebas con reloj inyectado (tolerancia en ambos sentidos, arranque en frío, vencida, sin liberación antes de datos, dedupe, un solo aviso, restauración sin adopción doble). Estado: Implementada
+- T-295 — Parte B: valores por defecto del generador 8–15 s / 35–60 s / tope 8; pruebas CA-007-01 e intervalos; adenda spec 007; README y omisiones (D-204). Estado: Implementada
+- T-296 — Parte B: etiqueta `trip_request` y clave de colapso en el constructor del mensaje; pruebas del payload (D-205). Estado: Implementada
+- T-297 — Parte C: quitar «Solicitud de prueba» de Configuración, claves es/en huérfanas, código y pruebas propios de esa sección (D-206). Estado: Implementada
+- T-298 — Parte C: README, guion, checklist, progress, backlog y omisiones coherentes; endpoint conservado (D-206). Estado: Implementada
+- T-299 — Parte C: auditoría de diseño de Configuración sin la sección. Diseño: Pendiente (auditoría estática en código: sin bloqueos, 3 hallazgos P3; falta captura de celular; informe `docs/diseno/auditorias/ronda-1-configuracion-notificaciones.md`). Estado: Implementada

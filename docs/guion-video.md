@@ -35,12 +35,12 @@ Suma: 20 + 30 + 40 + 20 + 35 + 20 + 50 + 25 + 20 + 30 = 290 s = 4:50. Si te pasa
 - Montaje: registro con la cuenta B hasta el envío; corte a la cuenta A ya aprobada. Dilo en voz alta.
 
 ### 3. Disponible y solicitud automática por notificación (0:50–1:30)
-- **Se ve:** Inicio, ponerse «Disponible» y mandar la app a segundo plano; en 15–30 s llega la notificación; se toca y se abre la solicitud completa con tarifa, distancia y el contador de 15 s.
+- **Se ve:** Inicio, ponerse «Disponible» y mandar la app a segundo plano; en 8–15 s llega la notificación; se toca y se abre la solicitud completa con tarifa, distancia y el contador de 15 s.
 - **Digo:** «Me pongo disponible. El pasajero es simulado: el backend genera una solicitud sola y la envía por FCM. Con la app en segundo plano llega el aviso; al tocarlo veo tarifa, distancia y 15 segundos para decidir.»
 - Graba con la **build release** (con el dev client, tocar la notificación con la app cerrada no entrega la solicitud; ver [omisiones-y-limites.md](omisiones-y-limites.md)). Solo Android.
 - **Backend corriendo y túnel activo.** La URL del backend se graba al compilar el release: si cambia el túnel, hay que recompilar.
-- **Plan B si la notificación tarda:** Configuración → Notificaciones → «Solicitud de prueba» (retraso corto, predecible). Di: «Para no esperar, uso el botón de solicitud de prueba.»
-- **Acortar la espera para grabar (solo en tu `backend/.env`, no cambia los valores por defecto del repositorio):** `AUTO_REQUEST_FIRST_MIN_S=5`, `AUTO_REQUEST_FIRST_MAX_S=10`, `AUTO_REQUEST_NEXT_MIN_S=20`, `AUTO_REQUEST_NEXT_MAX_S=40`. Reinicia el backend. Por defecto: primera 15–30 s, siguientes 60–120 s, 10 por sesión.
+- **Plan B si la notificación tarda:** acortar los intervalos `AUTO_REQUEST_*` y reiniciar el backend (es seguro: D-199). Usa los valores de la línea siguiente. Di: «Acorté la espera del generador para no esperar.»
+- **Acortar la espera para grabar (solo en tu `backend/.env`, no cambia los valores por defecto del repositorio):** `AUTO_REQUEST_FIRST_MIN_S=5`, `AUTO_REQUEST_FIRST_MAX_S=10`, `AUTO_REQUEST_NEXT_MIN_S=20`, `AUTO_REQUEST_NEXT_MAX_S=40`. Reinicia el backend. Por defecto (D-204): primera 8–15 s, siguientes 35–60 s, tope de 8 por sesión. La bandeja no apila avisos (`trip_request`, D-205): una solicitud nueva reemplaza a la anterior, y la de una solicitud aceptada o vencida solo desaparece al llegar la siguiente o al descartarla. **No verificado en dispositivo.**
 
 ### 4. Rechazo o vencimiento (1:30–1:50)
 - **Se ve:** otra solicitud: tocar «Rechazar» o dejar vencer; en Historial aparece «Rechazado» con «Sin cobro».

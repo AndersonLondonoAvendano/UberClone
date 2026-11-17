@@ -55,7 +55,7 @@ test('message has the exact shape', () => {
       destLng: '-75.55',
       passengerName: 'Mateo Gil',
     },
-    android: { priority: 'high', ttl: 90_000, notification: { channelId: 'solicitudes' } },
+    android: { priority: 'high', ttl: 90_000, collapseKey: 'trip_request', notification: { channelId: 'solicitudes', tag: 'trip_request' } },
   });
 });
 
@@ -64,4 +64,13 @@ test('a single token string is wrapped and every data value is a string', () => 
   assert.deepEqual(message.tokens, ['only']);
   for (const value of Object.values(message.data)) assert.equal(typeof value, 'string');
   assert.doesNotMatch(JSON.stringify(message), /fare|price|address|tarifa|email|phone/i);
+});
+
+// AI-assisted: see docs/AI_LOG.md #73
+test('D-205: the message carries the fixed tag and collapse key next to the channel, with no fare or address', () => {
+  const message = buildMessage('only', request);
+  assert.equal(message.android.collapseKey, 'trip_request');
+  assert.equal(message.android.notification.tag, 'trip_request');
+  assert.equal(message.android.notification.channelId, 'solicitudes');
+  assert.doesNotMatch(JSON.stringify(message.android), /fare|price|address|tarifa/i);
 });

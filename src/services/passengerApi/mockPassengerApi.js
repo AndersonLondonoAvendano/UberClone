@@ -22,8 +22,12 @@ import {
   MOCK_PICKUP_MAX_KM,
   MOCK_PICKUP_MIN_KM,
   MOCK_REQUEST_TTL_MS,
+  MOCK_TAKEN_MIN_DECISION_MS,
   MOCK_ROUTE_FACTOR,
 } from '../../config/passengerApi';
+import { REQUEST_CLOCK_TOLERANCE_MS } from '../../config/trip';
+import { logPushEventDev } from '../notifications/safeLog';
+import { isRequestExpired } from '../trip/requestValidity';
 import { getRouteMetrics } from '../routing/routeMetrics';
 import { haversineDistanceM } from '../routing/straightLine';
 import {
@@ -200,12 +204,15 @@ export function createMockPassengerApi({
       throw createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud ya no está disponible');
     }
     const { request } = pending;
+    const adopted = pending.adopted === true;
     clearPending();
-    if (now() >= request.expiresAt) {
+    // AI-assisted: see docs/AI_LOG.md #73 (D-202: same clock tolerance as the app)
+    if (isRequestExpired(request.expiresAt, now())) {
+      logPushEventDev('expired-clock');
       scheduleNext();
       throw createPassengerApiError(PASSENGER_API_ERROR.EXPIRED, 'La solicitud expiró');
     }
-    return request;
+    return { request, adopted };
   }
 
   function getTrip(tripId) {
@@ -247,9 +254,13 @@ export function createMockPassengerApi({
     },
 
     async acceptRequest(requestId) {
-      const request = takePending(requestId);
-      if (random() < alreadyTakenProbability) {
+      const { request, adopted } = takePending(requestId);
+      // AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203): "taken by another driver" is only simulated for a
+      // simulator request (never a push one) and only after a real decision time (MOCK_TAKEN_MIN_DECISION_MS).
+      const mayBeTaken = !adopted && now() - request.createdAt >= MOCK_TAKEN_MIN_DECISION_MS;
+      if (mayBeTaken && random() < alreadyTakenProbability) {
         log('request already taken', requestId);
+        logPushEventDev('taken-by-other');
         scheduleNext();
         throw createPassengerApiError(PASSENGER_API_ERROR.ALREADY_TAKEN, 'Otro conductor tomó el viaje');
       }
@@ -309,7 +320,7 @@ export function createMockPassengerApi({
     // Works without a subscription: a push request is offered even when the driver is not available.
     adoptRequest(request) {
       if (!isValidTripRequest(request)) return ADOPT_RESULT.INVALID;
-      if (request.expiresAt <= now()) return ADOPT_RESULT.EXPIRED;
+      if (isRequestExpired(request.expiresAt, now())) return ADOPT_RESULT.EXPIRED;
       if (pending || activeTripId || reserved) return ADOPT_RESULT.BUSY;
       clearEmitTimer();
       const expiryTimer = setTimer(() => {
@@ -317,7 +328,7 @@ export function createMockPassengerApi({
         log('adopted request expired', request.id);
         pending = null;
         scheduleNext();
-      }, request.expiresAt - now());
+      }, Math.max(0, request.expiresAt + REQUEST_CLOCK_TOLERANCE_MS - now()));
       pending = { request, expiryTimer, adopted: true };
       log('request adopted', request.id);
       return ADOPT_RESULT.ADOPTED;

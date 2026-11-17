@@ -62,7 +62,7 @@ test('No disponible: nothing is offered, the notice is shown once', async () => 
 });
 
 test('No disponible and already expired: still says expired, not the availability notice', async () => {
-  const t = setup(false, data({ expiresAt: String(NOW - 1) }));
+  const t = setup(false, data({ expiresAt: String(NOW - 20_000) })) // D-202: beyond the 10 s clock tolerance;
   assert.equal(await t.flow.evaluate(), FLOW_RESULT.EXPIRED);
   assert.equal(t.out.expired, 1);
   assert.equal(t.out.unavailable, 0);

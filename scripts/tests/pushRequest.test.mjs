@@ -65,8 +65,10 @@ for (const patch of invalid) {
 }
 
 // Expired (valid structure, validity passed).
-assert.deepEqual(parsePushRequest(data({ expiresAt: String(NOW) }), { now: NOW }), { ok: false, reason: PARSE_REASON.EXPIRED });
-assert.deepEqual(parsePushRequest(data({ expiresAt: String(NOW - 1) }), { now: NOW }), { ok: false, reason: PARSE_REASON.EXPIRED });
+// D-202: only when now >= expiresAt + 10 s of clock tolerance; inside it the request is valid.
+assert.deepEqual(parsePushRequest(data({ expiresAt: String(NOW - 10000) }), { now: NOW }), { ok: false, reason: PARSE_REASON.EXPIRED });
+assert.deepEqual(parsePushRequest(data({ expiresAt: String(NOW - 20000) }), { now: NOW }), { ok: false, reason: PARSE_REASON.EXPIRED });
+assert.equal(parsePushRequest(data({ expiresAt: String(NOW - 9999) }), { now: NOW }).ok, true);
 
 // Structure-only parse keeps an expired intent (the bridge decides "La solicitud expiro").
 {

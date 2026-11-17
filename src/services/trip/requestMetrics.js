@@ -48,3 +48,15 @@ export function withCap(promise, ms, fallback, { setTimer = (fn, delay) => setTi
     Promise.resolve(promise).then(finish, () => finish(fallback));
   });
 }
+
+// AI-assisted: see docs/AI_LOG.md #73 (T-293, D-203)
+// Which copy of a request the full screen shows. `opened` is the copy it opened with (often metricsPending),
+// `pending` the gate's current one and `lastFinal` the last copy WITH final data it has seen. When the slot is
+// released (taken, expired) the last final copy is kept, so a notice never appears over "Calculando" skeletons.
+// Returns { request, lastFinal } (the caller stores lastFinal).
+export function resolveShownRequest({ opened, pending, lastFinal }) {
+  const sameAsOpened = (candidate) => Boolean(candidate) && Boolean(opened) && candidate.id === opened.id;
+  const current = sameAsOpened(pending) ? pending : null;
+  const nextFinal = current && !isMetricsPending(current) ? current : sameAsOpened(lastFinal) ? lastFinal : null;
+  return { request: current ?? nextFinal ?? opened ?? null, lastFinal: nextFinal };
+}

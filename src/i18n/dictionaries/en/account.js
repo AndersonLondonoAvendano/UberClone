@@ -185,22 +185,9 @@ export const enAccount = {
     unsupported: "This device doesn't support notifications.",
     storage: "We couldn't save your preference. Try again.",
     openSettings: 'Open system settings',
-    testTitle: 'Test request',
-    testBody: 'Sends a simulated request to this device to check notifications.',
-    testNeedsOn: 'Turn on notifications to send a test request.',
-    delayLabel: 'Delay',
     // Identical to the Spanish output on purpose: "s" is the SI symbol for second in both languages (CA-006-46).
+    // Kept after T-297 (D-206) because spec 006 (RI-05, CA-006-07, CA-006-46) uses it as the function-label case.
     delayValue: (seconds) => `${seconds} s`,
-    delayLess: 'Decrease the delay',
-    delayMore: 'Increase the delay',
-    testSend: 'Send test request',
-    testSending: 'Sending…',
-    testSuccess: 'Done. The request will arrive in a few seconds.',
-    testOffline: 'No connection to the server. Check your network and try again.',
-    testRateLimited: 'Too many attempts. Wait a moment before sending again.',
-    testNoDevices: "This device isn't registered yet. Turn notifications back on.",
-    testSession: 'Your session is not valid. Sign out and sign in again.',
-    testServer: "The server couldn't send the request. Try again.",
   },
   states: {
     loading: {

@@ -97,7 +97,7 @@ test('(e) trip in progress: dropped', async () => {
 test('(f) expired when the gate is ready: "expired" notice, not offered', async () => {
   const t = setup({ initial: data() });
   t.open(); await t.tick();
-  t.state.now = NOW + 91_000; // tapped after 90 s, with the gate resolving late
+  t.state.now = NOW + 101_000; // tapped after 90 s + 10 s of clock tolerance (D-202), with the gate resolving late
   Object.assign(t.state, { uid: 'A', accountStatus: ACCOUNT_STATUS.APPROVED });
   assert.equal(await t.flow.evaluate(), FLOW_RESULT.EXPIRED);
   assert.equal(t.out.expired, 1);
@@ -173,7 +173,7 @@ test('(k) expires during the wait: "expired" notice, not adopted', async () => {
   const t = setup({ initial: data() });
   t.open(); await t.tick();
   Object.assign(t.state, { uid: 'A', accountStatus: ACCOUNT_STATUS.APPROVED });
-  const flow = withOffer(t, async () => { t.state.now = NOW + 91_000; return false; }); // lookup outlived the deadline
+  const flow = withOffer(t, async () => { t.state.now = NOW + 101_000; return false; }); // D-202: past validity + tolerance; lookup outlived the deadline
   assert.equal(await flow.evaluate(), FLOW_RESULT.EXPIRED);
   assert.equal(t.out.expired, 1);
 });

@@ -19,6 +19,7 @@ import { useAppState } from '../context/AppStateContext';
 import { useAvailability } from '../context/AvailabilityContext';
 import { getNotifications } from '../services/notifications';
 import { ARRIVAL, OPEN_INTENT, decideRequestOpen, resolveOpenIntent, shouldNavigateToRequest } from '../services/trip/requestNavigation';
+import { isRequestExpired } from '../services/trip/requestValidity';
 import { HOME_ROUTE } from '../services/trip/requestPresentation';
 import { INTENT_DECISION, isDriverAvailable, mergeNotice, resolveIntent } from '../services/notifications/eligibility';
 import { createIntentFlow } from '../services/notifications/intentFlow';
@@ -68,7 +69,8 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
         }
         // The offer returns after the route lookup; it may expire there too (same notice as above).
         const offered = await latest.current.offerPushRequest(request);
-        if (!offered && Date.now() >= request.expiresAt) showNotice(labels.trip.pushExpired);
+        // AI-assisted: see docs/AI_LOG.md #73 (D-202: clock tolerance)
+        if (!offered && isRequestExpired(request.expiresAt, Date.now())) showNotice(labels.trip.pushExpired);
       }
     },
     [decide, showNotice],

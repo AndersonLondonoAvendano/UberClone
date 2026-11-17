@@ -4,6 +4,7 @@
 // field is parsed strictly and anything foreign, malformed or out of range is rejected, never fixed.
 // The fare never travels in the message: the card computes it with calculateFare when it opens.
 import { MOCK_ADDRESS } from '../../config/passengerApi';
+import { effectiveExpiry, isRequestExpired } from '../trip/requestValidity';
 import { isValidTripRequest, TRIP_CATEGORIES } from '../passengerApi/contract';
 import { toTripRequest } from '../passengerApi/mappers';
 
@@ -90,7 +91,8 @@ export function requestFromIntent(intent, now) {
     category: intent.category,
     paymentMethod: 'cash',
     createdAt: now,
-    expiresAt: intent.expiresAt,
+    // AI-assisted: see docs/AI_LOG.md #73 (D-202: a valid request adopted now keeps its full decision window)
+    expiresAt: effectiveExpiry(intent.expiresAt, now),
   });
   return isValidTripRequest(request) ? request : null;
 }
@@ -100,7 +102,7 @@ export function parsePushRequest(data, { now }) {
   const parsed = parsePushData(data);
   if (!parsed.ok) return parsed;
   const { intent } = parsed;
-  if (intent.expiresAt <= now) return { ok: false, reason: PARSE_REASON.EXPIRED };
+  if (isRequestExpired(intent.expiresAt, now)) return { ok: false, reason: PARSE_REASON.EXPIRED };
   const request = requestFromIntent(intent, now);
   if (!request) return { ok: false, reason: PARSE_REASON.INVALID };
   return { ok: true, request, targetUid: intent.targetUid };

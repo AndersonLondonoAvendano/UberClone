@@ -60,3 +60,8 @@ export const FINISH_TIMEOUT_MS = 15000;
 export const PUBLISH_STATUS_MAX_ATTEMPTS = 3;
 export const PUBLISH_STATUS_RETRY_DELAY_MS = 1500;
 export const PUBLISH_WRITE_TIMEOUT_MS = 8000;
+
+// AI-assisted: see docs/AI_LOG.md #73 (T-291, D-202)
+// Clock tolerance, in ONE place, between the server expiresAt of a request and the phone clock (which may be
+// a few seconds ahead or behind). A request only counts as expired when now >= expiresAt + this value.
+export const REQUEST_CLOCK_TOLERANCE_MS = 10000;

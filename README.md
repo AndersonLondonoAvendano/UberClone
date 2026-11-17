@@ -107,9 +107,13 @@ Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, gana
 **Cómo probar.**
 1. Con el backend y su túnel activos, abre la app con una cuenta aprobada y ve a Configuración → Notificaciones.
 2. Activa el interruptor y concede el permiso de notificaciones.
-3. Pulsa «Enviar solicitud de prueba» (retraso de 0 a 60 s).
-4. Cierra la app por completo y espera el aviso.
+3. En Inicio, ponte «Disponible»: el backend genera solicitudes automáticas (la primera a los 8–15 s; ver «Solicitudes automáticas simuladas»). Configuración ya no tiene botón de solicitud de prueba (D-206).
+4. Manda la app a segundo plano (o ciérrala por completo en la build release) y espera el aviso.
 5. Toca la notificación: se abre la solicitud con el temporizador de 15 s; si pasó su validez, dice «La solicitud expiró».
+
+**Bandeja y caducidad (D-205, D-202).** Cada aviso de solicitud usa la etiqueta y la clave de colapso `trip_request`: una solicitud nueva reemplaza a la anterior en la bandeja, sin apilarse. Límite: la notificación de una solicitud ya aceptada o vencida solo desaparece cuando llega la siguiente o al descartarla. La validez del aviso es de 90 s y la app aplica una tolerancia de reloj de 10 s antes de marcar «La solicitud expiró». **No verificado en dispositivo.**
+
+**Endpoint de prueba sin interfaz (D-206).** `POST /notifications/test-request` se conserva intacto (con sesión, limitado, solo a tus propios dispositivos) como herramienta de pruebas con `curl`; la app ya no tiene pantalla para él.
 
 **Nota importante: dev client frente a release.** Con el development build (dev client), tocar la notificación con la app cerrada NO entrega la solicitud: el lanzador de desarrollo relanza la actividad sin los datos de la notificación (límite del modo desarrollo, no fallo del código). En la build **release** sí funciona. El APK release incrusta `EXPO_PUBLIC_BACKEND_URL` al compilarse (su valor no va en el repositorio), así que debe compilarse con el túnel vigente. Para probar o grabar el arranque en frío usa la build release. **Validado en dispositivo por Anderson (2026-11-16):** en la build release, con la app cerrada, tocar la notificación abre la solicitud con la cuenta de 15 s y, vencido el plazo, «La solicitud expiró». **Validado en dispositivo por Anderson (STOP-4, 2026-11-16, dev client):** con la app en segundo plano en Configuración, Historial y Perfil, tocar la notificación abre la solicitud a pantalla completa (D-149) y, al rechazar o vencer, vuelve a la pantalla donde estabas. **Pendiente:** con la app CERRADA el toque solo se valida en la build release (en el dev client no entrega la solicitud).
 
@@ -120,9 +124,9 @@ Hay un archivo por tema en [scripts/tests/](scripts/tests/) (tarifa, saldo, gana
 **Qué hace.** Con la app abierta y el conductor disponible, el backend genera solicitudes de viaje simuladas a intervalos aleatorios y las envía por FCM. La app avisa su disponibilidad con un latido: `POST /notifications/availability`, con sesión y cuerpo solo `{"available": true|false}` o, con orden, `{"available": true|false, "seq": N}` (`seq` es un entero creciente: el backend ignora un reporte con `seq` menor o igual al último aceptado, y un `false` fallido se reintenta hasta 3 veces; D-198). El latido no envía ubicación ni datos personales; el backend toma el usuario únicamente del ID token y no registra tokens, uid ni cuerpos. El estado vive en memoria: **cero escrituras a Firestore por reporte** (costo en escrituras: ninguno por reporte).
 
 **Variables del backend (solo nombres; todas opcionales).** Se definen en `backend/.env` (plantilla en `backend/.env.example`); si falta una o es inválida, se usa su valor por defecto seguro, que está documentado en `backend/src/config.js`.
-- `AUTO_REQUEST_FIRST_MIN_S` y `AUTO_REQUEST_FIRST_MAX_S`: rango en segundos de la espera hasta la primera solicitud (por defecto 15 a 30; máximo 3600).
-- `AUTO_REQUEST_NEXT_MIN_S` y `AUTO_REQUEST_NEXT_MAX_S`: rango en segundos entre solicitudes siguientes (por defecto 60 a 120; máximo 3600). En cada par, el mínimo debe ser menor o igual que el máximo; si no, el par vuelve a sus valores por defecto.
-- `AUTO_REQUEST_MAX_PER_SESSION`: tope de solicitudes por sesión de disponibilidad (por defecto 10; máximo 1000).
+- `AUTO_REQUEST_FIRST_MIN_S` y `AUTO_REQUEST_FIRST_MAX_S`: rango en segundos de la espera hasta la primera solicitud (por defecto 8 a 15; máximo 3600; D-204).
+- `AUTO_REQUEST_NEXT_MIN_S` y `AUTO_REQUEST_NEXT_MAX_S`: rango en segundos entre solicitudes siguientes (por defecto 35 a 60; máximo 3600; D-204). En cada par, el mínimo debe ser menor o igual que el máximo; si no, el par vuelve a sus valores por defecto.
+- `AUTO_REQUEST_MAX_PER_SESSION`: tope de solicitudes por sesión de disponibilidad (por defecto 8; máximo 1000; D-204).
 - `AUTO_REQUEST_HEARTBEAT_MAX_MIN`: minutos máximos sin latido antes de detener el generador (por defecto 30; máximo 1440).
 
 **Fuente única.** Si el servidor confirmó el reporte, la app deja de generar solicitudes locales y solo llegan las del servidor; si el reporte falla, la app usa el simulador local como respaldo. Límite residual: si la respuesta se pierde o el teléfono no alcanza el backend con el generador activo, pueden llegar solicitudes de ambas fuentes hasta el `available: false` o hasta el vencimiento de 30 min sin latido; el control de duplicados por `requestId` no cubre dos fuentes distintas.
@@ -134,7 +138,7 @@ Con el backend en marcha y un conductor con `accountStatus = approved`. Los valo
 ```bash
 # Registrar el dispositivo (200 {"registered":true}; 400 si el token es inválido)
 curl -X POST <BACKEND_URL>/notifications/register -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"token":"<FCM_TOKEN>","platform":"android"}'
-# Solicitud de prueba a mis dispositivos, con retraso de 0 a 60 s (202 {"scheduled":true})
+# Solicitud simulada a mis dispositivos con retraso de 0 a 60 s (202 {"scheduled":true}); endpoint conservado sin interfaz (D-206)
 curl -X POST <BACKEND_URL>/notifications/test-request -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"delaySeconds":10}'
 # Dar de baja el dispositivo (204 siempre que el token tenga forma válida)
 curl -X POST <BACKEND_URL>/notifications/unregister -H "Authorization: Bearer <ID_TOKEN>" -H "Content-Type: application/json" -d '{"token":"<FCM_TOKEN>"}'

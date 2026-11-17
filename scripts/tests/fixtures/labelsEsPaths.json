@@ -1619,65 +1619,9 @@
   "type": "string",
   "value": "Abrir ajustes del sistema"
  },
- "notifications.testTitle": {
-  "type": "string",
-  "value": "Solicitud de prueba"
- },
- "notifications.testBody": {
-  "type": "string",
-  "value": "Envía una solicitud simulada a este dispositivo para comprobar las notificaciones."
- },
- "notifications.testNeedsOn": {
-  "type": "string",
-  "value": "Activa las notificaciones para enviar una solicitud de prueba."
- },
- "notifications.delayLabel": {
-  "type": "string",
-  "value": "Retraso"
- },
  "notifications.delayValue": {
   "type": "function",
   "sample": "15 s"
- },
- "notifications.delayLess": {
-  "type": "string",
-  "value": "Reducir el retraso"
- },
- "notifications.delayMore": {
-  "type": "string",
-  "value": "Aumentar el retraso"
- },
- "notifications.testSend": {
-  "type": "string",
-  "value": "Enviar solicitud de prueba"
- },
- "notifications.testSending": {
-  "type": "string",
-  "value": "Enviando…"
- },
- "notifications.testSuccess": {
-  "type": "string",
-  "value": "Listo. La solicitud llegará en unos segundos."
- },
- "notifications.testOffline": {
-  "type": "string",
-  "value": "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo."
- },
- "notifications.testRateLimited": {
-  "type": "string",
-  "value": "Demasiados intentos. Espera un momento antes de volver a enviar."
- },
- "notifications.testNoDevices": {
-  "type": "string",
-  "value": "Este dispositivo aún no está registrado. Reactiva las notificaciones."
- },
- "notifications.testSession": {
-  "type": "string",
-  "value": "Tu sesión no es válida. Cierra sesión y vuelve a entrar."
- },
- "notifications.testServer": {
-  "type": "string",
-  "value": "El servidor no pudo enviar la solicitud. Inténtalo de nuevo."
  },
  "states.loading.title": {
   "type": "string",

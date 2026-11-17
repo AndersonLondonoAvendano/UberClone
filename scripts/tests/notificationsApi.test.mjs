@@ -32,16 +32,8 @@ const make = (fetchFn, extra = {}) =>
   assert.deepEqual(JSON.parse(calls[0].init.body), { token: PUSH_TOKEN });
 }
 
-// test-request: with and without delay; never sends a uid.
-{
-  const bodies = [];
-  const api = make(async (url, init) => { bodies.push([url, JSON.parse(init.body)]); return reply(202, { scheduled: true }); });
-  assert.deepEqual(await api.requestTestNotification({ delaySeconds: 5 }), { ok: true });
-  assert.deepEqual(await api.requestTestNotification(), { ok: true });
-  assert.deepEqual(bodies[0], ['https://backend.example/notifications/test-request', { delaySeconds: 5 }]);
-  assert.deepEqual(bodies[1][1], {});
-  for (const [, body] of bodies) assert.equal('uid' in body, false);
-}
+// The client no longer exposes the test-request call (T-297, D-206); the backend endpoint stays.
+assert.equal('requestTestNotification' in make(async () => reply(200)), false);
 
 // Error classes.
 const cases = [
@@ -55,7 +47,7 @@ const cases = [
 ];
 for (const [status, expected] of cases) {
   const api = make(async () => reply(status));
-  assert.deepEqual(await api.requestTestNotification(), { ok: false, error: expected }, String(status));
+  assert.deepEqual(await api.registerToken(PUSH_TOKEN), { ok: false, error: expected }, String(status));
 }
 assert.equal(NOTIFICATIONS_ERROR.OFFLINE, 'offline');
 assert.equal(NOTIFICATIONS_ERROR.RATE_LIMITED, 'rate-limited');
