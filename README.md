@@ -7,10 +7,7 @@ App móvil del conductor (React Native + Expo, development build, iOS y Android)
 Documentos para la entrega:
 - [docs/pagos-stripe-guia.md](docs/pagos-stripe-guia.md): guía paso a paso del cobro con Stripe en modo de prueba (cuenta, clave, tarjetas de prueba, verificación y tabla de fallos).
 - [docs/pagos-guia-rapida.md](docs/pagos-guia-rapida.md): guía rápida de pagos (elección de pasarela, red, Mercado Pago de prueba, efectivo y saldo).
-- [docs/checklist-manana-jueves.md](docs/checklist-manana-jueves.md): lista de pasos y pruebas en el celular, en orden.
-- [docs/guion-video.md](docs/guion-video.md): guion del video de máximo 5 minutos.
-- [docs/omisiones-y-limites.md](docs/omisiones-y-limites.md): cobertura del enunciado, omisiones y límites.
-- Detalle de tareas y criterios: [docs/progress.md](docs/progress.md) y [docs/backlog.md](docs/backlog.md); pruebas de sesión en [docs/checklist-dispositivo-sesiones.md](docs/checklist-dispositivo-sesiones.md).
+
 
 ## Stack y arquitectura
 - **App:** React Native + Expo (~57, JavaScript, development build con `expo-dev-client`), mapa con MapLibre y teselas de OpenFreeMap, rutas con OSRM (sin claves), ubicación con `expo-location`.
