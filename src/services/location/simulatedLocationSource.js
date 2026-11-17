@@ -33,6 +33,17 @@ export function pointAlong(coordinates, cumulative, distanceM) {
   return [lng0 + (lng1 - lng0) * t, lat0 + (lat1 - lat0) * t];
 }
 
+// AI-assisted: see docs/AI_LOG.md #72
+// Speed to use so that walking `coordinates` takes at most `maxDurationS`: the base speed when the walk is
+// already that short, a higher one otherwise. Pure.
+export function speedForMaxDuration(coordinates, baseKmh, maxDurationS) {
+  if (!Array.isArray(coordinates) || coordinates.length < 2 || !(maxDurationS > 0)) return baseKmh;
+  const cumulative = cumulativeDistances(coordinates);
+  const totalM = cumulative[cumulative.length - 1];
+  const neededKmh = (totalM / maxDurationS) * 3.6;
+  return Math.max(baseKmh, neededKmh);
+}
+
 export function createSimulatedLocationSource({
   coordinates,
   speedKmh = SIMULATED_SPEED_KMH,

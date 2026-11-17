@@ -97,7 +97,7 @@ test('CA-007-08 and CA-007-06: extra fields never change the target uid or the c
       body: { available: true, uid: 'u2', targetUid: 'u2', token: tokenOf(2), tokens: [tokenOf(2)], title: 'hack', data: { fare: 1 }, fare: 99 },
     });
     assert.equal(res.status, 200);
-    assert.deepEqual(res.json, { active: true });
+    assert.deepEqual(res.json, { active: true, applied: true });
     assert.equal(live(ctx.timers).length, 1);
     // First request in [15, 30] s with random = 0.5.
     assert.equal(ctx.timers.timers[0].ms, 22_500);
@@ -130,7 +130,7 @@ test('two "available" reports leave a single pending timer', () =>
     await ctx.register(tokenOf(1));
     await available(ctx, true);
     const second = await available(ctx, true);
-    assert.deepEqual(second.json, { active: true });
+    assert.deepEqual(second.json, { active: true, applied: true });
     assert.equal(live(ctx.timers).length, 1);
   }));
 
@@ -140,7 +140,7 @@ test('CA-007-04: available false cancels the pending send and resumes when avail
     await available(ctx, true);
     const off = await available(ctx, false);
     assert.equal(off.status, 200);
-    assert.deepEqual(off.json, { active: false });
+    assert.deepEqual(off.json, { active: false, applied: true });
     assert.equal(live(ctx.timers).length, 0);
     fire(ctx.timers, 0);
     await flush();
@@ -213,7 +213,7 @@ test('CA-007-09: close cancels every timer and later reports create none', () =>
     assert.equal(live(ctx.timers).length, 3);
     ctx.app.closeNotifications();
     assert.equal(live(ctx.timers).length, 0);
-    assert.deepEqual((await available(ctx, true)).json, { active: false });
+    assert.deepEqual((await available(ctx, true)).json, { active: false, applied: true });
     assert.equal(live(ctx.timers).length, 0);
     for (let i = 0; i < ctx.timers.timers.length; i += 1) fire(ctx.timers, i);
     await flush();
@@ -235,27 +235,48 @@ test('D-198: an invalid seq is a 400 and changes nothing', () =>
     }
     assert.equal(ctx.timers.timers.length, 0);
     // Absent seq keeps working as before.
-    assert.deepEqual((await available(ctx, true)).json, { active: true });
+    assert.deepEqual((await available(ctx, true)).json, { active: true, applied: true });
   }));
 
 test('D-198: out of order over HTTP (true 5, false 6 arriving 6 then 5) ends unavailable; the 5 gets 200', () =>
   withApp({ 'drivers/u1': APPROVED }, async (ctx) => {
     await ctx.register(tokenOf(1));
     const send = (value, seq) => ctx.call(PATH, { body: { available: value, seq } });
-    assert.deepEqual((await send(false, 6)).json, { active: false });
+    assert.deepEqual((await send(false, 6)).json, { active: false, applied: true });
     const late = await send(true, 5);
     assert.equal(late.status, 200);
-    assert.deepEqual(late.json, { active: false });
+    assert.deepEqual(late.json, { active: false, applied: false, lastSeq: 6 });
     assert.equal(live(ctx.timers).length, 0);
     // Repeated and lower seq are ignored too.
-    assert.deepEqual((await send(true, 6)).json, { active: false });
-    assert.deepEqual((await send(true, 3)).json, { active: false });
+    assert.deepEqual((await send(true, 6)).json, { active: false, applied: false, lastSeq: 6 });
+    assert.deepEqual((await send(true, 3)).json, { active: false, applied: false, lastSeq: 6 });
     assert.equal(live(ctx.timers).length, 0);
     await flush();
     assert.equal(ctx.messaging.calls.length, 0);
     // A newer seq is accepted.
-    assert.deepEqual((await send(true, 7)).json, { active: true });
+    assert.deepEqual((await send(true, 7)).json, { active: true, applied: true });
     assert.equal(live(ctx.timers).length, 1);
+  }));
+
+test('D-199: applied:false carries only the last accepted seq; equal seq is ignored, greater is applied; false is never blocked by a fresh seq', () =>
+  withApp({ 'drivers/u1': APPROVED }, async (ctx) => {
+    await ctx.register(tokenOf(1));
+    const send = (value, seq) => ctx.call(PATH, { body: { available: value, seq } });
+    const first = await send(true, 1_800_000_000_000);
+    assert.deepEqual(first.json, { active: true, applied: true });
+    // A fresh install with a smaller seq (older clock) is ignored with 200, the answer lets it recover.
+    const ignored = await send(true, 1_700_000_000_000);
+    assert.equal(ignored.status, 200);
+    assert.deepEqual(ignored.json, { active: true, applied: false, lastSeq: 1_800_000_000_000 });
+    assert.deepEqual(Object.keys(ignored.json).sort(), ['active', 'applied', 'lastSeq']);
+    assert.equal((await send(false, 1_800_000_000_000)).json.applied, false, 'equal seq is ignored');
+    assert.equal(live(ctx.timers).length, 1, 'the ignored false changed nothing');
+    // D-198 protection stays: only greater seqs apply.
+    assert.deepEqual((await send(true, 1_800_000_000_001)).json, { active: true, applied: true });
+    assert.deepEqual((await send(false, 1_800_000_000_002)).json, { active: false, applied: true });
+    assert.equal((await send(true, 1_800_000_000_001)).json.lastSeq, 1_800_000_000_002);
+    // Without seq the report is always applied.
+    assert.deepEqual((await available(ctx, true)).json, { active: true, applied: true });
   }));
 
 test('D-198: false right after true (same minute) stops the generator and the old timer sends nothing', () =>
@@ -263,7 +284,7 @@ test('D-198: false right after true (same minute) stops the generator and the ol
     await ctx.register(tokenOf(1));
     await ctx.call(PATH, { body: { available: true, seq: 1 } });
     ctx.clock.value += 5_000;
-    assert.deepEqual((await ctx.call(PATH, { body: { available: false, seq: 2 } })).json, { active: false });
+    assert.deepEqual((await ctx.call(PATH, { body: { available: false, seq: 2 } })).json, { active: false, applied: true });
     assert.equal(live(ctx.timers).length, 0);
     fire(ctx.timers, 0);
     await flush();
@@ -278,7 +299,7 @@ test('D-198: a stale seq for a non-approved account neither cancels nor sends', 
     ctx.db.docs.set('drivers/u1', { accountStatus: 'pending' });
     const stale = await ctx.call(PATH, { body: { available: true, seq: 9 } });
     assert.equal(stale.status, 200); // not the 400 a fresh report would get
-    assert.deepEqual(stale.json, { active: true });
+    assert.deepEqual(stale.json, { active: true, applied: false, lastSeq: 10 });
     assert.equal(live(ctx.timers).length, 1); // not cancelled
     // Same with no tokens left.
     ctx.db.docs.set('drivers/u1', APPROVED);

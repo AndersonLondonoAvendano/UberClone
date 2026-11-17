@@ -9,6 +9,12 @@ export const TRIP_LOCATION_SOURCE = 'simulated';
 // demo trip takes about a minute per leg instead of several. 1 = real speed.
 export const TRIP_SPEED_FACTOR = 4;
 
+// AI-assisted: see docs/AI_LOG.md #72 (T-286, D-200)
+// The simulated approach to the pickup (the "Conductor llegando" phase) never lasts longer than this: when
+// the route is long, only the simulated speed rises for that leg. The distance, the time shown and the fare
+// do not change. It has no effect with the phone GPS. The leg to the destination is not capped.
+export const TRIP_PICKUP_APPROACH_MAX_S = 25;
+
 // The driver "arrived" (pickup or destination) when closer than this to the target point.
 export const ARRIVAL_THRESHOLD_M = 25;
 

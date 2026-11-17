@@ -3,6 +3,10 @@
 // The uid comes only from the verified ID token; the body never supplies a uid, tokens, text or data.
 // AI-assisted: see docs/AI_LOG.md #70
 // POST /notifications/availability only takes { available: boolean }; extra fields are ignored. State is in memory only.
+// AI-assisted: see docs/AI_LOG.md #72
+// The availability answer is { active, applied } (D-199): applied:true when the report took effect; when it was
+// ignored for an obsolete seq it is { active, applied:false, lastSeq } (HTTP 200 either way), where lastSeq is the
+// last accepted seq of the uid so the app can recover. Only a seq lower than or equal to the last one is ignored.
 // Nothing here logs tokens, bodies, emails or uids.
 import { FCM_BATCH_SIZE, TEST_REQUEST_MAX_DELAY_S, TEST_REQUEST_RATE_LIMIT, loadAutoRequestConfig } from '../config.js';
 import { ERRORS, createRateLimiter, send as defaultSend } from '../middleware.js';
@@ -110,17 +114,18 @@ export function createNotificationsHandlers({
     },
 
     // Body: { available: boolean, seq?: positive safe integer }. The uid comes from the ID token. "false" is always accepted.
-    // A report whose seq is not newer than the last accepted one is ignored with 200, before any effect.
+    // A report whose seq is not newer than the last accepted one is ignored with 200, before any effect, and
+    // answers { active, applied: false, lastSeq }. Every other answer carries applied: true.
     async availability({ uid, body }) {
       const available = body?.available;
       if (typeof available !== 'boolean') return ERRORS.invalid;
       const seq = body?.seq;
       if (seq !== undefined && !(Number.isSafeInteger(seq) && seq > 0)) return ERRORS.invalid;
-      const ignored = () => ({ status: 200, body: { active: generator.has(uid) } });
+      const ignored = () => ({ status: 200, body: { active: generator.has(uid), applied: false, lastSeq: generator.lastSeq(uid) } });
       if (generator.isStale(uid, seq)) return ignored();
       if (!available) {
         generator.report(uid, false, seq);
-        return { status: 200, body: { active: false } };
+        return { status: 200, body: { active: false, applied: true } };
       }
       if (!tokens || !messaging) return ERRORS.server;
       if (!(await isApproved(uid))) {
@@ -134,7 +139,7 @@ export function createNotificationsHandlers({
         generator.cancel(uid);
         return ERRORS.notFound;
       }
-      return { status: 200, body: { active: generator.report(uid, true, seq) } };
+      return { status: 200, body: { active: generator.report(uid, true, seq), applied: true } };
     },
 
     // Cancels every deferred send and every generator timer still waiting.

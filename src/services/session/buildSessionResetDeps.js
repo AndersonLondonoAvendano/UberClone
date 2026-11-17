@@ -12,6 +12,9 @@
 // waitForTripSaveQueue(): resolves when no trip save is in flight (see services/trip/saveQueue.js).
 // unregisterNotifications(): optional. Backend unregistration, local token, notificationsEnabled and
 //   the pending intent, all together, run by resetSession AFTER the save wait and right before signOut.
+// clearAvailabilityPreference(): optional (D-201). Removes the locally saved "Disponible" of the session's uid.
+//   It runs INSIDE the unregisterNotifications step (same point and bound as the notifications preference,
+//   D-134), first, and a failure never stops the push cleanup.
 // restoreNotifications(): optional. Undoes the previous step if signOut fails (best effort).
 // signOut(): REQUIRED. resetSession counts a missing signOut as ok, so it is enforced here.
 
@@ -39,6 +42,7 @@ export function buildSessionResetDeps({
   clearOwnStorage = noop,
   waitForTripSaveQueue,
   unregisterNotifications,
+  clearAvailabilityPreference,
   restoreNotifications,
   signOut,
 }) {
@@ -103,7 +107,17 @@ export function buildSessionResetDeps({
 
     clearOwnStorage,
     waitForTripSaveQueue,
-    unregisterNotifications,
+    unregisterNotifications:
+      typeof clearAvailabilityPreference === 'function'
+        ? async () => {
+            try {
+              await clearAvailabilityPreference();
+            } catch {
+              // The push cleanup must still run.
+            }
+            if (typeof unregisterNotifications === 'function') await unregisterNotifications();
+          }
+        : unregisterNotifications,
     restoreNotifications,
     signOut,
   };

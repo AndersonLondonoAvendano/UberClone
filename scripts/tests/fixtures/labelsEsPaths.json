@@ -447,6 +447,14 @@
   "type": "string",
   "value": "restantes"
  },
+ "trip.pickupPointA11y": {
+  "type": "string",
+  "value": "Punto de recogida: {address}"
+ },
+ "trip.destinationA11y": {
+  "type": "string",
+  "value": "Destino: {address}"
+ },
  "trip.routeLoading": {
   "type": "string",
   "value": "Calculando la ruta…"
@@ -463,25 +471,9 @@
   "type": "string",
   "value": "Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles."
  },
- "trip.arrive": {
-  "type": "string",
-  "value": "Llegué"
- },
- "trip.arriveHint": {
-  "type": "string",
-  "value": "Avisa que ya llegaste al punto de recogida"
- },
  "trip.startRide": {
   "type": "string",
   "value": "Pasajero a bordo"
- },
- "trip.startRideHint": {
-  "type": "string",
-  "value": "Llega al punto de recogida para continuar"
- },
- "trip.arriveFirstHint": {
-  "type": "string",
-  "value": "Toca Llegué cuando estés en el punto de recogida"
  },
  "trip.finishRide": {
   "type": "string",

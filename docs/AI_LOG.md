@@ -3710,3 +3710,147 @@ Termina con "LISTO PARA CIERRE MANUAL DE ANDERSON". Sin recapitular pasos.
 - Hash de commit:
 - Verificación (la completa Anderson):
 - Aprendizaje (lo escribe Anderson):
+
+
+### Entrada #72 — Correcciones tras el build de release
+<!-- AI-assisted: see docs/AI_LOG.md #72 -->
+- Fecha de registro: 2026-11-16
+- Fecha del trabajo: 2026-11-16
+- Integrante: Anderson Londoño Avendaño
+- Herramienta / modelo: Claude Code (Sonnet 5.5)
+- Objetivo: corregir lo hallado en el APK de release: solicitudes automáticas que no llegaban (secuencia del reporte de disponibilidad), «Disponible» que no sobrevive al cierre de la app y botón manual «Llegué». Decisiones nuevas: D-199, D-200 y D-201 (enlazan a D-197 y D-198).
+- Prompt (textual):
+````
+PROMPT — Release: solicitudes automáticas que no llegan + «Disponible» que sobrevive al cierre + quitar el botón manual «Llegué»
+
+0. AI_LOG: crea UNA entrada nueva "Correcciones tras el build de release" con ESTE PROMPT COMPLETO,
+   textual, como "Prompt". Verificación, Aprendizaje y hash los completa Anderson. Declara las
+   decisiones nuevas (D-1xx, siguiente número libre) y enlaza a D-197 y D-198.
+
+EVIDENCIA (Anderson, 2026-11-16 20:16, APK de release compilado con el backend y el túnel activos)
+A) Con la app en release y «Disponible» activo, NO llegaban solicitudes automáticas, ni en segundo
+   plano ni con la pantalla de inicio abierta. La «Solicitud de prueba» sí llegaba. En desarrollo
+   (STOP-8 y STOP-8b) funcionaban. Anderson reinició el backend SIN tocar la app y las notificaciones
+   automáticas empezaron a llegar: queda CONFIRMADA la hipótesis del número de secuencia (el backend
+   recordaba en memoria un `seq` mayor que los que enviaba la app recién instalada y los ignoraba con
+   200). Log del backend tras el reinicio: POST /notifications/availability 200 (1578 ms, aplicada),
+   200 (1 ms, ignorada), 200 (439 ms, aplicada).
+B) La fase «Conductor llegando» tiene un botón «Llegué» habilitado: al pulsarlo desde lejos del cliente
+   pasa al paso siguiente como si el pasajero se teletransportara. Anderson no le ve propósito:
+   cuando el conductor llega de verdad al punto de recogida la app ya lo detecta sola («Llegaste al
+   punto de recogida») y aparece «Pasajero a bordo».
+C) El estado «Disponible» no se guarda: si el conductor lo deja activo y cierra la app del todo, el
+   backend sigue enviando solicitudes (su generador sigue vivo hasta el máximo de latido), llega la
+   notificación y, al abrirla, la app arranca en «No disponible» y muestra «Activa Disponible para
+   recibir solicitudes» aunque el conductor había dejado Disponible activado.
+
+REGLAS (iguales)
+Implementer implementa, verifier DISTINTO verifica, design-auditor para lo visual, el constructor no
+aprueba. Ante un rechazo: regístralo como evento, una ronda de corrección con otro implementer, nueva
+verificación; segundo rechazo → DETENTE. No leas ni imprimas .env, backend/.env, backend/secrets/* ni
+google-services.json. Cero secretos. Sin commit ni push. Sin git stash, reset ni checkout. SHOW_DEV_TOOLS
+=false. Sin dependencias nuevas, sin tocar app.json ni código nativo. Sin cambios de reglas de
+Firestore. Textos con paridad es/en. No puedes probar en dispositivo ni compilar. No dejes procesos de
+fondo. Sin spec larga: tareas T-nnn que continúan la numeración.
+
+PARTE A — Solicitudes automáticas en release (causa confirmada: número de secuencia)
+A1. El `seq` de la app debe ser monótono ENTRE reinicios y reinstalaciones. Comprueba de dónde sale hoy
+    (contador que empieza en cero o uno al abrir la app) y corrige: el instante en milisegundos como
+    base más un contador para desempatar en el mismo milisegundo, calculado como max(ahora, último + 1).
+    El backend sigue ignorando SOLO lo estrictamente más viejo o igual (la protección contra
+    reordenamiento de D-198 no puede regresar). Pruebas: arranque nuevo con el backend habiendo visto
+    números mayores, dos reinicios sucesivos de la app, reportes desordenados, reloj que retrocede un
+    poco (se conserva el máximo).
+A2. Reporte en release: comprueba que el reporte y el latido corren igual que en desarrollo (sin
+    __DEV__ ni dependencias del cliente de desarrollo) y que la disponibilidad efectiva se reenvía en
+    cuanto pasa a verdadera (notificaciones activadas, token registrado, sesión lista), sin esperar
+    al latido de 5 min. Prueba ese orden.
+A3. Visibilidad: SOLO en __DEV__, con códigos fijos y sin datos personales, una traza del resultado de
+    cada reporte (enviado, aplicado, ignorado por secuencia, falló y reintentará). En release no se
+    imprime nada. En el backend, un campo booleano `applied` en el cuerpo de la respuesta (el estado
+    HTTP no cambia) para que un ignorado no parezca éxito; declara el cambio de contrato. Si el
+    backend responde `applied: false` por secuencia vieja a un `true`, la app debe reintentar con un
+    `seq` mayor una sola vez (sin bucles) y dejar la traza de desarrollo.
+A4. Entrega un análisis breve en docs/ (sin secretos) con la causa real y archivo:línea.
+
+PARTE B — Quitar el botón manual «Llegué»
+B1. En la fase «Conductor llegando» no debe existir ningún control para forzar la llegada: quita
+    «Llegué», su texto de ayuda («Toca Llegué cuando…») y el botón «Pasajero a bordo» de esa fase. Solo
+    quedan el estado, la distancia y el tiempo restantes, el pasajero, la dirección de recogida y
+    «Cancelar viaje». «Pasajero a bordo» aparece únicamente en el estado «llegó al punto de recogida».
+B2. La llegada se detecta sola por cercanía al punto de recogida (ya existe). Conserva la función de
+    transición (la usa la detección y la máquina de estados) y la prueba de una sola transición y un
+    solo reporte; ajusta o elimina solo las pruebas del camino manual. Demuestra con archivo:línea
+    que sin el botón no puede quedar un viaje atascado en «conductor llegando» (ubicación desactivada
+    o fuente simulada).
+B3. Duración de la aproximación: mide por lectura de código cuánto dura la fase simulada de punta a
+    punta. Para una demostración de ≤ 5 minutos debe completarse en unos 20–30 s. Si hoy tarda mucho
+    más, acota SOLO la velocidad de la simulación en esa fase (un único sitio configurable) sin cambiar
+    la distancia, la duración ni la tarifa mostradas, y declara la decisión. Si la ubicación es real,
+    no la toques y repórtalo.
+B4. El design-auditor revisa la pantalla sin los botones (jerarquía, «Cancelar viaje» accesible y no el
+    único control destacado, fuente al 200 %). Elimina las claves es/en huérfanas manteniendo la
+    paridad y actualiza progress.md, la guía de estilo y el guion del video si mencionan «Llegué».
+B5. Documenta: «Llegué» manual se retira; el estado «conductor llegando» se conserva y la llegada es
+    automática (comportamiento correcto, no una limitación).
+
+PARTE C — «Disponible» sobrevive al cierre de la app
+C1. Guarda la disponibilidad en el almacenamiento local, por conductor (clave ligada al uid), con un
+    módulo en src/services como el de la preferencia de notificaciones; lecturas y escrituras a prueba
+    de fallos (nunca lanzan, un valor corrupto se lee como «no disponible»). Se escribe cuando el
+    conductor cambia el interruptor. Se BORRA al cerrar sesión y en el cierre por cambio de cuenta,
+    junto con la preferencia de notificaciones (mismo punto de limpieza, D-134), y nunca se hereda a
+    otro uid.
+C2. Al abrir la app y con sesión restaurada, se restaura SOLO si siguen cumpliéndose las condiciones
+    que hoy permiten estar disponible (cuenta aprobada, sin viaje en curso). Si no se cumplen,
+    arranca en «No disponible» sin error ni aviso. Comprueba si estar disponible exige además el
+    permiso de ubicación o la posición; si es así, restaura solo cuando se cumpla y, si no, arranca
+    en «No disponible» sin mensaje. Declara la regla.
+C3. Estado intermedio «restaurando»: la disponibilidad es tri-estado (restaurando, disponible, no
+    disponible). Mientras está «restaurando», la elegibilidad de una notificación tocada con la app
+    cerrada NO se evalúa ni muestra «Activa Disponible…»: la intención espera (puerta de D-146) hasta
+    que la disponibilidad se resuelva, con un tope de espera corto (≈ 2 s, configurable) tras el cual
+    se considera «no disponible». Mantén las reglas existentes: «No disponible» explícito sigue
+    mostrando el aviso una sola vez, sin apilar, y no se ofrece la solicitud. Ajusta
+    isDriverAvailable y su contrato para distinguir «aún no sé» de «false explícito».
+C4. Al restaurar «Disponible» la app reporta `true` al backend con un `seq` nuevo (A1) para
+    resincronizar el generador, y el reporte sigue las mismas reglas (sin viaje en curso, con
+    notificaciones activadas). Si el estado restaurado es «no disponible», no reporta `true`.
+C5. Pruebas (con almacenamiento falso y reloj inyectado): se guarda y se restaura por uid; el cierre
+    de sesión lo borra y otro uid no lo hereda; con viaje en curso o cuenta no aprobada arranca en «no
+    disponible»; un valor corrupto o un fallo de lectura arranca en «no disponible» sin lanzar; la
+    notificación tocada con la app cerrada y disponibilidad guardada «Disponible» se ofrece, no
+    muestra el aviso; con guardado «No disponible» muestra el aviso una vez; la espera tiene tope; la
+    restauración reporta `true` una sola vez; la preferencia no se escribe en Firestore (cero
+    escrituras, sin cambio de reglas).
+
+VERIFICACIÓN (verifiers distintos, por parte)
+Parte A: `seq` monótono entre arranques, contrato `applied`, nada de __DEV__ en el camino de release.
+Parte B: sin botones de forzado, sin viajes atascados, transiciones intactas, es/en en paridad. Parte C:
+persistencia por uid, limpieza en cierre de sesión, tri-estado, el aviso engañoso ya no sale en el
+arranque en frío, sin escrituras a Firestore. Pruebas completas (npm test) y check-constitution (base
+14 errores) sin regresión; cita cifras reales. «Validada» solo con evidencia de Anderson.
+
+ENTREGA
+Informe corto: causas reales, qué se corrigió, decisiones nuevas, hallazgos de los verifiers, cifras
+reales y el CHECKLIST STOP-9. Aclara que todo es JavaScript pero va DENTRO del APK de release, así que
+hay que recompilarlo: backend arriba, túnel con la MISMA URL que ya está en .env, `npx expo run:android
+--variant release`. Checklist en el release, SIN reiniciar el backend en ningún punto:
+(1) iniciar sesión, activar notificaciones y ponerse «Disponible»: la primera solicitud llega en 15–30 s
+    con la app en primer plano y las siguientes entre 60 y 120 s; (2) con la app en segundo plano
+    también llegan; (3) dejar «Disponible», cerrar la app del todo, esperar la notificación, tocarla:
+    la app abre la solicitud directamente, SIN el mensaje «Activa Disponible»; (4) cerrar la app del
+    todo, abrirla desde el ícono: el interruptor sigue en «Disponible»; (5) apagar «Disponible», cerrar
+    del todo y abrir: sigue en «No disponible» y no llegan nuevas; (6) cerrar sesión y entrar con otra
+    cuenta: arranca en «No disponible»; (7) cerrar y reabrir la app varias veces: siguen llegando
+    solicitudes sin tocar el backend; (8) aceptar una solicitud: «Conductor llegando» sin botones
+    «Llegué» ni «Pasajero a bordo»; la aproximación termina sola en unos 20–30 s y aparece «Pasajero a
+    bordo»; (9) completar el viaje y cobrar en efectivo; (10) «Cancelar viaje» funciona; (11) npm test.
+Termina con "ESPERANDO RESULTADO DE ANDERSON EN STOP-9". Sin recapitular pasos.
+````
+- Resumen de la respuesta (2–3 líneas): A) seq monótono persistido, `applied`/`lastSeq` en el backend y un reintento con seq mayor (D-199); B) se retiró el botón «Llegué», llegada automática y aproximación simulada acotada a 25 s (D-200); C) «Disponible» persistido por uid, restaurado con condiciones y tri-estado con tope de 2 s en la compuerta (D-201). Verifiers distintos aprobaron A, B y C por código; diseño aprobado por código tras una ronda de corrección. Pruebas: 453 (452 ok, 0 fallan, 1 omitida); check-constitution 14 errores (base). Nada probado en dispositivo.
+- Usado / modificado / descartado: lo completa Anderson.
+- Archivos: backend/src/notifications/generator.js, backend/src/routes/notifications.js, src/services/notifications/{seqStore,availabilityReporter,notificationsApi,notificationsService,eligibility,intentFlow}.js, src/services/{availabilityPreference,availabilityRestore}.js, src/config/{availability,trip}.js, src/context/{AvailabilityContext,TripContext,useSessionReset}.js, src/components/NotificationsBridge.js, src/screens/trip/TripActiveScreen.js, src/services/trip/tripController.js, i18n es/en, pruebas nuevas y ajustadas, docs (decisiones D-199..D-201, backlog T-282..T-290, analisis-solicitudes-release, auditoria-llegando). Anderson confirma con git status.
+- Hash de commit:
+- Verificación (la completa Anderson):
+- Aprendizaje (lo escribe Anderson):

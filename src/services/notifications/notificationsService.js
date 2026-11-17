@@ -5,6 +5,7 @@
 import { BACKEND_TIMEOUT_MS, BACKEND_URL } from '../../config/backend';
 import { auth } from '../firebase';
 import { createNotificationsApi } from './notificationsApi';
+import { logPushEvent } from './safeLog';
 
 export const notificationsApi = createNotificationsApi({
   fetchFn: (...args) => fetch(...args),
@@ -12,3 +13,7 @@ export const notificationsApi = createNotificationsApi({
   baseUrl: BACKEND_URL,
   timeoutMs: BACKEND_TIMEOUT_MS,
 });
+
+// AI-assisted: see docs/AI_LOG.md #72
+// Result trace of the availability reports (D-199): a fixed code only, and nothing at all outside __DEV__.
+export const traceAvailability = (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) });

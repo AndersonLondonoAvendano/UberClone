@@ -1,3 +1,4 @@
+// AI-assisted: see docs/AI_LOG.md #72 (T-285 removed arrive; T-286 caps the simulated pickup approach)
 // AI-assisted: see docs/AI_LOG.md #43
 // AI-assisted: see docs/AI_LOG.md #54 (reset and useOptionalTrip)
 // The trip in progress (T-44, T-45): one tripController at a time, shared by the request card, the
@@ -15,16 +16,17 @@
 
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import * as tripConfig from '../config/trip';
-import { TRIP_LOCATION_SOURCE, TRIP_SPEED_FACTOR } from '../config/trip';
+import { TRIP_LOCATION_SOURCE, TRIP_PICKUP_APPROACH_MAX_S, TRIP_SPEED_FACTOR } from '../config/trip';
 import { SIMULATED_SPEED_KMH } from '../config/location';
 import { DRIVER_LOCATION_IDLE_STATUS, TRIP_STATUS } from '../constants/tripStatus';
 import { publishDriverLocation, publishDriverTripStatus } from '../services/driverLocationPublisher';
 import { createTripLocationSource } from '../services/location';
+import { speedForMaxDuration } from '../services/location/simulatedLocationSource';
 import { cancelTrip, releaseTrip, reportDriverLocation, reportTripStatus } from '../services/passengerApi';
 import { getRoute } from '../services/routing';
 import { buildStraightLineRoute } from '../services/routing/straightLine';
 import { withResolvedAddresses } from '../services/geocoding/requestAddresses';
-import { createTripController } from '../services/trip/tripController';
+import { createTripController, TRIP_PHASE } from '../services/trip/tripController';
 import { saveTrip } from '../services/tripRepository';
 import { trackTripSave } from '../services/trip/saveQueue';
 import { saveWithRetry } from '../services/trip/saveRetry';
@@ -36,11 +38,18 @@ const TripContext = createContext(null);
 
 const api = { reportTripStatus, cancelTrip, reportDriverLocation };
 
-const createLocationSource = ({ coordinates }) =>
-  createTripLocationSource(TRIP_LOCATION_SOURCE, {
+// AI-assisted: see docs/AI_LOG.md #72 (T-286: the simulated approach to the pickup lasts at most
+// TRIP_PICKUP_APPROACH_MAX_S; the destination leg keeps the base speed)
+const createLocationSource = ({ coordinates, phase }) => {
+  const baseKmh = SIMULATED_SPEED_KMH * TRIP_SPEED_FACTOR;
+  return createTripLocationSource(TRIP_LOCATION_SOURCE, {
     coordinates,
-    speedKmh: SIMULATED_SPEED_KMH * TRIP_SPEED_FACTOR,
+    speedKmh:
+      phase === TRIP_PHASE.TO_PICKUP
+        ? speedForMaxDuration(coordinates, baseKmh, TRIP_PICKUP_APPROACH_MAX_S)
+        : baseKmh,
   });
+};
 
 // AI-assisted: see docs/AI_LOG.md #44
 // Never awaited and never throws: the UI does not wait for Firestore or the adapter.
@@ -142,8 +151,6 @@ export function TripProvider({ children }) {
 
   const actions = useMemo(
     () => ({
-      // AI-assisted: see docs/AI_LOG.md #66
-      arrive: () => call('arrive'),
       startRide: () => call('startRide'),
       finish: () => call('finish'),
       cancel: () => call('cancel'),

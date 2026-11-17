@@ -149,18 +149,17 @@ export const es = {
     // AI-assisted: see docs/AI_LOG.md #44
     remaining: '{km} km · {min} min',
     remainingCaption: 'restantes',
+    // AI-assisted: see docs/AI_LOG.md #72 (T-287 H-2: spoken label of the target address row)
+    pickupPointA11y: 'Punto de recogida: {address}',
+    destinationA11y: 'Destino: {address}',
     routeLoading: 'Calculando la ruta…',
     // AI-assisted: see docs/AI_LOG.md #61 (D-125: real address by reverse geocoding)
     addressSearching: 'Buscando dirección…',
     addressFallback: 'Calle cercana (simulada)',
     approxRoute: 'Ruta aproximada: sin conexión con el servidor de rutas, la línea recta no sigue las calles.',
     // AI-assisted: see docs/AI_LOG.md #44 ("Pasajero a bordo" states the fact; hints are visible text too)
-    // AI-assisted: see docs/AI_LOG.md #66 (manual arrival, RE-07)
-    arrive: 'Llegué',
-    arriveHint: 'Avisa que ya llegaste al punto de recogida',
+    // AI-assisted: see docs/AI_LOG.md #72 (D-200: no manual arrival, so no arrive or hint keys)
     startRide: 'Pasajero a bordo',
-    startRideHint: 'Llega al punto de recogida para continuar',
-    arriveFirstHint: 'Toca Llegué cuando estés en el punto de recogida',
     finishRide: 'Finalizar viaje',
     finishRideHint: 'Llega al destino para continuar',
     finishing: 'Avisando al pasajero que el viaje terminó…',

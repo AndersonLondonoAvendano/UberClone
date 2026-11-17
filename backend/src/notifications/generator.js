@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see docs/AI_LOG.md #72
 // In-memory generator of automatic simulated requests, one entry per uid.
 // Clock, random, timers, sending and eligibility are injected so it can be tested without real waiting.
 // Nothing here logs tokens, uids or bodies.
@@ -106,6 +107,13 @@ export function createAvailabilityGenerator({
 
   return {
     isStale,
+
+    // Last accepted seq of the uid (a safe integer) or null when none is known. Never returns anything else
+    // about the uid: the route uses it so the app can recover from an obsolete seq (D-199).
+    lastSeq(uid) {
+      const seq = accepted.get(uid)?.seq;
+      return Number.isSafeInteger(seq) ? seq : null;
+    },
 
     // Returns true when a generator is active (or capped, waiting for an unavailable report) for the uid.
     // `seq` is optional; a report with a seq <= the last accepted one is ignored before any effect.

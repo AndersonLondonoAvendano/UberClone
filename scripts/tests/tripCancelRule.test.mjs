@@ -10,7 +10,7 @@ const { TRIP_PHASE } = await import('../../src/services/trip/tripController.js')
 
 async function toAtPickup(ctx) {
   await ctx.controller.start();
-  ctx.controller.arrive();
+  ctx.handlers.onEnd(); // automatic arrival: the simulated walk reached the pickup (D-200)
   await settle();
 }
 
@@ -62,7 +62,7 @@ test('abandon keeps its result in every phase (CA-005-09)', async () => {
     const ctx = makeController();
     if (stage !== 'accepted') await ctx.controller.start();
     if (stage === 'atPickup' || stage === 'toDestination') {
-      ctx.controller.arrive();
+      ctx.handlers.onEnd();
       await settle();
     }
     if (stage === 'toDestination') {
@@ -77,7 +77,7 @@ test('abandon keeps its result in every phase (CA-005-09)', async () => {
   // At the destination: completed, even though cancel() is now blocked in in_progress.
   const ctx = makeController();
   await ctx.controller.start();
-  ctx.controller.arrive();
+  ctx.handlers.onEnd();
   await settle();
   await ctx.controller.startRide();
   ctx.handlers.onEnd();

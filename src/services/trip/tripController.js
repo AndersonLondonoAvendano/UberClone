@@ -41,7 +41,7 @@ export function createTripController({
   api, // { reportTripStatus, cancelTrip, reportDriverLocation }
   getRoute, // (from, to) => Promise<route>, rejects on failure (no fallback)
   buildStraightLineRoute, // (from, to) => route
-  createLocationSource, // ({ coordinates, start }) => { start({ onPosition, onError, onEnd }) => stop }
+  createLocationSource, // ({ coordinates, phase }) => { start({ onPosition, onError, onEnd }) => stop }
   publishLocation = () => Promise.resolve(false),
   // AI-assisted: see docs/AI_LOG.md #44
   publishStatus = () => Promise.resolve(false), // (finalStatus, position) => Promise, never awaited
@@ -298,7 +298,10 @@ export function createTripController({
     return true;
   }
 
-  // Automatic arrival (distance threshold, end of the walk) and the manual "Llegué" share this.
+  // AI-assisted: see docs/AI_LOG.md #72 (D-200)
+  // The arrival is automatic: distance threshold, end of the route, or already at the target when the leg
+  // begins. There is no manual "I've arrived". Calling it again does nothing: the phase check makes the
+  // driver_arrived transition and its single report happen once.
   function handleArrival() {
     stopMovement();
     if (state.phase === TRIP_PHASE.TO_PICKUP) {
@@ -337,7 +340,7 @@ export function createTripController({
     movementRound += 1;
     const round = movementRound;
     const active = () => !disposed && round === movementRound;
-    const source = createLocationSource({ coordinates });
+    const source = createLocationSource({ coordinates, phase: state.phase });
     const stop = source.start({
       onPosition: (position) => {
         if (active()) handlePosition(position);
@@ -416,18 +419,6 @@ export function createTripController({
     start() {
       changeStatus(TRIP_STATUS.DRIVER_ARRIVING);
       return beginLeg(TRIP_PHASE.TO_PICKUP, request.origin);
-    },
-
-    // AI-assisted: see docs/AI_LOG.md #66
-    // Manual "Llegué" (RE-07): only while driver_arriving on the pickup leg. It needs no position or
-    // loaded route. It goes through the same guard as the automatic detection, so whichever comes
-    // first makes the single driver_arrived transition and report; the other one does nothing.
-    arrive() {
-      if (disposed || state.finished) return false;
-      if (state.status !== TRIP_STATUS.DRIVER_ARRIVING || state.phase !== TRIP_PHASE.TO_PICKUP) return false;
-      if (!canTransition(state.status, TRIP_STATUS.DRIVER_ARRIVED)) return false;
-      handleArrival();
-      return state.status === TRIP_STATUS.DRIVER_ARRIVED;
     },
 
     startRide() {

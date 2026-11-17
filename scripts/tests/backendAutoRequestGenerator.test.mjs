@@ -369,3 +369,17 @@ test('the generator source never logs and holds no console calls', async () => {
   const source = await readFile(new URL('../../backend/src/notifications/generator.js', import.meta.url), 'utf8');
   assert.equal(/console\./.test(source), false);
 });
+
+test('D-199: lastSeq returns the last accepted seq as a safe integer, or null', () => {
+  const ctx = setup();
+  assert.equal(ctx.generator.lastSeq('u1'), null);
+  ctx.generator.report('u1', true); // no seq: nothing to remember
+  assert.equal(ctx.generator.lastSeq('u1'), null);
+  ctx.generator.report('u1', true, 50);
+  ctx.generator.report('u1', true, 40); // ignored: the last accepted stays
+  assert.equal(ctx.generator.lastSeq('u1'), 50);
+  ctx.generator.report('u1', false, 60);
+  assert.equal(ctx.generator.lastSeq('u1'), 60);
+  ctx.generator.close();
+  assert.equal(ctx.generator.lastSeq('u1'), null);
+});

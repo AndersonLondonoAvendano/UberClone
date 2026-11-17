@@ -35,10 +35,14 @@ function setup(available, intentData = data()) {
   return { intents, out, flow };
 }
 
-test('isDriverAvailable: only an explicit false blocks', () => {
+test('isDriverAvailable: only an explicit false blocks; null / restoring is "not known yet" (D-201)', () => {
   assert.equal(isDriverAvailable(true), true);
   assert.equal(isDriverAvailable(undefined), true);
   assert.equal(isDriverAvailable(false), false);
+  assert.equal(isDriverAvailable('available'), true);
+  assert.equal(isDriverAvailable('unavailable'), false);
+  assert.equal(isDriverAvailable(null), null);
+  assert.equal(isDriverAvailable('restoring'), null);
 });
 
 test('Disponible: the tapped request is offered, no notice', async () => {

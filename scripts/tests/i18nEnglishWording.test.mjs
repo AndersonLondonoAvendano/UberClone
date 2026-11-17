@@ -29,7 +29,7 @@ const CARD_PAYMENT_EXCEPTIONS = new Set([
 
 test('CA-006-43: en uses Reject, I\'ve arrived and Rejected', () => {
   assert.equal(en.trip.reject, 'Reject');
-  assert.equal(en.trip.arrive, "I've arrived");
+  assert.equal(en.trip.arrive, undefined);
   assert.equal(en.trip.paymentChip.rejected, 'Rejected');
   assert.equal(en.history.status.rejected, 'Rejected');
 });
@@ -51,7 +51,7 @@ test('CA-006-44: hints name the same actions as the buttons', () => {
   assert.match(en.trip.rejectHint, /^Rejects /);
   assert.match(en.trip.rejectCardHint, /^Rejects /);
   assert.match(en.trip.dismissHint, /without rejecting/);
-  assert.ok(en.trip.arriveFirstHint.includes(en.trip.arrive), 'arriveFirstHint must quote the button text');
+  assert.equal(en.trip.arriveFirstHint, undefined);
 });
 
 test('CA-006-46: delayValue(15) is "15 s" in both languages, on purpose', () => {

@@ -47,8 +47,8 @@ Suma: 20 + 30 + 40 + 20 + 35 + 20 + 50 + 25 + 20 + 30 = 290 s = 4:50. Si te pasa
 - **Digo:** «Si rechazo o dejo vencer la solicitud, queda en el Historial como rechazada, sin cobro.»
 
 ### 5. Estados del viaje (1:50–2:25)
-- **Se ve:** aceptar; «Conductor llegando»; «Llegué»; iniciar; ruta en el mapa; finalizar.
-- **Digo:** «Acepto, aviso que estoy llegando, inicio el viaje y lo finalizo. La ruta la calcula OSRM, un servidor público de demostración.»
+- **Se ve:** aceptar; «Conductor llegando» con distancia, tiempo y solo «Cancelar viaje» (no hay botón «Llegué»: la llegada es automática, D-200); al llegar, «Llegaste al punto de recogida» y «Pasajero a bordo»; iniciar; ruta en el mapa; finalizar.
+- **Digo:** «Acepto y el conductor llega solo al punto de recogida, la llegada se detecta automáticamente; entonces inicio el viaje y lo finalizo. La ruta la calcula OSRM, un servidor público de demostración.»
 
 ### 6. Cobro en efectivo (2:25–2:45)
 - **Se ve:** resumen con tarifa y comisión; «Confirmar cobro»; viaje guardado.
@@ -68,7 +68,7 @@ Suma: 20 + 30 + 40 + 20 + 35 + 20 + 50 + 25 + 20 + 30 = 290 s = 4:50. Si te pasa
 - **Digo:** «Ganancias muestra lo ganado y mi saldo con la plataforma, coherentes con el Historial.»
 
 ### 10. Cambio a inglés y cierre (4:20–4:50)
-- **Se ve:** Configuración → English: la interfaz cambia al instante; «Reject» e «I've arrived».
+- **Se ve:** Configuración → English: la interfaz cambia al instante; «Reject» y «Rejected»; en el viaje, «You arrived at the pickup point».
 - **Digo:** «Cambio a inglés y toda la interfaz cambia al instante. Límites: el texto de la notificación push sigue en español y solo probé Android. Mercado Pago está implementado pero no verificado con usuarios de prueba; la pasarela verificada de punta a punta es Stripe. Gracias.»
 - No afirmes que Mercado Pago funciona.
 

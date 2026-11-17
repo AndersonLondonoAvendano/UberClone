@@ -3,6 +3,9 @@
 // Pure: every dependency is injected. The intent is stored as soon as it arrives, without judging it;
 // it is evaluated only once the gate is ready (a session exists and the account status is resolved).
 // Ready: discard silently if foreign/unapproved/on a trip, "expired" if late, otherwise offer it.
+// D-201: while the availability is still 'restoring' (null) the intent waits parked (WAITING), at most
+// awaitAvailabilityMs from the first time it had to wait; after that it counts as "No disponible" (notice
+// once). The wait re-evaluates by itself at the cap through the injected timer (cancelWait() on unmount).
 import { ACCOUNT_STATUS } from '../../constants/accountStatus';
 import { INTENT_DECISION, ignoreReason, isDriverAvailable, resolveIntent } from './eligibility';
 import { requestFromIntent } from './pushRequest';
@@ -14,20 +17,62 @@ export const FLOW_RESULT = {
   EXPIRED: 'expired',
   ADOPTED: 'adopted',
   UNAVAILABLE: 'unavailable', // eligible request but the driver is not Disponible (A2, D-181)
+  WAITING: 'waiting', // the saved availability is still being restored (D-201); the intent stays parked
 };
 
 // getState() -> { uid, accountStatus, onTrip, available }; offer(request) -> boolean | Promise<boolean>;
-// showExpired(); showUnavailable(); log(code). `available` undefined counts as available (older callers).
+// showExpired(); showUnavailable(); log(code). `available` undefined counts as available (older callers);
+// null / 'restoring' means "not known yet" (see isDriverAvailable).
 // evaluate() is async (T-199): it resolves to a FLOW_RESULT once the offer (and its route lookup) finished.
-export function createIntentFlow({ intents, getState, offer, showExpired, showUnavailable = () => {}, now = () => Date.now(), log = () => {} }) {
-  return {
+export function createIntentFlow({
+  intents,
+  getState,
+  offer,
+  showExpired,
+  showUnavailable = () => {},
+  now = () => Date.now(),
+  log = () => {},
+  awaitAvailabilityMs = 0,
+  setTimeoutFn = (callback, ms) => setTimeout(callback, ms),
+  clearTimeoutFn = (handle) => clearTimeout(handle),
+}) {
+  let waitStartedAt = null;
+  let waitTimer = null;
+
+  const cancelWait = () => {
+    if (waitTimer !== null) clearTimeoutFn(waitTimer);
+    waitTimer = null;
+  };
+
+  const flow = {
     async evaluate() {
-      if (!intents.peek()) return FLOW_RESULT.NONE;
-      const { uid, accountStatus, onTrip, available } = getState();
+      if (!intents.peek()) {
+        waitStartedAt = null;
+        return FLOW_RESULT.NONE;
+      }
+      const { uid, accountStatus, onTrip, available: reported } = getState();
       if (!uid || accountStatus === ACCOUNT_STATUS.LOADING) {
         log('gate-pending');
         return FLOW_RESULT.PENDING;
       }
+      let available = reported;
+      if (isDriverAvailable(reported) === null) {
+        if (waitStartedAt === null) waitStartedAt = now();
+        const remaining = awaitAvailabilityMs - (now() - waitStartedAt);
+        if (remaining > 0) {
+          log('gate-pending:availability');
+          if (waitTimer === null) {
+            waitTimer = setTimeoutFn(() => {
+              waitTimer = null;
+              flow.evaluate().catch(() => {});
+            }, remaining);
+          }
+          return FLOW_RESULT.WAITING;
+        }
+        available = false; // the wait is over: counts as "No disponible"
+      }
+      cancelWait();
+      waitStartedAt = null;
       log('gate-ready');
       const intent = intents.take(uid); // always empties the store
       const ctx = {
@@ -75,7 +120,12 @@ export function createIntentFlow({ intents, getState, offer, showExpired, showUn
     },
     // Sign-out: nothing from the previous account survives.
     reset() {
+      cancelWait();
+      waitStartedAt = null;
       intents.reset();
     },
+    // Unmount: the pending re-evaluation timer is released (the intent stays parked).
+    cancelWait,
   };
+  return flow;
 }

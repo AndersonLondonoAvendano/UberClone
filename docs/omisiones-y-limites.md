@@ -121,6 +121,7 @@ Estado: decisiones **Aprobada salvo objeción** (D-185 aceptada por Anderson). *
 - **`acceptRequest` con «ya tomada/vencida» no guarda `rejected`:** no fue una decisión del conductor ni un vencimiento propio, así que no queda documento (también anotado en D-183).
 - **Saldo sin sesión (C2a):** sin `driverId` Ganancias muestra «Saldo no disponible» en vez de quedarse cargando.
 - **Salir del viaje (C2c), No verificado en dispositivo (pendiente, junto con los viajes antiguos):** a mitad de viaje el texto dice que queda cancelado y sin cobro; se guarda como `cancelled` con montos 0. En el destino se cierra como completado en el teléfono sin registrar el cobro.
+- **Llegada al punto de recogida automática (D-200, T-285), no es una limitación:** se retiró el botón manual «Llegué» (D-184 queda reemplazada en este punto); el estado `driver_arriving` («Conductor llegando») se conserva y la llegada se detecta sola por cercanía al punto de recogida o al terminar el recorrido simulado, y solo entonces aparece «Pasajero a bordo». Es el comportamiento correcto. En «Conductor llegando» solo queda «Cancelar viaje». **No verificado en dispositivo** (STOP-9); auditoría estática en `docs/diseno/auditoria-llegando-2026-11-16.md`.
 - **Chip «Rechazados» (T-231) OMITIDO:** decisión de Anderson (2026-11-16); los `rejected` salen en la lista con su etiqueta, sin filtro por estado.
 
 ## Límites del lote L3: idioma español/inglés (spec 006; RI-24, D-188 a D-192)
@@ -182,3 +183,13 @@ Solicitudes automáticas simuladas (RA-04, RA-17, RA-18, RA-19; D-197). Estado e
 - La barrera de `fire()` no tiene prueba aislada; se cubre de forma indirecta con las pruebas de orden y de temporizador.
 
 **Operación.** Hay que reiniciar el backend para que lea las variables y el endpoint. El túnel y `EXPO_PUBLIC_BACKEND_URL` no cambian.
+
+
+## Límites de «Disponible» persistido (#72, D-201)
+
+- Una notificación push recibida en primer plano durante los primeros milisegundos de «restaurando» se ignora sin aviso (la tocada con la app cerrada sí espera ≈2 s).
+- Si el estado de la cuenta queda en error al abrir, arranca «No disponible» en silencio y no reintenta hasta que el conductor lo active.
+- Un apagado por permiso o ubicación del sistema no cambia lo guardado: al reabrir con todo activo se restaura «Disponible».
+- Carrera estrecha (verifier, M-1): si el conductor toca el interruptor durante «restaurando» y falla en milisegundos, la restauración podría encender igualmente. Impacto bajo.
+- Concurrencia en el backend (verifier A): dos reportes simultáneos del mismo uid podrían devolver `applied:true` sin aplicarse; el siguiente latido lo corrige.
+- Todo lo anterior: No verificado en dispositivo (STOP-9).

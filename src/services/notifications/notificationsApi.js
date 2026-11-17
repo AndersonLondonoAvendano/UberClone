@@ -55,7 +55,11 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
       try {
         const json = await response.json();
         if (typeof json?.active !== 'boolean') return fail(NOTIFICATIONS_ERROR.SERVER);
-        return { ok: true, active: json.active };
+        const result = { ok: true, active: json.active };
+        // D-199: `applied` and `lastSeq` only when they have the right type; an old backend omits both.
+        if (typeof json.applied === 'boolean') result.applied = json.applied;
+        if (Number.isSafeInteger(json.lastSeq)) result.lastSeq = json.lastSeq;
+        return result;
       } catch {
         return fail(NOTIFICATIONS_ERROR.SERVER);
       }
@@ -78,8 +82,10 @@ export function createNotificationsApi({ fetchFn, getToken, baseUrl, timeoutMs =
     },
     // Tells the backend whether the driver is available. The body is only { available } or { available, seq }
     // (seq only when it is a safe integer > 0): no location, no uid, no personal data. Resolves
-    // { ok: true, active } (server generator running) or { ok: false, error }.
+    // { ok: true, active[, applied][, lastSeq] } (server generator running; applied:false means the backend
+    // ignored an obsolete seq and lastSeq is the last one it accepted) or { ok: false, error }.
     // AI-assisted: see docs/AI_LOG.md #70
+    // AI-assisted: see docs/AI_LOG.md #72
     reportAvailability(available, seq) {
       if (typeof available !== 'boolean') return Promise.resolve(fail(NOTIFICATIONS_ERROR.SERVER));
       const body = Number.isSafeInteger(seq) && seq > 0 ? { available, seq } : { available };

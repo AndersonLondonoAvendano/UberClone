@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #70
+// AI-assisted: see docs/AI_LOG.md #72
 // Reports the driver's effective availability to the backend and keeps the "backend confirmed" flag that
 // feeds chooseRequestSource (spec 007, DT-4, DT-5, DT-6; STOP-8 correction, D-198). Pure and injectable:
 // the notifications api, the clock and the timers come from the caller, so a script can drive it without
@@ -14,7 +15,8 @@
 //  - stamps every send (retries included) with a new seq, strictly greater than the previous one, so the
 //    backend can drop a "true" that arrives after a newer "false";
 //  - evaluates the effective value at send time: a "true" only leaves if effective && !stopped right then;
-//  - sets the confirmation only when the last "true" report answers { ok: true, active: true };
+//  - sets the confirmation only when the last "true" report answers { ok: true, active: true } and not
+//    applied:false;
 //  - clears it at once when the value stops being effective, when a "true" report fails or answers
 //    active:false, and on stop();
 //  - retries a failed "false" 3 times (waits FALSE_RETRY_DELAYS_MS) while "not available" is still wanted;
@@ -24,14 +26,23 @@
 //    covers that case;
 //  - when a "true" report is not confirmed it sends a "false" with the same retry mechanism, so a server
 //    generator that did process it does not keep running next to the in-app simulator. A lost "true"
-//    never reactivates anything by itself: the next "true" is the next legitimate heartbeat.
+//    never reactivates anything by itself: the next "true" is the next legitimate heartbeat;
+//  - D-199: the seq is max(now, last used + 1), and the last used one is loaded from `seqStore` before the
+//    first send and saved after every stamp, so it keeps growing across restarts and reinstalls (a failing
+//    store only means the clock is used alone);
+//  - D-199: a report answered { ok: true, applied: false, lastSeq } was ignored by the backend as obsolete;
+//    it is sent ONCE more with a seq greater than lastSeq (no loops). If that is ignored too it is neither
+//    confirmed nor acknowledged;
+//  - nothing here depends on __DEV__ or on a dev client: it only needs the injected api. `trace` (optional)
+//    receives fixed codes (availability:sent|applied|ignored-seq|retry-greater-seq|failed-retry|failed); the
+//    caller decides whether they are printed (only in __DEV__).
 
 export const HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000;
 export const MIN_HEARTBEAT_GAP_MS = 60 * 1000;
 // Waits before retry 1, 2 and 3 of a failed "false" (so 3 retries after the initial attempt).
 export const FALSE_RETRY_DELAYS_MS = [1000, 2000, 4000];
 
-export function createAvailabilityReporter({ api, now, setTimeout: setTimer, clearTimeout: clearTimer, onConfirmedChange }) {
+export function createAvailabilityReporter({ api, now, setTimeout: setTimer, clearTimeout: clearTimer, onConfirmedChange, seqStore, trace }) {
   let effective = false;
   let inForeground = false;
   let confirmed = false;
@@ -65,16 +76,76 @@ export function createAvailabilityReporter({ api, now, setTimeout: setTimer, cle
     let stamp = Number(now());
     if (!Number.isSafeInteger(stamp)) stamp = 0;
     lastSeq = Math.max(stamp, lastSeq + 1);
+    if (seqStore) {
+      // Saved without waiting; the store keeps the writes in order and never rejects.
+      try {
+        Promise.resolve(seqStore.save(lastSeq)).catch(() => {});
+      } catch {
+        // A store failure must not break the reporter.
+      }
+    }
     return lastSeq;
   };
 
-  const callApi = async (value) => {
+  const emit = (code) => {
+    if (typeof trace !== 'function') return;
+    try {
+      trace(code);
+    } catch {
+      // A trace failure must not break the reporter.
+    }
+  };
+
+  // The stored seq is read once, before the first send. Every send waits for the same promise, so the order
+  // of the sends (and of their seqs) is kept. A failed read leaves the clock as the only base.
+  let loading = null;
+  const ensureLoaded = () => {
+    if (!seqStore) return null;
+    if (loading === null) {
+      loading = (async () => {
+        try {
+          const stored = await seqStore.load();
+          if (Number.isSafeInteger(stored) && stored > lastSeq) lastSeq = stored;
+        } catch {
+          // Fall back to the clock.
+        }
+      })();
+    }
+    return loading;
+  };
+
+  const sendOnce = async (value) => {
+    const ready = ensureLoaded();
+    if (ready) await ready;
+    emit('availability:sent');
     try {
       const result = await api.reportAvailability(value, nextSeq());
       return result && typeof result === 'object' ? result : { ok: false };
     } catch {
       return { ok: false };
     }
+  };
+
+  const wasIgnored = (result) => result.ok === true && result.applied === false;
+
+  // Sends the report; when the backend ignored it as obsolete and says which seq it has, sends it once more
+  // with a greater one, but only while `stillWanted()` holds (a retry never resurrects an obsolete report).
+  // The second answer is final.
+  const callApi = async (value, stillWanted = () => true) => {
+    let result = await sendOnce(value);
+    if (wasIgnored(result) && Number.isSafeInteger(result.lastSeq)) {
+      emit('availability:ignored-seq');
+      lastSeq = Math.max(lastSeq, result.lastSeq);
+      if (!stillWanted()) return result;
+      emit('availability:retry-greater-seq');
+      result = await sendOnce(value);
+      if (result.ok !== true || wasIgnored(result)) emit('availability:failed-retry');
+      else emit('availability:applied');
+      return result;
+    }
+    if (wasIgnored(result)) emit('availability:ignored-seq');
+    else emit(result.ok === true ? 'availability:applied' : 'availability:failed');
+    return result;
   };
 
   const disarm = () => {
@@ -110,11 +181,11 @@ export function createAvailabilityReporter({ api, now, setTimeout: setTimer, cle
     falseBusy = true;
     falseGen += 1;
     const mine = falseGen;
-    const result = await callApi(false);
+    const result = await callApi(false, () => !stopped && falseWanted && mine === falseGen);
     if (stopped || mine !== falseGen) return;
     falseBusy = false;
     if (!falseWanted) return;
-    if (result.ok === true) {
+    if (result.ok === true && result.applied !== false) {
       pendingFalse = false;
       return;
     }
@@ -139,9 +210,9 @@ export function createAvailabilityReporter({ api, now, setTimeout: setTimer, cle
     lastTrueReportAt = now();
     epoch += 1;
     const mine = epoch;
-    const result = await callApi(true);
+    const result = await callApi(true, () => !stopped && effective && mine === epoch);
     if (stopped || mine !== epoch || !effective) return;
-    if (result.ok === true && result.active === true) {
+    if (result.ok === true && result.active === true && result.applied !== false) {
       setConfirmed(true);
       return;
     }

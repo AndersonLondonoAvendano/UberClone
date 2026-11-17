@@ -19,10 +19,20 @@ export function resolveIntent(intent, { session, accountApproved, onTrip, now })
   return INTENT_DECISION.OPEN;
 }
 
-// A2 (D-181): a request is offered only while the driver is Disponible. undefined counts as available
-// so callers that do not track it keep the D-133/D-146 behavior.
+// D-201: availability has three states. 'restoring' = the saved choice is still being read.
+export const AVAILABILITY_STATE = {
+  RESTORING: 'restoring',
+  AVAILABLE: 'available',
+  UNAVAILABLE: 'unavailable',
+};
+
+// A2 (D-181) + D-201: a request is offered only while the driver is Disponible.
+// Returns true (offer), false (explicit "No disponible": notice, nothing offered) or null (still
+// restoring: not known yet, the caller waits). Accepts the booleans or the state strings. undefined counts
+// as available so callers that do not track it keep the D-133/D-146 behavior.
 export function isDriverAvailable(available) {
-  return available !== false;
+  if (available === null || available === AVAILABILITY_STATE.RESTORING) return null;
+  return available !== false && available !== AVAILABILITY_STATE.UNAVAILABLE;
 }
 
 // Single-slot notice: a second notice while one is visible is dropped (no repeat, no stack).

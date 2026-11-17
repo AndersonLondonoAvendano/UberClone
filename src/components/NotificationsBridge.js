@@ -1,4 +1,5 @@
 // AI-assisted: see docs/AI_LOG.md #67
+// AI-assisted: see docs/AI_LOG.md #72
 // AI-assisted: see docs/AI_LOG.md #64
 // Connects push notifications to the app (T-183, D-130, D-140). Mounted once inside the providers
 // (MainDrawer), so a session exists. Foreground messages and notification taps become a trip request
@@ -9,6 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AVAILABILITY_RESTORE_WAIT_MS } from '../config/availability';
 import { EXPIRED_NOTICE_MS } from '../config/trip';
 import { ACCOUNT_STATUS } from '../constants/accountStatus';
 import { labels } from '../constants/labels';
@@ -28,7 +30,7 @@ import { color, radius, space, type } from '../theme/tokens';
 export function NotificationsBridge({ currentRoute = null, getNavigation = () => null }) {
   useLanguage();
   const { driverId, accountStatus } = useAppState();
-  const { onTrip, isAvailable, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
+  const { onTrip, availabilityState, offerPushRequest, pendingRequest, requestScreenId, setRequestOrigin } = useAvailability();
   const insets = useSafeAreaInsets();
   const [notice, setNotice] = useState(null);
   // A2 (D-181): single slot; a notice shown while another is visible is dropped (no repeat, no stack).
@@ -39,7 +41,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
 
   // Latest values for the long-lived subscriptions (no resubscribe on every change).
   const latest = useRef({});
-  latest.current = { driverId, accountStatus, onTrip, isAvailable, offerPushRequest, pendingRequest };
+  latest.current = { driverId, accountStatus, onTrip, availabilityState, offerPushRequest, pendingRequest };
 
   const decide = useCallback((intent) => {
     const { driverId: uid, accountStatus: status, onTrip: busy } = latest.current;
@@ -57,7 +59,10 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
       if (decision === INTENT_DECISION.EXPIRED) showNotice(labels.trip.pushExpired);
       else if (decision === INTENT_DECISION.OPEN) {
         // A2 (D-181): not Disponible -> brief notice, nothing offered (checked after expiry).
-        if (!isDriverAvailable(latest.current.isAvailable)) {
+        // D-201: while the saved choice is still restoring nothing is decided: no notice, not offered.
+        const availability = isDriverAvailable(latest.current.availabilityState);
+        if (availability === null) return;
+        if (availability === false) {
           showNotice(labels.trip.unavailableNotice);
           return;
         }
@@ -79,7 +84,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
           uid: latest.current.driverId,
           accountStatus: latest.current.accountStatus,
           onTrip: latest.current.onTrip,
-          available: latest.current.isAvailable,
+          available: latest.current.availabilityState,
         }),
         offer: async (request) => {
           const hasSamePending = latest.current.pendingRequest?.id === request.id;
@@ -95,6 +100,7 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
         showExpired: () => showNotice(labels.trip.pushExpired),
         showUnavailable: () => showNotice(labels.trip.unavailableNotice),
         log: (code) => logPushEvent(code, { isDev: __DEV__, log: (message) => console.log(message) }),
+        awaitAvailabilityMs: AVAILABILITY_RESTORE_WAIT_MS,
       }),
     [showNotice],
   );
@@ -120,9 +126,11 @@ export function NotificationsBridge({ currentRoute = null, getNavigation = () =>
   }, [handle, takeParked]);
 
   // An intent parked before the session or the account status was resolved is evaluated as soon as it is.
+  // D-201: it also re-evaluates when the saved availability finishes restoring; the flow's own timer ends the wait.
   useEffect(() => {
     takeParked();
-  }, [driverId, accountStatus, takeParked]);
+  }, [driverId, accountStatus, availabilityState, takeParked]);
+  useEffect(() => () => flow.cancelWait(), [flow]);
 
   // Registers this phone's push token for the signed-in, approved driver (T-184/T-186, D-131): at start,
   // on token refresh, and again for another account on the same phone (the effect restarts per uid).

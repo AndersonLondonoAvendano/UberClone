@@ -4328,3 +4328,15 @@ La spec 007 está en **Borrador, no aprobada**; Anderson ordenó continuar (#70)
 - Diseño hecho cuando: N/A.
 - Diseño: N/A
 - Estado: Implementada
+
+## Correcciones tras el build de release (T-282 a T-290; D-199, D-200, D-201)
+Requisitos: RE-AUTO (solicitudes automáticas, D-197/D-198), RE-07 (llegada), RF-08 (disponibilidad), RF-71/RF-74 (notificaciones). Prompt en AI_LOG #72.
+- T-282 — Parte A backend: `applied` y `lastSeq` en la respuesta de disponibilidad (D-199). Estado: Implementada
+- T-283 — Parte A app: `seq` monótona entre reinicios, reintento único con `applied:false`, rastro solo `__DEV__`, envío inmediato al quedar efectiva (D-199). Estado: Implementada
+- T-284 — Parte A: análisis en docs con causa real y archivo:línea. Estado: Implementada
+- T-285 — Parte B: quitar «Llegué», ayuda y «Pasajero a bordo» de «Conductor llegando»; claves es/en huérfanas; pruebas (D-200). Estado: Implementada
+- T-286 — Parte B: duración de la aproximación simulada y prueba de que no hay viaje atascado (D-200). Estado: Implementada
+- T-287 — Parte B: auditoría de diseño de la pantalla sin botones; guía de estilo, guion y progress. Diseño: Aprobado (por código; No verificado en dispositivo; ronda 2 resolvió H-1 y H-2, H-3 baja sin bloquear, `docs/diseno/auditoria-llegando-2026-11-16.md`). Estado: Pendiente
+- T-288 — Parte C: módulo de disponibilidad local por uid y limpieza al cerrar sesión (D-201). Estado: Implementada
+- T-289 — Parte C: restauración, estado de tres valores, compuerta de la notificación con tope de espera (D-201). Estado: Implementada
+- T-290 — Parte C: informe `true` único al restaurar y pruebas completas (D-201). Estado: Implementada
